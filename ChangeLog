@@ -1,0 +1,72 @@
+2014-03-25 Martin Gallo <mgallo@coresecurity.com>
+
+	* - Version v0.1.4 released at Troopers'14.
+	* - Changelog now in GNU format.
+	* - Changed setup from distutils to setuptools.
+	* - Added some unit tests.
+	* - Arranged most of the code according to PEP8. 
+	* pysap/SAPDiagItems.py: Fixed some support bits and added new ones found
+	on SAP GUI version 7.30.
+	* pysap/SAPDiagItems.py: Added new Diag Items: WindowsSize.
+	* pysap/SAPEnqueue.py: New packet classes. Crafting of Enqueue Server
+	packets: Connection Admin and Server Admin.
+	* pysap/SAPNI.py: Fixed handling of NI_PING keep-alive requests.
+	* pysap/SAPNI.py: Added logging namespace 'sapni' for all NI layer
+	activity.
+	* pysap/SAPMS.py: New packet classes. Crafting of Message Server packets.
+	* pysap/SAPRouter.py: New packet classes. Crafting of SAP Router packets:
+	Route, Admin, Control and Error Information.
+	* pysap/SAPSNC.py: New packet class. Container for SNC Frame packets.
+	* pysapcompress/pysapcompress.cpp: Splitted exception class in two:
+	CompressError and DecompressError.
+	* examples/ms_change_param.py: Added example for retrieving or changing a 
+	parameter value using MS Admin set_param commands.
+	* examples/ms_dump_info.py: New example script for retrieving information
+	using MS Admin dump commands. 
+	* examples/ms_impersonator.py: New example script for impersonating an
+	application server connected to a Message Server service instance.
+	* examples/ms_listener.py: New example script for connecting to a Message
+	Server and listening for messages coming from the server.
+	* examples/ms_messager.py: New example script for sending a message to a
+	connected client throught the Message Server.
+	* examples/ms_monitor.py: New example script for monitoring the Message
+	Server service (msmon tool on steroids).
+	* examples/ms_observer.py: New example script for connecting to a Message
+	Server service and observe clients connecting to it (msprot tool).
+	* examples/router_admin.py: New example script for performing
+	administrative tasks on a SAP Route. Includes undocumented commands.
+	* examples/router_portfw.py: New example script for routing native
+	connections through SAP Router. 
+	* examples/router_scanner.py: New example script for scanning internal
+	hosts using SAP Router.
+
+2013-08-28  Martin Gallo  <mgallo@coresecurity.com>
+
+	* - Version v0.1.3 released.
+	* - Added general documentation and setup.py command to build it using
+	epydoc.
+	* pysap/SAPNI.py: Refactored the SAP Diag Proxy and Server modules to a
+	base NI	implementation.
+	* pysapcompress/pysapcompress.cpp: Added handling of error return codes.
+	* examples/diag_interceptor.py: Refactored to use the new NIProxy
+	implementation. Fixed some hanging issues. Thanks Florian Grunow for the
+	feedbackm!
+	* examples/diag_login_brute_force.py: Handling of license errors.
+
+2012-09-27  Martin Gallo  <mgallo@coresecurity.com>
+
+	* - Version v0.1.2 released at Brucon'12.
+	* pysap/SAPNI.py, pysap/SAPDiag.py: Network Interface packet class moved to
+	a new module. Binding of the SAPNI/protocol layer is performed now by each
+	script to allow the use of different protocols with SAPNI.
+	* pysap/SAPNI.py: Added a NI Stream Socket class for using it instead of
+	the	base Stream Socket.
+	* pysap/SAPDiagItems.py: Added new Diag Atom types, as used in NW 7.01 and
+	early versions.
+	* examples/diag_rogue_server.py: Minor fixes.
+	* examples/diag_render_login_screen.py: Minor fixes.
+	* examples/diag_login_brute_force.py: Added multi-thread support.
+
+2012-07-29  Martin Gallo  <mgallo@coresecurity.com>
+
+	* - Initial version v0.1.1 releaseed at Defcon 20.
