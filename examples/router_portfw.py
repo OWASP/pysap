@@ -25,7 +25,7 @@ from optparse import OptionParser, OptionGroup
 from scapy.config import conf
 from scapy.supersocket import socket
 # Custom imports
-from pysap.SAPNI import SAPNIProxy, SAPNIProxyHandler, SAPNIStreamSocket
+from pysap.SAPNI import SAPNIProxy, SAPNIProxyHandler
 from pysap.SAPRouter import SAPRouter, router_is_error, router_is_pong,\
     SAPRouterRouteHop
 
