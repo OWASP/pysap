@@ -26,7 +26,7 @@ from scapy.config import conf
 from scapy.supersocket import socket
 # Custom imports
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
-from pysap.SAPRouter import SAPRouter, router_is_error, router_is_control
+from pysap.SAPRouter import SAPRouter, router_is_error, get_router_version
 
 
 # Set the verbosity to 0
@@ -83,15 +83,6 @@ def parse_options():
         parser.error("Remote host is required")
 
     return options
-
-
-# Retrieve the version of the remote SAP Router
-def get_router_version(connection):
-    r = connection.sr(SAPRouter(type=SAPRouter.SAPROUTER_CONTROL, version=40, opcode=1))
-    if router_is_control(r) and r.opcode == 2:
-        return r.version
-    else:
-        return None
 
 
 # Main function

@@ -327,6 +327,22 @@ class SAPRouter(Packet):
         ]
 
 
+# Retrieve the version of the remote SAP Router
+def get_router_version(connection):
+    """ Helper function to retrieve the version of a remote SAP Router.
+
+    @param connection: connection with the SAP Router
+    @type connection: L{SAPNIStreamSocket}
+
+    @return: version or None
+    """
+    r = connection.sr(SAPRouter(type=SAPRouter.SAPROUTER_CONTROL, version=40, opcode=1))
+    if router_is_control(r) and r.opcode == 2:
+        return r.version
+    else:
+        return None
+
+
 # Bind SAP NI with the SAP Router port
 bind_layers(TCP, SAPNI, dport=3999)
 

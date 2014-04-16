@@ -33,7 +33,7 @@ from scapy.supersocket import socket
 # Custom imports
 from pysap.SAPNI import SAPNIStreamSocket
 from pysap.SAPRouter import SAPRouter, router_is_error, router_is_pong,\
-    SAPRouterRouteHop
+    SAPRouterRouteHop, get_router_version
 
 
 # Set the verbosity to 0
@@ -64,6 +64,7 @@ def parse_options():
     target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3299)
     target.add_option("-t", "--target-hosts", dest="target_hosts", help="Target hosts to scan")
     target.add_option("-r", "--target-ports", dest="target_ports", help="Target ports to scan")
+    target.add_option("--router-version", dest="router_version", type="int", help="SAP Router version to use [retrieve from the remote SAP Router]")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
@@ -129,6 +130,8 @@ def route_test(rhost, rport, thost, tport):
     elif router_is_pong(response):
         status = 'open'
 
+    conn.close()
+
     return status
 
 
@@ -141,6 +144,15 @@ def main():
 
     print "[*] Connecting to SAP Router %s:%d" % (options.remote_host,
                                                   options.remote_port)
+
+    # Retrieve the router version used by the server if not specified
+    if options.router_version is None:
+        sock = socket.socket()
+        sock.connect((options.remote_host, options.remote_port))
+        conn = SAPNIStreamSocket(sock, keep_alive=False)
+        options.router_version = get_router_version(conn)
+        conn.close()
+    print "[*] Using SAP Router version %d" % options.router_version
 
     results = []
     for (host, port) in parse_target_hosts(options.target_hosts, options.target_ports):
