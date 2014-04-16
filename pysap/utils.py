@@ -119,6 +119,10 @@ class StrNullFixedLenField(StrFixedLenField):
     """ Packet field that has a fixed length and is null-terminated.
 
     """
+    def __init__(self, name, default, length=None, length_from=None, max_length=None):
+        self.max_length = max_length or 200
+        StrFixedLenField.__init__(self, name, default, length=length, length_from=length_from)
+
     def i2repr(self, pkt, v):
         if type(v) is str:
             v = v.rstrip("\0")
@@ -136,7 +140,7 @@ class StrNullFixedLenField(StrFixedLenField):
         try:
             l = self.length_from(None)
         except:
-            l = RandTermString(RandNum(0, 200), "\x00")
+            l = RandTermString(RandNum(0, self.max_length), "\x00")
         return RandBin(l)
 
 
