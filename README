@@ -71,6 +71,23 @@ This tool counts with the following components:
 Installation & Build:
 ====================
 
+The tool relays on the Scapy [2] library for crafting packets. Epydoc is also
+required for building the API documentation. To install the required libraries
+use:
+
+	pip install -r requirements.txt
+
+Some example scripts has additional required libraries:
+
+	tabulate
+	netaddr
+	wxPython
+
+Those libraries can be installed using:
+
+	pip install -r requirements-optional.txt 
+
+
 Install using Python's setuptools. Installation is as follows:
 
 1) python setup.py test
