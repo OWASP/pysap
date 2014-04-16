@@ -82,6 +82,7 @@ Some example scripts has additional required libraries:
 	tabulate
 	netaddr
 	wxPython
+	fau_timer (https://code.google.com/p/fau-timer/)
 
 Those libraries can be installed using:
 
