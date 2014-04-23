@@ -361,6 +361,10 @@ class SAPNIServerThreaded(ThreadingTCPServer):
     """ @ivar: Clients connected to the server
         @type: L{clients_cls} """
 
+    options = None
+    """ @ivar: Options
+        @type: L{Values} """
+
 
 class SAPNIServerHandler(BaseRequestHandler):
     """

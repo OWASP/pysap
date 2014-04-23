@@ -56,10 +56,12 @@ class SAPDiagClient(SAPNIClient):
 
 class SAPDiagServerHandler(SAPNIServerHandler):
 
-    hostname = 'BruConDemo'
-    sid = 'BRU'
-    client = '001'
-    session_title = 'BruCon Demo'
+    def __init__(self, request, client_address, server):
+        self.hostname = server.options.server_hostname
+        self.client = server.options.server_client
+        self.sid = server.options.server_sid
+        self.session_title = server.options.server_session_title
+        SAPNIServerHandler.__init__(self, request, client_address, server)
 
     def make_login_screen(self):
         return [
@@ -74,12 +76,12 @@ class SAPDiagServerHandler(SAPNIServerHandler):
             SAPDiagItem(item_value='S000                                ', item_type=16, item_id=6, item_sid=7),
             SAPDiagItem(item_value='\x00\x00\x00\x00\x00\x00!\x00\x00\x00\x00\x00\x00\x00\x16T', item_type=1),
             SAPDiagItem(item_value=SAPDiagAreaSize(area_height=22, area_width=84, window_width=84, window_height=22), item_type=16, item_id=12, item_sid=7),
-            SAPDiagItem(item_value='SAP R/3 (1) NSP     ', item_type=16, item_id=12, item_sid=10),
+            SAPDiagItem(item_value='SAP R/3 (1) %s     ' % self.sid, item_type=16, item_id=12, item_sid=10),
             SAPDiagItem(item_value='SAPMSYST                                ', item_type=16, item_id=6, item_sid=15),
             SAPDiagItem(item_value='SAPMSYST                                ', item_type=16, item_id=6, item_sid=13),
             SAPDiagItem(item_value='0020                ', item_type=16, item_id=6, item_sid=16),
             SAPDiagItem(item_value='0020', item_type=16, item_id=6, item_sid=14),
-            SAPDiagItem(item_value=SAPDiagMenuEntries(entries=[SAPDiagMenuEntry(accelerator='D', text='BruCon Demo', position_1=1, flag_TERM_VKEY=1L, return_code_1=1, flag_TERM_SEL=1L, length=35),
+            SAPDiagItem(item_value=SAPDiagMenuEntries(entries=[SAPDiagMenuEntry(accelerator='D', text=self.session_title, position_1=1, flag_TERM_VKEY=1L, return_code_1=1, flag_TERM_SEL=1L, length=24 + len(self.session_title)),
                                                                ]), item_type=18, item_id=11, item_sid=1),
             SAPDiagItem(item_value=SAPDiagMenuEntries(entries=[SAPDiagMenuEntry(accelerator='', text='New password', virtual_key=5, return_code_1=5, info='New password', flag_TERM_SEL=1L, length=47),
                                                                ]), item_type=18, item_id=11, item_sid=3),
@@ -89,7 +91,7 @@ class SAPDiagServerHandler(SAPNIServerHandler):
             SAPDiagItem(item_value=self.session_title, item_type=16, item_id=12, item_sid=9),
             SAPDiagItem(item_value=SAPDiagDyntAtom(items=[SAPDiagDyntAtomItem(text='Client            ', maxnrchars=18, dlg_flag_2=2, atom_length=37, etype=132, attr_DIAG_BSD_PROTECTED=1L, mlen=18, dlen=18, attr_DIAG_BSD_PROPFONT=1L, block=1, col=1),
                                                           SAPDiagDyntAtomItem(dlg_flag_2=2, atom_length=24, text='RSYST-MANDT', etype=114, attr_DIAG_BSD_PROTECTED=1L, attr_DIAG_BSD_PROPFONT=1L, block=1, col=1),
-                                                          SAPDiagDyntAtomItem(text='001', attr_DIAG_BSD_YES3D=1L, maxnrchars=3, atom_length=22, etype=130, mlen=3, dlen=3, block=1, col=20),
+                                                          SAPDiagDyntAtomItem(text=self.client, attr_DIAG_BSD_YES3D=1L, maxnrchars=3, atom_length=22, etype=130, mlen=3, dlen=3, block=1, col=20),
                                                           SAPDiagDyntAtomItem(attr_DIAG_BSD_YES3D=1L, atom_length=24, text='RSYST-MANDT', etype=114, block=1, col=20),
                                                           SAPDiagDyntAtomItem(attr_DIAG_BSD_YES3D=1L, atom_length=79, text='<Propertybag><DefaultTooltip>Client</DefaultTooltip></Propertybag>', etype=120, block=1, col=20),
                                                           SAPDiagDyntAtomItem(text='User              ', maxnrchars=18, row=2, dlg_flag_2=3, atom_length=37, etype=132, attr_DIAG_BSD_PROTECTED=1L, mlen=18, dlen=18, attr_DIAG_BSD_PROPFONT=1L, block=1, col=1),
@@ -107,7 +109,7 @@ class SAPDiagServerHandler(SAPNIServerHandler):
                                                           SAPDiagDyntAtomItem(text='  ', attr_DIAG_BSD_YES3D=1L, maxnrchars=2, row=5, atom_length=21, etype=130, mlen=2, dlen=2, block=1, col=20),
                                                           SAPDiagDyntAtomItem(attr_DIAG_BSD_YES3D=1L, row=5, atom_length=24, text='RSYST-LANGU', etype=114, block=1, col=20),
                                                           SAPDiagDyntAtomItem(atom_length=81, attr_DIAG_BSD_YES3D=1L, text='<Propertybag><DefaultTooltip>Language</DefaultTooltip></Propertybag>', etype=120, col=20, block=1, row=5),
-                                                          SAPDiagDyntAtomItem(text='BruCon Demo       ', maxnrchars=18, row=7, dlg_flag_2=2, atom_length=37, etype=132, attr_DIAG_BSD_PROTECTED=1L, mlen=18, dlen=18, attr_DIAG_BSD_PROPFONT=1L, block=1, col=1),
+                                                          SAPDiagDyntAtomItem(text=self.session_title, maxnrchars=18, row=7, dlg_flag_2=2, atom_length=37, etype=132, attr_DIAG_BSD_PROTECTED=1L, mlen=18, dlen=18, attr_DIAG_BSD_PROPFONT=1L, block=1, col=1),
                                                           ]), item_type=18, item_id=9, item_sid=2),
             ]
 
@@ -120,7 +122,7 @@ class SAPDiagServerHandler(SAPNIServerHandler):
                 SAPDiagItem(item_value=self.hostname, item_type=16, item_id=6, item_sid=33),
                 SAPDiagItem(item_value='TRADESHOW\x00', item_type=16, item_id=6, item_sid=37),
                 SAPDiagItem(item_value='702\x007200\x0070\x00', item_type=16, item_id=6, item_sid=41),
-                SAPDiagItem(item_value='SAP R/3 (1) NSP     ', item_type=16, item_id=12, item_sid=10),
+                SAPDiagItem(item_value='SAP R/3 (1) %s     ' % self.sid, item_type=16, item_id=12, item_sid=10),
                 SAPDiagItem(item_value='SAPMSYST                                ', item_type=16, item_id=6, item_sid=15),
                 SAPDiagItem(item_value='0020                ', item_type=16, item_id=6, item_sid=16),
                 SAPDiagItem(item_value='SAPMSYST                                ', item_type=16, item_id=6, item_sid=13),
@@ -224,6 +226,12 @@ def parse_options():
     local.add_option("-l", "--local-port", dest="local_port", type="int", help="Local port [%default]", default=3200)
     parser.add_option_group(local)
 
+    server = OptionGroup(parser, "Server")
+    server.add_option("--sid", dest="server_sid", help="System ID", default="PRD")
+    server.add_option("--client", dest="server_client", help="Default Client", default="001")
+    server.add_option("--hostname", dest="server_hostname", help="Hostname", default="SAPNWPRD")
+    server.add_option("--session-title", dest="server_session_title", help="Session Title", default="SAP Netweaver Demo Server")
+
     misc = OptionGroup(parser, "Misc options")
     misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose output [%default]")
     parser.add_option_group(misc)
@@ -243,6 +251,7 @@ def main():
     print "[*] Setting up the Diag server on %s:%d" % (options.local_host, options.local_port)
     server = SAPDiagThreadedServer((options.local_host, options.local_port), SAPDiagServerHandler)
     server.allow_reuse_address = True
+    server.options = options
     print "[*] Waiting for clients ..."
     try:
         server.serve_forever()
