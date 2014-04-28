@@ -95,8 +95,8 @@ class SAPDiagConnection(object):
     def init(self):
         """
         Sends an initialization request. If the socket wasn't created,
-        call the L{connect} method. If compression was specified, the 
-        initialization will be performed using the respective User 
+        call the L{connect} method. If compression was specified, the
+        initialization will be performed using the respective User
         Connect item.
 
         @return: initialization response (usually login screen)
@@ -113,7 +113,7 @@ class SAPDiagConnection(object):
             user_connect = user_connect_uncompressed
 
         # The initialization is always performed uncompressed
-        self.initialized = True  #XXX: Check that the respose was ok
+        self.initialized = True  # XXX: Check that the respose was ok
 
         return self.sr(SAPDiagDP(terminal=self.terminal) /
                        SAPDiag(compress=0, com_flag_TERM_INI=1) /
@@ -174,7 +174,7 @@ class SAPDiagConnection(object):
 
     def sr_message(self, msg):
         """
-        Sends and receive a L{SAPDiag<SAPDiag.SAPDiag>} message, prepending th 
+        Sends and receive a L{SAPDiag<SAPDiag.SAPDiag>} message, prepending the
         Diag header.
 
         @param msg: items to send
