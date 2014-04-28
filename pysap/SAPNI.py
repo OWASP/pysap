@@ -293,7 +293,7 @@ class SAPNIProxyHandler(object):
         # Process the packet using the given function
         packet = process(packet)
         # Send the packet to the remote peer
-        remote.sendall(packet.payload)
+        remote.send(packet.payload)
         log_sapni.debug("SAPNIProxyHandler: Sent %d bytes", len(packet))
 
     def _upload(self):
