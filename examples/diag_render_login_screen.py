@@ -86,10 +86,10 @@ class DiagScreen(wx.Frame):
         self.session_title = wx.StaticBox(self, label=session_title)
 
         self.container = wx.StaticBoxSizer(self.session_title, wx.VERTICAL)
-        self.maincontainer.Add(self.container, flag=wx.EXPAND|wx.ALL, border=10)
+        self.maincontainer.Add(self.container, flag=wx.EXPAND | wx.ALL, border=10)
 
         self.buttonbar = wx.ToolBar(self)
-        self.container.Add(self.buttonbar, flag=wx.EXPAND|wx.ALL, border=10)
+        self.container.Add(self.buttonbar, flag=wx.EXPAND | wx.ALL, border=10)
 
         self.content = wx.GridBagSizer()
         self.container.Add(self.content)
@@ -110,7 +110,7 @@ class DiagScreen(wx.Frame):
         text_control = wx.StaticText(self, label=text)
         if tooltip:
             text_control.SetTooltip(tooltip)
-        self.content.Add(text_control, pos=(y, x), flag=wx.TOP|wx.LEFT|wx.BOTTOM, border=5)
+        self.content.Add(text_control, pos=(y, x), flag=wx.TOP | wx.LEFT | wx.BOTTOM, border=5)
 
     def add_text_box(self, x, y, maxlength, text, invisible=0):
         if invisible:
@@ -119,7 +119,7 @@ class DiagScreen(wx.Frame):
             textbox_control = wx.TextCtrl(self)
         textbox_control.SetMaxLength(maxlength)
         textbox_control.SetValue(text)
-        self.content.Add(textbox_control, pos=(y, x), flag=wx.TOP|wx.LEFT|wx.BOTTOM, border=5)
+        self.content.Add(textbox_control, pos=(y, x), flag=wx.TOP | wx.LEFT | wx.BOTTOM, border=5)
 
     def add_button(self, text):
         button = wx.Button(self.buttonbar, wx.ID_ANY, text)
