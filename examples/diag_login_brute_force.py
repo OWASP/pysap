@@ -265,6 +265,11 @@ def main():
         print "[*] Not discovering clients, using", options.client, "or client supplied in credentials file"
         client_list = options.client.split(',')
 
+    # Check if we should test for passwords or finish only with the discovery
+    if not options.credentials or not(options.usernames and options.passwords):
+        print "[*] Not testing passwords as credentials or usernames/passwords files were not provided"
+        exit(0)
+
     # Build the test cases using either the supplied credentials file (username:password:client) or the username/password file
     testcases = []
     if options.credentials:
