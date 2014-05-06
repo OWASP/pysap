@@ -309,13 +309,13 @@ bind_diagitem(SAPDiagSupportBits, 0x06, 0x11)
 # SAP EHP 2 for SAP NetWeaver 7.0:  ff7ffe2dd8b737d674087e1305971597ebf23f8d0370ff0f0000000000000000
 #
 
-support_data_sapgui_701_win =   SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1593ef73feebdb5501000000000000000000"))
-support_data_sapgui_702_win =   SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1593ef73feebdb51ed010000000000000000"))
-support_data_sapgui_730_win =   SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed910200000000000000"))
+support_data_sapgui_701_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1593ef73feebdb5501000000000000000000"))
+support_data_sapgui_702_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1593ef73feebdb51ed010000000000000000"))
+support_data_sapgui_730_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed910200000000000000"))
 support_data_sapgui_702_java2 = SAPDiagSupportBits(unhex("ff7ffe2ddab737d674087e1305971597eff23f8d0770ff030000000000000000"))
 support_data_sapgui_702_java5 = SAPDiagSupportBits(unhex("ff7ffe2ddab737d674087e1305971597eff23f8d0770ff0f0000000000000000"))
-support_data_sapnw_701 =        SAPDiagSupportBits(unhex("ff7ffe2dd8b737d674087e1305971597ebf22f8d03300f000000000000000000"))
-support_data_sapnw_702 =        SAPDiagSupportBits(unhex("ff7ffe2dd8b737d674087e1305971597ebf23f8d0370ff0f0000000000000000"))
+support_data_sapnw_701 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737d674087e1305971597ebf22f8d03300f000000000000000000"))
+support_data_sapnw_702 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737d674087e1305971597ebf23f8d0370ff0f0000000000000000"))
 
 support_data = SAPDiagItem(item_type="APPL",
                            item_id="ST_USER",
@@ -403,10 +403,11 @@ class SAPDiagDyntAtomItem(PacketNoPadded):
         ConditionalField(StrNullField("function_code", ""), lambda pkt:pkt.etype in [116]),
         ConditionalField(StrNullField("id", ""), lambda pkt:pkt.etype in [116]),
         # DIAG_DGOTYP_EFIELD_1 or DIAG_DGOTYP_OFIELD_1 or DIAG_DGOTYP_KEYWORD_1
-        ConditionalField(ByteField("mlen", 0), lambda pkt:pkt.etype in [121, 122, 123]),
-        ConditionalField(FieldLenField("dlen", None, fmt="B", length_of="text"), lambda pkt:pkt.etype in [121, 122, 123]),
-        ConditionalField(ShortField("maxnrchars", 0), lambda pkt:pkt.etype in [121, 122, 123]),
-        ConditionalField(StrLenField("text", "", length_from=lambda pkt:pkt.dlen), lambda pkt:pkt.etype in [121, 122, 123]),
+        ConditionalField(ByteField("flag1_1", 0), lambda pkt:pkt.etype in [121, 122, 123]),
+        ConditionalField(FieldLenField("dlen_1", None, fmt="B", length_of="text_1"), lambda pkt:pkt.etype in [121, 122, 123]),
+        ConditionalField(ByteField("mlen_1", 0), lambda pkt:pkt.etype in [121, 122, 123]),
+        ConditionalField(ShortField("maxnrchars_1", 0), lambda pkt:pkt.etype in [121, 122, 123]),
+        ConditionalField(StrLenField("text_1", "", length_from=lambda pkt:pkt.dlen_1), lambda pkt:pkt.etype in [121, 122, 123]),
         # DIAG_DGOTYP_FRAME_1
         ConditionalField(ShortField("drows", 0), lambda pkt:pkt.etype in [127]),
         ConditionalField(ShortField("dcols", 0), lambda pkt:pkt.etype in [127]),

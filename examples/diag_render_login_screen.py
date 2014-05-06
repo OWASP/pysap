@@ -170,7 +170,6 @@ def render_diag_screen(screen, verbose):
     client = get_item_value(screen, 0x10, 0x06, 0x0c)
     session_icon = get_item_value(screen, 0x10, 0x0c, 0x0a)
     session_title = get_item_value(screen, 0x10, 0x0c, 0x09)
-    atoms = get_item_value(screen, 0x12, 0x09, 0x02)
     menus = get_item_value(screen, 0x12, 0x0b, 0x01)
     menudetails = get_item_value(screen, 0x12, 0x0b, 0x02)
     buttonbars = get_item_value(screen, 0x12, 0x0b, 0x03)
@@ -188,21 +187,37 @@ def render_diag_screen(screen, verbose):
     login_frame = DiagScreen(None, "%s (%s)" % (session_icon, client), areasize.window_height, areasize.window_width, session_title, dbname, cpuname)
 
     # Render the atoms (control boxes and labels)
-    if len(atoms) > 0:
-        for atom in atoms.items:
-            if atom.etype in [123, 132]:  # DIAG_DGOTYP_KEYWORD_1 or DIAG_DGOTYP_KEYWORD_2
-                if atom.text.find("@\Q") >= 0:
-                    tooltip = atom.text.split("@")[1][2:]
-                    atom.text = atom.text.split("@")[2]
+    atoms = screen.get_item(0x12, 0x09, 0x02)
+    if atoms and len(atoms) > 0:
+        for atom in atoms:
+            for atom_item in atom.item_value.items:
+
+                if atom_item.etype in [121, 123]:
+                    text = atom_item.text_1
+                    maxnrchars = atom_item.maxnrchars_1
+                elif atom_item.etype in [130, 132]:
+                    text = atom_item.text
+                    maxnrchars = atom_item.maxnrchars
                 else:
-                    tooltip = None
-                if verbose:
-                    print "[*] Found text label at %d,%d: \"%s\" (maxlength=%d) (tooltip=\"%s\")" % (atom.col, atom.row, atom.text.strip(), atom.maxnrchars, tooltip)
-                login_frame.add_text(atom.col, atom.row, atom.maxnrchars, atom.text)
-            elif atom.etype in [121, 130]:  # DIAG_DGOTYP_EFIELD_1 or DIAG_DGOTYP_EFIELD_2
-                if verbose:
-                    print "[*] Found text box at %d,%d: \"%s\" (maxlength=%d)" % (atom.col, atom.row, atom.text.strip(), atom.maxnrchars)
-                login_frame.add_text_box(atom.col, atom.row, atom.maxnrchars, atom.text.strip(), atom.attr_DIAG_BSD_INVISIBLE == 1)
+                    text = None
+                    maxnrchars = 0
+
+                if text is not None:
+                    if atom_item.etype in [123, 132]:  # DIAG_DGOTYP_KEYWORD_1 or DIAG_DGOTYP_KEYWORD_2
+                            if text.find("@\Q") >= 0:
+                                tooltip = text.split("@")[1][2:]
+                                text = text.split("@")[2]
+                            else:
+                                tooltip = None
+                            if verbose:
+                                print "[*] Found text label at %d,%d: \"%s\" (maxlength=%d) (tooltip=\"%s\")" % (atom_item.col, atom_item.row, text.strip(), maxnrchars, tooltip)
+                            login_frame.add_text(atom_item.col, atom_item.row, maxnrchars, text)
+                    elif atom_item.etype in [121, 130]:  # DIAG_DGOTYP_EFIELD_1 or DIAG_DGOTYP_EFIELD_2
+                        if verbose:
+                            print "[*] Found text box at %d,%d: \"%s\" (maxlength=%d)" % (atom_item.col, atom_item.row, text.strip(), maxnrchars)
+                        login_frame.add_text_box(atom_item.col, atom_item.row, maxnrchars, text.strip(), atom_item.attr_DIAG_BSD_INVISIBLE == 1)
+                else:
+                    print "[*] Found label without text"
 
     # Render the menus
     if len(menus) > 0:
