@@ -607,7 +607,7 @@ bind_diagitem(SAPDiagUIEventSource, 0x0f, 0x01)
 # Diag SES
 class SAPDiagSES(PacketNoPadded):
     name = "SES"
-    fields_sec = [
+    fields_desc = [
         ByteField("eventarray", 0),
         ByteField("eventid1", 0),
         ByteField("eventid2", 0),
