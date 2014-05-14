@@ -134,7 +134,7 @@ class SAPEnqueueTracePattern(PacketNoPadded):
     name = "SAP Enqueue Server Admin Trace Pattern"
     fields_desc = [
         FieldLenField("len", None, length_of="pattern", fmt="B"),
-        StrNullFixedLenField("pattern", "", max_length=0xff),
+        StrNullFixedLenField("pattern", "", length_from=lambda pkt:pkt.len, max_length=0xff),
         ]
 
 
@@ -192,7 +192,7 @@ class SAPEnqueue(PacketNoPadded):
         ConditionalField(IntField("adm_trace_level", 1), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
         ConditionalField(IntField("adm_trace_level1", 1), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
         ConditionalField(ByteField("adm_trace_logging", 0), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
-        ConditionalField(IntField("adm_trace_unknown2", 0), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
+        ConditionalField(IntField("adm_trace_max_file_size", 20 * 1024 * 1024), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
         ConditionalField(FieldLenField("adm_trace_nopatterns", 0, count_of="adm_trace_patterns", fmt="!I"), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
         ConditionalField(FieldLenField("adm_trace_nopatterns1", 0, count_of="adm_trace_patterns", fmt="!I"), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
         ConditionalField(IntField("adm_trace_unknown3", 37), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
