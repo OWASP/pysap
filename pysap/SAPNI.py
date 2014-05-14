@@ -45,13 +45,13 @@ class SAPNI(Packet):
     respective layer with the respective protocol.
 
     For example, a script using the SAP Diag protocol must include the
-    following binds:
+    following binds::
 
-    C{bind_layers(SAPNI,      SAPDiag, )
-    bind_layers(SAPNI,      SAPDiagDP, )
-    bind_layers(SAPDiagDP,  SAPDiag, )
-    bind_layers(SAPDiag,    SAPDiagItem, )
-    bind_layers(SAPDiagItem,SAPDiagItem, )}
+        bind_layers(SAPNI,      SAPDiag, )
+        bind_layers(SAPNI,      SAPDiagDP, )
+        bind_layers(SAPDiagDP,  SAPDiag, )
+        bind_layers(SAPDiag,    SAPDiagItem, )
+        bind_layers(SAPDiagItem,SAPDiagItem, )
 
     """
     name = "SAP NI (Network Interface) protocol"
@@ -181,9 +181,9 @@ class SAPNIProxy(object):
     It works by setting a listener L{SAPNIStreamSocket} and dispatching client's
     requests to a given handler class.
 
-    Example usage:
-    C{proxy = SAPNIProxy(local_host, local_port, remote_host, remote_port, handler_class)
-    proxy.handle_connection()}
+    Example usage::
+        proxy = SAPNIProxy(local_host, local_port, remote_host, remote_port, handler_class)
+        proxy.handle_connection()
     """
 
     def __init__(self, bind_address, bind_port, remote_address, remote_port,
