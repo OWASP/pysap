@@ -155,6 +155,24 @@ class SAPNIStreamSocket(StreamSocket):
         self.send(packet)
         return self.recv()
 
+    @classmethod
+    def get_nisocket(cls, host, port):
+        """
+        Helper function to obtain a L{SAPNIStreamSocket}.
+
+        @param host: host to connect to
+        @type host: C{string}
+
+        @param port: port to connect to
+        @type port: C{int}
+
+        @return: connected socket
+        @rtype: L{SAPNIStreamSocket}
+        """
+        sock = socket.socket()
+        sock.connect((host, port))
+        return cls(sock)
+
 
 class SAPNIProxy(object):
     """
@@ -347,10 +365,10 @@ class SAPNIServerThreaded(ThreadingTCPServer):
     Subclasses must define a client class for keeping state information
     on the connected clients.
 
-    Example usage:
-    C{server = SAPNIServerThreaded((local_host, local_port), handler_class)
-    server.client_cls = client_class
-    server.serve_forever()}
+    Example usage::
+        server = SAPNIServerThreaded((local_host, local_port), handler_class)
+        server.client_cls = client_class
+        server.serve_forever()
     """
     # XXX: Implement a socket server using a NIStreamSocket
     clients_cls = SAPNIClient
@@ -362,8 +380,8 @@ class SAPNIServerThreaded(ThreadingTCPServer):
         @type: L{clients_cls} """
 
     options = None
-    """ @ivar: Options
-        @type: L{Values} """
+    """ @ivar: Options to pass to the request handler
+        @type: C{object} """
 
 
 class SAPNIServerHandler(BaseRequestHandler):
