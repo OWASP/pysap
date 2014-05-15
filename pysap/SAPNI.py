@@ -156,7 +156,7 @@ class SAPNIStreamSocket(StreamSocket):
         return self.recv()
 
     @classmethod
-    def get_nisocket(cls, host, port):
+    def get_nisocket(cls, host, port, **kwargs):
         """
         Helper function to obtain a L{SAPNIStreamSocket}.
 
@@ -166,12 +166,14 @@ class SAPNIStreamSocket(StreamSocket):
         @param port: port to connect to
         @type port: C{int}
 
+        @keyword kwargs: arguments to pass to L{SAPNIStreamSocket} constructor
+
         @return: connected socket
         @rtype: L{SAPNIStreamSocket}
         """
         sock = socket.socket()
         sock.connect((host, port))
-        return cls(sock)
+        return cls(sock, **kwargs)
 
 
 class SAPNIProxy(object):
