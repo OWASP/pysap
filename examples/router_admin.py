@@ -23,7 +23,6 @@ import logging
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
-from scapy.supersocket import socket
 # Custom imports
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
 from pysap.SAPRouter import SAPRouter, router_is_error, get_router_version

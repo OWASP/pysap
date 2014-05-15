@@ -24,8 +24,7 @@ from socket import error as SocketError
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
-from scapy.supersocket import socket
-from scapy.packet import bind_layers, Raw
+from scapy.packet import bind_layers
 # Custom imports
 from pysap.utils import BaseConsole
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket

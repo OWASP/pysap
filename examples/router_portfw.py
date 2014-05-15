@@ -20,10 +20,10 @@
 
 # Standard imports
 import logging
+from socket import error as SocketError
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
-from scapy.supersocket import socket
 # Custom imports
 from pysap.SAPNI import SAPNIProxy, SAPNIProxyHandler
 from pysap.SAPRouter import SAPRouter, router_is_error, router_is_pong,\
@@ -150,7 +150,7 @@ class SAPRouterNativeRouter(SAPNIProxyHandler):
             if len(packet) == 0:
                 local.close()
                 #remote.close()
-                raise socket.error((100, "Underlying stream socket tore down"))
+                raise SocketError((100, "Underlying stream socket tore down"))
 
             # Send the packet to the remote peer
             remote.ins.sendall(packet)
@@ -182,7 +182,7 @@ def main():
         while (True):
             try:
                 proxy.handle_connection()
-            except socket.error, e:
+            except SocketError as e:
                 print "[*] Socket Error %s" % e
 
     except KeyboardInterrupt:

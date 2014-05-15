@@ -25,7 +25,6 @@ from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
 from scapy.packet import bind_layers
-from scapy.supersocket import socket
 # Custom imports
 from pysap.utils import BaseConsole
 from pysap.SAPNI import SAPNI
@@ -65,9 +64,7 @@ class SAPEnqueueAdminConsole(BaseConsole):
 
         # Create the socket connection
         try:
-            sock = socket.socket()
-            sock.connect((self.options.remote_host, self.options.remote_port))
-            self.connection = SAPEnqueueStreamSocket(sock)
+            self.connection = SAPEnqueueStreamSocket.get_nisocket(self.options.remote_host, self.options.remote_port)
         except SocketError as e:
             self._error("Error connecting with the Enqueue Server")
             self._error(str(e))

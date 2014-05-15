@@ -29,7 +29,6 @@ except ImportError:
     netaddr = None
 
 from scapy.config import conf
-from scapy.supersocket import socket
 # Custom imports
 from pysap.SAPNI import SAPNIStreamSocket
 from pysap.SAPRouter import SAPRouter, router_is_error, router_is_pong,\
@@ -145,9 +144,7 @@ def main():
 
     # Retrieve the router version used by the server if not specified
     if options.router_version is None:
-        sock = socket.socket()
-        sock.connect((options.remote_host, options.remote_port))
-        conn = SAPNIStreamSocket(sock, keep_alive=False)
+        conn = SAPNIStreamSocket.get_nisocket(options.remote_host, options.remote_port, keep_alive=False)
         options.router_version = get_router_version(conn)
         conn.close()
     print "[*] Using SAP Router version %d" % options.router_version

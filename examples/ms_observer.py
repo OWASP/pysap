@@ -20,11 +20,11 @@
 
 # Standard imports
 import logging
+from socket import error as SocketError
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
 from scapy.packet import bind_layers
-from scapy.supersocket import socket
 # Custom imports
 from pysap.SAPMS import SAPMS
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
@@ -138,7 +138,7 @@ def main():
                 if options.verbose:
                     print "[*] Modified client %s (host=%s, service=%s, port=%d)" % (client.client.strip(), client.host.strip(), client.service.strip(), client.servno)
 
-    except socket.error:
+    except SocketError:
         print "[*] Connection error"
     except KeyboardInterrupt:
         print "[*] Cancelled by the user"

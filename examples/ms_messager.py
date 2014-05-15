@@ -24,7 +24,6 @@ from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
 from scapy.packet import bind_layers, Raw
-from scapy.supersocket import socket
 # Custom imports
 from pysap.SAPMS import SAPMS
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
