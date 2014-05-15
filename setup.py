@@ -84,7 +84,7 @@ Currently the following SAP protocols are included:
 
 setup(  # Package information
         name=name,
-        version='0.1.4',
+        version='0.1.5',
         author='Martin Gallo',
         author_email='mgallo@coresecurity.com',
         description='Python library for crafting SAP\'s network protocols packets',
