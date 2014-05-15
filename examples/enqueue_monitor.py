@@ -133,6 +133,21 @@ class SAPEnqueueAdminConsole(BaseConsole):
         response.show()
         self._debug("Performed dummy request")
 
+    def do_get_replication_info(self, args):
+        """ Get information about the status and statistics of the replication. """
+
+        if not self.connected:
+            self._error("You need to connect to the server first !")
+            return
+
+        # Send Get Replication Info
+        p = SAPEnqueue(dest=3, adm_opcode=4)
+
+        self._debug("Sending get replication info request")
+        response = self.connection.sr(p)[SAPEnqueue]
+        response.show()
+        self._debug("Obtained replication info")
+
 
 # Command line options parser
 def parse_options():
