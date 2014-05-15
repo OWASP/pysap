@@ -96,9 +96,7 @@ class SAPMSMonitorConsole(BaseConsole):
 
         # Create the socket connection
         try:
-            sock = socket.socket()
-            sock.connect((self.options.remote_host, self.options.remote_port))
-            self.connection = SAPNIStreamSocket(sock)
+            self.connection = SAPNIStreamSocket.get_nisocket(self.options.remote_host, self.options.remote_port)
         except SocketError as e:
             self._error("Error connecting with the Message Server")
             self._error(str(e))

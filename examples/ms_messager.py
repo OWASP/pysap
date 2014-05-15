@@ -83,9 +83,7 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     # Initiate the connection
-    sock = socket.socket()
-    sock.connect((options.remote_host, options.remote_port))
-    conn = SAPNIStreamSocket(sock)
+    conn = SAPNIStreamSocket.get_nisocket(options.remote_host, options.remote_port)
     print "[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port)
 
     client_string = options.client

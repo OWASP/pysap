@@ -166,9 +166,7 @@ def main():
         return
 
     # Initiate the connection
-    sock = socket.socket()
-    sock.connect((options.remote_host, options.remote_port))
-    conn = SAPNIStreamSocket(sock)
+    conn = SAPNIStreamSocket.get_nisocket(options.remote_host, options.remote_port)
     print "[*] Connected to the SAP Router %s:%d" % (options.remote_host, options.remote_port)
 
     # Retrieve the router version used by the server if not specified

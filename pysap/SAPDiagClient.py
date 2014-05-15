@@ -88,9 +88,7 @@ class SAPDiagConnection(object):
         """
         Creates a L{SAPNIStreamSocket} connection to the host/port
         """
-        sock = socket.socket()
-        sock.connect((self.host, self.port))
-        self._connection = SAPNIStreamSocket(sock)
+        self._connection = SAPNIStreamSocket.get_nisocket(self.host, self.port)
 
     def init(self):
         """

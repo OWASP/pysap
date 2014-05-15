@@ -103,9 +103,7 @@ def route_test(rhost, rport, thost, tport):
 
     # Initiate the connection. We don't want the NI Stream Socket to handle
     # keep-alive messages, as the response to connect requests are NI_PONG
-    sock = socket.socket()
-    sock.connect((rhost, rport))
-    conn = SAPNIStreamSocket(sock, keep_alive=False)
+    conn = SAPNIStreamSocket.get_nisocket(rhost, rport, keep_alive=False)
 
     router_string = [SAPRouterRouteHop(hostname=rhost,
                                        port=rport),
