@@ -17,8 +17,8 @@
 ## GNU General Public License for more details.
 ##==============
 
-# External imports
-from scapy.supersocket import socket
+# Standard imports
+from socket import error as SocketError
 # Custom imports
 from pysap.SAPNI import SAPNIStreamSocket
 from pysap.SAPDiag import SAPDiag, SAPDiagDP, SAPDiagItem
@@ -167,7 +167,7 @@ class SAPDiagConnection(object):
         try:
             self.send(SAPDiag(compress=0, com_flag_TERM_EOC=1))
             self._connection.close()
-        except socket.error:  # We don't care about socket errors at this time
+        except SocketError:  # We don't care about socket errors at this time
             pass
 
     def sr_message(self, msg):
