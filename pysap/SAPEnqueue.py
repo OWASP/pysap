@@ -146,7 +146,7 @@ class SAPEnqueueParam(PacketNoPadded):
     fields_desc = [
         IntEnumField("param", 0, enqueue_param_values),
         ConditionalField(IntField("len", 0), lambda pkt:pkt.param in [0x06]),
-        ConditionalField(IntField("value", 0), lambda pkt:pkt.param not in [0x03]),
+        ConditionalField(IntField("value", 0), lambda pkt:pkt.param not in [0x03, 0x04]),
         ConditionalField(StrNullField("set_name", ""), lambda pkt:pkt.param in [0x03]),
         ]
 
