@@ -613,6 +613,7 @@ class SAPDiagSES(PacketNoPadded):
         ByteField("eventid2", 0),
         ByteField("eventid3", 0),
         ByteField("eventid4", 0),
+        ByteField("eventid5", 0),
         ByteField("screen_flag", 0),
         ByteField("modal_no", 0),
         ByteField("x_pos", 0),
