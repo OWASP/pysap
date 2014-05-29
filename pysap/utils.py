@@ -89,28 +89,43 @@ class ByteMultiEnumKeysField(MultiEnumField):
 
 
 class MutablePacketField(StrLenField):
-    """
-    Packet field that mutates the class according to the ID and SID. If the
-    ID/SID isn't registered, it handles the field as a StrLenField.
+    """Packet field that mutates the class according to a list of evaluators.
+    The evaluators are run against the packet and given to a class getter.
 
+    If the class can't be found, the field is treated as a StrLenField.
     """
-    # XXX: Replace with a more generic implementation (for example receive
-    # a variable number of bool functions to evaluate
-    def __init__(self, name, default, item_id, item_sid, length, clss):
-        StrLenField.__init__(self, name, default, length_from=length)
-        self.id = item_id
-        self.sid = item_sid
-        self.clss = clss
+    def __init__(self, name, default, length_from, get_class, evaluators=[]):
+        """
+        @param length_from: function to obtain the field length
+        @type length_from: C{callable}
+
+        @param get_class: function to obtain the class
+        @type get_class: C{callable}
+
+        @param evaluators: evaluators
+        @type evaluators: C{list} of C{callable}
+        """
+        StrLenField.__init__(self, name, default, length_from=length_from)
+        self.evaluators = evaluators
+        self._get_class = get_class
+
+    def get_class(self, pkt):
+        # Run the evaluators on the actual packet
+        values = map(lambda evaluator: evaluator(pkt), self.evaluators)
+        # Return the class using the function provided
+        return self._get_class(pkt, *values)
 
     def i2m(self, pkt, i):
-        if self.clss(pkt, self.id, self.sid) is not None:
+        cls = self.get_class(pkt)
+        if cls is not None:
             return str(i)
         else:
             return StrLenField.i2m(self, pkt, i)
 
     def m2i(self, pkt, m):
-        if self.clss(pkt, self.id, self.sid) is not None:
-            return (self.clss(pkt, self.id, self.sid))(m)
+        cls = self.get_class(pkt)
+        if cls is not None:
+            return cls(m)
         else:
             return StrLenField.m2i(self, pkt, m)
 

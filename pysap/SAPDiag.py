@@ -368,39 +368,17 @@ def diag_item_get_length(item):
     return diag_item_sizes[item.item_type]
 
 
-def diag_item_get_id(item):
+diag_item_classes = {}
+"""Dictionary for registering Diag item classes """
+
+
+diag_item_appl_classes = defaultdict(defaultdict)
+"""Dictionary for registering Diag APPL/APPL4 item classes """
+
+
+def bind_diagitem(item_class, item_type, item_id=None, item_sid=None):
     """
-    Returns the id of an item.
-
-    @param item: item to look at
-    @type item: L{SAPDiagItem}
-
-    @return: the item ID
-    @rtype: C{int}
-    """
-    return item.item_id
-
-
-def diag_item_get_sid(item):
-    """
-    Returns the sid of an item.
-
-    @param item: item to look at
-    @type item: L{SAPDiagItem}
-
-    @return: the item SID
-    @rtype: C{int}
-    """
-    return item.item_sid
-
-
-diag_item_classes = defaultdict(defaultdict)
-""" Dictionary for registering Diag item classes """
-
-
-def bind_diagitem(item_class, item_id, item_sid):
-    """
-    Registers a Diag item class associated to a given ID and SID.
+    Registers a Diag item class associated to a given type, ID and SID.
 
     @param item_class: item class to associate
     @type item_class: L{SAPDiagItem} class
@@ -411,38 +389,45 @@ def bind_diagitem(item_class, item_id, item_sid):
     @param item_sid: item SID to associate
     @type item_sid: C{int}
     """
-    diag_item_classes[item_id][item_sid] = item_class
+    if item_type in [0x10, 0x12, "APPL", "APPL4"]:
+        diag_item_appl_classes[item_id][item_sid] = item_class
+    else:
+        diag_item_classes[item_type] = item_class
 
 
-def diag_item_get_class(pkt, item_id, item_sid):
+def diag_item_get_class(pkt, item_type, item_id, item_sid):
     """
-    Obtains the Diag item class according to the ID and SID of the packet.
-    If the ID/SID is not registered, returns None.
+    Obtains the Diag item class according to the type, ID and SID of the packet.
+    If the Type/ID/SID is not registered, returns None.
 
     @param pkt: the item to look at
     @type pkt: L{SAPDiagItem}
 
-    @param item_id: item ID
+    @param item_type: function that returns the item type
+    @type item_type: C{int}
+
+    @param item_id: function that returns the item ID
     @type item_id: C{int}
 
-    @param item_sid: item SID
+    @param item_sid: functions that returns the item SID
     @type item_sid: C{int}
 
     @return: the associated L{SAPDiagItem} class if registered or None
     """
-    if diag_item_is_appl_appl4(pkt) and item_id(pkt) in diag_item_classes.keys() and item_sid(pkt) in diag_item_classes[pkt.item_id].keys():
-        return diag_item_classes[item_id(pkt)][item_sid(pkt)]
+    if item_type in [0x10, 0x12, "APPL", "APPL4"]:
+        if item_id in diag_item_appl_classes and item_sid in diag_item_appl_classes[item_id]:
+            return diag_item_appl_classes[item_id][item_sid]
+        else:
+            return None
     else:
-        return None
+        return diag_item_classes.get(item_type)
 
 
 class SAPDiagItem(PacketNoPadded):
-    """
-    SAP Diag Item packet
+    """SAP Diag Item packet
 
     This packet holds the different types of Diag items. The value field is
-    interpreted according to the ID/SID specified for the item.
-
+    interpreted according to the Type/ID/SID specified for the item.
     """
     name = "SAP Diag Item"
     fields_desc = [ByteEnumKeysField("item_type", 0, diag_item_types),
@@ -450,7 +435,13 @@ class SAPDiagItem(PacketNoPadded):
                    ConditionalField(ByteMultiEnumKeysField("item_sid", 0, diag_appl_sids, depends_on=lambda item:item.item_id, fmt="B"), diag_item_is_appl_appl4),
                    ConditionalField(FieldLenField("item_length", None, length_of="item_value", fmt="!H"), diag_item_is_short),
                    ConditionalField(FieldLenField("item_length4", None, length_of="item_value", fmt="!I"), diag_item_is_long),
-                   MutablePacketField("item_value", "", item_id=diag_item_get_id, item_sid=diag_item_get_sid, length=diag_item_get_length, clss=diag_item_get_class)
+                   MutablePacketField("item_value", None,
+                                      length_from=diag_item_get_length,
+                                      get_class=diag_item_get_class,
+                                      evaluators=[lambda item:item.item_type,
+                                                  lambda item:item.item_id,
+                                                  lambda item:item.item_sid],
+                                      )
                    ]
 
 

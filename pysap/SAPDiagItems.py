@@ -44,7 +44,7 @@ class SAPDiagUserConnect(Packet):
                    IntField("code_page", 1100),
                    IntField("ws_type", 5001)]
 
-bind_diagitem(SAPDiagUserConnect, 0x04, 0x02)
+bind_diagitem(SAPDiagUserConnect, "APPL", 0x04, 0x02)
 
 user_connect_compressed = \
     SAPDiagItem(item_type="APPL",
@@ -64,7 +64,7 @@ class SAPDiagStep(Packet):
     name = "SAP Diag Dialog Step"
     fields_desc = [IntField("step", 0)]
 
-bind_diagitem(SAPDiagStep, 0x04, 0x26)
+bind_diagitem(SAPDiagStep, "APPL", 0x04, 0x26)
 
 
 # Diag Support data (support bits)
@@ -293,8 +293,8 @@ class SAPDiagSupportBits(Packet):
 
         BitField("padding_bits", 0, 61), ]
 
-bind_diagitem(SAPDiagSupportBits, 0x04, 0x0b)
-bind_diagitem(SAPDiagSupportBits, 0x06, 0x11)
+bind_diagitem(SAPDiagSupportBits, "APPL", 0x04, 0x0b)
+bind_diagitem(SAPDiagSupportBits, "APPL", 0x06, 0x11)
 
 
 # Support Bits for common SAP Software versions
@@ -443,8 +443,8 @@ class SAPDiagDyntAtom(Packet):
         PacketListField("items", None, SAPDiagDyntAtomItem)
         ]
 
-bind_diagitem(SAPDiagDyntAtom, 0x09, 0x02)
-bind_diagitem(SAPDiagDyntAtom, 0x09, 0x10)
+bind_diagitem(SAPDiagDyntAtom, "APPL", 0x09, 0x02)
+bind_diagitem(SAPDiagDyntAtom, "APPL", 0x09, 0x10)
 
 
 # Diag Area Size
@@ -457,7 +457,7 @@ class SAPDiagAreaSize(PacketNoPadded):
         IntField("area_width", 0)
         ]
 
-bind_diagitem(SAPDiagAreaSize, 0x0c, 0x07)
+bind_diagitem(SAPDiagAreaSize, "APPL", 0x0c, 0x07)
 
 
 # Diag Window Size
@@ -471,7 +471,7 @@ class SAPDiagWindowSize(PacketNoPadded):
         ]
 
 
-bind_diagitem(SAPDiagWindowSize, 0x04, 0x0d)
+bind_diagitem(SAPDiagWindowSize, "APPL", 0x04, 0x0d)
 
 
 # Diag Menu Entry
@@ -518,10 +518,10 @@ class SAPDiagMenuEntries(Packet):
         PacketListField("entries", None, SAPDiagMenuEntry)
         ]
 
-bind_diagitem(SAPDiagMenuEntries, 0x0b, 0x01)
-bind_diagitem(SAPDiagMenuEntries, 0x0b, 0x02)
-bind_diagitem(SAPDiagMenuEntries, 0x0b, 0x03)
-bind_diagitem(SAPDiagMenuEntries, 0x0b, 0x04)
+bind_diagitem(SAPDiagMenuEntries, "APPL", 0x0b, 0x01)
+bind_diagitem(SAPDiagMenuEntries, "APPL", 0x0b, 0x02)
+bind_diagitem(SAPDiagMenuEntries, "APPL", 0x0b, 0x03)
+bind_diagitem(SAPDiagMenuEntries, "APPL", 0x0b, 0x04)
 
 
 # Diag UI Event Type values
@@ -601,7 +601,7 @@ class SAPDiagUIEventSource(PacketNoPadded):
         ]
 
 
-bind_diagitem(SAPDiagUIEventSource, 0x0f, 0x01)
+bind_diagitem(SAPDiagUIEventSource, "APPL", 0x0f, 0x01)
 
 
 # Diag SES
@@ -624,3 +624,5 @@ class SAPDiagSES(PacketNoPadded):
         ByteField("dim_row", 0),
         ByteField("dim_col", 0)
         ]
+
+bind_diagitem(SAPDiagSES, 0x01)
