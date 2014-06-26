@@ -193,11 +193,11 @@ def render_diag_screen(screen, verbose):
             for atom_item in atom.item_value.items:
 
                 if atom_item.etype in [121, 123]:
-                    text = atom_item.text_1
-                    maxnrchars = atom_item.maxnrchars_1
+                    text = atom_item.field1_text
+                    maxnrchars = atom_item.field1_maxnrchars
                 elif atom_item.etype in [130, 132]:
-                    text = atom_item.text
-                    maxnrchars = atom_item.maxnrchars
+                    text = atom_item.field2_text
+                    maxnrchars = atom_item.field2_maxnrchars
                 else:
                     text = None
                     maxnrchars = 0

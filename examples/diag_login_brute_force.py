@@ -139,9 +139,9 @@ def make_login(username, password, client):
 
     # Login information is sent to the server as Dynt Atoms
     login_atom = SAPDiagDyntAtom(items=[
-        SAPDiagDyntAtomItem(text=client, maxnrchars=3, row=0, group=0, dlg_flag_2=0, dlg_flag_1=0, area=0, etype=130, flag1=0, mlen=3, attr_DIAG_BSD_YES3D=1, dlen=len(client), block=1, col=20),
-        SAPDiagDyntAtomItem(text=username, maxnrchars=12, row=2, group=0, dlg_flag_2=1, dlg_flag_1=0, area=0, etype=130, flag1=0, mlen=12, attr_DIAG_BSD_YES3D=1, dlen=len(username), block=1, col=20),
-        SAPDiagDyntAtomItem(text=password, maxnrchars=40, row=3, group=0, dlg_flag_2=1, dlg_flag_1=4, area=0, etype=130, flag1=0, mlen=12, attr_DIAG_BSD_YES3D=1, attr_DIAG_BSD_INVISIBLE=1, dlen=len(password), block=1, col=20)])
+        SAPDiagDyntAtomItem(field2_text=client, field2_maxnrchars=3, row=0, group=0, dlg_flag_2=0, dlg_flag_1=0, etype=130, field2_mlen=3, attr_DIAG_BSD_YES3D=1, field2_dlen=len(client), block=1, col=20),
+        SAPDiagDyntAtomItem(field2_text=username, field2_maxnrchars=12, row=2, group=0, dlg_flag_2=1, dlg_flag_1=0, etype=130, field2_mlen=12, attr_DIAG_BSD_YES3D=1, field2_dlen=len(username), block=1, col=20),
+        SAPDiagDyntAtomItem(field2_text=password, field2_maxnrchars=40, row=3, group=0, dlg_flag_2=1, dlg_flag_1=4, etype=130, field2_mlen=12, attr_DIAG_BSD_YES3D=1, attr_DIAG_BSD_INVISIBLE=1, field2_dlen=len(password), block=1, col=20)])
     # An XML Blob is also required
     xml_blob = """<?xml version="1.0" encoding="sap*"?><DATAMANAGER><COPY id="copy"><GUI id="gui"><METRICS id="metrics" X3="2966" X2="8" X1="8" X0="283" Y3="900" Y2="23" Y1="17" Y0="283"/></GUI></COPY></DATAMANAGER>"""
 
