@@ -421,7 +421,7 @@ class SAPDiagDyntAtomItem(PacketNoPadded):
         ConditionalField(ByteField("radiobutton_event_id_len", 0), lambda pkt:pkt.etype in [129]),
         ConditionalField(ShortField("radiobutton_text_off", 0), lambda pkt:pkt.etype in [129]),
         ConditionalField(ShortField("radiobutton_text_length", 0), lambda pkt:pkt.etype in [129]),
-        ConditionalField(StrLenField("radiobutton_text", "", length_from=lambda pkt:pkt.text_length), lambda pkt:pkt.etype in [129]),
+        ConditionalField(StrLenField("radiobutton_text", "", length_from=lambda pkt:pkt.radiobutton_event_id_len + pkt.radiobutton_text_length), lambda pkt:pkt.etype in [129]),
         # DIAG_DGOTYP_EFIELD_2 or DIAG_DGOTYP_OFIELD_2 or DIAG_DGOTYP_KEYWORD_2
         ConditionalField(ShortField("field2_flag1", 0), lambda pkt:pkt.etype in [130, 131, 132]),
         ConditionalField(FieldLenField("field2_dlen", None, fmt="B", length_of="field2_text"), lambda pkt:pkt.etype in [130, 131, 132]),
