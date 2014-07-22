@@ -27,7 +27,7 @@ from scapy.packet import Packet
 from scapy.volatile import RandEnum, RandomEnumeration, RandNum, RandTermString,\
     RandBin
 from scapy.fields import ByteEnumField, ShortEnumField, MultiEnumField,\
-    StrLenField, Field, StrFixedLenField, ShortField
+    StrLenField, Field, StrFixedLenField
 
 
 class PacketNoPadded(Packet):
@@ -94,7 +94,7 @@ class MutablePacketField(StrLenField):
 
     If the class can't be found, the field is treated as a StrLenField.
     """
-    def __init__(self, name, default, length_from, get_class, evaluators=[]):
+    def __init__(self, name, default, length_from, get_class, evaluators=None):
         """
         @param length_from: function to obtain the field length
         @type length_from: C{callable}
@@ -106,7 +106,7 @@ class MutablePacketField(StrLenField):
         @type evaluators: C{list} of C{callable}
         """
         StrLenField.__init__(self, name, default, length_from=length_from)
-        self.evaluators = evaluators
+        self.evaluators = evaluators or []
         self._get_class = get_class
 
     def get_class(self, pkt):

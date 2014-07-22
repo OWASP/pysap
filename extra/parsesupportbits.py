@@ -54,10 +54,10 @@ def main():
 
     # Read and parse the data
     with open(options.input_file, 'r') as f:
-        input = f.readlines()
+        input_data = f.readlines()
 
     data = {}
-    for line in input:
+    for line in input_data:
         support_bit = line.split(' ', 1)[1].split('(', 1)
         name, bit = support_bit[0], int(support_bit[1].split(')', 1)[0])
         data[bit] = name
@@ -79,18 +79,16 @@ def main():
 
         data[bit] = name, unknown
 
-    byte = 0
     pysap = wireshark_define = wireshark_hf = wireshark_parse = wireshark_module = ''
     for bit in data.keys():
         name, unknown = data[bit]
         notice = " (Unknown support bit)" if unknown else ''
 
         if (bit % 8) == 0 and bit != 0:
-            byte += 1
             pysap += '\n'
             wireshark_define += '\n'
             wireshark_parse += 'offset+=1;\n'
-            wireshark_module += '\n' 
+            wireshark_module += '\n'
 
         pysap += 'BitField("%s", 0, 1),\t# %d%s\n' % (name, bit, notice)
 

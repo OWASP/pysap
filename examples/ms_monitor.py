@@ -25,7 +25,7 @@ from socket import error as SocketError
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
-from scapy.packet import bind_layers, Raw
+from scapy.packet import bind_layers
 # Custom imports
 from pysap.utils import BaseConsole
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
@@ -202,7 +202,7 @@ class SAPMSMonitorConsole(BaseConsole):
         try:
             ip, port = args.split(" ")
             port = int(port)
-        except:
+        except ValueError:
             self._error("Wrong parameters !")
             return
 
@@ -224,7 +224,7 @@ class SAPMSMonitorConsole(BaseConsole):
         try:
             args = args.split(" ")
             command = int(args[0])
-        except:
+        except ValueError:
             self._error("Wrong dump command ! Valid values:")
             for key in ms_dump_command_values:
                 self._error("%d: %s" % (key, ms_dump_command_values[key]))
@@ -244,8 +244,8 @@ class SAPMSMonitorConsole(BaseConsole):
         elif command == 12:  # MS_DUMP_COUNTER
             try:
                 counter = args[1]
-            except:
-                self._error("Wrong parameters ! Specify counter name")
+            except IndexError:
+                self._error("Wrong parameters ! Specify counter number")
                 return
             response = self._send_simple(0x02, 0x01, opcode=0x1e,
                                          dump_dest=0x02, dump_command=command,
@@ -382,7 +382,7 @@ class SAPMSMonitorConsole(BaseConsole):
         try:
             counter, count = args.split(" ")
             count = int(count)
-        except:
+        except ValueError:
             self._error("Invalid parameters !")
             return
 
@@ -393,7 +393,7 @@ class SAPMSMonitorConsole(BaseConsole):
         try:
             counter, count = args.split(" ")
             count = int(count)
-        except:
+        except ValueError:
             self._error("Invalid parameters !")
             return
 
@@ -410,7 +410,7 @@ class SAPMSMonitorConsole(BaseConsole):
             client_id, reason = args.split(" ", 2)
             client_id = int(client_id)
             client = self.clients[client_id]
-        except:
+        except (ValueError, KeyError):
             self._error("Invalid parameters !")
             self.do_client_list(None)
             return
@@ -429,7 +429,7 @@ class SAPMSMonitorConsole(BaseConsole):
             client_id, reason = args.split(" ", 2)
             client_id = int(client_id)
             client = self.clients[client_id]
-        except:
+        except (ValueError, KeyError):
             self._error("Invalid parameters !")
             self.do_client_list(None)
             return
@@ -448,7 +448,7 @@ class SAPMSMonitorConsole(BaseConsole):
             client_id, reason = args.split(" ", 2)
             client_id = int(client_id)
             client = self.clients[client_id]
-        except:
+        except (ValueError, KeyError):
             self._error("Invalid parameters !")
             self.do_client_list(None)
             return
@@ -467,7 +467,7 @@ class SAPMSMonitorConsole(BaseConsole):
             prop_client, prop_id = args.split(" ")
             prop_client = self.clients[int(prop_client)]
             prop_id = int(prop_id)
-        except:
+        except (ValueError, KeyError):
             self._error("Invalid parameters !")
             return
 
@@ -478,7 +478,7 @@ class SAPMSMonitorConsole(BaseConsole):
                                      property=prop)
         if response:
             self._print("Property %s for client %s:" % (ms_property_id_values[prop_id],
-                                                           prop_client.client.strip()))
+                                                        prop_client.client.strip()))
             response.property.show()
 
     def do_parameter_get(self, args):

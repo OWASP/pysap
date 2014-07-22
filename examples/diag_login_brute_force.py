@@ -283,8 +283,11 @@ def main():
 
                 for client in clients:
                     testcases.append((username, password, client))
-        except:
+        except IOError:
             print "Error reading credentials file !"
+            exit(0)
+        except ValueError:
+            print "Invalid credentials file format !"
             exit(0)
     else:
         try:
@@ -292,7 +295,7 @@ def main():
                 for password in file(options.passwords, 'r').readlines():
                     for client in client_list:
                         testcases.append((username.strip(), password.strip(), client))
-        except:
+        except IOError:
             print "Error reading username or passwords file !"
             exit(0)
 
