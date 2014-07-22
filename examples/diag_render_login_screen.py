@@ -202,14 +202,14 @@ def render_diag_screen(screen, verbose):
 
             if text is not None:
                 if atom_item.etype in [123, 132]:  # DIAG_DGOTYP_KEYWORD_1 or DIAG_DGOTYP_KEYWORD_2
-                        if text.find("@\Q") >= 0:
-                            tooltip = text.split("@")[1][2:]
-                            text = text.split("@")[2]
-                        else:
-                            tooltip = None
-                        if verbose:
-                            print "[*] Found text label at %d,%d: \"%s\" (maxlength=%d) (tooltip=\"%s\")" % (atom_item.col, atom_item.row, text.strip(), maxnrchars, tooltip)
-                        login_frame.add_text(atom_item.col, atom_item.row, maxnrchars, text)
+                    if text.find("@\Q") >= 0:
+                        tooltip = text.split("@")[1][2:]
+                        text = text.split("@")[2]
+                    else:
+                        tooltip = None
+                    if verbose:
+                        print "[*] Found text label at %d,%d: \"%s\" (maxlength=%d) (tooltip=\"%s\")" % (atom_item.col, atom_item.row, text.strip(), maxnrchars, tooltip)
+                    login_frame.add_text(atom_item.col, atom_item.row, maxnrchars, text)
                 elif atom_item.etype in [121, 130]:  # DIAG_DGOTYP_EFIELD_1 or DIAG_DGOTYP_EFIELD_2
                     if verbose:
                         print "[*] Found text box at %d,%d: \"%s\" (maxlength=%d)" % (atom_item.col, atom_item.row, text.strip(), maxnrchars)
