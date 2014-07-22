@@ -19,12 +19,16 @@
 
 # Standard imports
 import unittest
+from binascii import unhexlify
+from os.path import join as join, dirname
 # Custom imports
-import pysapcompress_test
+from tests import sapdiag_test
+from tests import pysapcompress_test
 
 
 def suite():
     suite = unittest.TestSuite()
+    suite.addTests(sapdiag_test.suite())
     suite.addTests(pysapcompress_test.suite())
     return suite
 

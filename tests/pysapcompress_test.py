@@ -19,19 +19,8 @@
 
 # Standard imports
 import unittest
-from binascii import unhexlify
-from os.path import join as join, dirname
-
-
-def read_data_file(filename):
-    filename = join(dirname(__file__), 'data', filename)
-    with open(filename, 'r') as f:
-        data = f.read()
-
-    data = data.replace('\n', ' ').replace(' ', '')
-    data = unhexlify(data)
-
-    return data
+# Custom imports
+from tests.utils import read_data_file
 
 
 class PySAPCompressTest(unittest.TestCase):
@@ -41,29 +30,27 @@ class PySAPCompressTest(unittest.TestCase):
     test_string_compr_lzh = "\x18\x01\x00\x00\x12\x1f\x9d\x02{!\xae\xc1!!\xa3\x18\x03\x03\x00\x00"
 
     def test_import(self):
+        """ Test import of the pysapcompress library """
         try:
             import pysapcompress  # @UnusedImport
         except ImportError, e:
             self.Fail(str(e))
 
     def test_compress_input(self):
-        """ Test compress function input.
-        """
+        """ Test compress function input """
         from pysapcompress import compress, CompressError
         self.assertRaisesRegexp(CompressError, "invalid input length", compress, "")
         self.assertRaisesRegexp(CompressError, "unknown algorithm", compress, "TestString", algorithm=999)
 
     def test_decompress_input(self):
-        """ Test decompress function input.
-        """
+        """ Test decompress function input """
         from pysapcompress import decompress, DecompressError
         self.assertRaisesRegexp(DecompressError, "invalid input length", decompress, "", 1)
         self.assertRaisesRegexp(DecompressError, "input not compressed", decompress, "AAAAAAAA", 1)
         self.assertRaisesRegexp(DecompressError, "unknown algorithm", decompress, "\x0f\x00\x00\x00\xff\x1f\x9d\x00\x00\x00\x00", 1)
 
     def test_compress_output_lzc(self):
-        """ Test compress function output using LZC algorithm.
-        """
+        """ Test compress function output using LZC algorithm """
         from pysapcompress import compress, ALG_LZC
         status, out_length, out = compress(self.test_string_plain, ALG_LZC)
 
@@ -72,21 +59,8 @@ class PySAPCompressTest(unittest.TestCase):
         self.assertEqual(out_length, len(self.test_string_compr_lzc))
         self.assertEqual(out, self.test_string_compr_lzc)
 
-    def test_compress_output_lzh(self):
-        """ Test compress function output using LZH algorithm.
-
-        """
-        from pysapcompress import compress, ALG_LZH
-        status, out_length, out = compress(self.test_string_plain, ALG_LZH)
-
-        self.assertTrue(status)
-        self.assertEqual(out_length, len(out))
-        self.assertEqual(out_length, len(self.test_string_compr_lzh))
-        self.assertEqual(out, self.test_string_compr_lzh)
-
     def test_decompres_output_lzh(self):
-        """ Test decompress function output using LZH algorithm.
-        """
+        """ Test decompress function output using LZH algorithm """
         from pysapcompress import decompress
         status, out_length, out = decompress(self.test_string_compr_lzh, len(self.test_string_plain))
 
@@ -95,11 +69,22 @@ class PySAPCompressTest(unittest.TestCase):
         self.assertEqual(out_length, len(self.test_string_plain))
         self.assertEqual(out, self.test_string_plain)
 
+    def test_decompress_login_screen(self):
+        """ Test decompression of a login screen packet. The result is
+        compared with decompressed data obtained from SAP GUI. """
+        from pysapcompress import decompress
+        login_screen_compressed = read_data_file('nw_703_login_screen_compressed.data')
+        login_screen_decompressed = read_data_file('nw_703_login_screen_decompressed.data')
+
+        status, out_length, decompressed = decompress(login_screen_compressed, len(login_screen_decompressed))
+
+        self.assertTrue(status)
+        self.assertEqual(out_length, len(login_screen_decompressed))
+        self.assertEqual(decompressed, login_screen_decompressed)
+
     def test_decompress_login(self):
         """ Test decompression of a login packet. The result is
-        compared with decompressed data obtained from SAP GUI.
-
-        """
+        compared with decompressed data obtained from SAP GUI. """
         from pysapcompress import decompress
         login_compressed = read_data_file('sapgui_730_login_compressed.data')
         login_decompressed = read_data_file('sapgui_730_login_decompressed.data')
