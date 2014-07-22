@@ -577,25 +577,31 @@ class SAPDiag(PacketNoPadded):
         Get an item from the packet's message. Returns None if the message is
         not found, or a list if the item is found multiple times.
 
-        @param item_type: item type byte value
-        @type item_type: C{int}
+        @param item_type: item type byte or string value
+        @type item_type: C{int} or C{string}
 
-        @param item_id: item ID byte value
-        @type item_id: C{int}
+        @param item_id: item ID byte or string value
+        @type item_id: C{int} or C{string}
 
-        @param item_sid: item SID byte value
-        @type item_sid: C{int}
+        @param item_sid: item SID byte or string value
+        @type item_sid: C{int} or C{string}
 
         @return: list of items found on the packet or None
         @rtype: C{list} of L{SAPDiagItem}
         """
+        if item_type is not None and isinstance(item_type, basestring):
+            item_type = diag_item_types.keys()[diag_item_types.values().index(item_type)]
+        if item_id is not None and isinstance(item_id, basestring):
+            item_id = diag_appl_ids.keys()[diag_appl_ids.values().index(item_id)]
+        if item_sid is not None and isinstance(item_sid, basestring):
+            item_sid = diag_appl_sids[item_id].keys()[diag_appl_sids[item_id].values().index(item_sid)]
+
         if item_sid is None and item_id is None:
             return filter(lambda item: item.item_type == item_type, self.message)
-
-        if item_sid is None:
+        elif item_sid is None:
             return filter(lambda item: item.item_type == item_type and item.item_id == item_id, self.message)
-
-        return filter(lambda item: item.item_type == item_type and item.item_id == item_id and item.item_sid == item_sid, self.message)
+        else:
+            return filter(lambda item: item.item_type == item_type and item.item_id == item_id and item.item_sid == item_sid, self.message)
 
 
 # Bind SAP NI with the Diag port
