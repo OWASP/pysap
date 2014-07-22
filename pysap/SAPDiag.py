@@ -578,17 +578,33 @@ class SAPDiag(PacketNoPadded):
         not found, or a list if the item is found multiple times.
 
         @param item_type: item type byte or string value
-        @type item_type: C{int} or C{string}
+        @type item_type: C{int} or C{string} or C{list}
 
         @param item_id: item ID byte or string value
-        @type item_id: C{int} or C{string}
+        @type item_id: C{int} or C{string} or C{list}
 
         @param item_sid: item SID byte or string value
-        @type item_sid: C{int} or C{string}
+        @type item_sid: C{int} or C{string} or C{list}
 
         @return: list of items found on the packet or None
         @rtype: C{list} of L{SAPDiagItem}
         """
+        # Expand list lookups
+        items = []
+        if item_type is not None and type(item_type) == list:
+            for itype in item_type:
+                items.extend(self.get_item(itype, item_id, item_sid))
+            return items
+        if item_id is not None and type(item_id) == list:
+            for iid in item_id:
+                items.extend(self.get_item(item_type, iid, item_sid))
+            return items
+        if item_sid is not None and type(item_sid) == list:
+            for isid in item_sid:
+                items.extend(self.get_item(item_type, item_id, isid))
+            return items
+
+        # Perform name lookups
         if item_type is not None and isinstance(item_type, basestring):
             item_type = diag_item_types.keys()[diag_item_types.values().index(item_type)]
         if item_id is not None and isinstance(item_id, basestring):
@@ -596,12 +612,14 @@ class SAPDiag(PacketNoPadded):
         if item_sid is not None and isinstance(item_sid, basestring):
             item_sid = diag_appl_sids[item_id].keys()[diag_appl_sids[item_id].values().index(item_sid)]
 
+        # Filter and return items
         if item_sid is None and item_id is None:
-            return filter(lambda item: item.item_type == item_type, self.message)
+            items = filter(lambda item: item.item_type == item_type, self.message)
         elif item_sid is None:
-            return filter(lambda item: item.item_type == item_type and item.item_id == item_id, self.message)
+            items = filter(lambda item: item.item_type == item_type and item.item_id == item_id, self.message)
         else:
-            return filter(lambda item: item.item_type == item_type and item.item_id == item_id and item.item_sid == item_sid, self.message)
+            items = filter(lambda item: item.item_type == item_type and item.item_id == item_id and item.item_sid == item_sid, self.message)
+        return items
 
 
 # Bind SAP NI with the Diag port
