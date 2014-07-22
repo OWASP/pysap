@@ -83,7 +83,10 @@ def show(item):
     Print the information about each item: type, ID, SID and value.
 
     """
-    print "\tType = %s\tId = %s\tSID = %s\tValue = %s" % (diag_item_types[item.item_type], diag_appl_ids[item.item_id], diag_appl_sids[item.item_id][item.item_sid], escape(str(item.item_value)))
+    print "\tType = %s\tId = %s\tSID = %s\tValue = %s" % (diag_item_types[item.item_type],
+                                                          diag_appl_ids[item.item_id],
+                                                          diag_appl_sids[item.item_id][item.item_sid],
+                                                          escape(str(item.item_value)))
 
 
 # Main function
@@ -105,11 +108,8 @@ def main():
 
     # Filter the response and show the interesting info
     print "[*] Login Screen information:"
-    for item in login_screen[SAPDiag].get_item(0x10, 0x06):  # ST_R3INFO items
-        show(item)
-    for item in login_screen[SAPDiag].get_item(0x10, 0x04):  # ST_USER items
-        show(item)
-    for item in login_screen[SAPDiag].get_item(0x10, 0x0c):  # VARINFO items
+    for item in login_screen[SAPDiag].get_item(["APPL", "APPL4"],
+                                               ["ST_R3INFO", "ST_USER", "VARINFO"]):
         show(item)
 
 

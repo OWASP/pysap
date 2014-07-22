@@ -44,19 +44,21 @@ conf.verb = 0
 
 def filter_client(packet):
     # Grab all the Atom items in the packet
-    atoms = packet[SAPDiag].get_item(0x12, 0x09, 0x02)
+    atoms = packet[SAPDiag].get_item(["APPL", "APPL4"], "DYNT", "DYNT_ATOM")
 
     # Print the Atom items information
     if len(atoms) > 0:
-        print "[*] User input:"
-        for atom_item in atoms:
-            for atom in atom_item.item_value.items:
-                if atom.attr_DIAG_BSD_INVISIBLE:
+        print "[*] Input fields:"
+        for atom in [atom for atom_item in atoms for atom in atom_item.item_value.items]:
+            if atom.etype in [121, 122, 123, 130, 131, 132]:
+                text = atom.field1_text or atom.field2_text
+                text = text.strip()
+                if atom.attr_DIAG_BSD_INVISIBLE and len(text) > 0:
                     # If the invisible flag was set, we're probably
                     # dealing with a password field
-                    print "\tPassword field:\t%s" % (atom.text)
+                    print "[*]\tPassword field:\t%s" % (text)
                 else:
-                    print "\tRegular field:\t%s" % (atom.text)
+                    print "[*]\tRegular field:\t%s" % (text)
 
     # Return the original packet
     return packet

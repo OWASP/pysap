@@ -90,8 +90,8 @@ def parse_options():
     description = \
     """This example script can be used to perform a brute force attack
     against a SAP Netweaver application server. The scripts performs a
-     login through the Diag protocol. It can also discover available
-     clients.
+    login through the Diag protocol. It can also discover available
+    clients.
     """
 
     epilog = \
@@ -171,8 +171,8 @@ def login(host, port, terminal, username, password, client, verbose, results):
     response = connection.interact(make_login(username, password, client))
 
     # If the response contain a MESSAGE item, it could be a error message of the user requesting a password change
-    if response[SAPDiag].get_item(0x10, 0x06, 0x0b):
-        status = response[SAPDiag].get_item(0x10, 0x06, 0x0b)[0].item_value
+    if response[SAPDiag].get_item("APPL", "ST_R3INFO", "MESSAGE"):
+        status = response[SAPDiag].get_item("APPL", "ST_R3INFO", "MESSAGE")[0].item_value
         # Check if the password is expired
         if status == "Enter a new password":
             success = True
@@ -181,13 +181,13 @@ def login(host, port, terminal, username, password, client, verbose, results):
             success = True
             status = "No Dialog user (log on with RFC)"
     # If the ST_USER USERNAME item is set to the username, the login was successful
-    elif response[SAPDiag].get_item(0x10, 0x04, 0x0c):
-        st_username = response[SAPDiag].get_item(0x10, 0x04, 0x0c)[0].item_value
+    elif response[SAPDiag].get_item("APPL", "ST_USER", "USERNAME"):
+        st_username = response[SAPDiag].get_item("APPL", "ST_USER", "USERNAME")[0].item_value
         if st_username == username:
             success = True
-    # If the response doesn't contain a message item and the the Internal Mode Number is set to 1, we have found a successful login
-    elif response[SAPDiag].get_item(0x10, 0x06, 0x0a):
-        imodenumber = response[SAPDiag].get_item(0x10, 0x06, 0x0a)[0].item_value
+    # If the response doesn't contain a message item but the Internal Mode Number is set to 1, we have found a successful login
+    elif response[SAPDiag].get_item("APPL", "ST_R3INFO", "IMODENUMBER"):
+        imodenumber = response[SAPDiag].get_item("APPL", "ST_R3INFO", "IMODENUMBER")[0].item_value
         if imodenumber == "\x00\x01":
             success = True
     # Otherwise, we are dealing with an unknown response
@@ -243,7 +243,7 @@ def main():
     pool = ThreadPool(options.threads)
 
     # If discovery option was specified, discover available clients
-    if options.discovery == True:
+    if options.discovery is True:
 
         # Get the client range to test
         (client_min, client_max) = options.discovery_range.split("-")
@@ -266,7 +266,7 @@ def main():
         client_list = options.client.split(',')
 
     # Check if we should test for passwords or finish only with the discovery
-    if not options.credentials or not(options.usernames and options.passwords):
+    if not options.credentials and not(options.usernames and options.passwords):
         print "[*] Not testing passwords as credentials or usernames/passwords files were not provided"
         exit(0)
 

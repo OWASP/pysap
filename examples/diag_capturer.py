@@ -97,13 +97,12 @@ class DiagParser(object):
 
     def parse_fields(self, pkt):
         if SAPDiag in pkt and pkt[SAPDiag].message:
-            atoms = pkt[SAPDiag].get_item(0x10, 0x09, 0x02)
-            atoms.extend(pkt[SAPDiag].get_item(0x12, 0x09, 0x02))
+            atoms = pkt[SAPDiag].get_item(["APPL", "APPL4"], "DYNT", "DYNT_ATOM")
             # Print the Atom items information
             if len(atoms) > 0:
                 print "[*] Input fields:"
                 for atom in [atom for atom_item in atoms for atom in atom_item.item_value.items]:
-                    if atom.etype == 130:
+                    if atom.etype in [121, 122, 123, 130, 131, 132]:
                         text = atom.field1_text or atom.field2_text
                         text = text.strip()
                         if atom.attr_DIAG_BSD_INVISIBLE and len(text) > 0:

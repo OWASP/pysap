@@ -164,16 +164,16 @@ def render_diag_screen(screen, verbose):
         else:
             return []
 
-    areasize = get_item_value(screen, 0x10, 0x0c, 0x07)
-    dbname = get_item_value(screen, 0x10, 0x06, 0x02)
-    cpuname = get_item_value(screen, 0x10, 0x06, 0x03)
-    client = get_item_value(screen, 0x10, 0x06, 0x0c)
-    session_icon = get_item_value(screen, 0x10, 0x0c, 0x0a)
-    session_title = get_item_value(screen, 0x10, 0x0c, 0x09)
-    menus = get_item_value(screen, 0x12, 0x0b, 0x01)
-    menudetails = get_item_value(screen, 0x12, 0x0b, 0x02)
-    buttonbars = get_item_value(screen, 0x12, 0x0b, 0x03)
-    toolbars = get_item_value(screen, 0x12, 0x0b, 0x04)
+    areasize = get_item_value(screen, "APPL", "VARINFO", "AREASIZE")
+    dbname = get_item_value(screen, "APPL", "ST_R3INFO", "DBNAME")
+    cpuname = get_item_value(screen, "APPL", "ST_R3INFO", "CPUNAME")
+    client = get_item_value(screen, "APPL", "ST_R3INFO", "CLIENT")
+    session_icon = get_item_value(screen, "APPL", "VARINFO", "SESSION_ICON")
+    session_title = get_item_value(screen, "APPL", "VARINFO", "SESSION_TITLE")
+    menus = get_item_value(screen, "APPL4", "MNUENTRY", "MENU_ACT")
+    menudetails = get_item_value(screen, "APPL4", "MNUENTRY", "MENU_MNU")
+    buttonbars = get_item_value(screen, "APPL4", "MNUENTRY", "MENU_PFK")
+    toolbars = get_item_value(screen, "APPL4", "MNUENTRY", "MENU_KYB")
 
     if verbose:
         print "[*] DB Name:", dbname
@@ -187,37 +187,35 @@ def render_diag_screen(screen, verbose):
     login_frame = DiagScreen(None, "%s (%s)" % (session_icon, client), areasize.window_height, areasize.window_width, session_title, dbname, cpuname)
 
     # Render the atoms (control boxes and labels)
-    atoms = screen.get_item(0x12, 0x09, 0x02)
+    atoms = screen.get_item(["APPL", "APPL4"], "DYNT", "DYNT_ATOM")
     if atoms and len(atoms) > 0:
-        for atom in atoms:
-            for atom_item in atom.item_value.items:
+        for atom_item in [atom for atom_item in atoms for atom in atom_item.item_value.items]:
+            if atom_item.etype in [121, 123]:
+                text = atom_item.field1_text
+                maxnrchars = atom_item.field1_maxnrchars
+            elif atom_item.etype in [130, 132]:
+                text = atom_item.field2_text
+                maxnrchars = atom_item.field2_maxnrchars
+            else:
+                text = None
+                maxnrchars = 0
 
-                if atom_item.etype in [121, 123]:
-                    text = atom_item.field1_text
-                    maxnrchars = atom_item.field1_maxnrchars
-                elif atom_item.etype in [130, 132]:
-                    text = atom_item.field2_text
-                    maxnrchars = atom_item.field2_maxnrchars
-                else:
-                    text = None
-                    maxnrchars = 0
-
-                if text is not None:
-                    if atom_item.etype in [123, 132]:  # DIAG_DGOTYP_KEYWORD_1 or DIAG_DGOTYP_KEYWORD_2
-                            if text.find("@\Q") >= 0:
-                                tooltip = text.split("@")[1][2:]
-                                text = text.split("@")[2]
-                            else:
-                                tooltip = None
-                            if verbose:
-                                print "[*] Found text label at %d,%d: \"%s\" (maxlength=%d) (tooltip=\"%s\")" % (atom_item.col, atom_item.row, text.strip(), maxnrchars, tooltip)
-                            login_frame.add_text(atom_item.col, atom_item.row, maxnrchars, text)
-                    elif atom_item.etype in [121, 130]:  # DIAG_DGOTYP_EFIELD_1 or DIAG_DGOTYP_EFIELD_2
+            if text is not None:
+                if atom_item.etype in [123, 132]:  # DIAG_DGOTYP_KEYWORD_1 or DIAG_DGOTYP_KEYWORD_2
+                        if text.find("@\Q") >= 0:
+                            tooltip = text.split("@")[1][2:]
+                            text = text.split("@")[2]
+                        else:
+                            tooltip = None
                         if verbose:
-                            print "[*] Found text box at %d,%d: \"%s\" (maxlength=%d)" % (atom_item.col, atom_item.row, text.strip(), maxnrchars)
-                        login_frame.add_text_box(atom_item.col, atom_item.row, maxnrchars, text.strip(), atom_item.attr_DIAG_BSD_INVISIBLE == 1)
-                else:
-                    print "[*] Found label without text"
+                            print "[*] Found text label at %d,%d: \"%s\" (maxlength=%d) (tooltip=\"%s\")" % (atom_item.col, atom_item.row, text.strip(), maxnrchars, tooltip)
+                        login_frame.add_text(atom_item.col, atom_item.row, maxnrchars, text)
+                elif atom_item.etype in [121, 130]:  # DIAG_DGOTYP_EFIELD_1 or DIAG_DGOTYP_EFIELD_2
+                    if verbose:
+                        print "[*] Found text box at %d,%d: \"%s\" (maxlength=%d)" % (atom_item.col, atom_item.row, text.strip(), maxnrchars)
+                    login_frame.add_text_box(atom_item.col, atom_item.row, maxnrchars, text.strip(), atom_item.attr_DIAG_BSD_INVISIBLE == 1)
+            else:
+                print "[*] Found label without text"
 
     # Render the menus
     if len(menus) > 0:
