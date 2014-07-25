@@ -20,18 +20,14 @@
 # Standard imports
 from os import path, makedirs, system
 from setuptools import setup, Extension, Command
-
-
-name = "pysap"
-url = "http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=tool&name=pysap"
+# Custom imports
+import pysap
 
 
 class APIDocumentationCommand(Command):
-    """
-    Custom command for building API documentation with epydoc.
+    """Custom command for building API documentation with epydoc.
 
     @requires: epydoc installed
-
     """
 
     description = "Builds the API documentation using epydoc"
@@ -52,7 +48,10 @@ class APIDocumentationCommand(Command):
             makedirs(self.target_dir)
 
         target = "pysap pysapcompress"
-        system('epydoc --graph all --html --name "%s" --url "%s" -v -o %s %s' % (name, url, self.target_dir, target))
+        system('epydoc --graph all --html --name "%s" --url "%s" -v -o %s %s' % (pysap.__name__,
+                                                                                 pysap.__url__,
+                                                                                 self.target_dir,
+                                                                                 target))
 
 
 sapcompress = Extension('pysapcompress',
@@ -69,27 +68,15 @@ sapcompress = Extension('pysapcompress',
                         )
 
 
-description = """
-pysap - Python library for communicating using SAP network protocols.
-
-Currently the following SAP protocols are included:
-- SAP NI (Network Interface).
-- SAP Diag.
-- SAP Enqueue Server.
-- SAP Message Server.
-- SAP Router.
-- SAP RFC.
-"""
-
-
-setup(name=name,   # Package information
-      version='0.1.5',
+setup(name=pysap.__name__,   # Package information
+      version=pysap.__version__,
       author='Martin Gallo',
       author_email='mgallo@coresecurity.com',
       description='Python library for crafting SAP\'s network protocols packets',
-      long_description=description,
-      url=url,
-      download_url=url,
+      long_description=pysap.__doc__,
+      url=pysap.__url__,
+      download_url=pysap.__url__,
+      license=pysap.__license__,
       classifiers=['Development Status :: 3 - Alpha',
                    'Intended Audience :: Developers',
                    'Intended Audience :: Information Technology',

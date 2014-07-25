@@ -29,6 +29,7 @@ from optparse import OptionParser, OptionGroup
 from scapy.config import conf
 from scapy.packet import bind_layers
 # Custom imports
+import pysap
 from pysap.SAPNI import SAPNI
 from pysap.SAPDiag import SAPDiag, SAPDiagDP
 from pysap.SAPDiagItems import *
@@ -94,8 +95,9 @@ def parse_options():
     clients.
     """
 
-    epilog = \
-    """pysap - http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=tool&name=pysap"""
+    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
+                                                         "url": pysap.__url__,
+                                                         "repo": pysap.__repo__}
 
     usage = "Usage: %prog [options] -d <remote host>"
 

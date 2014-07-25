@@ -30,6 +30,7 @@ except ImportError:
 
 from scapy.config import conf
 # Custom imports
+import pysap
 from pysap.SAPNI import SAPNIStreamSocket
 from pysap.SAPRouter import SAPRouter, router_is_error, router_is_pong,\
     SAPRouterRouteHop, get_router_version
@@ -51,8 +52,9 @@ def parse_options():
     * http://blog.onapsis.com/assessing-a-saprouters-security-with-onapsis-bizploit-part-ii/
     """
 
-    epilog = \
-    """pysap - http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=tool&name=pysap"""
+    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
+                                                         "url": pysap.__url__,
+                                                         "repo": pysap.__repo__}
 
     usage = "Usage: %prog [options] -d <remote host>"
 

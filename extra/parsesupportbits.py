@@ -20,6 +20,8 @@
 
 # Standard imports
 from optparse import OptionParser
+# Custom imports
+import pysap
 
 
 # Command line options parser
@@ -31,8 +33,9 @@ def parse_options():
     from SAP Gui traces (for example file 'sapguidll_01_0001.trc').
     """
 
-    epilog = \
-    """pysap - http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=tool&name=pysap"""
+    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
+                                                         "url": pysap.__url__,
+                                                         "repo": pysap.__repo__}
 
     usage = "Usage: %prog -i <input_file>"
 

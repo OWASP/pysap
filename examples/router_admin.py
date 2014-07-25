@@ -24,6 +24,7 @@ from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
 # Custom imports
+import pysap
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
 from pysap.SAPRouter import SAPRouter, router_is_error, get_router_version
 
@@ -43,8 +44,9 @@ def parse_options():
 
     """
 
-    epilog = \
-    """pysap - http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=tool&name=pysap"""
+    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
+                                                         "url": pysap.__url__,
+                                                         "repo": pysap.__repo__}
 
     usage = "Usage: %prog [options] -d <remote host>"
 

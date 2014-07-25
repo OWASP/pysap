@@ -25,6 +25,7 @@ from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
 # Custom imports
+import pysap
 from pysap.SAPNI import SAPNIProxy, SAPNIProxyHandler
 from pysap.SAPRouter import SAPRouter, router_is_error, router_is_pong,\
     SAPRouterRouteHop
@@ -45,8 +46,9 @@ def parse_options():
     * http://blog.onapsis.com/assessing-a-saprouters-security-with-onapsis-bizploit-part-ii/
     """
 
-    epilog = \
-    """pysap - http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=tool&name=pysap"""
+    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
+                                                         "url": pysap.__url__,
+                                                         "repo": pysap.__repo__}
 
     usage = "Usage: %prog [options] -d <remote host>"
 
@@ -149,7 +151,6 @@ class SAPRouterNativeRouter(SAPNIProxyHandler):
             # Handle close connection
             if len(packet) == 0:
                 local.close()
-                #remote.close()
                 raise SocketError((100, "Underlying stream socket tore down"))
 
             # Send the packet to the remote peer

@@ -17,11 +17,26 @@
 # GNU General Public License for more details.
 # ==============
 
-#from SAPNI import *
-#from SAPDiag import *
-#from SAPDiagItems import *
-#from SAPDiagClient import *
-#from SAPDiagProxy import *
-#from SAPDiagServer import *
-#from SAPMS import *
-#from SAPRouter import *
+"""
+pysap - Python library for communicating using SAP network protocols.
+
+Currently the following SAP protocols are included:
+- SAP NI (Network Interface).
+- SAP Diag.
+- SAP Enqueue Server.
+- SAP Message Server.
+- SAP Router.
+- SAP RFC.
+"""
+
+__version__ = '0.1.5'
+"""The version of pysap"""
+
+__url__ = "http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=tool&name=pysap"
+"""The URL for pysap's homepage"""
+
+__repo__ = "https://github.com/CoreSecurity/pysap"
+"""The URL for pysap's repository"""
+
+__license__ = "GNU General Public License v2 or later (GPLv2+)"
+"""The license governing the use and distribution of pysap"""

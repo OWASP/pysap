@@ -29,6 +29,7 @@ from scapy.sendrecv import sniff
 from scapy.layers.inet import IP, TCP
 from scapy.packet import bind_layers, split_layers, Raw
 # Custom imports
+import pysap
 from pysap.SAPNI import SAPNI
 from pysap.SAPDiag import SAPDiag, SAPDiagDP
 from pysap.SAPDiagItems import *
@@ -121,8 +122,9 @@ def parse_options():
     a pcap file or by sniffing on a network interface.
     """
 
-    epilog = \
-    """pysap - http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=tool&name=pysap"""
+    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
+                                                         "url": pysap.__url__,
+                                                         "repo": pysap.__repo__}
 
     usage = "Usage: %prog [options] [-i <interface> | -f <pcap file>]"
 

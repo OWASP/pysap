@@ -25,6 +25,7 @@ from optparse import OptionParser, OptionGroup
 from scapy.config import conf
 from scapy.packet import bind_layers
 # Custom imports
+import pysap
 from pysap.SAPDiagItems import *
 from pysap.SAPDiag import SAPDiag, SAPDiagDP
 from pysap.SAPNI import SAPNI, SAPNIClient, SAPNIServerHandler, SAPNIServerThreaded
@@ -224,8 +225,9 @@ def parse_options():
     """This example script implements a rogue server using the Diag protocol. It offers users a customizable login screen and gathers entered credentials. Tested with SAP Gui for Java 7.20 Patch Level 5 running on Ubuntu.
     """
 
-    epilog = \
-    """pysap - http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=tool&name=pysap"""
+    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
+                                                         "url": pysap.__url__,
+                                                         "repo": pysap.__repo__}
 
     usage = "Usage: %prog [options]"
 
