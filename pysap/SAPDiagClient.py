@@ -18,6 +18,7 @@
 # ==============
 
 # Standard imports
+from random import randint
 from socket import error as SocketError
 from binascii import unhexlify as unhex
 # Custom imports
@@ -48,7 +49,7 @@ class SAPDiagConnection(object):
     """ @ivar: number of the last dialog step performed
         @type: C{int} """
 
-    def __init__(self, host, port, terminal="remote", compress=False,
+    def __init__(self, host, port, terminal=None, compress=False,
                  init=False, support_data=default_support_data):
         """Creates the connection to the Diag server.
 
@@ -58,7 +59,9 @@ class SAPDiagConnection(object):
         @param port: remote port to connect to
         @type port: C{int}
 
-        @param terminal: terminal name
+        @param terminal: terminal name to use when connecting to the server.
+            If no terminal name is specified, a random IP address will be
+            generated and used instead of the terminal name.
         @type terminal: C{string}
 
         @param compress: if true, the compression will be enabled for the
@@ -77,7 +80,7 @@ class SAPDiagConnection(object):
 
         self.host = host
         self.port = port
-        self.terminal = terminal
+        self.terminal = terminal or self.get_terminal_name()
         self.support_data = self.get_support_data_item(support_data) or default_support_data
         if compress is True:
             self.compress = 1
@@ -91,6 +94,16 @@ class SAPDiagConnection(object):
         """Creates a L{SAPNIStreamSocket} connection to the host/port
         """
         self._connection = SAPNIStreamSocket.get_nisocket(self.host, self.port)
+
+    def get_terminal_name(self):
+        """Generates a random IP address to use as a terminal name. In SAP
+        systems that don't implement SAP Note 1497445, the dispatcher registers
+        logs the terminal name as provided by the client, or fallbacks to
+        registering the IP address if the terminal name can't be resolved.
+        Using a random IP address as terminal name in unpatched systems will
+        make the 'terminal' field of the security audit log unreliable.
+        """
+        return '.'.join('%s' % randint(0, 255) for __ in range(4))
 
     def get_support_data_item(self, support_data):
         if isinstance(support_data, basestring):

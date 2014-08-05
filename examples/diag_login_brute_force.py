@@ -168,8 +168,6 @@ def login(host, port, terminal, username, password, client, verbose, results):
     status = ''
 
     # Create the connection to the SAP Netweaver server
-    if terminal is None:
-        terminal = get_rand(8)
     connection = SAPDiagConnection(host, port, terminal=terminal, compress=False, init=True)
 
     # Send the login using the given username, password and client
