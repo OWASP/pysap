@@ -70,6 +70,7 @@ def parse_options():
 
     misc = OptionGroup(parser, "Misc options")
     misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose output [%default]")
+    misc.add_option("--terminal", dest="terminal", default=None, help="Terminal name")
     parser.add_option_group(misc)
 
     (options, _) = parser.parse_args()
@@ -100,7 +101,8 @@ def main():
 
     # Create the connection to the SAP Netweaver server
     print "[*] Connecting to", options.remote_host, "port", options.remote_port
-    connection = SAPDiagConnection(options.remote_host, options.remote_port, init=False)
+    connection = SAPDiagConnection(options.remote_host, options.remote_port,
+                                   init=False, terminal=options.terminal)
 
     # Send the initialization packet and store the response (login screen)
     login_screen = connection.init()

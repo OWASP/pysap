@@ -124,6 +124,7 @@ def parse_options():
     misc = OptionGroup(parser, "Misc options")
     misc.add_option("--threads", dest="threads", type="int", help="Number of threads [%default]", default=1)
     misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose output [%default]")
+    misc.add_option("--terminal", dest="terminal", default=None, help="Terminal name")
     parser.add_option_group(misc)
 
     (options, _) = parser.parse_args()
@@ -167,6 +168,8 @@ def login(host, port, terminal, username, password, client, verbose, results):
     status = ''
 
     # Create the connection to the SAP Netweaver server
+    if terminal is None:
+        terminal = get_rand(8)
     connection = SAPDiagConnection(host, port, terminal=terminal, compress=False, init=True)
 
     # Send the login using the given username, password and client
@@ -204,7 +207,7 @@ def login(host, port, terminal, username, password, client, verbose, results):
     results.append((success, status, username, password, client))
 
 
-def discover_client(host, port, client, verbose, results):
+def discover_client(host, port, terminal, client, verbose, results):
     """
     Test if a client is available on the application server, by setting the client and using a
     random username/password, and looking at the response's message.
@@ -219,7 +222,7 @@ def discover_client(host, port, client, verbose, results):
 
     client = "%03d" % client
     login_results = []
-    login(host, port, get_rand(8), get_rand(8), get_rand(8), client, verbose, login_results)
+    login(host, port, terminal, get_rand(8), get_rand(8), client, verbose, login_results)
     (_, status, _, _, client) = login_results[0]
 
     if status == license_check:
@@ -253,7 +256,9 @@ def main():
         # Add the tasks to the threadpool
         results = []
         for client in range(int(client_min), int(client_max) + 1):
-            pool.add_task(discover_client, options.remote_host, options.remote_port, client, options.verbose, results)
+            pool.add_task(discover_client, options.remote_host,
+                          options.remote_port, options.terminal,
+                          client, options.verbose, results)
         pool.wait_completion()
 
         # Collect the results
@@ -306,7 +311,9 @@ def main():
     for username, password, client in testcases:
         if options.verbose:
             print "[*] Adding testcase for username", username, "with password", password, "on client", client
-        pool.add_task(login, options.remote_host, options.remote_port, get_rand(8), username, password, client, options.verbose, results)
+        pool.add_task(login, options.remote_host, options.remote_port,
+                      options.terminal, username, password, client,
+                      options.verbose, results)
 
     pool.wait_completion()
 
