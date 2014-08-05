@@ -19,16 +19,17 @@
 
 # Standard imports
 from socket import error as SocketError
+from binascii import unhexlify as unhex
 # Custom imports
 from pysap.SAPNI import SAPNIStreamSocket
 from pysap.SAPDiag import SAPDiag, SAPDiagDP, SAPDiagItem
-from pysap.SAPDiagItems import user_connect_compressed,\
-    user_connect_uncompressed, support_data, SAPDiagStep
+from pysap.SAPDiagItems import user_connect_compressed, \
+    user_connect_uncompressed, support_data as default_support_data, \
+    SAPDiagStep, SAPDiagSupportBits
 
 
 class SAPDiagConnection(object):
-    """
-    SAP Diag Connection
+    """SAP Diag Connection
 
     This class represents a basic client connection to a Diag server.
     Handles initialization and further interaction by sending/receiving
@@ -48,9 +49,8 @@ class SAPDiagConnection(object):
         @type: C{int} """
 
     def __init__(self, host, port, terminal="remote", compress=False,
-                 init=False):
-        """
-        Creates the connection to the Diag server.
+                 init=False, support_data=default_support_data):
+        """Creates the connection to the Diag server.
 
         @param host: remote host to connect to
         @type host: C{string}
@@ -69,14 +69,17 @@ class SAPDiagConnection(object):
         @param init: if true, the initialization will be performed after the
             connection is established.
         @type init: C{bool}
-        """
 
-        # XXX: Add support for specifying support bits to send
+        @param support_data: support data bits to use when initializing. It
+            identifies the client's capabilities.
+        @type support_data: L{SAPDiagItem} or L{SAPDiagSupportBits} or C{string}
+        """
 
         self.host = host
         self.port = port
         self.terminal = terminal
-        if compress == True:
+        self.support_data = self.get_support_data_item(support_data) or default_support_data
+        if compress is True:
             self.compress = 1
         else:
             self.compress = 0
@@ -85,21 +88,33 @@ class SAPDiagConnection(object):
             self.init()
 
     def connect(self):
-        """
-        Creates a L{SAPNIStreamSocket} connection to the host/port
+        """Creates a L{SAPNIStreamSocket} connection to the host/port
         """
         self._connection = SAPNIStreamSocket.get_nisocket(self.host, self.port)
 
+    def get_support_data_item(self, support_data):
+        if isinstance(support_data, basestring):
+            support_data = SAPDiagSupportBits(unhex(support_data))
+
+        if isinstance(support_data, SAPDiagSupportBits):
+            support_data = SAPDiagItem(item_type="APPL",
+                                       item_id="ST_USER",
+                                       item_sid="SUPPORTDATA",
+                                       item_value=support_data)
+
+        if isinstance(support_data, SAPDiagItem):
+            return support_data
+
+        return None
+
     def init(self):
-        """
-        Sends an initialization request. If the socket wasn't created,
+        """Sends an initialization request. If the socket wasn't created,
         call the L{connect} method. If compression was specified, the
         initialization will be performed using the respective User
         Connect item.
 
         @return: initialization response (usually login screen)
         @rtype: L{SAPNI<SAPNI.SAPNI>}
-
         """
         if self._connection is None:
             self.connect()
@@ -115,11 +130,10 @@ class SAPDiagConnection(object):
 
         return self.sr(SAPDiagDP(terminal=self.terminal) /
                        SAPDiag(compress=0, com_flag_TERM_INI=1) /
-                       user_connect / support_data)
+                       user_connect / self.support_data)
 
     def send(self, packet):
-        """
-        Sends a packet using the L{SAPNIStreamSocket}
+        """Sends a packet using the L{SAPNIStreamSocket}
 
         @param packet: packet to send
         @type packet: L{SAPDiag<SAPDiag.SAPDiag>}
@@ -129,8 +143,7 @@ class SAPDiagConnection(object):
             self._connection.send(packet)
 
     def receive(self):
-        """
-        Receive a L{SAPNI<SAPNI.SAPNI>} packet using the L{SAPNIStreamSocket}. Response is
+        """Receive a L{SAPNI<SAPNI.SAPNI>} packet using the L{SAPNIStreamSocket}. Response is
         returned and also stored in L{last_response}.
 
         @return: packet received
@@ -143,8 +156,7 @@ class SAPDiagConnection(object):
             return None
 
     def sr(self, packet):
-        """
-        Sends and receive a L{SAPNI<SAPNI.SAPNI>} packet using the L{SAPNIStreamSocket}
+        """Sends and receive a L{SAPNI<SAPNI.SAPNI>} packet using the L{SAPNIStreamSocket}
 
         @param packet: packet to send
         @type packet: L{SAPDiag<SAPDiag.SAPDiag>}
@@ -160,8 +172,7 @@ class SAPDiagConnection(object):
             return None
 
     def close(self):
-        """
-        Send an 'end of connection' packet and closes the socket
+        """Send an 'end of connection' packet and closes the socket
 
         """
         try:
@@ -171,8 +182,7 @@ class SAPDiagConnection(object):
             pass
 
     def sr_message(self, msg):
-        """
-        Sends and receive a L{SAPDiag<SAPDiag.SAPDiag>} message, prepending the
+        """Sends and receive a L{SAPDiag<SAPDiag.SAPDiag>} message, prepending the
         Diag header.
 
         @param msg: items to send
@@ -185,8 +195,7 @@ class SAPDiagConnection(object):
         return self.sr(SAPDiag(compress=self.compress, message=msg))
 
     def send_message(self, msg):
-        """
-        Sends a L{SAPDiag<SAPDiag.SAPDiag>} message, prepending the Diag header.
+        """Sends a L{SAPDiag<SAPDiag.SAPDiag>} message, prepending the Diag header.
 
         @param msg: items to send
         @type msg: C{list} of L{SAPDiagItem}
@@ -195,8 +204,7 @@ class SAPDiagConnection(object):
         self.send(SAPDiag(compress=self.compress, message=msg))
 
     def interact(self, message):
-        """
-        Interacts with the SAP Diag server, adding the L{SAPDiagStep} item and
+        """Interacts with the SAP Diag server, adding the L{SAPDiagStep} item and
         ending with a 'end of message' item.
 
         @param message: items to send

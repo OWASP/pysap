@@ -319,7 +319,7 @@ support_data_sapnw_702 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737d674087e1305971
 
 support_data = SAPDiagItem(item_type="APPL",
                            item_id="ST_USER",
-                           item_sid=0x0b,
+                           item_sid="SUPPORTDATA",
                            item_value=support_data_sapgui_702_java5)
 
 
