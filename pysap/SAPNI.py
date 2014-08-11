@@ -262,16 +262,14 @@ class SAPNIProxy(object):
 
 
 class SAPNIProxyHandler(object):
-    """
-    SAP NI Proxy Handler
+    """SAP NI Proxy Handler
 
     Handles NI packets. Works spawning one thread for processing data coming
     from the client and another one for data coming from the server.
     """
 
     def __init__(self, client, server, options=None):
-        """
-        It receives two L{SAPNIStreamSocket}s objects and creates the upload and
+        """It receives two L{SAPNIStreamSocket}s objects and creates the upload and
         download workers for processing data. Threads are started as daemons.
 
         @param client: client Stream Socket
@@ -286,16 +284,15 @@ class SAPNIProxyHandler(object):
         self.client = client
         self.server = server
 
-        upload_processor = Worker(self, self._upload)
-        download_processor = Worker(self, self._download)
-        upload_processor.daemon = True
-        download_processor.daemon = True
-        upload_processor.start()
-        download_processor.start()
+        self.upload_processor = Worker(self, self._upload)
+        self.download_processor = Worker(self, self._download)
+        self.upload_processor.daemon = True
+        self.download_processor.daemon = True
+        self.upload_processor.start()
+        self.download_processor.start()
 
     def recv_send(self, local, remote, process):
-        """
-        Receives data from one socket connection, process it and send to the
+        """Receives data from one socket connection, process it and send to the
         remote connection.
 
         @param local: the local socket
@@ -310,6 +307,7 @@ class SAPNIProxyHandler(object):
         # Receive a SAP NI packet
         packet = local.recv()
         log_sapni.debug("SAPNIProxyHandler: Received %d bytes", len(packet))
+
         # Process the packet using the given function
         packet = process(packet)
         # Send the packet to the remote peer
@@ -317,22 +315,27 @@ class SAPNIProxyHandler(object):
         log_sapni.debug("SAPNIProxyHandler: Sent %d bytes", len(packet))
 
     def _upload(self):
-        """
-        Handles data coming from the upload stream (client to server)
+        """Handles data coming from the upload stream (client to server)
         """
         log_sapni.debug("SAPNIProxyHandler: Client to Server connection")
-        self.recv_send(self.client, self.server, self.process_client)
+        try:
+            self.recv_send(self.client, self.server, self.process_client)
+        except socket.error:
+            log_sapni.error("SAPNIProxyHandler: Client to Server connection down")
+            self.stop_workers()
 
     def _download(self):
-        """
-        Handles data coming from the download stream (server to client)
+        """Handles data coming from the download stream (server to client)
         """
         log_sapni.debug("SAPNIProxyHandler: Server to Client connection")
-        self.recv_send(self.server, self.client, self.process_server)
+        try:
+            self.recv_send(self.server, self.client, self.process_server)
+        except socket.error:
+            log_sapni.error("SAPNIProxyHandler: Server to Client connection down")
+            self.stop_workers()
 
     def process_client(self, packet):
-        """
-        This method is called each time a packet arrives from the client.
+        """This method is called each time a packet arrives from the client.
         It must return a packet in the same layer (SAP NI). Stub method
         to be overloaded in subclasses.
 
@@ -342,8 +345,7 @@ class SAPNIProxyHandler(object):
         return packet
 
     def process_server(self, packet):
-        """
-        This method is called each time a packet arrives from the server.
+        """This method is called each time a packet arrives from the server.
         It must return a packet in the same layer (SAP NI). Stub method
         to be overloaded in subclasses.
 
@@ -351,6 +353,11 @@ class SAPNIProxyHandler(object):
         @type packet: Packet
         """
         return packet
+
+    def stop_workers(self):
+        """Stop the download and upload processor' workers"""
+        self.download_processor.stop()
+        self.upload_processor.stop()
 
 
 class SAPNIClient(object):

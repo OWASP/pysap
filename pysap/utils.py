@@ -20,7 +20,7 @@
 # Standard imports
 import struct
 from cmd import Cmd
-from threading import Thread
+from threading import Thread, Event
 # External imports
 from tabulate import tabulate
 from scapy.packet import Packet
@@ -233,8 +233,7 @@ class SignedShortField(Field):
 
 
 class Worker(Thread):
-    """
-    Thread Worker
+    """Thread Worker
 
     It runs a function into a new thread.
     """
@@ -243,10 +242,14 @@ class Worker(Thread):
         Thread.__init__(self)
         self.decoder = decoder
         self.function = function
+        self.stopped = Event()
 
     def run(self):
-        while True:
+        while not self.stopped.is_set():
             self.function()
+
+    def stop(self):
+        self.stopped.set()
 
 
 # Base Console

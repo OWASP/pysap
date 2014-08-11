@@ -44,8 +44,10 @@ conf.verb = 0
 
 
 def filter_client(packet):
+    atoms = []
     # Grab all the Atom items in the packet
-    atoms = packet[SAPDiag].get_item(["APPL", "APPL4"], "DYNT", "DYNT_ATOM")
+    if SAPDiag in packet:
+        atoms = packet[SAPDiag].get_item(["APPL", "APPL4"], "DYNT", "DYNT_ATOM")
 
     # Print the Atom items information
     if len(atoms) > 0:
