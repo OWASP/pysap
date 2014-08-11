@@ -19,6 +19,7 @@
 
 # Standard imports
 import logging
+from select import select
 from struct import unpack
 from SocketServer import ThreadingTCPServer, BaseRequestHandler
 # External imports
@@ -177,8 +178,7 @@ class SAPNIStreamSocket(StreamSocket):
 
 
 class SAPNIProxy(object):
-    """
-    SAP NI Proxy
+    """SAP NI Proxy
 
     It works by setting a listener L{SAPNIStreamSocket} and dispatching client's
     requests to a given handler class.
@@ -190,8 +190,7 @@ class SAPNIProxy(object):
 
     def __init__(self, bind_address, bind_port, remote_address, remote_port,
                  handler, backlog=5, keep_alive=True, options=None):
-        """
-        Create the proxy binding a socket in the giving port and setting the
+        """Create the proxy binding a socket in the giving port and setting the
         handler for the incoming connections.
 
         @param bind_address: address to bind the listener socket
@@ -238,8 +237,7 @@ class SAPNIProxy(object):
                         bind_address, bind_port, remote_address, remote_port)
 
     def handle_connection(self):
-        """
-        Block until a connection is received from the listener and handle that
+        """Block until a connection is received from the listener and handle that
         client using the provided handler class.
 
         @return: the handler instance handling the request
@@ -265,12 +263,12 @@ class SAPNIProxyHandler(object):
     """SAP NI Proxy Handler
 
     Handles NI packets. Works spawning one thread for processing data coming
-    from the client and another one for data coming from the server.
+    from each pair of client/server.
     """
 
     def __init__(self, client, server, options=None):
-        """It receives two L{SAPNIStreamSocket}s objects and creates the upload and
-        download workers for processing data. Threads are started as daemons.
+        """It receives two L{SAPNIStreamSocket}s objects and creates the worker
+        for processing data. Thread is started as daemon.
 
         @param client: client Stream Socket
         @type client: L{SAPNIStreamSocket}
@@ -283,13 +281,11 @@ class SAPNIProxyHandler(object):
         """
         self.client = client
         self.server = server
+        self.poll_interval = 0.5
 
-        self.upload_processor = Worker(self, self._upload)
-        self.download_processor = Worker(self, self._download)
-        self.upload_processor.daemon = True
-        self.download_processor.daemon = True
-        self.upload_processor.start()
-        self.download_processor.start()
+        self.processor = Worker(self, self._handle)
+        self.processor.daemon = True
+        self.processor.start()
 
     def recv_send(self, local, remote, process):
         """Receives data from one socket connection, process it and send to the
@@ -310,29 +306,28 @@ class SAPNIProxyHandler(object):
 
         # Process the packet using the given function
         packet = process(packet)
+
         # Send the packet to the remote peer
         remote.send(packet.payload)
         log_sapni.debug("SAPNIProxyHandler: Sent %d bytes", len(packet))
 
-    def _upload(self):
-        """Handles data coming from the upload stream (client to server)
-        """
-        log_sapni.debug("SAPNIProxyHandler: Client to Server connection")
-        try:
-            self.recv_send(self.client, self.server, self.process_client)
-        except socket.error:
-            log_sapni.error("SAPNIProxyHandler: Client to Server connection down")
-            self.stop_workers()
-
-    def _download(self):
-        """Handles data coming from the download stream (server to client)
-        """
-        log_sapni.debug("SAPNIProxyHandler: Server to Client connection")
-        try:
-            self.recv_send(self.server, self.client, self.process_server)
-        except socket.error:
-            log_sapni.error("SAPNIProxyHandler: Server to Client connection down")
-            self.stop_workers()
+    def _handle(self):
+        """Handles data coming from either the client or the server"""
+        r, __, __ = select([self.client, self.server], [], [], self.poll_interval)
+        if self.client in r:
+            try:
+                log_sapni.debug("SAPNIProxyHandler: Client --> Server connection")
+                self.recv_send(self.client, self.server, self.process_client)
+            except socket.error:
+                log_sapni.error("SAPNIProxyHandler: Client connection down")
+                self.stop_workers()
+        if self.server in r:
+            try:
+                log_sapni.debug("SAPNIProxyHandler: Client <-- Server connection")
+                self.recv_send(self.server, self.client, self.process_server)
+            except socket.error:
+                log_sapni.error("SAPNIProxyHandler: Server connection down")
+                self.stop_workers()
 
     def process_client(self, packet):
         """This method is called each time a packet arrives from the client.
@@ -355,9 +350,10 @@ class SAPNIProxyHandler(object):
         return packet
 
     def stop_workers(self):
-        """Stop the download and upload processor' workers"""
-        self.download_processor.stop()
-        self.upload_processor.stop()
+        """Stop the processor workers"""
+        self.client.close()
+        self.server.close()
+        self.processor.stop()
 
 
 class SAPNIClient(object):
