@@ -25,13 +25,14 @@ from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
 from scapy.fields import ByteEnumField, IntField, ByteField, LenField, \
     StrFixedLenField, ConditionalField, FieldLenField, PacketListField, \
-    BitField, LEIntField, PacketField, SignedIntField
+    BitField, LEIntField, PacketField, SignedIntField, StrField
 # Custom imports
 import pysapcompress
 from pysap.SAPNI import SAPNI
 from pysap.SAPSNC import SAPSNCFrame
 from pysap.utils import PacketNoPadded, ByteEnumKeysField, \
-    ByteMultiEnumKeysField, MutablePacketField, SignedShortField
+    ByteMultiEnumKeysField, MutablePacketField, SignedShortField,\
+    StrNullFixedLenField
 
 
 class SAPDiagDP(Packet):
@@ -467,8 +468,7 @@ diag_compress_values = {
 
 # SAP Diag packet
 class SAPDiag(PacketNoPadded):
-    """
-    SAP Diag packet
+    """SAP Diag packet
 
     This packet holds the Diag Header and serve as a container for
     L{SAPDiagItem} items. It handles compression/decompression, adding the
@@ -622,17 +622,32 @@ class SAPDiag(PacketNoPadded):
         return items
 
 
+class SAPDiagError(PacketNoPadded):
+    """SAP Diag Error packet
+
+    This packet holds Diag error packets.
+    """
+    name = "SAP Diag Error"
+    # TODO: Need to figure out the meaning of the packets
+    fields_desc = [StrNullFixedLenField("msg", "**DPTMMSG**", length=12),
+                   StrField("padd", None),
+                   ]
+
+
 # Bind SAP NI with the Diag port
 bind_layers(TCP, SAPNI, dport=3200)
 
 
 def diag_guess_diagdp_header(self, payload):
-    """
-    Guess if the payload is a L{SAPDiag} or L{SAPDiagDP}, base on the mode field.
+    """Guess if the payload is a L{SAPDiag} or L{SAPDiagDP}, base on the mode field.
     Use this function as guess_payload_class for the L{SAPNI} packet if need to
     dissect L{SAPDiag} packets.
     """
-    if self.length > 200 + 8 and payload[0] == "\xff":
+    if self.length == 14 and payload.startswith("**DPTMMSG**\x00"):
+        return SAPDiagError
+    elif self.length == 17 and payload.startswith("**DPTMOPC**\x00"):
+        return SAPDiagError
+    elif self.length > 200 + 8 and payload[0] == "\xff":
         return SAPDiagDP
     else:
         return SAPDiag
