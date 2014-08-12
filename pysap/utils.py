@@ -22,12 +22,16 @@ import struct
 from cmd import Cmd
 from threading import Thread, Event
 # External imports
-from tabulate import tabulate
 from scapy.packet import Packet
 from scapy.volatile import RandEnum, RandomEnumeration, RandNum, RandTermString,\
     RandBin
 from scapy.fields import ByteEnumField, ShortEnumField, MultiEnumField,\
     StrLenField, Field, StrFixedLenField
+# Optional imports
+try:
+    from tabulate import tabulate
+except:
+    tabulate = None
 
 
 class PacketNoPadded(Packet):
@@ -326,8 +330,11 @@ class BaseConsole (Cmd, object):
     # Console output methods
 
     def _tabulate(self, table, **args):
-        tabular = tabulate(table, args)
-        self._print(tabular)
+        if tabulate:
+            tabular = tabulate(table, args)
+            self._print(tabular)
+        else:
+            self._print("\n".join("\t|".join(line) for line in table))
 
     def _print(self, string=""):
         print str(string)
