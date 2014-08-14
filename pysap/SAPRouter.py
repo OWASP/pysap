@@ -512,8 +512,8 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         @param port: target port to connect to if not specified in the route
         @type port: C{int}
 
-        @param port: target password if not specified in the route
-        @type port: C{string}
+        @param password: target password if not specified in the route
+        @type password: C{string}
 
         @param talk_mode: the talk mode to use for requesting the route
         @type talk_mode: C{int}
