@@ -678,7 +678,6 @@ class SAPMSProperty(PacketNoPadded):
     fields_desc = [
         StrNullFixedLenField("client", None, 39),
         IntEnumField("id", 0x00, ms_property_id_values),
-        #FieldLenField("length", None, length_of="value", fmt="!I"),
 
         # MS_PROPERTY_VHOST
         ConditionalField(ShortEnumKeysField("logon", 0, ms_logon_type_values), lambda pkt:pkt.id in [0x02]),

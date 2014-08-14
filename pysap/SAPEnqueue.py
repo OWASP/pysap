@@ -214,8 +214,7 @@ class SAPEnqueue(PacketNoPadded):
 
 
 class SAPEnqueueStreamSocket(SAPNIStreamSocket):
-    """
-    Stream socket implementation of the Enqueue Server protocol. It performs
+    """Stream socket implementation of the Enqueue Server protocol. It performs
     reassemble of received fragmented packets to ease use in upper layers.
     """
     # TODO: Add support for sending fragmented packets.
@@ -224,8 +223,7 @@ class SAPEnqueueStreamSocket(SAPNIStreamSocket):
     desc = "Enqueue Stream socket"
 
     def recv(self):
-        """
-        Receive a packet at the Enqueue layer, performing reassemble of
+        """Receive a packet at the Enqueue layer, performing reassemble of
         fragmented packets if necessary.
 
         @return: received L{SAPEnqueue} packet

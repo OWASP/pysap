@@ -23,7 +23,6 @@ from select import select
 from struct import unpack
 from SocketServer import ThreadingTCPServer, BaseRequestHandler
 # External imports
-#from scapy.all import *
 from scapy.fields import LenField
 from scapy.packet import Packet, Raw
 from scapy.supersocket import socket, StreamSocket

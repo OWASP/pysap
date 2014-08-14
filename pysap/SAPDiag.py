@@ -497,12 +497,12 @@ class SAPDiag(PacketNoPadded):
 
             # Compression Header
             ConditionalField(LEIntField("uncompress_length", None), lambda pkt:pkt.compress == 1),
-            ConditionalField(ByteEnumField("algorithm", 0x12, {0x12: "LZH", 0x10: "LZC"}), lambda pkt:pkt.compress == 1),
-            ConditionalField(StrFixedLenField("magic_bytes", "\x1f\x9d", 2), lambda pkt:pkt.compress == 1),
-            ConditionalField(ByteField("special", 2), lambda pkt:pkt.compress == 1),
+            ConditionalField(ByteEnumField("algorithm", 0x12, {0x12: "LZH", 0x10: "LZC"}), lambda pkt: pkt.compress == 1),
+            ConditionalField(StrFixedLenField("magic_bytes", "\x1f\x9d", 2), lambda pkt: pkt.compress == 1),
+            ConditionalField(ByteField("special", 2), lambda pkt: pkt.compress == 1),
 
             # SNC Frame
-            ConditionalField(PacketField("snc_frame", None, SAPSNCFrame), lambda pkt:pkt.compress in [2, 3]),
+            ConditionalField(PacketField("snc_frame", None, SAPSNCFrame), lambda pkt: pkt.compress in [2, 3]),
 
             # Payload
             PacketListField("message", None, SAPDiagItem)]
