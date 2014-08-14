@@ -18,18 +18,23 @@
 # ==============
 
 # Standard imports
-from re import compile
+import re
+import logging
 # External imports
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
-from scapy.fields import ByteField, ShortField,\
-    ConditionalField, StrField, IntField, StrNullField, PacketListField,\
-    FieldLenField, FieldListField, SignedIntEnumField, StrFixedLenField,\
-    PacketField
+from scapy.supersocket import socket, StreamSocket
+from scapy.fields import ByteField, ShortField, ConditionalField, StrField,\
+    IntField, StrNullField, PacketListField, FieldLenField, FieldListField,\
+    SignedIntEnumField, StrFixedLenField, PacketField
 # Custom imports
-from pysap.SAPNI import SAPNI
 from pysap.SAPSNC import SAPSNCFrame
+from pysap.SAPNI import SAPNI, SAPNIStreamSocket
 from pysap.utils import PacketNoPadded, ByteEnumKeysField, StrNullFixedLenField
+
+
+# Create a logger for the SAPRouter layer
+log_saprouter = logging.getLogger("pysap.saprouter")
 
 
 # Router Opcode values
@@ -127,7 +132,12 @@ class SAPRouterRouteHop(PacketNoPadded):
         StrNullField("password", None),
         ]
 
-    regex = compile(r'(/H/(?P<hostname>\w+)(/S/(?P<port>\w+))?(/[PW]/(?P<password>\w+))?)')
+    regex = re.compile(r"""
+        (/H/(?P<hostname>[\w\.]+)              # Hostname, FQDN or IP addresss
+        (/S/(?P<port>[\w]+))?                  # Optional port/service
+        (/[PW]/(?P<password>[\w.]+))?          # Optional password
+        )
+    """, re.VERBOSE)
     """ @cvar: Regular expression for matching route strings
         @type: regex
     """
@@ -385,11 +395,155 @@ def get_router_version(connection):
 
     @return: version or None
     """
-    r = connection.sr(SAPRouter(type=SAPRouter.SAPROUTER_CONTROL, version=40, opcode=1))
-    if router_is_control(r) and r.opcode == 2:
-        return r.version
+    response = connection.sr(SAPRouter(type=SAPRouter.SAPROUTER_CONTROL, version=40, opcode=1))
+    if SAPRouter in response and router_is_control(response) and response.opcode == 2:
+        return response.version
     else:
         return None
+
+
+class SAPRouteException(Exception):
+    """Exception for SAP Router routing errors"""
+
+
+class SAPRoutedStreamSocket(SAPNIStreamSocket):
+    """Stream socket implementation for a connection routed through a SAP
+    Router server. It works by wrapping a L{SAPNIStreamSocket} and connecting
+    first to the SAP Router given a route string or list of L{SAPRouterRouteHop}.
+    """
+
+    desc = "NI Stream socket routed trough a SAP Router"
+
+    def __init__(self, sock, route, talk_mode=1, router_version=None, keep_alive=True):
+        """Initialize the routed stream socket. It should receive a socket
+        connected with the SAP Router, and a route to specified to it. After
+        initialization all calls to send() and recv() would be made to the
+        target host/service and to the SAP Router itself.
+
+        @param sock: a socket connected to the SAP Router
+        @type sock: C{socket}
+
+        @param route: a route to specify to the SAP Router
+        @type route: C{list} of L{SAPRouterRouteHop}
+
+        @param talk_mode: the talk mode to use when routing
+        @type talk_mode: C{int}
+
+        @param router_version: the router version to use for requesting the route
+        @type router_version: C{int}
+        """
+        self.routed = False
+        self.talk_mode = talk_mode
+        self.router_version = router_version
+        # Connect to the SAP Router
+        SAPNIStreamSocket.__init__(self, sock, keep_alive=keep_alive)
+        # Now that we've a NIStreamSocket, retrieve the router version if
+        # was not specified
+        if self.router_version is None:
+            self.router_version = get_router_version(self)
+        self.route_to(route, talk_mode)
+
+    def route_to(self, route, talk_mode):
+        """Make the route request to the target host/service.
+
+        @param route: a route to specify to the SAP Router
+        @type route: C{list} of L{SAPRouterRouteHop}
+
+        @param talk_mode: the talk mode to use when routing
+        @type talk_mode: C{int}
+        """
+        # Build the route request packet
+        router_strings = map(str, route)
+        target = ":".join([route[-1].hostname, route[-1].port])
+        router_strings_lens = map(len, router_strings)
+        route_request = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
+                                  route_ni_version=self.router_version,
+                                  route_entries=len(route),
+                                  route_talk_mode=talk_mode,
+                                  route_rest_nodes=1,
+                                  route_length=sum(router_strings_lens),
+                                  route_offset=router_strings_lens[0],
+                                  route_string=route)
+        log_saprouter.debug("Requesting route to %s", target)
+        # Send the request and grab the response
+        response = self.sr(route_request)
+        if SAPRouter in response:
+            response = response[SAPRouter]
+            if router_is_pong(response):
+                self.routed = True
+                log_saprouter.debug("Route to %s accepted", target)
+            elif router_is_error(response) and response.return_code == -94:
+                log_saprouter.debug("Route to %s denied", target)
+                raise SAPRouteException("Route request not accepted")
+            else:
+                log_saprouter.warning("Error requesting route to %s", target)
+                raise Exception("Router error:", response.err_text_value)
+        else:
+            log_saprouter.warning("Error requesting route to %s", target)
+            raise Exception("Wrong response received")
+
+    def recv(self):
+        """Receive a packet from the target host. If the talk mode in use is
+        native and we've already set the route, the packet received is a raw
+        packet. Otherwise, the packet received is a NI layer packet in the same
+        way the L{SAPNIStreamSocket} works.
+        """
+        # If we're working on native mode and the route was accepted, we don't
+        # need the NI layer anymore. Just use the plain socket inside the
+        # NIStreamSockets.
+        if self.routed:
+            if self.talk_mode == 1:
+                return StreamSocket.recv(self)
+        # If the route was not accepted yet or we're working on non-native talk
+        # mode, we need the NI layer.
+        return super(SAPRoutedStreamSocket, self).recv()
+
+    @classmethod
+    def get_nisocket(cls, route, host=None, port=None, password=None,
+                     talk_mode=None, router_version=None, **kwargs):
+        """Helper function to obtain a L{SAPRoutedStreamSocket}.
+
+        @param route: route to use for determining the SAP Router to connect
+        @type route: C{string} or C{list} of L{SAPRouterRouteHop}
+
+        @param host: target host to connect to if not specified in the route
+        @type host: C{string}
+
+        @param port: target port to connect to if not specified in the route
+        @type port: C{int}
+
+        @param port: target password if not specified in the route
+        @type port: C{string}
+
+        @param talk_mode: the talk mode to use for requesting the route
+        @type talk_mode: C{int}
+
+        @param router_version: the router version to use for requesting the route
+        @type router_version: C{int}
+
+        @keyword kwargs: arguments to pass to L{SAPRoutedStreamSocket} constructor
+
+        @return: connected socket through the specified route
+        @rtype: L{SAPRoutedStreamSocket}
+        """
+        # If the route was provided using a route string, convert it to a
+        # list of hops
+        if isinstance(route, (basestring, unicode)):
+            route = SAPRouterRouteHop.from_string(route)
+
+        # If the host and port were specified, we need to add a new hop to
+        # the route
+        if host is not None and port is not None:
+            route.append(SAPRouterRouteHop(hostname=host,
+                                           port=port,
+                                           password=password))
+
+        # Connect to the first hop in the route (it should be the SAP Router)
+        sock = socket.socket()
+        sock.connect((route[0].hostname, int(route[0].port)))
+
+        # Create a SAPRoutedStreamSocket instance specifying the route
+        return cls(sock, route, talk_mode, router_version, **kwargs)
 
 
 # Bind SAP NI with the SAP Router port

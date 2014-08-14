@@ -30,11 +30,9 @@ class PySAPRouterTest(unittest.TestCase):
     def check_route(self, route_string, route_hops):
         """Check from string to hops and back again"""
         hops = SAPRouterRouteHop.from_string(route_string)
-        self.assertEqual(len(hops), len(route_hops))
         self.assertListEqual(hops, route_hops)
 
         string = SAPRouterRouteHop.from_hops(hops)
-        self.assertEqual(len(string), len(route_string))
         self.assertEqual(string, route_string)
 
     def test_saprouter_route_string(self):
@@ -64,6 +62,16 @@ class PySAPRouterTest(unittest.TestCase):
                                             password="pass_to_app"),
                           SAPRouterRouteHop(hostname="yourapp",
                                             port="sapsrv")])
+
+        # Hostname with FQDN
+        self.check_route("/H/some.valid.domain.com/S/3299",
+                         [SAPRouterRouteHop(hostname="some.valid.domain.com",
+                                            port="3299")])
+
+        # Hostname with IP addresses
+        self.check_route("/H/127.0.0.1/S/3299",
+                         [SAPRouterRouteHop(hostname="127.0.0.1",
+                                            port="3299")])
 
         # Invalid route strings
         self.assertListEqual(SAPRouterRouteHop.from_string("/S/service"), [])

@@ -27,8 +27,8 @@ from scapy.config import conf
 # Custom imports
 import pysap
 from pysap.SAPNI import SAPNIProxy, SAPNIProxyHandler
-from pysap.SAPRouter import SAPRouter, router_is_error, router_is_pong,\
-    SAPRouterRouteHop
+from pysap.SAPRouter import SAPRouter, SAPRouterRouteHop, SAPRouteException,\
+    router_is_error, router_is_pong
 
 
 # Set the verbosity to 0
@@ -84,10 +84,6 @@ def parse_options():
     return options
 
 
-class RouteException(Exception):
-    pass
-
-
 class SAPRouterNativeRouter(SAPNIProxyHandler):
 
     def __init__(self, client, server, options=None):
@@ -130,7 +126,7 @@ class SAPRouterNativeRouter(SAPNIProxyHandler):
             elif router_is_error(response) and response.return_code == -94:
                 print "[*] Route request not accepted !"
                 print response.err_text_value
-                raise RouteException("Route request not accepted")
+                raise SAPRouteException("Route request not accepted")
             else:
                 print "[*] Router send error"
                 print response.err_text_value
@@ -188,7 +184,7 @@ def main():
 
     except KeyboardInterrupt:
         print "[*] Cancelled by the user !"
-    except RouteException, e:
+    except SAPRouteException, e:
         print "[*] Closing routing do to error %s" % e
 
 

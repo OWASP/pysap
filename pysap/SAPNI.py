@@ -68,16 +68,14 @@ class SAPNI(Packet):
 
 
 class SAPNIStreamSocket(StreamSocket):
-    """
-    Stream socket implementation of the Network Interface layer.
+    """Stream socket implementation of the SAP Network Interface (NI) layer.
 
     """
 
     desc = "NI Stream socket"
 
     def __init__(self, sock, keep_alive=True):
-        """
-        Initializes the NI stream socket.
+        """Initializes the NI stream socket.
 
         @param sock: socket
         @type sock: C{socket}
@@ -91,8 +89,7 @@ class SAPNIStreamSocket(StreamSocket):
         self.keep_alive = keep_alive
 
     def send(self, packet):
-        """
-        Send a packet at the NI layer, prepending the length field.
+        """Send a packet at the NI layer, prepending the length field.
 
         @param packet: packet to send
         @type packet: Packet
@@ -102,8 +99,7 @@ class SAPNIStreamSocket(StreamSocket):
         return StreamSocket.send(self, SAPNI() / packet)
 
     def recv(self):
-        """
-        Receive a packet at the NI layer, first reading the length field and
+        """Receive a packet at the NI layer, first reading the length field and
         the reading the data. If the stream is waiting for a new packet and
         the remote peer sends a keep-alive request (L{NI_PING<SAPNI.SAPNI_PING>}), the receive
         method will respond with a keep-alive response (L{NI_PONG<SAPNI.SAPNI_PONG>}) to keep the
@@ -142,8 +138,7 @@ class SAPNIStreamSocket(StreamSocket):
         return SAPNI(nidata)
 
     def sr(self, packet):
-        """
-        Send a given packet and receive the response. Wrapper around the send
+        """Send a given packet and receive the response. Wrapper around the send
         and receive methods. The response packet is build in the L{SAPNI} layer.
 
         @param packet: packet to send
@@ -157,8 +152,7 @@ class SAPNIStreamSocket(StreamSocket):
 
     @classmethod
     def get_nisocket(cls, host, port, **kwargs):
-        """
-        Helper function to obtain a L{SAPNIStreamSocket}.
+        """Helper function to obtain a L{SAPNIStreamSocket}.
 
         @param host: host to connect to
         @type host: C{string}
