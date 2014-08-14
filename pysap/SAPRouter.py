@@ -17,6 +17,8 @@
 # GNU General Public License for more details.
 # ==============
 
+# Standard imports
+from re import compile
 # External imports
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
@@ -114,17 +116,64 @@ router_ni_talk_mode_values = {
 
 
 class SAPRouterRouteHop(PacketNoPadded):
-    """
-    SAP Router Protocol Route Hop
+    """SAP Router Protocol Route Hop
 
     This packet is used to describe a hop in a route using the SAP Router.
     """
     name = "SAP Router Route Hop"
     fields_desc = [
-        StrNullField("hostname", ""),
-        StrNullField("port", ""),
-        StrNullField("password", ""),
+        StrNullField("hostname", None),
+        StrNullField("port", None),
+        StrNullField("password", None),
         ]
+
+    regex = compile(r'(/H/(?P<hostname>\w+)(/S/(?P<port>\w+))?(/[PW]/(?P<password>\w+))?)')
+    """ @cvar: Regular expression for matching route strings
+        @type: regex
+    """
+
+    @classmethod
+    def from_string(cls, route_string):
+        """Build a list of route hops from a route string. The format of a
+        route string is:
+
+        (/H/host/S/service/W/pass)*
+
+        or for older versions (<4.0):
+
+        (/H/host/S/service/P/pass)*
+
+        @param route_string: route string
+        @type route_string: C{string}
+
+        @return: route hops in the route string
+        @rtype: C{list} of L{SAPRouterRouteHop}
+        """
+        result = []
+        for route_hop in [x.groupdict() for x in cls.regex.finditer(route_string)]:
+            result.append(cls(hostname=route_hop["hostname"],
+                              port=route_hop["port"],
+                              password=route_hop["password"]))
+        return result
+
+    @classmethod
+    def from_hops(cls, route_hops):
+        """Build a route string from a list of route hops.
+
+        @param route_hops: route hops
+        @type route_hops: C{list} of L{SAPRouterRouteHop}
+
+        @return: route string
+        @rtype: C{string}
+        """
+        result = ""
+        for route_hop in route_hops:
+            result += "/H/%s" % route_hop.hostname
+            if route_hop.port:
+                result += "/S/%s" % route_hop.port
+            if route_hop.password:
+                result += "/W/%s" % route_hop.password
+        return result
 
 
 def router_is_route(pkt):
