@@ -65,6 +65,7 @@ def parse_options():
     target = OptionGroup(parser, "Target")
     target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host")
     target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3200)
+    target.add_option("--route-string", dest="route_string", help="Route string for connecting through a SAP Router")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
@@ -263,7 +264,8 @@ def main():
     print "[*] Connecting to", options.remote_host, "port", options.remote_port
     connection = SAPDiagConnection(options.remote_host,
                                    options.remote_port,
-                                   terminal=options.terminal)
+                                   terminal=options.terminal,
+                                   route=options.route_string)
 
     # Send the initialization packet and store the response (login screen)
     login_screen = connection.init()

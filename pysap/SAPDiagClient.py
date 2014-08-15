@@ -23,6 +23,7 @@ from socket import error as SocketError
 from binascii import unhexlify as unhex
 # Custom imports
 from pysap.SAPNI import SAPNIStreamSocket
+from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.SAPDiag import SAPDiag, SAPDiagDP, SAPDiagItem
 from pysap.SAPDiagItems import user_connect_compressed, \
     user_connect_uncompressed, support_data as default_support_data, \
@@ -50,7 +51,7 @@ class SAPDiagConnection(object):
         @type: C{int} """
 
     def __init__(self, host, port, terminal=None, compress=False,
-                 init=False, support_data=default_support_data):
+                 init=False, route=None, support_data=default_support_data):
         """Creates the connection to the Diag server.
 
         @param host: remote host to connect to
@@ -73,6 +74,9 @@ class SAPDiagConnection(object):
             connection is established.
         @type init: C{bool}
 
+        @param route: route to use for connecting through a SAP Router
+        @type route: C{string}
+
         @param support_data: support data bits to use when initializing. It
             identifies the client's capabilities.
         @type support_data: L{SAPDiagItem} or L{SAPDiagSupportBits} or C{string}
@@ -81,6 +85,7 @@ class SAPDiagConnection(object):
         self.host = host
         self.port = port
         self.terminal = terminal or self.get_terminal_name()
+        self.route = route
         self.support_data = self.get_support_data_item(support_data) or default_support_data
         if compress is True:
             self.compress = 1
@@ -91,9 +96,15 @@ class SAPDiagConnection(object):
             self.init()
 
     def connect(self):
-        """Creates a L{SAPNIStreamSocket} connection to the host/port
+        """Creates a L{SAPNIStreamSocket} connection to the host/port. If a route
+        was specified, connect to the target Diag server through the SAP Router.
         """
-        self._connection = SAPNIStreamSocket.get_nisocket(self.host, self.port)
+        if self.route:
+            self._connection = SAPRoutedStreamSocket.get_nisocket(self.route,
+                                                                  self.host,
+                                                                  self.port)
+        else:
+            self._connection = SAPNIStreamSocket.get_nisocket(self.host, self.port)
 
     def get_terminal_name(self):
         """Generates a random IP address to use as a terminal name. In SAP

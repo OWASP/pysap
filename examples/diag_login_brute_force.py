@@ -106,6 +106,7 @@ def parse_options():
     target = OptionGroup(parser, "Target")
     target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host")
     target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3200)
+    target.add_option("--route-string", dest="route_string", help="Route string for connecting through a SAP Router")
     parser.add_option_group(target)
 
     credentials = OptionGroup(parser, "Credentials")
@@ -159,7 +160,7 @@ def get_rand(length):
     return ''.join(choice(letters) for _ in xrange(length))
 
 
-def login(host, port, terminal, username, password, client, verbose, results):
+def login(host, port, terminal, route, username, password, client, verbose, results):
     """
     Perform a login try with the username and password.
 
@@ -168,7 +169,8 @@ def login(host, port, terminal, username, password, client, verbose, results):
     status = ''
 
     # Create the connection to the SAP Netweaver server
-    connection = SAPDiagConnection(host, port, terminal=terminal, compress=False, init=True)
+    connection = SAPDiagConnection(host, port, terminal=terminal,
+                                   compress=False, init=True, route=route)
 
     # Send the login using the given username, password and client
     response = connection.interact(make_login(username, password, client))
@@ -205,7 +207,7 @@ def login(host, port, terminal, username, password, client, verbose, results):
     results.append((success, status, username, password, client))
 
 
-def discover_client(host, port, terminal, client, verbose, results):
+def discover_client(host, port, terminal, route, client, verbose, results):
     """
     Test if a client is available on the application server, by setting the client and using a
     random username/password, and looking at the response's message.
@@ -220,7 +222,7 @@ def discover_client(host, port, terminal, client, verbose, results):
 
     client = "%03d" % client
     login_results = []
-    login(host, port, terminal, get_rand(8), get_rand(8), client, verbose, login_results)
+    login(host, port, terminal, route, get_rand(8), get_rand(8), client, verbose, login_results)
     (_, status, _, _, client) = login_results[0]
 
     if status == license_check:
@@ -256,7 +258,8 @@ def main():
         for client in range(int(client_min), int(client_max) + 1):
             pool.add_task(discover_client, options.remote_host,
                           options.remote_port, options.terminal,
-                          client, options.verbose, results)
+                          options.route_string, client, options.verbose,
+                          results)
         pool.wait_completion()
 
         # Collect the results
@@ -310,8 +313,8 @@ def main():
         if options.verbose:
             print "[*] Adding testcase for username", username, "with password", password, "on client", client
         pool.add_task(login, options.remote_host, options.remote_port,
-                      options.terminal, username, password, client,
-                      options.verbose, results)
+                      options.terminal, options.route_string, username,
+                      password, client, options.verbose, results)
 
     pool.wait_completion()
 
