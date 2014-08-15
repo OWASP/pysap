@@ -415,7 +415,8 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
 
     desc = "NI Stream socket routed trough a SAP Router"
 
-    def __init__(self, sock, route, talk_mode=None, router_version=None, keep_alive=True):
+    def __init__(self, sock, route, talk_mode=None, router_version=None,
+                 keep_alive=True, base_cls=None):
         """Initialize the routed stream socket. It should receive a socket
         connected with the SAP Router, and a route to specified to it. After
         initialization all calls to send() and recv() would be made to the
@@ -432,12 +433,23 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
 
         @param router_version: the router version to use for requesting the route
         @type router_version: C{int}
+
+        @param keep_alive: if true, the socket will automatically respond to
+            keep-alive request messages. Otherwise, the keep-alive messages
+            are passed to the caller in L{recv} and L{sr} calls.
+        @type keep_alive: C{bool}
+
+        @param base_cls: the base class to use when receiving packets, it uses
+            SAPNI as default if no class specified
+        @type base_cls: L{Packet} class
+
         """
         self.routed = False
         self.talk_mode = talk_mode
         self.router_version = router_version
         # Connect to the SAP Router
-        SAPNIStreamSocket.__init__(self, sock, keep_alive=keep_alive)
+        SAPNIStreamSocket.__init__(self, sock, keep_alive=keep_alive,
+                                   base_cls=base_cls)
         # Now that we've a NIStreamSocket, retrieve the router version if
         # was not specified
         if self.router_version is None:
@@ -503,18 +515,18 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         return super(SAPRoutedStreamSocket, self).recv()
 
     @classmethod
-    def get_nisocket(cls, route, host=None, port=None, password=None,
+    def get_nisocket(cls, host=None, port=None, route=None, password=None,
                      talk_mode=None, router_version=None, **kwargs):
         """Helper function to obtain a L{SAPRoutedStreamSocket}.
-
-        @param route: route to use for determining the SAP Router to connect
-        @type route: C{string} or C{list} of L{SAPRouterRouteHop}
 
         @param host: target host to connect to if not specified in the route
         @type host: C{string}
 
         @param port: target port to connect to if not specified in the route
         @type port: C{int}
+
+        @param route: route to use for determining the SAP Router to connect
+        @type route: C{string} or C{list} of L{SAPRouterRouteHop}
 
         @param password: target password if not specified in the route
         @type password: C{string}
@@ -530,6 +542,11 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         @return: connected socket through the specified route
         @rtype: L{SAPRoutedStreamSocket}
         """
+        # If no route was provided, use the standard SAPNIStreamSocket
+        # get_nisocket method
+        if route is None:
+            return SAPNIStreamSocket.get_nisocket(host, port, **kwargs)
+
         # If the route was provided using a route string, convert it to a
         # list of hops
         if isinstance(route, (basestring, unicode)):

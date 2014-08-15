@@ -22,7 +22,6 @@ from random import randint
 from socket import error as SocketError
 from binascii import unhexlify as unhex
 # Custom imports
-from pysap.SAPNI import SAPNIStreamSocket
 from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.SAPDiag import SAPDiag, SAPDiagDP, SAPDiagItem
 from pysap.SAPDiagItems import user_connect_compressed, \
@@ -99,12 +98,10 @@ class SAPDiagConnection(object):
         """Creates a L{SAPNIStreamSocket} connection to the host/port. If a route
         was specified, connect to the target Diag server through the SAP Router.
         """
-        if self.route:
-            self._connection = SAPRoutedStreamSocket.get_nisocket(self.route,
-                                                                  self.host,
-                                                                  self.port)
-        else:
-            self._connection = SAPNIStreamSocket.get_nisocket(self.host, self.port)
+        self._connection = SAPRoutedStreamSocket.get_nisocket(self.host,
+                                                              self.port,
+                                                              self.route,
+                                                              base_cls=SAPDiag)
 
     def get_terminal_name(self):
         """Generates a random IP address to use as a terminal name. In SAP
