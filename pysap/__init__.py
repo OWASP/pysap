@@ -21,12 +21,12 @@
 pysap - Python library for communicating using SAP network protocols.
 
 Currently the following SAP protocols are included:
-- SAP NI (Network Interface).
-- SAP Diag.
-- SAP Enqueue Server.
-- SAP Message Server.
-- SAP Router.
-- SAP RFC.
+    - SAP NI (Network Interface).
+    - SAP Diag.
+    - SAP Enqueue Server.
+    - SAP Message Server.
+    - SAP Router.
+    - SAP RFC.
 """
 
 __version__ = '0.1.5'
