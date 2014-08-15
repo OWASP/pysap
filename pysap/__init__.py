@@ -17,8 +17,7 @@
 # GNU General Public License for more details.
 # ==============
 
-"""
-pysap - Python library for communicating using SAP network protocols.
+"""pysap - Python library for communicating using SAP network protocols.
 
 Currently the following SAP protocols are included:
     - SAP NI (Network Interface).

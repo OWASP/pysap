@@ -22,9 +22,9 @@ from struct import pack
 from binascii import unhexlify as unhex
 # External imports
 from scapy.packet import Packet
-from scapy.fields import IntField, BitField, ShortField, ByteField,\
-    ConditionalField, StrLenField, StrField, StrNullField, FieldLenField,\
-    PacketListField, FieldListField
+from scapy.fields import (IntField, BitField, ShortField, ByteField,
+    ConditionalField, StrLenField, StrField, StrNullField, FieldLenField,
+    PacketListField, FieldListField)
 # Custom imports
 from pysap.SAPDiag import bind_diagitem, SAPDiagItem
 from pysap.utils import PacketNoPadded, ByteEnumKeysField, ShortEnumKeysField
@@ -356,8 +356,8 @@ diag_atom_etypes = {
     130: "DIAG_DGOTYP_EFIELD_2",
     131: "DIAG_DGOTYP_OFIELD_2",
     132: "DIAG_DGOTYP_KEYWORD_2",
-    }
-""" Dynt Atom item types """
+}
+"""Dynt Atom item types"""
 
 
 # Diag Dynt Atom items
@@ -430,7 +430,7 @@ class SAPDiagDyntAtomItem(PacketNoPadded):
         ConditionalField(StrLenField("field2_text", "", length_from=lambda pkt:pkt.field2_dlen), lambda pkt:pkt.etype in [130, 131, 132]),
         # Remaining types
         ConditionalField(StrLenField("value", "", length_from=lambda pkt:pkt.atom_length - 13), lambda pkt:pkt.etype not in [114, 115, 116, 120, 121, 122, 123, 127, 129, 130, 131, 132]),
-        ]
+    ]
 
     def post_build(self, p, pay):
         if pay is None:
@@ -445,7 +445,7 @@ class SAPDiagDyntAtom(Packet):
     name = "SAP Diag Dynt Atom"
     fields_desc = [
         PacketListField("items", None, SAPDiagDyntAtomItem)
-        ]
+    ]
 
 bind_diagitem(SAPDiagDyntAtom, "APPL", 0x09, 0x02)
 bind_diagitem(SAPDiagDyntAtom, "APPL", 0x09, 0x10)
@@ -459,7 +459,7 @@ class SAPDiagAreaSize(PacketNoPadded):
         IntField("window_width", 0),
         IntField("area_height", 0),
         IntField("area_width", 0)
-        ]
+    ]
 
 bind_diagitem(SAPDiagAreaSize, "APPL", 0x0c, 0x07)
 
@@ -472,7 +472,7 @@ class SAPDiagWindowSize(PacketNoPadded):
         IntField("window_width", 0),
         IntField("area_height", 0),
         IntField("area_width", 0)
-        ]
+    ]
 
 
 bind_diagitem(SAPDiagWindowSize, "APPL", 0x04, 0x0d)
@@ -512,7 +512,7 @@ class SAPDiagMenuEntry(PacketNoPadded):
         StrNullField("text", ""),
         StrNullField("accelerator", ""),
         StrNullField("info", ""),
-        ]
+    ]
 
 
 # Diag Menu Entries Container
@@ -520,7 +520,7 @@ class SAPDiagMenuEntries(Packet):
     name = "SAP Diag Menu Entries"
     fields_desc = [
         PacketListField("entries", None, SAPDiagMenuEntry)
-        ]
+    ]
 
 bind_diagitem(SAPDiagMenuEntries, "APPL", 0x0b, 0x01)
 bind_diagitem(SAPDiagMenuEntries, "APPL", 0x0b, 0x02)
@@ -540,8 +540,8 @@ diag_ui_event_type_values = {
     0x0a: "VALUECHANGED",
     0x0b: "STATECHANGED",
     0x0c: "NAVIGATION",
-    }
-""" Diag UI Event Type values """
+}
+"""Diag UI Event Type values"""
 
 # Diag UI Event Control Type values
 diag_ui_event_control_values = {
@@ -566,8 +566,8 @@ diag_ui_event_control_values = {
     0x13: "MESSAGE",
     0x14: "OKCODE",
     0x15: "ACC_CONTAINER",
-    }
-""" Diag UI Event Control Type values """
+}
+"""Diag UI Event Control Type values"""
 
 # Diag UI Event Navigation Data values
 diag_ui_event_navigation_data_values = {
@@ -581,8 +581,8 @@ diag_ui_event_navigation_data_values = {
     0x08: "JUMP_SECTION_BACK",
     0x09: "FIRST_FIELD",
     0x0a: "LAST_FIELD",
-    }
-""" Diag UI Event Navigation Data values """
+}
+"""Diag UI Event Navigation Data values"""
 
 
 # Diag UI Event Source
@@ -602,7 +602,7 @@ class SAPDiagUIEventSource(PacketNoPadded):
         ShortField("control_col", 0),
         FieldLenField("container_nrs", None, count_of="containers"),
         FieldListField("containers", None, ByteField("container", 0), count_from=lambda x:x.container_nrs)
-        ]
+    ]
 
 
 bind_diagitem(SAPDiagUIEventSource, "APPL", 0x0f, 0x01)
@@ -627,6 +627,6 @@ class SAPDiagSES(PacketNoPadded):
         ShortField("padd", 0),
         ByteField("dim_row", 0),
         ByteField("dim_col", 0)
-        ]
+    ]
 
 bind_diagitem(SAPDiagSES, 0x01)

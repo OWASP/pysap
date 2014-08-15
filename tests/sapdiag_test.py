@@ -25,8 +25,8 @@ from scapy.packet import Packet
 from scapy.fields import StrField
 # Custom imports
 from tests.utils import read_data_file
-from pysap.SAPDiag import SAPDiagItems, SAPDiagItem, SAPDiag, bind_diagitem,\
-    diag_item_get_class
+from pysap.SAPDiag import (SAPDiagItems, SAPDiagItem, SAPDiag, bind_diagitem,
+    diag_item_get_class)
 from pysap.SAPDiagItems import SAPDiagDyntAtomItem
 
 
@@ -36,12 +36,12 @@ class PySAPDiagTest(unittest.TestCase):
         pass
 
     def test_sapdiag_item(self):
-        """ Test construction of SAPDiag Items """
+        """Test construction of SAPDiag Items"""
         with self.assertRaises(KeyError):
             SAPDiagItem(item_type="LALA")
 
     def test_sapdiag_items(self):
-        """ Test dissection of Diag Items """
+        """Test dissection of Diag Items"""
         diag_items = SAPDiagItems(read_data_file('nw_703_login_screen_decompressed.data'))
 
         self.assertEqual(len(diag_items.message), 131)
@@ -50,7 +50,7 @@ class PySAPDiagTest(unittest.TestCase):
             self.assertIsInstance(item, SAPDiagItem)
 
     def test_sapdiag_atoms(self):
-        """ Test dissection of Diag Items and Dynt Atom Items """
+        """Test dissection of Diag Items and Dynt Atom Items"""
         diag_items = SAPDiagItems(read_data_file('nw_703_login_screen_decompressed.data'))
         diag_packet = SAPDiag(message=diag_items.message)
         diag_atoms = diag_packet.get_item(0x12, 0x09, 0x02)
@@ -60,8 +60,8 @@ class PySAPDiagTest(unittest.TestCase):
                 self.assertIsInstance(atom_item, SAPDiagDyntAtomItem)
 
     def test_sapdiag_items_lookup(self):
-        """ Test lookup and filtering of SAPDiagItems inside a SAPDiag
-        packet """
+        """Test lookup and filtering of SAPDiagItems inside a SAPDiag
+        packet"""
         sapdiag = SAPDiag()
 
         sapdiag_ses_item = SAPDiagItem(item_type="SES")
@@ -103,7 +103,7 @@ class PySAPDiagTest(unittest.TestCase):
         self.assertNotIn(sapdiag_appl_item, sapdiag.get_item(["APPL"], ["ST_USER"], ["CONNECT"]))
 
     def test_sapdiag_items_bind(self):
-        """ Test binding of SAPDiagItem classess """
+        """Test binding of SAPDiagItem classes"""
         class SAPDiagItemTest(Packet):
             fields_desc = [StrField("strfield", None)]
         bind_diagitem(SAPDiagItemTest, "APPL", 0x99, 0xff)

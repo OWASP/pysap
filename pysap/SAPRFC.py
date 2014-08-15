@@ -20,12 +20,12 @@
 # External imports
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
-from scapy.fields import ByteField, ConditionalField, IPField, IntField, \
-  StrFixedLenField
+from scapy.fields import (ByteField, ConditionalField, IPField, IntField,
+    StrFixedLenField)
 # Custom imports
 from pysap.SAPNI import SAPNI
-from pysap.utils import SignedShortField, ByteEnumKeysField,\
-    StrFixedLenPaddedField
+from pysap.utils import (SignedShortField, ByteEnumKeysField,
+    StrFixedLenPaddedField)
 from scapy.layers.inet6 import IP6Field
 
 
@@ -50,8 +50,8 @@ rfc_req_type_values = {
     0x10: "GW_CANCEL_REGISTER_TP",
     0x11: "REMOTE_GATEWAY",
     0x12: "GW_CONTAINER_RECEIVED",
-    }
-""" RFC Request Type values """
+}
+"""RFC Request Type values"""
 
 # RFC Monitor Command values
 rfc_monitor_cmd_values = {
@@ -105,7 +105,7 @@ rfc_monitor_cmd_values = {
     0x40: "READ_GWSYS_TBL3",
     0x41: "RELOAD_ACL",
 }
-""" RFC Monitor Command values """
+"""RFC Monitor Command values"""
 
 
 # APPC Header versions length:
@@ -116,8 +116,7 @@ rfc_monitor_cmd_values = {
 # 6: 50h
 
 class SAPRFC(Packet):
-    """
-    SAP Remote Function Call packet
+    """SAP Remote Function Call packet
 
     This packet is used for the Remote Function Call (RFC) protocol.
     """
@@ -146,7 +145,7 @@ class SAPRFC(Packet):
 
         # Monitor Command fields (GW_SEND_CMD)
         ConditionalField(ByteEnumKeysField("cmd", 0, rfc_monitor_cmd_values), lambda pkt:pkt.req_type == 0x09),
-        ]
+    ]
 
 
 # Bind SAP NI with the RFC port

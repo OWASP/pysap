@@ -35,8 +35,7 @@ log_sapni = logging.getLogger("pysap.sapni")
 
 
 class SAPNI(Packet):
-    """
-    SAP NI (Network Interface) packet
+    """SAP NI (Network Interface) packet
 
     This packet is used for craft Network Interface packets. It serves only
     as a container for packets in the different protocols. As this protocol
@@ -359,15 +358,13 @@ class SAPNIProxyHandler(object):
 
 
 class SAPNIClient(object):
-    """
-    Stub class for a client connecting to the SAP NI server.
+    """Stub class for a client connecting to the SAP NI server.
     """
     pass
 
 
 class SAPNIServerThreaded(ThreadingTCPServer):
-    """
-    Base SAP NI Threaded Server class.
+    """Base SAP NI Threaded Server class.
 
     Subclasses must define a client class for keeping state information
     on the connected clients.
@@ -392,16 +389,14 @@ class SAPNIServerThreaded(ThreadingTCPServer):
 
 
 class SAPNIServerHandler(BaseRequestHandler):
-    """
-    SAP NI Server Handler
+    """SAP NI Server Handler
 
     Handles L{SAPNI} packets coming from a SocketServer.
     """
 
     def setup(self):
-        """
-        Setup a new client connection. Creates a new client object for keeping
-        state information of each client on the server instance.
+        """Setup a new client connection. Creates a new client object for
+        keeping state information of each client on the server instance.
         """
         if self.client_address not in self.server.clients.keys():
             self.server.clients[self.client_address] = self.server.clients_cls()
@@ -409,8 +404,7 @@ class SAPNIServerHandler(BaseRequestHandler):
                             self.client_address)
 
     def close(self):
-        """
-        Close a client connection and deletes the client from the state
+        """Close a client connection and deletes the client from the state
         information on the server.
 
         """
@@ -419,10 +413,9 @@ class SAPNIServerHandler(BaseRequestHandler):
         self.request.close()
 
     def handle(self):
-        """
-        Handle a client connection. After received a L{SAPNI} packet, it stores it
-        on the packet instance variable and pass the control to the handle_data
-        method.
+        """Handle a client connection. After received a L{SAPNI} packet, it
+        stores it on the packet instance variable and pass the control to the
+        handle_data method.
 
         """
         while True:
@@ -456,9 +449,8 @@ class SAPNIServerHandler(BaseRequestHandler):
             self.handle_data()
 
     def handle_data(self):
-        """
-        Handle the data coming from the client. The L{SAPNI} packet is stored on
-        data and client information on client_address instance variables.
+        """Handle the data coming from the client. The L{SAPNI} packet is stored
+        on data and client information on client_address instance variables.
         Stub method to be overloaded in subclasses.
 
         """

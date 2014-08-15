@@ -24,12 +24,11 @@ from scapy.fields import StrFixedLenField
 
 
 class SAPSNCFrame(Packet):
-    """
-    SAP SNC Frame packet
+    """SAP SNC Frame packet
 
     This packet is used just to contain SNC Frames.
     """
     name = "SAP SNC Frame"
     fields_desc = [
         StrFixedLenField("eye_catcher", "SNCFRAME")
-        ]
+    ]

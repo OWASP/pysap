@@ -60,12 +60,11 @@ sapcompress = Extension('pysapcompress',
                          'pysapcompress/vpa106cslzc.cpp',
                          'pysapcompress/vpa107cslzh.cpp',
                          'pysapcompress/vpa108csulzh.cpp'],
-                        define_macros=[# Enable this macro if you want some debugging information on the (de)compression functions
+                        define_macros=[  # Enable this macro if you want some debugging information on the (de)compression functions
                                        #('DEBUG', None),
-                                       # Enable this macro if you want detailed debugging information (hexdumps) on the (de)compression functions
+                                         # Enable this macro if you want detailed debugging information (hexdumps) on the (de)compression functions
                                        #('DEBUG_TRACE', None),
-                                       ]
-                        )
+                        ])
 
 
 setup(name=pysap.__name__,   # Package information
@@ -96,5 +95,5 @@ setup(name=pysap.__name__,   # Package information
       test_suite='tests.suite',
 
       # API Documentation command
-      cmdclass={'doc': APIDocumentationCommand},
+      cmdclass={'doc': APIDocumentationCommand}
       )

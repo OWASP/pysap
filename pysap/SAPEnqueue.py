@@ -22,9 +22,9 @@ import struct
 import logging
 from scapy.layers.inet import TCP
 from scapy.packet import bind_layers
-from scapy.fields import IntField, IntEnumField, PacketListField, \
-  StrFixedLenField, ConditionalField, ByteField, FieldLenField, LenField, \
-  StrNullField
+from scapy.fields import (IntField, IntEnumField, PacketListField,
+    StrFixedLenField, ConditionalField, ByteField, FieldLenField, LenField,
+    StrNullField)
 # Custom imports
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
 from pysap.utils import ByteEnumKeysField, PacketNoPadded, StrNullFixedLenField
@@ -39,8 +39,8 @@ enqueue_type_values = {
     0x00: "SYNC_REQUEST",
     0x01: "ASYNC_REQUEST",
     0x02: "RESPONSE",
-    }
-""" Enqueue Server Type values """
+}
+"""Enqueue Server Type values"""
 
 
 # Enqueue Server Destination values
@@ -52,8 +52,8 @@ enqueue_dest_values = {
     0x06: "CONECTION_ADMIN",
     0x07: "ENQ_TO_REP",
     0x08: "REP_TO_ENQ",
-    }
-""" Enqueue Server Destination values """
+}
+"""Enqueue Server Destination values"""
 
 
 # Enqueue Server Admin Opcode values
@@ -62,8 +62,8 @@ enqueue_server_admin_opcode_values = {
     0x02: "EnAdmShutdownRequest",
     0x04: "EnAdmGetReplInfoRequest",
     0x06: "EnAdmTraceRequest",
-    }
-""" Enqueue Server Admin Opcode values """
+}
+"""Enqueue Server Admin Opcode values"""
 
 
 # Enqueue Server Admin Trace Action values
@@ -73,8 +73,8 @@ enqueue_server_admin_trace_action_values = {
     0x03: "Get trace state",
     0x04: "Set trace status",
     0x05: "Reset trace files",
-    }
-""" Enqueue Server Admin Trace Action values """
+}
+"""Enqueue Server Admin Trace Action values"""
 
 
 # Enqueue Server Admin Trace Limit values
@@ -84,8 +84,8 @@ enqueue_server_admin_trace_limit_values = {
     0x02: "Only in repserver",
     0x03: "Only in threads of type",
     0x04: "Only in one thread of type",
-    }
-""" Enqueue Server Admin Trace Limit values """
+}
+"""Enqueue Server Admin Trace Limit values"""
 
 
 # Enqueue Server Admin Trace Thread values
@@ -97,8 +97,8 @@ enqueue_server_admin_trace_thread_values = {
     0x04: "ADM thread",
     0x05: "Signal thread",
     0x06: "Listener thread",
-    }
-""" Enqueue Server Admin Trace Thread values """
+}
+"""Enqueue Server Admin Trace Thread values"""
 
 
 # Enqueue Server Connection Admin Opcode values
@@ -110,8 +110,8 @@ enqueue_conn_admin_opcode_values = {
     0x04: "Shutdown Write",
     0x05: "Shutdown Both",
     0x06: "Keepalive",
-    }
-""" Enqueue Server Opcode values """
+}
+"""Enqueue Server Opcode values"""
 
 
 # Enqueue Server Connection Admin Parameter values
@@ -123,24 +123,22 @@ enqueue_param_values = {
     0x04: "ENCPARAM_SET_NOSUPP",
     0x05: "ENCPARAM_SET_VERSION",
     0x06: "ENCPARAM_SET_UCSUPPORT",
-    }
-""" Enqueue Server Connection Admin Parameter values """
+}
+"""Enqueue Server Connection Admin Parameter values"""
 
 
 class SAPEnqueueTracePattern(PacketNoPadded):
-    """
-    SAP Enqueue Server Admin Trace Pattern
+    """SAP Enqueue Server Admin Trace Pattern
     """
     name = "SAP Enqueue Server Admin Trace Pattern"
     fields_desc = [
         FieldLenField("len", None, length_of="pattern", fmt="B"),
         StrNullFixedLenField("pattern", "", length_from=lambda pkt:pkt.len, max_length=0xff),
-        ]
+    ]
 
 
 class SAPEnqueueParam(PacketNoPadded):
-    """
-    SAP Enqueue Server Connection Admin Parameter packet
+    """SAP Enqueue Server Connection Admin Parameter packet
     """
     name = "SAP Enqueue Connection Admin Parameter"
     fields_desc = [
@@ -148,12 +146,11 @@ class SAPEnqueueParam(PacketNoPadded):
         ConditionalField(IntField("len", 0), lambda pkt:pkt.param in [0x06]),
         ConditionalField(IntField("value", 0), lambda pkt:pkt.param not in [0x03, 0x04]),
         ConditionalField(StrNullField("set_name", ""), lambda pkt:pkt.param in [0x03]),
-        ]
+    ]
 
 
 class SAPEnqueue(PacketNoPadded):
-    """
-    SAP Enqueue Server packet
+    """SAP Enqueue Server packet
 
     This packet is used for general Enqueue packets.
     """
@@ -203,10 +200,10 @@ class SAPEnqueue(PacketNoPadded):
         # Connection Admin fields
         ConditionalField(FieldLenField("params_count", None, count_of="params", fmt="!I"), lambda pkt:pkt.dest == 6 and pkt.opcode in [1, 2]),
         ConditionalField(PacketListField("params", None, SAPEnqueueParam, count_from=lambda pkt:pkt.params_count), lambda pkt:pkt.dest == 6 and pkt.opcode in [1, 2]),
-        ]
+    ]
 
     def post_build(self, pkt, pay):
-        """ Adjust the len and len_frags fields after the build of the whole
+        """Adjust the len and len_frags fields after the build of the whole
         packet. """
         l = struct.pack("!I", len(pkt) + len(pay))
         pkt = pkt[:8] + l + l + pkt[16:]

@@ -24,9 +24,9 @@ import logging
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
 from scapy.supersocket import socket, StreamSocket
-from scapy.fields import ByteField, ShortField, ConditionalField, StrField,\
-    IntField, StrNullField, PacketListField, FieldLenField, FieldListField,\
-    SignedIntEnumField, StrFixedLenField, PacketField
+from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
+    IntField, StrNullField, PacketListField, FieldLenField, FieldListField,
+    SignedIntEnumField, StrFixedLenField, PacketField)
 # Custom imports
 from pysap.SAPSNC import SAPSNCFrame
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
@@ -47,8 +47,8 @@ router_control_opcodes = {
     8: "Send Handle (8)",            # TODO: Check this opcodes
     70: "SNC request",
     71: "SNC handshake complete",
-    }
-""" Router Opcode values """
+}
+"""Router Opcode values"""
 
 
 # Router Return Code values (as per SAP Note 63342 http://service.sap.com/sap/support/notes/63342)
@@ -89,7 +89,7 @@ router_return_codes = {
     -103: "Error in external library (NIEROUT_EXTERN)",
     -104: "Error in the SNC shift (NIEROUT_SNC_FAILURE)",
 }
-""" Router Return Code values """
+"""Router Return Code values"""
 
 
 # Router Administration Command values
@@ -107,8 +107,8 @@ router_adm_commands = {
     12: "Trace Connection",
     13: "Trace Connection",
     14: "Hide Error Information Request",
-    }
-""" Router Administration Command values """
+}
+"""Router Administration Command values"""
 
 
 # Router NI Talk mode values
@@ -116,8 +116,8 @@ router_ni_talk_mode_values = {
     0: "NI_MSG_IO",
     1: "NI_RAW_IO",
     2: "NI_ROUT_IO",
-    }
-""" Router NI Talk mode values """
+}
+"""Router NI Talk mode values"""
 
 
 class SAPRouterRouteHop(PacketNoPadded):
@@ -130,7 +130,7 @@ class SAPRouterRouteHop(PacketNoPadded):
         StrNullField("hostname", None),
         StrNullField("port", None),
         StrNullField("password", None),
-        ]
+    ]
 
     regex = re.compile(r"""
         (/H/(?P<hostname>[\w\.]+)              # Hostname, FQDN or IP addresss
@@ -187,8 +187,7 @@ class SAPRouterRouteHop(PacketNoPadded):
 
 
 def router_is_route(pkt):
-    """
-    Returns if the packet is a Route packet.
+    """Returns if the packet is a Route packet.
 
     @param pkt: packet to look at
     @type pkt: L{SAPRouter}
@@ -200,8 +199,7 @@ def router_is_route(pkt):
 
 
 def router_is_admin(pkt):
-    """
-    Returns if the packet is a Admin packet.
+    """Returns if the packet is a Admin packet.
 
     @param pkt: packet to look at
     @type pkt: L{SAPRouter}
@@ -213,8 +211,7 @@ def router_is_admin(pkt):
 
 
 def router_is_error(pkt):
-    """
-    Returns if the packet is a Error Information packet.
+    """Returns if the packet is a Error Information packet.
 
     @param pkt: packet to look at
     @type pkt: L{SAPRouter}
@@ -226,8 +223,7 @@ def router_is_error(pkt):
 
 
 def router_is_control(pkt):
-    """
-    Returns if the packet is a Control packet.
+    """Returns if the packet is a Control packet.
 
     @param pkt: packet to look at
     @type pkt: L{SAPRouter}
@@ -239,8 +235,7 @@ def router_is_control(pkt):
 
 
 def router_is_pong(pkt):
-    """
-    Returns if the packet is a Pong (route accepted) packet.
+    """Returns if the packet is a Pong (route accepted) packet.
 
     @param pkt: packet to look at
     @type pkt: L{SAPRouter}
@@ -252,8 +247,7 @@ def router_is_pong(pkt):
 
 
 def router_is_known_type(pkt):
-    """
-    Returns if the packet is of a known type (Admin, Route, Error or Pong).
+    """Returns if the packet is of a known type (Admin, Route, Error or Pong).
 
     @param pkt: packet to look at
     @type pkt: L{SAPRouter}
@@ -266,8 +260,7 @@ def router_is_known_type(pkt):
 
 
 class SAPRouter(Packet):
-    """
-    SAP Router packet
+    """SAP Router packet
 
     This packet is used for general SAP Router packets. There are (at least) five
     types of SAP Router packets:
@@ -328,7 +321,7 @@ class SAPRouter(Packet):
         SAPROUTER_CONTROL,
         SAPROUTER_ROUTE,
         SAPROUTER_PONG,
-        ]
+    ]
     """ @cvar: List of known packet types
         @type: C{list} of C{string} """
 
@@ -383,12 +376,12 @@ class SAPRouter(Packet):
 
         # SNC Frame fields
         ConditionalField(PacketField("snc_frame", None, SAPSNCFrame), lambda pkt: router_is_control(pkt) and pkt.opcode in [70, 71])
-        ]
+    ]
 
 
 # Retrieve the version of the remote SAP Router
 def get_router_version(connection):
-    """ Helper function to retrieve the version of a remote SAP Router.
+    """Helper function to retrieve the version of a remote SAP Router.
 
     @param connection: connection with the SAP Router
     @type connection: L{SAPNIStreamSocket}

@@ -23,10 +23,10 @@ from cmd import Cmd
 from threading import Thread, Event
 # External imports
 from scapy.packet import Packet
-from scapy.volatile import RandEnum, RandomEnumeration, RandNum, RandTermString,\
-    RandBin
-from scapy.fields import ByteEnumField, ShortEnumField, MultiEnumField,\
-    StrLenField, Field, StrFixedLenField
+from scapy.volatile import (RandEnum, RandomEnumeration, RandNum, RandTermString,
+    RandBin)
+from scapy.fields import (ByteEnumField, ShortEnumField, MultiEnumField,
+    StrLenField, Field, StrFixedLenField)
 # Optional imports
 try:
     from tabulate import tabulate
@@ -35,15 +35,14 @@ except:
 
 
 class PacketNoPadded(Packet):
-    """ Regular scapy packet with no padding.
+    """Regular scapy packet with no padding.
     """
     def extract_padding(self, s):
         return '', s
 
 
 class RandEnumKeys(RandEnum):
-    """
-    Picks a random value from dict keys list. Used for fuzzing enum fields.
+    """Picks a random value from dict keys list. Used for fuzzing enum fields.
 
     """
     def __init__(self, enum):
@@ -57,24 +56,21 @@ class RandEnumKeys(RandEnum):
 
 
 class ByteEnumKeysField(ByteEnumField):
-    """
-    ByteEnumField that picks valid values when fuzzed.
+    """ByteEnumField that picks valid values when fuzzed.
     """
     def randval(self):
         return RandEnumKeys(self.i2s)
 
 
 class ShortEnumKeysField(ShortEnumField):
-    """
-    IntEnumField that picks valid values when fuzzed.
+    """IntEnumField that picks valid values when fuzzed.
     """
     def randval(self):
         return RandEnumKeys(self.i2s)
 
 
 class RandByteReduced(RandNum):
-    """
-    RandByte that only returns random values between 0 and x2a. Used while
+    """RandByte that only returns random values between 0 and x2a. Used while
     performing some fuzz to reduce the test cases space.
 
     """
@@ -83,8 +79,7 @@ class RandByteReduced(RandNum):
 
 
 class ByteMultiEnumKeysField(MultiEnumField):
-    """
-    MultiEnumField that picks a reduced number of values. Used for fuzzing
+    """MultiEnumField that picks a reduced number of values. Used for fuzzing
     Byte fields with reduced number of values.
 
     """
@@ -135,8 +130,7 @@ class MutablePacketField(StrLenField):
 
 
 class StrNullFixedLenField(StrFixedLenField):
-    """ Packet field that has a fixed length and is null-terminated.
-
+    """Packet field that has a fixed length and is null-terminated.
     """
     def __init__(self, name, default, length=None, length_from=None, max_length=None):
         self.max_length = max_length or 200
@@ -164,7 +158,7 @@ class StrNullFixedLenField(StrFixedLenField):
 
 
 class StrFixedLenPaddedField(StrFixedLenField):
-    """ Packet field that has a fixed length and is padded with a
+    """Packet field that has a fixed length and is padded with a
     given character.
     """
 
@@ -183,7 +177,7 @@ class StrFixedLenPaddedField(StrFixedLenField):
 
 
 class StrNullFixedLenPaddedField(StrFixedLenField):
-    """ Packet field that has a fixed length and is padded with a
+    """Packet field that has a fixed length and is padded with a
     given character and null terminated.
     """
 
@@ -205,13 +199,11 @@ class StrNullFixedLenPaddedField(StrFixedLenField):
 
 
 class IntToStrField(Field):
-    """
-    Custom field from int to str values, with a variable length
+    """Custom field from int to str values, with a variable length
     """
 
     def __init__(self, name, default, length=11):
-        """
-        Initialize the field with a variable length. The 'machine'
+        """Initialize the field with a variable length. The 'machine'
         representation is a string field and the 'internal' repr.
         is a numeric value.
         """
@@ -269,19 +261,19 @@ class BaseConsole (Cmd, object):
 
     # Console Command definitions
     def do_history(self, args):
-        """ Show commands history. """
+        """Show commands history."""
         self._print(self._hist)
 
     def do_exit(self, args):
-        """ Exit console. """
+        """Exit console."""
         return -1
 
     def do_help(self, args):
-        """ Show help. """
+        """Show help."""
         super(BaseConsole, self).do_help(args)
 
     def do_options(self, args):
-        """ Show/set options. """
+        """Show/set options."""
         # If no args, print the current options
         if not args:
             options_dict = vars(self.options)
@@ -313,7 +305,7 @@ class BaseConsole (Cmd, object):
             return [option for option in self.runtimeoptions.keys() if option.startswith(text)]
 
     def do_script(self, args):
-        """ Runs a script file. """
+        """Runs a script file."""
         if not args:
             self._error("Invalid number of parameters.")
             self.do_help("script")

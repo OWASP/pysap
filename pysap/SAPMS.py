@@ -20,14 +20,14 @@
 # External imports
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
-from scapy.fields import ByteField, ConditionalField, StrFixedLenField, FlagsField,\
-    IPField, ShortField, IntField, StrField, PacketListField, FieldLenField,\
-    PacketField, StrLenField, IntEnumField, StrNullField
+from scapy.fields import (ByteField, ConditionalField, StrFixedLenField, FlagsField,
+    IPField, ShortField, IntField, StrField, PacketListField, FieldLenField,
+    PacketField, StrLenField, IntEnumField, StrNullField)
 from scapy.layers.inet6 import IP6Field
 # Custom imports
 from pysap.SAPNI import SAPNI
-from pysap.utils import PacketNoPadded, ByteEnumKeysField, IntToStrField, ShortEnumKeysField,\
-    StrNullFixedLenPaddedField, StrNullFixedLenField
+from pysap.utils import (PacketNoPadded, ByteEnumKeysField, IntToStrField,
+    ShortEnumKeysField, StrNullFixedLenPaddedField, StrNullFixedLenField)
 
 
 # Message Server Flag values
@@ -36,8 +36,8 @@ ms_flag_values = {
     0x02: "MS_REQUEST",
     0x03: "MS_REPLY",
     0x04: "MS_ADMIN",
-    }
-""" Message Server Flag values """
+}
+"""Message Server Flag values"""
 
 
 # Message Server IFlag values
@@ -59,8 +59,8 @@ ms_iflag_values = {
     0x10: "MS_SEND_SERVICE",
     0x11: "MS_J2EE_LOGIN_3",
     0x12: "MS_J2EE_LOGIN_4",
-    }
-""" Message Server IFlag values """
+}
+"""Message Server IFlag values"""
 
 
 # Message Server Error values
@@ -102,16 +102,16 @@ ms_errorno_values = {
     101: "MSEINVAL",
     102: "MSENOMSG",
     103: "MSEINTERN",
-    }
-""" Message Server Error values """
+}
+"""Message Server Error values"""
 
 
 # Message Server Administration messages type values
 ms_adm_type_values = {
     1: "ADM_REQUEST",
     2: "ADM_REPLY",
-    }
-""" Message Server Administration messages type values """
+}
+"""Message Server Administration messages type values"""
 
 
 # Message Server Administration messages opcode values
@@ -177,8 +177,8 @@ ms_adm_opcode_values = {
     0x49: "AD_TEST",
     0x4a: "AD_HANDLE_ACL",
     0x4b: "AD_ENQ_LOG_RESET",
-    }
-""" Message Server Administration messages opcode values """
+}
+"""Message Server Administration messages opcode values"""
 
 
 # Message Server Administration Messages AD_RZL_STRG string types values
@@ -204,8 +204,8 @@ ms_adm_rzl_strg_type_values = {
     52: "STRG_TYPE_CREATE_C",
     53: "STRG_TYPE_CREATE_LC",
     90: "STRG_TYPE_DUMP",
-    }
-""" Message Server Administration Messages AD_RZL_STRG string types values """
+}
+"""Message Server Administration Messages AD_RZL_STRG string types values"""
 
 
 # Message Server OpCode values
@@ -285,8 +285,8 @@ ms_opcode_values = {
     74: "MS_SERVER_TEST_SOFT_SHUTDOWN",
     75: "MS_J2EE_RECONNECT_P1",
     76: "MS_J2EE_RECONNECT_P2",
-    }
-""" Message Server OpCode values """
+}
+"""Message Server OpCode values"""
 
 
 # Message Server OpCode Error Values
@@ -323,8 +323,8 @@ ms_opcode_error_values = {
     29: "MSOP_KERNEL_INCOMPATIBLE",
     30: "MSOP_NIACLCREATE_FAILED",
     31: "MSOP_NIACLSYNTAX_ERROR",
-    }
-""" Message Server OpCode Error Values """
+}
+"""Message Server OpCode Error Values"""
 
 
 # Message Server Property ID Values
@@ -336,8 +336,8 @@ ms_property_id_values = {
     5: "MS_PROPERTY_SERVICE",
     6: "MS_PROPERTY_DELALT",
     7: "Release information"
-    }
-""" Message Server Property ID Values """
+}
+"""Message Server Property ID Values"""
 
 
 # Message Server Dump Info ID Values
@@ -369,8 +369,8 @@ ms_dump_command_values = {
     25: "MS_DUMP_ACL_FILE_EXTBND",
     26: "MS_DUMP_ACL_FILE_HTTP",
     27: "MS_DUMP_ACL_FILE_HTTPS",
-    }
-""" Message Server Dump Info ID Values """
+}
+"""Message Server Dump Info ID Values"""
 
 
 # Message Server File Reload values
@@ -390,7 +390,7 @@ ms_file_reload_values = {
     13: "MS_RELOAD_ACL_FILE_HTTP",
     14: "MS_RELOAD_ACL_FILE_HTTPS",
 }
-""" Message Server File Reload values """
+"""Message Server File Reload values"""
 
 
 # Message Server Logon type values
@@ -433,8 +433,8 @@ ms_logon_type_values = {
     35: "MS_LOGON_J2EERI",
     36: "MS_LOGON_J2EESRI",
     37: "MS_LOGON_TRXNS",
-    }
-""" Message Server Logon type values """
+}
+"""Message Server Logon type values"""
 
 
 ms_client_status_values = {
@@ -445,13 +445,12 @@ ms_client_status_values = {
     4: "MS_STATE_STOP",
     5: "MS_STATE_STARTING",
     6: "MS_STATE_INIT",
-    }
-""" Message Server Client status values """
+}
+"""Message Server Client status values"""
 
 
 class SAPMSAdmRecord(PacketNoPadded):
-    """
-    SAP Message Server Administration Record packet
+    """SAP Message Server Administration Record packet
 
     Packet for Message Server administration records. Each administration
     package has a variable number of records, each one specifies an operation
@@ -488,12 +487,11 @@ class SAPMSAdmRecord(PacketNoPadded):
         ConditionalField(IntField("rzl_strg_integer9", 0), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type in [11, 15, 21, 31, 41, 51]),
         ConditionalField(StrFixedLenField("rzl_strg_value", None, 40), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type not in [11, 15, 21, 31, 41, 51]),
         ConditionalField(StrFixedLenField("rzl_strg_padd2", None, 36), lambda pkt:pkt.opcode in [0x15]),
-        ]
+    ]
 
 
 class SAPMSClient1(PacketNoPadded):
-    """
-    SAP Message Server Client packet version 1
+    """SAP Message Server Client packet version 1
 
     Packet that contains information about a client of the Message Server
     service. This packet is for version 1, which has been seen only on old
@@ -507,12 +505,11 @@ class SAPMSClient1(PacketNoPadded):
         FlagsField("msgtype", 0, 8, ["ICM", "ATP", "UP2", "SPO", "BTC", "ENQ", "UPD", "DIA"]),
         IPField("hostaddrv4", "0.0.0.0"),
         ShortField("servno", 0x00),
-        ]
+    ]
 
 
 class SAPMSClient2(PacketNoPadded):
-    """
-    SAP Message Server Client packet version 2
+    """SAP Message Server Client packet version 2
 
     Packet that contains information about a client of the Message Server
     service. This packet is for version 2, which has been seen only on old
@@ -529,12 +526,11 @@ class SAPMSClient2(PacketNoPadded):
         ByteEnumKeysField("status", 0x00, ms_client_status_values),
         ByteField("nitrace", 0x00),
         StrFixedLenField("padd", None, 14),
-        ]
+    ]
 
 
 class SAPMSClient3(Packet):
-    """
-    SAP Message Server Client packet version 3
+    """SAP Message Server Client packet version 3
 
     Packet that contains information about a client of the Message Server
     service. This packet is for version 3.
@@ -551,12 +547,11 @@ class SAPMSClient3(Packet):
         ByteEnumKeysField("status", 0x00, ms_client_status_values),
         ByteField("nitrace", 0x00),
         ByteField("padd", 0),
-        ]
+    ]
 
 
 class SAPMSClient4(PacketNoPadded):
-    """
-    SAP Message Server Client packet version 4
+    """SAP Message Server Client packet version 4
 
     Packet that contains information about a client of the Message Server
     service. This packet is for version 4.
@@ -574,11 +569,11 @@ class SAPMSClient4(PacketNoPadded):
         ByteField("nitrace", 0x00),
         IntField("sys_service", 0x00),
         StrFixedLenField("padd", None, 7),
-        ]
+    ]
 
 
 class SAPMSStat3(PacketNoPadded):
-    """ SAP Message Server Statistics version 3
+    """SAP Message Server Statistics version 3
 
     Packet that contains statistics information of the Message Server service.
     This packet is for version 3.
@@ -627,12 +622,11 @@ class SAPMSStat3(PacketNoPadded):
         IntField("no_clients", 0),
         StrFixedLenField("sta_time", "", 30),
         StrFixedLenField("act_time", "", 30),
-        ]
+    ]
 
 
 class SAPMSCounter(PacketNoPadded):
-    """
-    SAP Message Server Counter packet.
+    """SAP Message Server Counter packet.
 
     Packet containing information about a Counter.
     """
@@ -641,12 +635,11 @@ class SAPMSCounter(PacketNoPadded):
         StrFixedLenField("uuid", "", 40),
         IntField("count", 0),
         IntField("no", 0),
-        ]
+    ]
 
 
 class SAPMSLogon(PacketNoPadded):
-    """
-    SAP Message Server Logon packet.
+    """SAP Message Server Logon packet.
 
     Packet containing logon data.
     """
@@ -665,12 +658,11 @@ class SAPMSLogon(PacketNoPadded):
         StrLenField("misc", "", length_from=lambda pkt:pkt.misc_length),
         FieldLenField("address6_length", 16, length_of="address6", fmt="!H"),  # == 16 bytes
         IP6Field("address6", "::"),
-        ]
+    ]
 
 
 class SAPMSProperty(PacketNoPadded):
-    """
-    SAP Message Server Property packet.
+    """SAP Message Server Property packet.
 
     Packet containing information about properties.
     """
@@ -698,12 +690,11 @@ class SAPMSProperty(PacketNoPadded):
         ConditionalField(IntField("patchno", 0), lambda pkt:pkt.id in [0x07]),
         ConditionalField(IntField("supplvl", 0), lambda pkt:pkt.id in [0x07]),
         ConditionalField(IntField("platform", 0), lambda pkt:pkt.id in [0x07]),
-        ]
+    ]
 
 
 class SAPMS(Packet):
-    """
-    SAP Message Server packet
+    """SAP Message Server packet
 
     This packet is used for the Message Server protocol.
     """
@@ -806,7 +797,7 @@ class SAPMS(Packet):
         # Check ACL fields
         ConditionalField(ShortField("error_code", 0), lambda pkt:pkt.opcode == 0x47),
         ConditionalField(StrFixedLenField("acl", "", 46), lambda pkt:pkt.opcode == 0x47),
-        ]
+    ]
 
 
 # Bind SAP NI with the MS ports (both internal & external)
