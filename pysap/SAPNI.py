@@ -74,19 +74,24 @@ class SAPNIStreamSocket(StreamSocket):
 
     desc = "NI Stream socket"
 
-    def __init__(self, sock, keep_alive=True):
+    def __init__(self, sock, keep_alive=True, base_cls=None):
         """Initializes the NI stream socket.
 
-        @param sock: socket
+        @param sock: socket to wrap
         @type sock: C{socket}
 
         @param keep_alive: if true, the socket will automatically respond to
             keep-alive request messages. Otherwise, the keep-alive messages
             are passed to the caller in L{recv} and L{sr} calls.
         @type keep_alive: C{bool}
+
+        @param base_cls: the base class to use when receiving packets, it uses
+            SAPNI as default if no class specified
+        @type base_cls: L{Packet} class
         """
         StreamSocket.__init__(self, sock, Raw)
         self.keep_alive = keep_alive
+        self.basecls = base_cls or SAPNI
 
     def send(self, packet):
         """Send a packet at the NI layer, prepending the length field.
@@ -135,7 +140,11 @@ class SAPNIStreamSocket(StreamSocket):
 
         # Build the SAPNI packet with the received data
         log_sapni.debug("Received %d bytes", nilength)
-        return SAPNI(nidata)
+
+        # Decode the packet payload according to the base class defined
+        packet = SAPNI(nidata)
+        packet.decode_payload_as(self.basecls)
+        return packet
 
     def sr(self, packet):
         """Send a given packet and receive the response. Wrapper around the send
