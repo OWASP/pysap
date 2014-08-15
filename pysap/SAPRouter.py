@@ -396,7 +396,8 @@ def get_router_version(connection):
     @return: version or None
     """
     response = connection.sr(SAPRouter(type=SAPRouter.SAPROUTER_CONTROL, version=40, opcode=1))
-    if SAPRouter in response and router_is_control(response) and response.opcode == 2:
+    response.decode_payload_as(SAPRouter)
+    if router_is_control(response) and response.opcode == 2:
         return response.version
     else:
         return None
@@ -414,7 +415,7 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
 
     desc = "NI Stream socket routed trough a SAP Router"
 
-    def __init__(self, sock, route, talk_mode=1, router_version=None, keep_alive=True):
+    def __init__(self, sock, route, talk_mode=None, router_version=None, keep_alive=True):
         """Initialize the routed stream socket. It should receive a socket
         connected with the SAP Router, and a route to specified to it. After
         initialization all calls to send() and recv() would be made to the
@@ -453,8 +454,9 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         @type talk_mode: C{int}
         """
         # Build the route request packet
+        talk_mode = talk_mode or 0
         router_strings = map(str, route)
-        target = ":".join([route[-1].hostname, route[-1].port])
+        target = "%s:%d" % (route[-1].hostname, int(route[-1].port))
         router_strings_lens = map(len, router_strings)
         route_request = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
                                   route_ni_version=self.router_version,
@@ -464,9 +466,11 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
                                   route_length=sum(router_strings_lens),
                                   route_offset=router_strings_lens[0],
                                   route_string=route)
-        log_saprouter.debug("Requesting route to %s", target)
+        log_saprouter.debug("Requesting route to %s using mode %d (%s)",
+                            target, talk_mode, router_ni_talk_mode_values[talk_mode])
         # Send the request and grab the response
         response = self.sr(route_request)
+        response.decode_payload_as(SAPRouter)
         if SAPRouter in response:
             response = response[SAPRouter]
             if router_is_pong(response):
@@ -547,7 +551,7 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
 
 
 # Bind SAP NI with the SAP Router port
-bind_layers(TCP, SAPNI, dport=3999)
+bind_layers(TCP, SAPNI, dport=3299)
 
 # Bind SAP NI with SAP Router
 bind_layers(SAPNI, SAPRouter, )
