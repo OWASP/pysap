@@ -24,15 +24,10 @@ from socket import error as SocketError
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
-from scapy.packet import bind_layers
 # Custom imports
 import pysap
 from pysap.SAPMS import SAPMS
-from pysap.SAPNI import SAPNI, SAPNIStreamSocket
-
-
-# Bind SAP NI with MS packets
-bind_layers(SAPNI, SAPMS, )
+from pysap.SAPRouter import SAPRoutedStreamSocket
 
 
 # Set the verbosity to 0
@@ -60,6 +55,7 @@ def parse_options():
     target = OptionGroup(parser, "Target")
     target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host")
     target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3900)
+    target.add_option("--route-string", dest="route_string", help="Route string for connecting through a SAP Router")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
@@ -83,7 +79,10 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     # Initiate the connection
-    conn = SAPNIStreamSocket.get_nisocket(options.remote_host, options.remote_port)
+    conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
+                                              options.remote_port,
+                                              options.route_string,
+                                              base_cls=SAPMS)
     print "[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port)
 
     # Generate a random client string to differentiate our connection
@@ -149,10 +148,10 @@ def main():
         print "[*] Observed clients:"
         for action, client in clients:
             print "\t%s\tclient %s (host=%s, service=%s, port=%d)" % (action,
-                                                                       client.client.strip(),
-                                                                       client.host.strip(),
-                                                                       client.service.strip(),
-                                                                       client.servno)
+                                                                      client.client.strip(),
+                                                                      client.host.strip(),
+                                                                      client.service.strip(),
+                                                                      client.servno)
 
 if __name__ == "__main__":
     main()

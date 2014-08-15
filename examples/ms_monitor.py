@@ -25,18 +25,15 @@ from socket import error as SocketError
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
-from scapy.packet import bind_layers
+from scapy.packet import Raw
 # Custom imports
 import pysap
 from pysap.utils import BaseConsole
-from pysap.SAPNI import SAPNI, SAPNIStreamSocket
 from pysap.SAPMS import SAPMS, ms_client_status_values, ms_opcode_error_values,\
     ms_dump_command_values, SAPMSCounter, ms_opcode_values, ms_errorno_values,\
     SAPMSProperty, ms_property_id_values, SAPMSAdmRecord
+from pysap.SAPRouter import SAPRoutedStreamSocket
 
-
-# Bind SAP NI with MS packets
-bind_layers(SAPNI, SAPMS, )
 
 # Set the verbosity to 0
 conf.verb = 0
@@ -96,7 +93,10 @@ class SAPMSMonitorConsole(BaseConsole):
 
         # Create the socket connection
         try:
-            self.connection = SAPNIStreamSocket.get_nisocket(self.options.remote_host, self.options.remote_port)
+            self.connection = SAPRoutedStreamSocket.get_nisocket(self.options.remote_host,
+                                                                 self.options.remote_port,
+                                                                 self.options.route_string,
+                                                                 base_cls=SAPMS)
         except SocketError as e:
             self._error("Error connecting with the Message Server")
             self._error(str(e))
@@ -546,6 +546,7 @@ def parse_options():
     target = OptionGroup(parser, "Target")
     target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host")
     target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3900)
+    target.add_option("--route-string", dest="route_string", help="Route string for connecting through a SAP Router")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")

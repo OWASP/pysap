@@ -24,16 +24,12 @@ from socket import error as SocketError
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
-from scapy.packet import bind_layers
 # Custom imports
 import pysap
 from pysap.utils import BaseConsole
-from pysap.SAPNI import SAPNI, SAPNIStreamSocket
 from pysap.SAPRFC import SAPRFC
+from pysap.SAPRouter import SAPRoutedStreamSocket
 
-
-# Bind SAP NI with MS packets
-bind_layers(SAPNI, SAPRFC, )
 
 # Set the verbosity to 0
 conf.verb = 0
@@ -64,7 +60,10 @@ class SAPRFCMonitorConsole(BaseConsole):
 
         # Create the socket connection
         try:
-            self.connection = SAPNIStreamSocket.get_nisocket(self.options.remote_host, self.options.remote_port)
+            self.connection = SAPRoutedStreamSocket.get_nisocket(self.options.remote_host,
+                                                                 self.options.remote_port,
+                                                                 self.options.route_string,
+                                                                 base_cls=SAPRFC)
         except SocketError as e:
             self._error("Error connecting with the Gateway service")
             self._error(str(e))
@@ -119,6 +118,7 @@ def parse_options():
     target = OptionGroup(parser, "Target")
     target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host")
     target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3300)
+    target.add_option("--route-string", dest="route_string", help="Route string for connecting through a SAP Router")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")

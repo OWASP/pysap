@@ -23,15 +23,11 @@ import logging
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
-from scapy.packet import bind_layers
 # Custom imports
 import pysap
 from pysap.SAPMS import SAPMS, SAPMSAdmRecord
-from pysap.SAPNI import SAPNI, SAPNIStreamSocket
+from pysap.SAPRouter import SAPRoutedStreamSocket
 
-
-# Bind SAP NI with MS packets
-bind_layers(SAPNI, SAPMS, )
 
 # Set the verbosity to 0
 conf.verb = 0
@@ -64,6 +60,7 @@ def parse_options():
     target = OptionGroup(parser, "Target")
     target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host")
     target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3900)
+    target.add_option("--route-string", dest="route_string", help="Route string for connecting through a SAP Router")
     parser.add_option_group(target)
 
     param = OptionGroup(parser, "Parameter")
@@ -94,7 +91,10 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     # Initiate the connection
-    conn = SAPNIStreamSocket.get_nisocket(options.remote_host, options.remote_port)
+    conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
+                                              options.remote_port,
+                                              options.route_string,
+                                              base_cls=SAPMS)
     print "[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port)
 
     client_string = options.client
