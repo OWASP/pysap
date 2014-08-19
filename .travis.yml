@@ -2,11 +2,10 @@ language: python
 python:
   - "2.7"
 before_script:
-  - sudo apt-get -qq update > /dev/null
-  - sudo apt-get -qq install graphviz > /dev/null
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install graphviz
 install:
   - pip install -r requirements.txt
-  - pip install .
 script:
   - python setup.py test
   - python setup.py doc
