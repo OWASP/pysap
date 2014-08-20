@@ -22,6 +22,7 @@ import sys
 import logging
 from select import select
 from struct import unpack
+from threading import Event
 from SocketServer import BaseRequestHandler, ThreadingMixIn, TCPServer
 # External imports
 from scapy.fields import LenField
@@ -439,7 +440,7 @@ class SAPNIServerHandler(BaseRequestHandler):
             self.server.clients[self.client_address] = self.server.clients_cls()
             log_sapni.debug("SAPNIServerHandler: New client %s",
                             self.client_address)
-        self.closed = False
+        self.closed = Event()
 
     def close(self):
         """Close a client connection and deletes the client from the state
@@ -447,7 +448,7 @@ class SAPNIServerHandler(BaseRequestHandler):
         """
         if self.client_address in self.server.clients:
             del(self.server.clients[self.client_address])
-        self.closed = True
+        self.closed.set()
         log_sapni.debug("SAPNIServerHandler: Bye client %s", self.client_address)
 
     def handle(self):
@@ -456,7 +457,7 @@ class SAPNIServerHandler(BaseRequestHandler):
         stores it on the 'packet' instance variable and pass the control to the
         handle_data method.
         """
-        while not self.closed:
+        while not self.closed.is_set():
             log_sapni.debug("SAPNIServerHandler: Handling data from %s",
                             self.client_address)
 
