@@ -186,6 +186,42 @@ class SAPRouterRouteHop(PacketNoPadded):
         return result
 
 
+class SAPRouterError(PacketNoPadded):
+    """SAP Router Protocol Error Text
+
+    This packet is used to describe an error returned by SAP Router.
+    """
+    name = "SAP Router Error Text"
+    fields_desc = [
+        StrNullField("eyecatcher", "*ERR*"),
+        StrNullField("counter", "1"),
+        StrNullField("error", ""),
+        StrNullField("return_code", ""),
+        StrNullField("component", "NI (network interface)"),
+        StrNullField("release", ""),
+        StrNullField("version", ""),
+        StrNullField("module", "nirout.cpp"),
+        StrNullField("line", ""),
+        StrNullField("detail", ""),
+        StrNullField("error_time", ""),
+        StrNullField("XXX1", ""),
+        StrNullField("XXX2", ""),
+        StrNullField("XXX3", ""),
+        StrNullField("XXX4", ""),
+        StrNullField("location", ""),
+        StrNullField("XXX5", ""),
+        StrNullField("XXX6", ""),
+        StrNullField("XXX7", ""),
+        StrNullField("XXX8", ""),
+        StrNullField("eyecatcher", "*ERR*"),
+    ]
+
+    time_format = "%a %b %d %H:%M:%S %Y"
+    """ @cvar: Format to use when building the time field
+        @type: C{string}
+    """
+
+
 def router_is_route(pkt):
     """Returns if the packet is a Route packet.
 
@@ -368,7 +404,8 @@ class SAPRouter(Packet):
 
         # Error Information fields
         ConditionalField(FieldLenField("err_text_length", None, length_of="err_text_value", fmt="!I"), lambda pkt: router_is_error(pkt) and pkt.opcode == 0),
-        ConditionalField(FieldListField("err_text_value", [""], StrNullField("", "")), lambda pkt: router_is_error(pkt) and pkt.opcode == 0),
+        ConditionalField(PacketListField("err_text_value", SAPRouterError(), SAPRouterError,
+                                         length_from=lambda pkt:pkt.err_text_length), lambda pkt: router_is_error(pkt) and pkt.opcode == 0),
 
         # Control Message fields
         ConditionalField(IntField("control_text_length", 0), lambda pkt: router_is_control(pkt) and pkt.opcode != 0),
@@ -388,7 +425,9 @@ def get_router_version(connection):
 
     @return: version or None
     """
-    response = connection.sr(SAPRouter(type=SAPRouter.SAPROUTER_CONTROL, version=40, opcode=1))
+    response = connection.sr(SAPRouter(type=SAPRouter.SAPROUTER_CONTROL,
+                                       version=40,
+                                       opcode=1))
     response.decode_payload_as(SAPRouter)
     if router_is_control(response) and response.opcode == 2:
         return response.version
