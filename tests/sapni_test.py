@@ -19,23 +19,30 @@
 
 # Standard imports
 import unittest
-from binascii import unhexlify
-from os.path import join as join, dirname
+from struct import unpack
+# External imports
+
 # Custom imports
-from tests import sapni_test
-from tests import sapdiag_test
-from tests import saprouter_test
-from tests import pysapcompress_test
+from pysap.SAPNI import SAPNI
+
+
+class PySAPNITest(unittest.TestCase):
+
+    def test_sapni(self):
+        """Test SAPNI"""
+        test_string = "LALA" * 10
+        sapni = SAPNI() / test_string
+
+        (sapni_length, ) = unpack("!I", str(sapni)[:4])
+        self.assertEqual(sapni_length, len(test_string))
 
 
 def suite():
+    loader = unittest.TestLoader()
     suite = unittest.TestSuite()
-    suite.addTests(sapni_test.suite())
-    suite.addTests(sapdiag_test.suite())
-    suite.addTests(saprouter_test.suite())
-    suite.addTests(pysapcompress_test.suite())
+    suite.addTest(loader.loadTestsFromTestCase(PySAPNITest))
     return suite
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.TextTestRunner(verbosity=2).run(suite())
