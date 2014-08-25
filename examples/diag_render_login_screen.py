@@ -145,8 +145,8 @@ class DiagScreen(wx.Frame):
             self.menus[pos1][0].AppendSeparator()
         else:
             if men:
-                    self.menus[pos1][pos2] = wx.Menu()
-                    item = self.menus[pos1][0].AppendMenu(wx.ID_ANY, text, self.menus[pos1][pos2])
+                self.menus[pos1][pos2] = wx.Menu()
+                item = self.menus[pos1][0].AppendMenu(wx.ID_ANY, text, self.menus[pos1][pos2])
             else:
                 if pos3 > 0:
                     item = self.menus[pos1][pos2].Append(wx.ID_ANY, text)
