@@ -32,8 +32,40 @@ from pysap.SAPDiagItems import SAPDiagDyntAtomItem
 
 class PySAPDiagTest(unittest.TestCase):
 
-    def test_sapdiag_header(self):
-        pass
+    def test_sapdiag_header_build(self):
+        """Test SAPDiag headers building"""
+        diag_item = SAPDiagItem(item_value="TEST")
+
+        diag_header_plain = SAPDiag(compress=0)
+        diag_header_plain.message.append(diag_item)
+        diag_plain_message = str(diag_header_plain.message)
+
+        diag_header_compr = SAPDiag(compress=1)
+        diag_header_compr.message.append(diag_item)
+        diag_compr_message = str(diag_header_compr.message)
+
+        self.assertEqual(diag_plain_message, diag_compr_message)
+
+        diag_header_compr.compress = 0
+        self.assertEqual(str(diag_header_plain), str(diag_header_compr))
+
+    def test_sapdiag_header_dissection(self):
+        """Test SAPDiag headers dissection"""
+        diag_item = SAPDiagItem(item_value="TEST")
+
+        diag_header_plain = SAPDiag(compress=0)
+        diag_header_plain.message.append(diag_item)
+        new_diag_header_plain = SAPDiag(str(diag_header_plain))
+
+        self.assertEqual(str(diag_header_plain),
+                         str(new_diag_header_plain))
+
+        diag_header_compr = SAPDiag(compress=1)
+        diag_header_compr.message.append(diag_item)
+        new_diag_header_compr = SAPDiag(str(diag_header_compr))
+
+        self.assertEqual(str(diag_header_compr),
+                         str(new_diag_header_compr))
 
     def test_sapdiag_item(self):
         """Test construction of SAPDiag Items"""

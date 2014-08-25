@@ -33,6 +33,7 @@ from pysap.SAPSNC import SAPSNCFrame
 from pysap.utils import (PacketNoPadded, ByteEnumKeysField,
     ByteMultiEnumKeysField, MutablePacketField, SignedShortField,
     StrNullFixedLenField)
+from pysapcompress import DecompressError, CompressError
 
 
 class SAPDiagDP(Packet):
@@ -543,7 +544,10 @@ class SAPDiag(PacketNoPadded):
             (reported_length, ) = unpack("<I", s[8:12])
 
             # Then return the headers (Diag and Compression) and the payload (message field)
-            return s[:16] + self.do_decompress(s[8:], reported_length)
+            try:
+                return s[:16] + self.do_decompress(s[8:], reported_length)
+            except DecompressError:
+                return s
         # Uncompressed packet, just return them
         return s
 
@@ -556,7 +560,10 @@ class SAPDiag(PacketNoPadded):
         if self.compress == 1:
             payload = "".join([str(item) for item in self.message]) + pay
             if (len(payload) > 0):
-                return p[:8] + self.do_compress(payload)
+                try:
+                    return p[:8] + self.do_compress(payload)
+                except CompressError:
+                    return p + pay
         return p + pay
 
     def get_item(self, item_type=None, item_id=None, item_sid=None):
