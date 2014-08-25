@@ -544,7 +544,7 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
                 return StreamSocket.recv(self)
         # If the route was not accepted yet or we're working on non-native talk
         # mode, we need the NI layer.
-        return super(SAPRoutedStreamSocket, self).recv()
+        return SAPNIStreamSocket.recv(self)
 
     @classmethod
     def get_nisocket(cls, host=None, port=None, route=None, password=None,
