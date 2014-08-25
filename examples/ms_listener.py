@@ -81,31 +81,31 @@ def main():
                                               options.remote_port,
                                               options.route_string,
                                               base_cls=SAPMS)
-    print "[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port)
+    print("[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port))
 
     client_string = options.client
 
     # Send MS_LOGIN_2 packet
     p = SAPMS(flag=0x00, iflag=0x08, toname=client_string, fromname=client_string)
 
-    print "[*] Sending login packet"
+    print("[*] Sending login packet")
     response = conn.sr(p)[SAPMS]
 
-    print "[*] Login performed, server string: %s" % response.fromname
+    print("[*] Login performed, server string: %s" % response.fromname)
 
-    print "[*] Listening to server messages"
+    print("[*] Listening to server messages")
     try:
         while (True):
             # Send MS_SERVER_LST packet
             response = conn.recv()[SAPMS]
 
-            print "[*] Message received !"
+            print("[*] Message received !")
             response.show()
 
     except SocketError:
-        print "[*] Connection error"
+        print("[*] Connection error")
     except KeyboardInterrupt:
-        print "[*] Cancelled by the user"
+        print("[*] Cancelled by the user")
 
 
 if __name__ == "__main__":

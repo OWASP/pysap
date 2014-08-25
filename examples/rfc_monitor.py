@@ -152,7 +152,7 @@ def main():
         else:
             rfc_console.cmdloop()
     except KeyboardInterrupt:
-        print "Cancelled by the user !"
+        print("Cancelled by the user !")
         rfc_console.do_exit(None)
 
 

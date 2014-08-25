@@ -73,7 +73,7 @@ class DiagParser(object):
     def reassemble(self):
         # Build a stream of packets for each connection
         streams = {}
-        for key, value in self.packets_metadata.iteritems():
+        for key, value in list(self.packets_metadata.items()):
             value.sort()
             value = list(value for value, __ in itertools.groupby(value))
             streams[key] = ''
@@ -82,7 +82,7 @@ class DiagParser(object):
 
         # Parse the NI packets in each stream
         packets = {}
-        for key, stream in streams.iteritems():
+        for key, stream in list(streams.items()):
             packets[key] = []
             while len(stream) > 0:
                 length = unpack("!I", stream[:4])[0]
@@ -90,9 +90,9 @@ class DiagParser(object):
                 stream = stream[length + 4:]
 
         # Parse the input fields on each packet
-        for key in packets.keys():
-            print "[*] Conversation between %s (%d NI packets)" % ("%s:%s and %s:%s" % tuple(key.split("_")),
-                                                                   len(packets[key]))
+        for key in list(packets.keys()):
+            print("[*] Conversation between %s (%d NI packets)" % ("%s:%s and %s:%s" % tuple(key.split("_")),
+                                                                   len(packets[key])))
             for packet in packets[key]:
                 self.parse_fields(packet)
 
@@ -101,7 +101,7 @@ class DiagParser(object):
             atoms = pkt[SAPDiag].get_item(["APPL", "APPL4"], "DYNT", "DYNT_ATOM")
             # Print the Atom items information
             if len(atoms) > 0:
-                print "[*] Input fields:"
+                print("[*] Input fields:")
                 for atom in [atom for atom_item in atoms for atom in atom_item.item_value.items]:
                     if atom.etype in [121, 122, 123, 130, 131, 132]:
                         text = atom.field1_text or atom.field2_text
@@ -109,9 +109,9 @@ class DiagParser(object):
                         if atom.attr_DIAG_BSD_INVISIBLE and len(text) > 0:
                             # If the invisible flag was set, we're probably
                             # dealing with a password field
-                            print "[*]\tPassword field:\t%s" % (text)
+                            print("[*]\tPassword field:\t%s" % (text))
                         else:
-                            print "[*]\tRegular field:\t%s" % (text)
+                            print("[*]\tRegular field:\t%s" % (text))
 
 
 # Command line options parser
@@ -156,16 +156,16 @@ def main():
     parser = DiagParser(options)
 
     if options.pcap:
-        print "[*] Parsing pcap file (%s)" % options.pcap
+        print("[*] Parsing pcap file (%s)" % options.pcap)
     else:
-        print "[*] Listening on interface (%s)" % options.interface
+        print("[*] Listening on interface (%s)" % options.interface)
 
     try:
         sniff(iface=options.interface, offline=options.pcap, prn=parser.parse_packet, store=0)
     except KeyboardInterrupt:
         pass
 
-    print "[*] Finished parsing/sniffing"
+    print("[*] Finished parsing/sniffing")
     parser.reassemble()
 
 

@@ -87,10 +87,10 @@ def show(item):
     Print the information about each item: type, ID, SID and value.
 
     """
-    print "\tType = %s\tId = %s\tSID = %s\tValue = %s" % (diag_item_types[item.item_type],
+    print("\tType = %s\tId = %s\tSID = %s\tValue = %s" % (diag_item_types[item.item_type],
                                                           diag_appl_ids[item.item_id],
                                                           diag_appl_sids[item.item_id][item.item_sid],
-                                                          escape(str(item.item_value)))
+                                                          escape(str(item.item_value))))
 
 
 # Main function
@@ -101,7 +101,7 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     # Create the connection to the SAP Netweaver server
-    print "[*] Connecting to", options.remote_host, "port", options.remote_port
+    print("[*] Connecting to %s:%d" % (options.remote_host, options.remote_port))
     connection = SAPDiagConnection(options.remote_host, options.remote_port,
                                    init=False, terminal=options.terminal,
                                    route=options.route_string)
@@ -109,7 +109,7 @@ def main():
     # Send the initialization packet and store the response (login screen)
     login_screen = connection.init()
     # Filter the response and show the interesting info
-    print "[*] Login Screen information:"
+    print("[*] Login Screen information:")
     for item in login_screen[SAPDiag].get_item(["APPL", "APPL4"],
                                                ["ST_R3INFO", "ST_USER", "VARINFO"]):
         show(item)

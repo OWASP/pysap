@@ -51,7 +51,7 @@ def filter_client(packet):
 
     # Print the Atom items information
     if len(atoms) > 0:
-        print "[*] Input fields:"
+        print("[*] Input fields:")
         for atom in [atom for atom_item in atoms for atom in atom_item.item_value.items]:
             if atom.etype in [121, 122, 123, 130, 131, 132]:
                 text = atom.field1_text or atom.field2_text
@@ -59,9 +59,9 @@ def filter_client(packet):
                 if atom.attr_DIAG_BSD_INVISIBLE and len(text) > 0:
                     # If the invisible flag was set, we're probably
                     # dealing with a password field
-                    print "[*]\tPassword field:\t%s" % (text)
+                    print("[*]\tPassword field:\t%s" % (text))
                 else:
-                    print "[*]\tRegular field:\t%s" % (text)
+                    print("[*]\tRegular field:\t%s" % (text))
 
     # Return the original packet
     return packet
@@ -146,10 +146,13 @@ def main():
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    print "[*] Establishing a Diag proxy between %s:%d and remote %s:%d" % (options.local_host, options.local_port, options.remote_host, options.remote_port)
+    print("[*] Establishing a Diag proxy between %s:%d and remote %s:%d" % (options.local_host,
+                                                                            options.local_port,
+                                                                            options.remote_host,
+                                                                            options.remote_port))
     proxy = SAPNIProxy(options.local_host, options.local_port,
-                     options.remote_host, options.remote_port,
-                     SAPDiagProxyHandler)
+                       options.remote_host, options.remote_port,
+                       SAPDiagProxyHandler)
     while(True):
         proxy.handle_connection()
 
@@ -158,5 +161,5 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print "[*] Canceled by the user ..."
+        print("[*] Canceled by the user ...")
         exit(0)

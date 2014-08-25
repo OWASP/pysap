@@ -114,7 +114,7 @@ class SAPDiagConnection(object):
         return '.'.join('%s' % randint(0, 255) for __ in range(4))
 
     def get_support_data_item(self, support_data):
-        if isinstance(support_data, basestring):
+        if isinstance(support_data, str):
             support_data = SAPDiagSupportBits(unhex(support_data))
 
         if isinstance(support_data, SAPDiagSupportBits):

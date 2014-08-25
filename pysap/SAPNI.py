@@ -401,7 +401,7 @@ class SAPNIServer(TCPServer):
 
     def handle_error(self, request, client_address):
         log_sapni.warning("SAPNIServer: Client connection error: %s",
-                          sys.exc_value)
+                          sys.exc_info()[1])
 
     def get_request(self):
         """Wrap the socket object with a L{SAPNIStreamSocket} after accepting
@@ -436,7 +436,7 @@ class SAPNIServerHandler(BaseRequestHandler):
         """Setup a new client connection. Creates a new client object for
         keeping state information of each client on the server instance.
         """
-        if self.client_address not in self.server.clients.keys():
+        if self.client_address not in list(self.server.clients.keys()):
             self.server.clients[self.client_address] = self.server.clients_cls()
             log_sapni.debug("SAPNIServerHandler: New client %s",
                             self.client_address)

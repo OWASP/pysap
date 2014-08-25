@@ -63,8 +63,8 @@ class WorkerQueue(Thread):
             func, args, kargs = self.tasks.get()
             try:
                 func(*args, **kargs)
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
             self.tasks.task_done()
 
 
@@ -157,7 +157,7 @@ def make_login(username, password, client):
 
 
 def get_rand(length):
-    return ''.join(choice(letters) for _ in xrange(length))
+    return ''.join(choice(letters) for _ in range(length))
 
 
 def login(host, port, terminal, route, username, password, client, verbose, results):
@@ -203,7 +203,7 @@ def login(host, port, terminal, route, username, password, client, verbose, resu
     connection.close()
 
     if verbose:
-        print "[*] Results: \tClient: %s\tUsername: %s\tPassword: %s\tValid: %s\tStatus: %s" % (client, username, password, success, status)
+        print("[*] Results: \tClient: %s\tUsername: %s\tPassword: %s\tValid: %s\tStatus: %s" % (client, username, password, success, status))
     results.append((success, status, username, password, client))
 
 
@@ -242,7 +242,7 @@ def main():
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    print "[*] Testing", options.remote_host, "port", options.remote_port
+    print("[*] Testing %s:%d" % (options.remote_host, options.remote_port))
 
     # Start the thread pool
     pool = ThreadPool(options.threads)
@@ -252,7 +252,7 @@ def main():
 
         # Get the client range to test
         (client_min, client_max) = options.discovery_range.split("-")
-        print "[*] Discovering clients (%s-%s) ..." % (client_min, client_max)
+        print("[*] Discovering clients (%s-%s) ..." % (client_min, client_max))
         # Add the tasks to the threadpool
         results = []
         for client in range(int(client_min), int(client_max) + 1):
@@ -268,14 +268,14 @@ def main():
             if success:
                 client_list.append(client)
 
-        print "[*] Clients found:", ','.join(client_list)
+        print("[*] Clients found: %s" % ','.join(client_list))
     else:
-        print "[*] Not discovering clients, using", options.client, "or client supplied in credentials file"
+        print("[*] Not discovering clients, using %s or client supplied in credentials file" % options.client)
         client_list = options.client.split(',')
 
     # Check if we should test for passwords or finish only with the discovery
     if not options.credentials and not(options.usernames and options.passwords):
-        print "[*] Not testing passwords as credentials or usernames/passwords files were not provided"
+        print("[*] Not testing passwords as credentials or usernames/passwords files were not provided")
         exit(0)
 
     # Build the test cases using either the supplied credentials file (username:password:client) or the username/password file
@@ -292,10 +292,10 @@ def main():
                 for client in clients:
                     testcases.append((username, password, client))
         except IOError:
-            print "Error reading credentials file !"
+            print("Error reading credentials file !")
             exit(0)
         except ValueError:
-            print "Invalid credentials file format !"
+            print("Invalid credentials file format !")
             exit(0)
     else:
         try:
@@ -304,14 +304,14 @@ def main():
                     for client in client_list:
                         testcases.append((username.strip(), password.strip(), client))
         except IOError:
-            print "Error reading username or passwords file !"
+            print("Error reading username or passwords file !")
             exit(0)
 
     # Add the test cases to the threadpool
     results = []
     for username, password, client in testcases:
         if options.verbose:
-            print "[*] Adding testcase for username", username, "with password", password, "on client", client
+            print("[*] Adding testcase for username %s with password %s on client %s" % (username, password, client))
         pool.add_task(login, options.remote_host, options.remote_port,
                       options.terminal, options.route_string, username,
                       password, client, options.verbose, results)
@@ -321,12 +321,12 @@ def main():
     # Print the credentials found
     for (success, status, username, password, client) in results:
         if success:
-            print "[+] Valid credentials found: \tClient: %s\tUsername: %s\tPassword: %s\tStatus: %s" % (client, username, password, status)
+            print("[+] Valid credentials found: \tClient: %s\tUsername: %s\tPassword: %s\tStatus: %s" % (client, username, password, status))
 
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print "[*] Canceled by the user ..."
+        print("[*] Canceled by the user ...")
         exit(0)

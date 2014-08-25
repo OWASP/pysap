@@ -201,7 +201,7 @@ def main():
         else:
             en_console.cmdloop()
     except KeyboardInterrupt:
-        print "Cancelled by the user !"
+        print("Cancelled by the user !")
         en_console.do_exit(None)
 
 

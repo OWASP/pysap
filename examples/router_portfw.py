@@ -78,7 +78,7 @@ def parse_options():
         parser.error("Target port to connect to is required")
 
     if not options.local_port:
-        print "[*] No local port specified, using target port %d" % options.target_port
+        print("[*] No local port specified, using target port %d" % options.target_port)
         options.local_port = options.target_port
 
     return options
@@ -94,8 +94,8 @@ class SAPRouterNativeRouter(SAPNIProxyHandler):
         super(SAPRouterNativeRouter, self).__init__(client, server, options)
 
     def route(self, server):
-        print "[*] Routing to %s:%d !" % (self.options.target_host,
-                                          self.options.target_port)
+        print("[*] Routing to %s:%d !" % (self.options.target_host,
+                                          self.options.target_port))
 
         # Build the Route request packet
         router_string = [SAPRouterRouteHop(hostname=self.options.remote_host,
@@ -103,7 +103,7 @@ class SAPRouterNativeRouter(SAPNIProxyHandler):
                          SAPRouterRouteHop(hostname=self.options.target_host,
                                            port=self.options.target_port,
                                            password=self.options.target_pass)]
-        router_string_lens = map(len, map(str, router_string))
+        router_string_lens = list(map(len, list(map(str, router_string))))
         p = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
                       route_entries=len(router_string),
                       route_talk_mode=1,
@@ -121,18 +121,18 @@ class SAPRouterNativeRouter(SAPNIProxyHandler):
         if SAPRouter in response:
             response = response[SAPRouter]
             if router_is_pong(response):
-                print "[*] Route request accepted !"
+                print("[*] Route request accepted !")
                 self.routed = True
             elif router_is_error(response) and response.return_code == -94:
-                print "[*] Route request not accepted !"
-                print response.err_text_value
+                print("[*] Route request not accepted !")
+                print(response.err_text_value)
                 raise SAPRouteException("Route request not accepted")
             else:
-                print "[*] Router send error"
-                print response.err_text_value
+                print("[*] Router send error")
+                print(response.err_text_value)
                 raise Exception("Router error: %s", response.err_text_value)
         else:
-            print "[*] Wrong response received !"
+            print("[*] Wrong response received !")
             raise Exception("Wrong response received")
 
     def recv_send(self, local, remote, process):
@@ -166,10 +166,10 @@ def main():
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    print "[*] Setting a proxy between %s:%d and remote SAP Router %s:%d" % (options.local_host,
+    print("[*] Setting a proxy between %s:%d and remote SAP Router %s:%d" % (options.local_host,
                                                                              options.local_port,
                                                                              options.remote_host,
-                                                                             options.remote_port)
+                                                                             options.remote_port))
     proxy = SAPNIProxy(options.local_host, options.local_port,
                        options.remote_host, options.remote_port,
                        SAPRouterNativeRouter, keep_alive=False,
@@ -180,12 +180,12 @@ def main():
             try:
                 proxy.handle_connection()
             except SocketError as e:
-                print "[*] Socket Error %s" % e
+                print("[*] Socket Error %s" % e)
 
     except KeyboardInterrupt:
-        print "[*] Cancelled by the user !"
-    except SAPRouteException, e:
-        print "[*] Closing routing do to error %s" % e
+        print("[*] Cancelled by the user !")
+    except SAPRouteException as e:
+        print("[*] Closing routing do to error %s" % e)
 
 
 if __name__ == "__main__":

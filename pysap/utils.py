@@ -47,9 +47,9 @@ class RandEnumKeys(RandEnum):
     """
     def __init__(self, enum):
         self.enum = []
-        for key in enum.keys():
+        for key in list(enum.keys()):
             self.enum.append(key)
-        self.seq = RandomEnumeration(0, len(enum.keys()) - 1)
+        self.seq = RandomEnumeration(0, len(list(enum.keys())) - 1)
 
     def _fix(self):
         return self.enum[self.seq.next()]
@@ -110,7 +110,7 @@ class MutablePacketField(StrLenField):
 
     def get_class(self, pkt):
         # Run the evaluators on the actual packet
-        values = map(lambda evaluator: evaluator(pkt), self.evaluators)
+        values = [evaluator(pkt) for evaluator in self.evaluators]
         # Return the class using the function provided
         return self._get_class(pkt, *values)
 
@@ -278,11 +278,11 @@ class BaseConsole (Cmd, object):
         if not args:
             options_dict = vars(self.options)
             self._print("Configuration options:")
-            for option, value in options_dict.iteritems():
+            for option, value in list(options_dict.items()):
                 self._print("[" + option + "] = " + str(value))
 
             self._print("Run-time options:")
-            for option in self.runtimeoptions.keys():
+            for option in list(self.runtimeoptions.keys()):
                 self._print("[" + option + "] = " + str(self.runtimeoptions[option]))
         # Set a run-time option
         else:
@@ -290,7 +290,7 @@ class BaseConsole (Cmd, object):
             if len(args) == 2:
                 option = args.pop(0)  # Extract the option
                 value = args.pop(0)
-                if option in self.runtimeoptions.keys():
+                if option in list(self.runtimeoptions.keys()):
                     self.runtimeoptions[option] = value
                 else:
                     self._error("Invalid or non run-time option.")
@@ -300,9 +300,9 @@ class BaseConsole (Cmd, object):
 
     def complete_options(self, text, line, begidx, endidx):
         if not text:     # Complete list of run-time options
-            return self.runtimeoptions.keys()
+            return list(self.runtimeoptions.keys())
         else:        # Options starting with text
-            return [option for option in self.runtimeoptions.keys() if option.startswith(text)]
+            return [option for option in list(self.runtimeoptions.keys()) if option.startswith(text)]
 
     def do_script(self, args):
         """Runs a script file."""
@@ -329,7 +329,7 @@ class BaseConsole (Cmd, object):
             self._print("\n".join("\t|".join(line) for line in table))
 
     def _print(self, string=""):
-        print str(string)
+        print(str(string))
         self._log(string)
 
     def _log(self, string=""):

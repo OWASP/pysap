@@ -20,12 +20,10 @@
 
 # Standard imports
 import logging
-from struct import pack
 from socket import error as SocketError
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
-from scapy.packet import Raw
 # Custom imports
 import pysap
 from pysap.utils import BaseConsole
@@ -580,7 +578,7 @@ def main():
         else:
             ms_console.cmdloop()
     except KeyboardInterrupt:
-        print "Cancelled by the user !"
+        print("Cancelled by the user !")
         ms_console.do_exit(None)
 
 

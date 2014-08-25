@@ -95,7 +95,7 @@ def main():
                                               options.remote_port,
                                               options.route_string,
                                               base_cls=SAPMS)
-    print "[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port)
+    print("[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port))
 
     client_string = options.client
 
@@ -103,33 +103,33 @@ def main():
     p = SAPMS(flag=0x00, iflag=0x08, toname=client_string, fromname=client_string)
 
     # Send MS_LOGIN_2 packet
-    print "[*] Sending login packet"
+    print("[*] Sending login packet")
     response = conn.sr(p)[SAPMS]
 
-    print "[*] Login performed, server string: %s" % response.fromname
+    print("[*] Login performed, server string: %s" % response.fromname)
     server_string = response.fromname
 
-    print "[*] Retrieving current value of parameter: %s" % options.param_name
+    print("[*] Retrieving current value of parameter: %s" % options.param_name)
 
     # Send ADM AD_PROFILE request
     adm = SAPMSAdmRecord(opcode=0x1, parameter=options.param_name)
     p = SAPMS(toname=server_string, fromname=client_string, version=4,
               flag=0x04, iflag=0x05, adm_records=[adm])
 
-    print "[*] Sending packet"
+    print("[*] Sending packet")
     response = conn.sr(p)[SAPMS]
 
     if options.verbose:
-        print "[*] Response:"
+        print("[*] Response:")
         response.show()
 
     param_old_value = response.adm_records[0].parameter
-    print "[*] Parameter %s" % param_old_value
+    print("[*] Parameter %s" % param_old_value)
 
     # If a parameter change was requested, send an ADM AD_SHARED_PARAMETER request
     if options.param_value:
-        print "[*] Changing parameter value from: %s to: %s" % (param_old_value,
-                                                                options.param_value)
+        print("[*] Changing parameter value from: %s to: %s" % (param_old_value,
+                                                                options.param_value))
 
         # Build the packet
         adm = SAPMSAdmRecord(opcode=0x2e,
@@ -139,17 +139,17 @@ def main():
                   iflag=5, flag=4, adm_records=[adm])
 
         # Send the packet
-        print "[*] Sending packet"
+        print("[*] Sending packet")
         response = conn.sr(p)[SAPMS]
 
         if options.verbose:
-            print "[*] Response:"
+            print("[*] Response:")
             response.show()
 
         if response.adm_records[0].errorno != 0:
-            print "[*] Error requesting parameter change (error number %d)" % response.adm_records[0].errorno
+            print("[*] Error requesting parameter change (error number %d)" % response.adm_records[0].errorno)
         else:
-            print "[*] Parameter changed for the current session !"
+            print("[*] Parameter changed for the current session !")
 
 
 if __name__ == "__main__":

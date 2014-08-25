@@ -22,18 +22,18 @@
 import logging
 from optparse import OptionParser, OptionGroup
 # External imports
-try:
-    import netaddr
-except ImportError:
-    print "[-] netaddr library not found, running without network range parsing support"
-    netaddr = None
-
 from scapy.config import conf
 # Custom imports
 import pysap
 from pysap.SAPNI import SAPNIStreamSocket
 from pysap.SAPRouter import SAPRouterRouteHop, get_router_version,\
     SAPRoutedStreamSocket, SAPRouteException
+# Optional imports
+try:
+    import netaddr
+except ImportError:
+    print("[-] netaddr library not found, running without network range parsing support")
+    netaddr = None
 
 
 # Set the verbosity to 0
@@ -100,7 +100,7 @@ def parse_target_hosts(target_hosts, target_ports):
 
 def route_test(rhost, rport, thost, tport, router_version):
 
-    print "[*] Routing connections to %s:%s" % (thost, tport)
+    print("[*] Routing connections to %s:%s" % (thost, tport))
 
     # Build the route to the target host passing through the SAP Router
     route = [SAPRouterRouteHop(hostname=rhost,
@@ -131,8 +131,8 @@ def main():
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    print "[*] Connecting to SAP Router %s:%d" % (options.remote_host,
-                                                  options.remote_port)
+    print("[*] Connecting to SAP Router %s:%d" % (options.remote_host,
+                                                  options.remote_port))
 
     # Retrieve the router version used by the server if not specified
     if options.router_version is None:
@@ -141,19 +141,19 @@ def main():
                                               keep_alive=False)
         options.router_version = get_router_version(conn)
         conn.close()
-    print "[*] Using SAP Router version %d" % options.router_version
+    print("[*] Using SAP Router version %d" % options.router_version)
 
     results = []
     for (host, port) in parse_target_hosts(options.target_hosts, options.target_ports):
         status = route_test(options.remote_host, options.remote_port, host, port, options.router_version)
         if options.verbose:
-            print "[*] Status of %s:%s: %s" % (host, port, status)
+            print("[*] Status of %s:%s: %s" % (host, port, status))
         if status == "open":
             results.append((host, port))
 
-    print "[*] Host/Ports found open:"
+    print("[*] Host/Ports found open:")
     for (host, port) in results:
-        print "\tHost: %s\tPort:%s" % (host, port)
+        print("\tHost: %s\tPort:%s" % (host, port))
 
 
 if __name__ == "__main__":

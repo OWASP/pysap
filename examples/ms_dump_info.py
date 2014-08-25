@@ -82,17 +82,17 @@ def main():
                                               options.remote_port,
                                               options.route_string,
                                               base_cls=SAPMS)
-    print "[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port)
+    print("[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port))
 
     client_string = options.client
 
     # Send MS_LOGIN_2 packet
     p = SAPMS(flag=0x00, iflag=0x08, toname=client_string, fromname=client_string)
 
-    print "[*] Sending login packet:"
+    print("[*] Sending login packet:")
     response = conn.sr(p)[SAPMS]
 
-    print "[*] Login OK, Server string: %s" % response.fromname
+    print("[*] Login OK, Server string: %s" % response.fromname)
     server_string = response.fromname
 
     # Send a Dump Info packet for each possible Dump
@@ -107,12 +107,12 @@ def main():
                   fromname=client_string, opcode=0x1e, dump_dest=0x02,
                   dump_command=i)
 
-        print "[*] Sending dump info", ms_dump_command_values[i]
+        print("[*] Sending dump info", ms_dump_command_values[i])
         response = conn.sr(p)[SAPMS]
 
         if (response.opcode_error != 0):
-            print "Error:", ms_opcode_error_values[response.opcode_error]
-        print response.opcode_value
+            print("Error:", ms_opcode_error_values[response.opcode_error])
+        print(response.opcode_value)
 
 
 if __name__ == "__main__":

@@ -86,53 +86,53 @@ def main():
                                               options.remote_port,
                                               options.route_string,
                                               base_cls=SAPMS)
-    print "[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port)
+    print("[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port))
 
     # Set release information
     prop = SAPMSProperty(id=7, release="720", patchno=70, supplvl=0, platform=0)
     p = SAPMS(flag=0x01, iflag=0x01, toname="MSG_SERVER", fromname=options.client, opcode=0x43, property=prop)
-    print "[*] Setting release information"
+    print("[*] Setting release information")
     conn.send(p)
 
     # Perform the login enabling the DIA+BTC+ICM services
     p = SAPMS(flag=0x08, iflag=0x08, msgtype=0x89, toname="-", fromname=options.client)
-    print "[*] Sending login packet"
+    print("[*] Sending login packet")
     conn.sr(p)[SAPMS]
-    print "[*] Login performed"
+    print("[*] Login performed")
 
     # Changing the status to starting
     p = SAPMS(flag=0x01, iflag=0x09, msgtype=0x05, toname="-", fromname=options.client)
-    print "[*] Changing server's status to starting"
+    print("[*] Changing server's status to starting")
     conn.send(p)
 
     # Set IP address
     p = SAPMS(flag=0x01, iflag=0x01, toname="MSG_SERVER", fromname=options.client, opcode=0x06, opcode_version=0x01,
               change_ip_addressv4=options.logon_address)
-    print "[*] Setting IP address"
+    print("[*] Setting IP address")
     response = conn.sr(p)[SAPMS]
-    print "[*] IP address set"
+    print("[*] IP address set")
     response.show()
 
     # Set logon information
     l = SAPMSLogon(type=2, port=3200, address=options.logon_address, host=options.client, misc="LB=3")
     p = SAPMS(flag=0x01, iflag=0x01, msgtype=0x01, toname="MSG_SERVER", fromname=options.client, opcode=0x2b, logon=l)
-    print "[*] Setting logon information"
+    print("[*] Setting logon information")
     response = conn.sr(p)[SAPMS]
-    print "[*] Logon information set"
+    print("[*] Logon information set")
     response.show()
 
     # Set the IP Address property
     prop = SAPMSProperty(client=options.client, id=0x03, address=options.logon_address)
     p = SAPMS(flag=0x02, iflag=0x01, toname="-", fromname=options.client,
               opcode=0x43, property=prop)
-    print "[*] Setting IP address property"
+    print("[*] Setting IP address property")
     response = conn.sr(p)[SAPMS]
-    print "[*] IP Address property set"
+    print("[*] IP Address property set")
     response.show()
 
     # Changing the status to active
     p = SAPMS(flag=0x01, iflag=0x09, msgtype=0x01, toname="-", fromname=options.client)
-    print "[*] Changing server's status to active"
+    print("[*] Changing server's status to active")
     conn.send(p)
 
     # Wait for connections
@@ -142,11 +142,11 @@ def main():
             response.show()
 
     except KeyboardInterrupt:
-        print "[*] Cancelled by the user !"
+        print("[*] Cancelled by the user !")
 
     # Send MS_LOGOUT packet
     p = SAPMS(flag=0x00, iflag=0x04, toname="MSG_SERVER", fromname=options.client)
-    print "[*] Sending logout packet"
+    print("[*] Sending logout packet")
     conn.send(p)
 
 

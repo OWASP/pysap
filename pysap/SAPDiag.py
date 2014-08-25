@@ -598,20 +598,21 @@ class SAPDiag(PacketNoPadded):
             return items
 
         # Perform name lookups
-        if item_type is not None and isinstance(item_type, basestring):
-            item_type = diag_item_types.keys()[diag_item_types.values().index(item_type)]
-        if item_id is not None and isinstance(item_id, basestring):
-            item_id = diag_appl_ids.keys()[diag_appl_ids.values().index(item_id)]
-        if item_sid is not None and isinstance(item_sid, basestring):
-            item_sid = diag_appl_sids[item_id].keys()[diag_appl_sids[item_id].values().index(item_sid)]
+        if item_type is not None and isinstance(item_type, str):
+            item_type = list(diag_item_types.keys())[list(diag_item_types.values()).index(item_type)]
+        if item_id is not None and isinstance(item_id, str):
+            item_id = list(diag_appl_ids.keys())[list(diag_appl_ids.values()).index(item_id)]
+        if item_sid is not None and isinstance(item_sid, str):
+            item_sid = list(diag_appl_sids[item_id].keys())[list(diag_appl_sids[item_id].values()).index(item_sid)]
 
         # Filter and return items
         if item_sid is None and item_id is None:
-            items = filter(lambda item: item.item_type == item_type, self.message)
+            items = [item for item in self.message if item.item_type == item_type]
         elif item_sid is None:
-            items = filter(lambda item: item.item_type == item_type and item.item_id == item_id, self.message)
+            items = [item for item in self.message if item.item_type == item_type and item.item_id == item_id]
         else:
-            items = filter(lambda item: item.item_type == item_type and item.item_id == item_id and item.item_sid == item_sid, self.message)
+            items = [item for item in self.message if item.item_type == item_type and item.item_id == item_id and item.item_sid == item_sid]
+
         return items
 
 

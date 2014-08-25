@@ -499,9 +499,9 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         """
         # Build the route request packet
         talk_mode = talk_mode or 0
-        router_strings = map(str, route)
+        router_strings = list(map(str, route))
         target = "%s:%d" % (route[-1].hostname, int(route[-1].port))
-        router_strings_lens = map(len, router_strings)
+        router_strings_lens = list(map(len, router_strings))
         route_request = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
                                   route_ni_version=self.router_version,
                                   route_entries=len(route),
@@ -581,7 +581,7 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
 
         # If the route was provided using a route string, convert it to a
         # list of hops
-        if isinstance(route, (basestring, unicode)):
+        if isinstance(route, str):
             route = SAPRouterRouteHop.from_string(route)
 
         # If the host and port were specified, we need to add a new hop to

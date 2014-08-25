@@ -33,7 +33,7 @@ class PySAPCompressTest(unittest.TestCase):
         """Test import of the pysapcompress library"""
         try:
             import pysapcompress  # @UnusedImport
-        except ImportError, e:
+        except ImportError as e:
             self.Fail(str(e))
 
     def test_compress_input(self):
