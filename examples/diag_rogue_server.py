@@ -20,6 +20,7 @@
 
 # Standard imports
 import logging
+from socket import error
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
@@ -137,7 +138,7 @@ class SAPDiagServerHandler(SAPNIServerHandler):
         try:
             self.request.send(SAPDiag(com_flag_TERM_EOP=1, com_flag_TERM_EOC=1, compress=0))
             self.request.close()
-        except:
+        except error:
             pass
         del(self.server.clients[self.client_address])
 
@@ -219,7 +220,7 @@ class SAPDiagServerHandler(SAPNIServerHandler):
             print "[*] Sending error message to client %s" % str(self.client_address)
             try:
                 self.request.send(SAPDiag(compress=0, message=self.make_error_screen("E: Unable to process your request, try later")))
-            except:
+            except error:
                 pass
 
 

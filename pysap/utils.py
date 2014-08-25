@@ -30,7 +30,7 @@ from scapy.fields import (ByteEnumField, ShortEnumField, MultiEnumField,
 # Optional imports
 try:
     from tabulate import tabulate
-except:
+except ImportError:
     tabulate = None
 
 

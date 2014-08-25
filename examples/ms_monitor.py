@@ -236,7 +236,7 @@ class SAPMSMonitorConsole(BaseConsole):
             try:
                 client_id = int(args[1])
                 client = self.clients[client_id]
-            except:
+            except (ValueError, KeyError):
                 self._error("Wrong parameters ! Specify client ID")
                 return
             response = self._send_simple(0x02, 0x01, opcode=0x1e,
@@ -502,7 +502,7 @@ class SAPMSMonitorConsole(BaseConsole):
 
         try:
             parameter_name, parameter_value = args.split(" ", 2)
-        except:
+        except ValueError:
             self._error("Invalid parameters !")
             return
 

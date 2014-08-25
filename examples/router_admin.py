@@ -20,6 +20,7 @@
 
 # Standard imports
 import logging
+from socket import error
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
@@ -208,7 +209,7 @@ def main():
                 while (response):
                     print response.payload
                     response = conn.recv()
-            except:
+            except error:
                 pass
 
 
