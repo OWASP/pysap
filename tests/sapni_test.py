@@ -24,21 +24,33 @@ from threading import Thread
 from struct import pack, unpack
 from SocketServer import BaseRequestHandler, ThreadingTCPServer
 # External imports
-from scapy.packet import Packet
 from scapy.fields import StrField
+from scapy.packet import Packet, Raw
 # Custom imports
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
 
 
 class PySAPNITest(unittest.TestCase):
 
-    def test_sapni(self):
-        """Test SAPNI length field"""
-        test_string = "LALA" * 10
-        sapni = SAPNI() / test_string
+    test_string = "LALA" * 10
+
+    def test_sapni_building(self):
+        """Test SAPNI length field building"""
+        sapni = SAPNI() / self.test_string
 
         (sapni_length, ) = unpack("!I", str(sapni)[:4])
-        self.assertEqual(sapni_length, len(test_string))
+        self.assertEqual(sapni_length, len(self.test_string))
+        self.assertEqual(sapni.payload.load, self.test_string)
+
+    def test_sapni_dissection(self):
+        """Test SAPNI length field dissection"""
+
+        data = pack("!I", len(self.test_string)) + self.test_string
+        sapni = SAPNI(data)
+        sapni.decode_payload_as(Raw)
+
+        self.assertEqual(sapni.length, len(self.test_string))
+        self.assertEqual(sapni.payload.load, self.test_string)
 
 
 class SAPNITestHandler(BaseRequestHandler):
@@ -92,6 +104,7 @@ class PySAPNIStreamSocket(PySAPNIStreamSocketBase):
 
         self.client = SAPNIStreamSocket(sock)
         packet = self.client.sr(self.test_string)
+        packet.decode_payload_as(Raw)
         self.client.close()
 
         self.assertIn(SAPNI, packet)
@@ -123,6 +136,7 @@ class PySAPNIStreamSocket(PySAPNIStreamSocketBase):
                                                      self.test_port)
 
         packet = self.client.sr(self.test_string)
+        packet.decode_payload_as(Raw)
         self.client.close()
 
         self.assertIn(SAPNI, packet)
@@ -141,6 +155,7 @@ class PySAPNIStreamSocketKeepAlive(PySAPNIStreamSocketBase):
 
         self.client = SAPNIStreamSocket(sock, keep_alive=False)
         packet = self.client.sr(self.test_string)
+        packet.decode_payload_as(Raw)
         self.client.close()
 
         # We should receive a PING instead of our packet
@@ -155,6 +170,7 @@ class PySAPNIStreamSocketKeepAlive(PySAPNIStreamSocketBase):
 
         self.client = SAPNIStreamSocket(sock, keep_alive=True)
         packet = self.client.sr(self.test_string)
+        packet.decode_payload_as(Raw)
         self.client.close()
 
         # We should receive our packet, the PING should be handled by the
