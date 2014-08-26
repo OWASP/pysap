@@ -26,7 +26,7 @@ from scapy.packet import Packet
 from scapy.volatile import (RandEnum, RandomEnumeration, RandNum, RandTermString,
     RandBin)
 from scapy.fields import (ByteEnumField, ShortEnumField, MultiEnumField,
-    StrLenField, Field, StrFixedLenField)
+    StrLenField, Field, StrFixedLenField, StrField)
 # Optional imports
 try:
     from tabulate import tabulate
@@ -226,6 +226,33 @@ class IntToStrField(Field):
 class SignedShortField(Field):
     def __init__(self, name, default):
         Field.__init__(self, name, default, "h")
+
+
+class StrEncodedPaddedField(StrField):
+    def __init__(self, name, default, encoding="utf-16", padd="\x0c",
+                 fmt="H", remain=0):
+        StrField.__init__(self, name, default, fmt, remain)
+        self.encoding = encoding
+        self.padd = padd
+
+    def h2i(self, pkt, x):
+        if x:
+            x = x.encode(self.encoding)
+        return x
+
+    def i2h(self, pkt, x):
+        if x:
+            x = x.decode(self.encoding)
+        return x
+
+    def addfield(self, pkt, s, val):
+        return s + self.i2m(pkt, val) + self.padd
+
+    def getfield(self, pkt, s):
+        l = s.find(self.padd)
+        if l < 0:
+            return "", s
+        return s[l + 1:], self.m2i(pkt, s[:l])
 
 
 class Worker(Thread):
