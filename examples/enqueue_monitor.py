@@ -29,8 +29,8 @@ from scapy.packet import bind_layers
 import pysap
 from pysap.utils import BaseConsole
 from pysap.SAPNI import SAPNI
-from pysap.SAPEnqueue import SAPEnqueue, SAPEnqueueParam, enqueue_param_values,\
-    SAPEnqueueStreamSocket
+from pysap.SAPEnqueue import (SAPEnqueue, SAPEnqueueParam, enqueue_param_values,
+    SAPEnqueueStreamSocket)
 
 
 # Bind SAP NI with MS packets

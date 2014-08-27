@@ -27,8 +27,8 @@ from scapy.config import conf
 # Custom imports
 import pysap
 from pysap.SAPNI import SAPNIProxy, SAPNIProxyHandler
-from pysap.SAPRouter import SAPRouter, SAPRouterRouteHop, SAPRouteException,\
-    router_is_error, router_is_pong
+from pysap.SAPRouter import (SAPRouter, SAPRouterRouteHop, SAPRouteException,
+    router_is_error, router_is_pong)
 
 
 # Set the verbosity to 0

@@ -30,8 +30,8 @@ import pysap
 from pysap.SAPNI import SAPNI
 from pysap.SAPDiagItems import *
 from pysap.SAPDiagClient import SAPDiagConnection
-from pysap.SAPDiag import SAPDiag, SAPDiagDP, diag_appl_ids, diag_appl_sids,\
-    diag_item_types
+from pysap.SAPDiag import (SAPDiag, SAPDiagDP, diag_appl_ids, diag_appl_sids,
+    diag_item_types)
 
 
 # Bind the SAPDiag layer
