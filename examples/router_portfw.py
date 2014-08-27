@@ -24,12 +24,16 @@ from socket import error as SocketError
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
+from scapy.packet import bind_layers
 # Custom imports
 import pysap
-from pysap.SAPNI import SAPNIProxy, SAPNIProxyHandler
+from pysap.SAPNI import SAPNIProxy, SAPNIProxyHandler, SAPNI
 from pysap.SAPRouter import (SAPRouter, SAPRouterRouteHop, SAPRouteException,
     router_is_error, router_is_pong)
 
+
+# Bind the SAPRouter layer
+bind_layers(SAPNI, SAPRouter, )
 
 # Set the verbosity to 0
 conf.verb = 0

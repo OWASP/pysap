@@ -23,11 +23,12 @@ import logging
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
+from scapy.packet import bind_layers
 # Custom imports
 import pysap
-from pysap.SAPNI import SAPNIStreamSocket
+from pysap.SAPNI import SAPNIStreamSocket, SAPNI
 from pysap.SAPRouter import (SAPRouterRouteHop, get_router_version,
-    SAPRoutedStreamSocket, SAPRouteException)
+    SAPRoutedStreamSocket, SAPRouteException, SAPRouter)
 # Optional imports
 try:
     import netaddr
@@ -35,6 +36,9 @@ except ImportError:
     print("[-] netaddr library not found, running without network range parsing support")
     netaddr = None
 
+
+# Bind the SAPRouter layer
+bind_layers(SAPNI, SAPRouter, )
 
 # Set the verbosity to 0
 conf.verb = 0
@@ -110,7 +114,7 @@ def route_test(rhost, rport, thost, tport, router_version):
 
     # Try to connect to the target host using the routed stream socket
     try:
-        conn = SAPRoutedStreamSocket.get_nisocket(route,
+        conn = SAPRoutedStreamSocket.get_nisocket(route=route,
                                                   talk_mode=1,
                                                   router_version=router_version)
         conn.close()
