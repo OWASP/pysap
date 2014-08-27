@@ -220,8 +220,14 @@ class SAPMSMonitorConsole(BaseConsole):
             for key in ms_dump_command_values:
                 self.do_dump(key)
             return
+
+        # Split list of commands
         try:
             args = args.split(" ")
+        except AttributeError:
+            args = [args]
+
+        try:
             command = int(args[0])
         except ValueError:
             self._error("Wrong dump command ! Valid values:")
@@ -234,7 +240,7 @@ class SAPMSMonitorConsole(BaseConsole):
             try:
                 client_id = int(args[1])
                 client = self.clients[client_id]
-            except (ValueError, KeyError):
+            except (ValueError, KeyError, IndexError):
                 self._error("Wrong parameters ! Specify client ID")
                 return
             response = self._send_simple(0x02, 0x01, opcode=0x1e,
