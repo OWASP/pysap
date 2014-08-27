@@ -150,6 +150,3 @@ class SAPRFC(Packet):
 
 # Bind SAP NI with the RFC port
 bind_layers(TCP, SAPNI, dport=3300)
-
-
-SAPNI.guess_payload_class = Packet.guess_payload_class

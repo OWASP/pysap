@@ -649,7 +649,3 @@ def diag_guess_diagdp_header(self, payload):
         return SAPDiagDP
     else:
         return SAPDiag
-
-
-# Replace the standard guess function
-SAPNI.guess_payload_class = diag_guess_diagdp_header

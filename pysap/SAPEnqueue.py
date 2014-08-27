@@ -219,6 +219,12 @@ class SAPEnqueueStreamSocket(SAPNIStreamSocket):
 
     desc = "Enqueue Stream socket"
 
+    def __init__(self, sock, keep_alive=True, base_cls=None):
+        """Initialization defaults to SAPEnqueue as base class"""
+        if base_cls is None:
+            base_cls = SAPEnqueue
+        SAPNIStreamSocket.__init__(self, sock, keep_alive=keep_alive, base_cls=base_cls)
+
     def recv(self):
         """Receive a packet at the Enqueue layer, performing reassemble of
         fragmented packets if necessary.
@@ -250,8 +256,5 @@ class SAPEnqueueStreamSocket(SAPNIStreamSocket):
         return packet
 
 
-# Bind SAP NI with the SAP Router port
+# Bind SAP NI with the SAP Enqueue port
 bind_layers(TCP, SAPNI, dport=3200)
-
-# Bind SAP NI with SAP Router
-bind_layers(SAPNI, SAPEnqueue, )

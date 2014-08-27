@@ -601,6 +601,3 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
 
 # Bind SAP NI with the SAP Router port
 bind_layers(TCP, SAPNI, dport=3299)
-
-# Bind SAP NI with SAP Router
-bind_layers(SAPNI, SAPRouter, )

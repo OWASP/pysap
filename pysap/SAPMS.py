@@ -803,7 +803,3 @@ class SAPMS(Packet):
 # Bind SAP NI with the MS ports (both internal & external)
 bind_layers(TCP, SAPNI, dport=3600)
 bind_layers(TCP, SAPNI, dport=3900)
-
-
-# Restore the default guess payload class function
-SAPNI.guess_payload_class = Packet.guess_payload_class
