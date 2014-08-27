@@ -110,7 +110,8 @@ def main():
 
     def print_client(msg, client):
         if options.verbose:
-            print("[*] %s %s (host=%s, service=%s, port=%d)" % (client.client.strip(),
+            print("[*] %s %s (host=%s, service=%s, port=%d)" % (msg,
+                                                                client.client.strip(),
                                                                 client.host.strip(),
                                                                 client.service.strip(),
                                                                 client.servno))
