@@ -32,7 +32,7 @@ from pysap.SAPNI import SAPNI
 from pysap.SAPSNC import SAPSNCFrame
 from pysap.utils import (PacketNoPadded, ByteEnumKeysField,
     ByteMultiEnumKeysField, MutablePacketField, SignedShortField,
-    StrNullFixedLenField)
+    StrNullFixedLenField, StrEncodedPaddedField)
 from pysapcompress import DecompressError, CompressError
 
 
@@ -495,6 +495,9 @@ class SAPDiag(PacketNoPadded):
 
         # SNC Frame
         ConditionalField(PacketField("snc_frame", None, SAPSNCFrame), lambda pkt: pkt.compress in [2, 3]),
+
+        # Message info
+        ConditionalField(StrEncodedPaddedField("info", None), lambda pkt: pkt.err_flag != 0),
 
         # Payload
         PacketListField("message", None, SAPDiagItem)]
