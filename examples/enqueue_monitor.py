@@ -33,7 +33,7 @@ from pysap.SAPEnqueue import (SAPEnqueue, SAPEnqueueParam, enqueue_param_values,
     SAPEnqueueStreamSocket)
 
 
-# Bind SAP NI with MS packets
+# Bind SAP NI with Enqueue packets
 bind_layers(SAPNI, SAPEnqueue, )
 
 # Set the verbosity to 0
@@ -65,7 +65,8 @@ class SAPEnqueueAdminConsole(BaseConsole):
 
         # Create the socket connection
         try:
-            self.connection = SAPEnqueueStreamSocket.get_nisocket(self.options.remote_host, self.options.remote_port)
+            self.connection = SAPEnqueueStreamSocket.get_nisocket(self.options.remote_host,
+                                                                  self.options.remote_port)
         except SocketError as e:
             self._error("Error connecting with the Enqueue Server")
             self._error(str(e))
