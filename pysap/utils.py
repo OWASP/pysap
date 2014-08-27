@@ -63,7 +63,7 @@ class ByteEnumKeysField(ByteEnumField):
 
 
 class ShortEnumKeysField(ShortEnumField):
-    """IntEnumField that picks valid values when fuzzed.
+    """ShortEnumField that picks valid values when fuzzed.
     """
     def randval(self):
         return RandEnumKeys(self.i2s)
