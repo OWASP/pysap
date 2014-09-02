@@ -27,7 +27,7 @@ from scapy.config import conf
 from scapy.packet import bind_layers
 # Custom imports
 import pysap
-from pysap.SAPNI import SAPNIProxy, SAPNIProxyHandler, SAPNI
+from pysap.SAPNI import SAPNIProxy, SAPNIProxyHandler, SAPNI, SAPNIStreamSocket
 from pysap.SAPRouter import (SAPRouter, SAPRouterRouteHop, SAPRouteException,
     router_is_error, router_is_pong)
 
@@ -88,18 +88,60 @@ def parse_options():
     return options
 
 
-class SAPRouterNativeRouter(SAPNIProxyHandler):
+class SAPRouterNativeRouterHandler(SAPNIProxyHandler):
 
     def __init__(self, client, server, options=None):
         self.options = options
-        self.routed = False
         self.mtu = 2048
-        self.route(server)
-        super(SAPRouterNativeRouter, self).__init__(client, server, options)
+        super(SAPRouterNativeRouterHandler, self).__init__(client, server, options)
 
-    def route(self, server):
+    def recv_send(self, local, remote, process):
+
+        # Receive a native packet (not SAP NI)
+        packet = local.ins.recv(self.mtu)
+        logging.debug("SAPNIProxyHandler: Received %d native bytes", len(packet))
+
+        # Handle close connection
+        if len(packet) == 0:
+            local.close()
+            raise SocketError((100, "Underlying stream socket tore down"))
+
+        # Send the packet to the remote peer
+        remote.ins.sendall(packet)
+        logging.debug("SAPNIProxyHandler: Sent %d native bytes", len(packet))
+
+
+class SAPRouterNativeProxy(SAPNIProxy):
+
+    def __init__(self, bind_address, bind_port, remote_address, remote_port,
+                 handler, backlog=5, keep_alive=True, options=None):
+        super(SAPRouterNativeProxy, self).__init__(bind_address, bind_port,
+                                                   remote_address, remote_port,
+                                                   handler, backlog, keep_alive,
+                                                   options)
+        self.route()
+
+    def handle_connection(self):
+        # Accept a client connection
+        (client, __) = self.listener.ins.accept()
+
+        # Creates a remote socket
+        router = self.route()
+
+        # Create the NI Stream Socket and handle it
+        proxy = self.handler(SAPNIStreamSocket(client, self.keep_alive),
+                             router,
+                             self.options)
+        return proxy
+
+    def route(self):
         print("[*] Routing to %s:%d !" % (self.options.target_host,
                                           self.options.target_port))
+
+        # Creates the connection with the SAP Router
+        router = SAPNIStreamSocket.get_nisocket(self.options.remote_host,
+                                                self.options.remote_port,
+                                                keep_alive=self.keep_alive)
 
         # Build the Route request packet
         router_string = [SAPRouterRouteHop(hostname=self.options.remote_host,
@@ -120,7 +162,7 @@ class SAPRouterNativeRouter(SAPNIProxyHandler):
             p.show2()
 
         # Send the request and grab the response
-        response = server.sr(p)
+        response = router.sr(p)
 
         if SAPRouter in response:
             response = response[SAPRouter]
@@ -139,28 +181,7 @@ class SAPRouterNativeRouter(SAPNIProxyHandler):
             print("[*] Wrong response received !")
             raise Exception("Wrong response received")
 
-    def recv_send(self, local, remote, process):
-
-        # If the route was accepted, we don't need the NI layer anymore.
-        # Just use the plain socket inside the NIStreamSockets.
-        if self.routed:
-            # Receive a native packet (not SAP NI)
-            packet = local.ins.recv(self.mtu)
-            logging.debug("SAPNIProxyHandler: Received %d native bytes", len(packet))
-
-            # Handle close connection
-            if len(packet) == 0:
-                local.close()
-                raise SocketError((100, "Underlying stream socket tore down"))
-
-            # Send the packet to the remote peer
-            remote.ins.sendall(packet)
-            logging.debug("SAPNIProxyHandler: Sent %d native bytes", len(packet))
-
-        # If the route was not accepted yes, we need the NI layer to send
-        # the route request packet.
-        else:
-            super(SAPRouterNativeRouter, self).recv_send(local, remote, process)
+        return router
 
 
 # Main function
@@ -174,10 +195,11 @@ def main():
                                                                              options.local_port,
                                                                              options.remote_host,
                                                                              options.remote_port))
-    proxy = SAPNIProxy(options.local_host, options.local_port,
-                       options.remote_host, options.remote_port,
-                       SAPRouterNativeRouter, keep_alive=False,
-                       options=options)
+    proxy = SAPRouterNativeProxy(options.local_host, options.local_port,
+                                 options.remote_host, options.remote_port,
+                                 SAPRouterNativeRouterHandler,
+                                 keep_alive=False,
+                                 options=options)
 
     try:
         while (True):
