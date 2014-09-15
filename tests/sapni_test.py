@@ -27,8 +27,8 @@ from SocketServer import BaseRequestHandler, ThreadingTCPServer
 from scapy.fields import StrField
 from scapy.packet import Packet, Raw
 # Custom imports
-from pysap.SAPNI import SAPNI, SAPNIStreamSocket, SAPNIServerThreaded,\
-    SAPNIServerHandler
+from pysap.SAPNI import (SAPNI, SAPNIStreamSocket, SAPNIServerThreaded,
+                         SAPNIServerHandler, SAPNIProxy, SAPNIProxyHandler)
 
 
 class PySAPNITest(unittest.TestCase):
@@ -84,10 +84,11 @@ class SAPNITestHandlerClose(SAPNITestHandler):
 class PySAPNIStreamSocketTest(unittest.TestCase):
 
     test_port = 8005
+    test_address = "127.0.0.1"
     test_string = "TEST" * 10
 
     def start_server(self, handler_cls):
-        self.server = ThreadingTCPServer(("127.0.0.1", self.test_port),
+        self.server = ThreadingTCPServer((self.test_address, self.test_port),
                                          handler_cls,
                                          bind_and_activate=False)
         self.server.allow_reuse_address = True
@@ -106,7 +107,7 @@ class PySAPNIStreamSocketTest(unittest.TestCase):
         self.start_server(SAPNITestHandler)
 
         sock = socket.socket()
-        sock.connect(("127.0.0.1", self.test_port))
+        sock.connect((self.test_address, self.test_port))
 
         self.client = SAPNIStreamSocket(sock)
         packet = self.client.sr(self.test_string)
@@ -127,7 +128,7 @@ class PySAPNIStreamSocketTest(unittest.TestCase):
             fields_desc = [StrField("text", None)]
 
         sock = socket.socket()
-        sock.connect(("127.0.0.1", self.test_port))
+        sock.connect((self.test_address, self.test_port))
 
         self.client = SAPNIStreamSocket(sock, base_cls=SomeClass)
         packet = self.client.sr(self.test_string)
@@ -144,7 +145,7 @@ class PySAPNIStreamSocketTest(unittest.TestCase):
         """Test SAPNIStreamSocket get nisocket class method"""
         self.start_server(SAPNITestHandler)
 
-        self.client = SAPNIStreamSocket.get_nisocket("127.0.0.1",
+        self.client = SAPNIStreamSocket.get_nisocket(self.test_address,
                                                      self.test_port)
 
         packet = self.client.sr(self.test_string)
@@ -162,7 +163,7 @@ class PySAPNIStreamSocketTest(unittest.TestCase):
         self.start_server(SAPNITestHandlerKeepAlive)
 
         sock = socket.socket()
-        sock.connect(("127.0.0.1", self.test_port))
+        sock.connect((self.test_address, self.test_port))
 
         self.client = SAPNIStreamSocket(sock, keep_alive=False)
         packet = self.client.sr(self.test_string)
@@ -181,7 +182,7 @@ class PySAPNIStreamSocketTest(unittest.TestCase):
         self.start_server(SAPNITestHandlerKeepAlive)
 
         sock = socket.socket()
-        sock.connect(("127.0.0.1", self.test_port))
+        sock.connect((self.test_address, self.test_port))
 
         self.client = SAPNIStreamSocket(sock, keep_alive=True)
         packet = self.client.sr(self.test_string)
@@ -201,7 +202,7 @@ class PySAPNIStreamSocketTest(unittest.TestCase):
         self.start_server(SAPNITestHandlerClose)
 
         sock = socket.socket()
-        sock.connect(("127.0.0.1", self.test_port))
+        sock.connect((self.test_address, self.test_port))
 
         self.client = SAPNIStreamSocket(sock, keep_alive=False)
 
@@ -221,11 +222,12 @@ class SAPNIServerTestHandler(SAPNIServerHandler):
 class PySAPNIServerTest(unittest.TestCase):
 
     test_port = 8005
+    test_address = "127.0.0.1"
     test_string = "TEST" * 10
     handler_cls = SAPNIServerTestHandler
 
-    def start_sapniserver(self):
-        self.server = SAPNIServerThreaded(("127.0.0.1", self.test_port),
+    def setUp(self):
+        self.server = SAPNIServerThreaded((self.test_address, self.test_port),
                                           self.handler_cls,
                                           bind_and_activate=False)
         self.server.allow_reuse_address = True
@@ -234,16 +236,14 @@ class PySAPNIServerTest(unittest.TestCase):
         self.server_thread = Thread(target=self.server.serve_forever)
         self.server_thread.start()
 
-    def stop_sapniserver(self):
+    def tearDown(self):
         self.server.shutdown()
         self.server.server_close()
 
     def test_sapniserver(self):
         """Test SAPNIServer"""
-        self.start_sapniserver()
-
         sock = socket.socket()
-        sock.connect(("127.0.0.1", self.test_port))
+        sock.connect((self.test_address, self.test_port))
         sock.sendall(pack("!I", len(self.test_string)) + self.test_string)
 
         response = sock.recv(1024)
@@ -254,9 +254,87 @@ class PySAPNIServerTest(unittest.TestCase):
         self.assertEqual(response[8:], self.test_string)
 
         sock.close()
-        self.stop_sapniserver()
 
-# TODO: SAPNIProxy tests
+
+class PySAPNIProxyTest(unittest.TestCase):
+
+    test_proxyport = 8005
+    test_serverport = 8006
+    test_address = "127.0.0.1"
+    test_string = "TEST" * 10
+    proxyhandler_cls = SAPNIProxyHandler
+    serverhandler_cls = SAPNIServerTestHandler
+
+    def setUp(self):
+        self.server = SAPNIServerThreaded((self.test_address, self.test_serverport),
+                                          self.serverhandler_cls,
+                                          bind_and_activate=False)
+        self.server.allow_reuse_address = True
+        self.server.server_bind()
+        self.server.server_activate()
+        self.server_thread = Thread(target=self.server.serve_forever)
+        self.server_thread.start()
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.server.server_close()
+
+    def start_sapniproxy(self, handler_cls):
+        self.proxy = SAPNIProxy(self.test_address, self.test_proxyport,
+                                self.test_address, self.test_serverport,
+                                handler=handler_cls)
+        self.proxy_thread = Thread(target=self.handle_sapniproxy)
+        self.proxy_thread.start()
+
+    def handle_sapniproxy(self):
+        self.proxy.handle_connection()
+
+    def stop_sapniproxy(self):
+        self.proxy.stop()
+
+    def test_sapniproxy(self):
+        self.start_sapniproxy(self.proxyhandler_cls)
+
+        sock = socket.socket()
+        sock.connect((self.test_address, self.test_proxyport))
+        sock.sendall(pack("!I", len(self.test_string)) + self.test_string)
+
+        response = sock.recv(1024)
+
+        self.assertEqual(len(response), len(self.test_string) + 8)
+        self.assertEqual(unpack("!I", response[:4]), (len(self.test_string) + 4, ))
+        self.assertEqual(unpack("!I", response[4:8]), (len(self.test_string), ))
+        self.assertEqual(response[8:], self.test_string)
+
+        sock.close()
+        self.stop_sapniproxy()
+
+    def test_sapniproxy_process(self):
+
+        class SAPNIProxyHandlerTest(SAPNIProxyHandler):
+
+            def process_client(self, packet):
+                return packet / Raw("Client")
+
+            def process_server(self, packet):
+                return packet / Raw("Server")
+
+        self.start_sapniproxy(SAPNIProxyHandlerTest)
+
+        sock = socket.socket()
+        sock.connect((self.test_address, self.test_proxyport))
+        sock.sendall(pack("!I", len(self.test_string)) + self.test_string)
+
+        response = sock.recv(1024)
+
+        expected_reponse = self.test_string + "Client" + "Server"
+        self.assertEqual(len(response), len(expected_reponse) + 8)
+        self.assertEqual(unpack("!I", response[:4]), (len(expected_reponse) + 4, ))
+        self.assertEqual(unpack("!I", response[4:8]), (len(self.test_string) + 6, ))
+        self.assertEqual(response[8:], expected_reponse)
+
+        sock.close()
+        self.stop_sapniproxy()
 
 
 def suite():
@@ -265,6 +343,7 @@ def suite():
     suite.addTest(loader.loadTestsFromTestCase(PySAPNITest))
     suite.addTest(loader.loadTestsFromTestCase(PySAPNIStreamSocketTest))
     suite.addTest(loader.loadTestsFromTestCase(PySAPNIServerTest))
+    suite.addTest(loader.loadTestsFromTestCase(PySAPNIProxyTest))
     return suite
 
 
