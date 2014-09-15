@@ -262,6 +262,10 @@ class SAPNIProxy(object):
         log_sapni.debug("SAPNIProxy: Handled a connection from %s", address)
         return proxy
 
+    def stop(self):
+        """Stop the proxy by closing the listener socket."""
+        self.listener.close()
+
 
 class SAPNIProxyHandler(object):
     """SAP NI Proxy Handler
