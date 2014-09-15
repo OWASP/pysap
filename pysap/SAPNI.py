@@ -175,9 +175,10 @@ class SAPNIStreamSocket(StreamSocket):
 
         @return: connected socket
         @rtype: L{SAPNIStreamSocket}
+
+        @raise socket.error: if the connection to the target host/port failed
         """
-        sock = socket.socket()
-        sock.connect((host, port))
+        sock = socket.create_connection((host, port))
         return cls(sock, **kwargs)
 
 

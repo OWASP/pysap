@@ -573,6 +573,8 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
 
         @return: connected socket through the specified route
         @rtype: L{SAPRoutedStreamSocket}
+
+        @raise socket.error: if the connection to the target host/port failed
         """
         # If no route was provided, use the standard SAPNIStreamSocket
         # get_nisocket method
@@ -592,8 +594,7 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
                                            password=password))
 
         # Connect to the first hop in the route (it should be the SAP Router)
-        sock = socket.socket()
-        sock.connect((route[0].hostname, int(route[0].port)))
+        sock = socket.create_connection((route[0].hostname, int(route[0].port)))
 
         # Create a SAPRoutedStreamSocket instance specifying the route
         return cls(sock, route, talk_mode, router_version, **kwargs)
