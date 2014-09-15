@@ -19,8 +19,6 @@
 
 # Standard imports
 import unittest
-from binascii import unhexlify
-from os.path import join as join, dirname
 # Custom imports
 from tests import sapni_test
 from tests import sapdiag_test
