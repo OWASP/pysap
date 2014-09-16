@@ -207,7 +207,7 @@ class SAPRouterError(PacketNoPadded):
         StrNullField("system_call", ""),
         StrNullField("errorno", ""),
         StrNullField("errorno_text", ""),
-        StrNullField("XXX4", ""),
+        StrNullField("error_count", ""),
         StrNullField("location", ""),
         StrNullField("XXX5", ""),
         StrNullField("XXX6", ""),
