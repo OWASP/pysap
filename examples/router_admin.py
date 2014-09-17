@@ -204,7 +204,7 @@ def main():
             if options.verbose:
                 response.show2()
             else:
-                print(response.err_text_value)
+                print(response.err_text_value.error)
 
         # Otherwise, print all the packets sent by the SAP Router
         else:
