@@ -298,26 +298,28 @@ def router_is_known_type(pkt):
 class SAPRouter(Packet):
     """SAP Router packet
 
-    This packet is used for general SAP Router packets. There are (at least) five
-    types of SAP Router packets:
+    This packet is used for general SAP Router packets. There are (at least)
+    five types of SAP Router packets:
 
-        1. Route packets. For requesting the routing of a connection to a remote
-        hosts. The packet contains some general information and a connection string
-        with a list of routing hops (L{SAPRouterRouteHop}).
+        1. Route packets. For requesting the routing of a connection to a
+        remote hosts. The packet contains some general information and a
+        connection string with a list of routing hops (L{SAPRouterRouteHop}).
 
-        2. Administration packets. This packet is used for the SAP Router to send
-        administrative commands. It's suppose to be used only from the hosts
-        running the SAP Router or when an specific route is included in the
-        routing table. Generally administration packets are not accepted from the
-        external binding.
+        2. Administration packets. This packet is used for the SAP Router to
+        send administrative commands. It's suppose to be used only from the
+        hosts running the SAP Router or when an specific route is included in
+        the routing table. Generally administration packets are not accepted
+        from the external binding.
 
         3. Error Information packets. Packets sent when an error occurred.
 
-        4. Control Message packets. Used to perform some control activities, like
-        retrieving the current SAPRouter version or to perform the SNC handshake.
-        They have the same structure that error information packets.
+        4. Control Message packets. Used to perform some control activities,
+        like retrieving the current SAPRouter version or to perform the SNC
+        handshake. They have the same structure that error information
+        packets.
 
-        5. Route accepted packet. Used to acknowledge a route request ("NI_PONG").
+        5. Route accepted packet. Used to acknowledge a route request
+        ("NI_PONG").
 
 
     Routed packets and some responses doesn't fill in these five packet
@@ -417,7 +419,8 @@ class SAPRouter(Packet):
 
 # Retrieve the version of the remote SAP Router
 def get_router_version(connection):
-    """Helper function to retrieve the version of a remote SAP Router.
+    """Helper function to retrieve the version of a remote SAP Router. It
+    uses a control packet with the 'version request' operation code.
 
     @param connection: connection with the SAP Router
     @type connection: L{SAPNIStreamSocket}
@@ -449,9 +452,10 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
     def __init__(self, sock, route, talk_mode=None, router_version=None,
                  keep_alive=True, base_cls=None):
         """Initialize the routed stream socket. It should receive a socket
-        connected with the SAP Router, and a route to specified to it. After
-        initialization all calls to send() and recv() would be made to the
-        target host/service and to the SAP Router itself.
+        connected with the SAP Router, and a route to specify to it. After
+        initialization and if the route is accepted all calls to send() and
+        recv() would be made to the target host/service trough the SAP
+        Router.
 
         @param sock: a socket connected to the SAP Router
         @type sock: C{socket}
@@ -462,7 +466,9 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         @param talk_mode: the talk mode to use when routing
         @type talk_mode: C{int}
 
-        @param router_version: the router version to use for requesting the route
+        @param router_version: the router version to use for requesting the
+            route. If no router version is provided, it will be obtained from
+            the SAP Router by means of a control packet.
         @type router_version: C{int}
 
         @param keep_alive: if true, the socket will automatically respond to
@@ -495,6 +501,12 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
 
         @param talk_mode: the talk mode to use when routing
         @type talk_mode: C{int}
+
+        @raise SAPRouteException: if the route request to the target host/port
+            was not accepted by the SAP Router
+
+        @raise socket.error: if the connection to the target host/port failed
+            or the SAP Router returned an error
         """
         # Build the route request packet
         talk_mode = talk_mode or 0
@@ -565,15 +577,21 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         @param talk_mode: the talk mode to use for requesting the route
         @type talk_mode: C{int}
 
-        @param router_version: the router version to use for requesting the route
+        @param router_version: the router version to use for requesting the
+            route
         @type router_version: C{int}
 
-        @keyword kwargs: arguments to pass to L{SAPRoutedStreamSocket} constructor
+        @keyword kwargs: arguments to pass to L{SAPRoutedStreamSocket}
+            constructor
 
         @return: connected socket through the specified route
         @rtype: L{SAPRoutedStreamSocket}
 
+        @raise SAPRouteException: if the route request to the target host/port
+            was not accepted by the SAP Router
+
         @raise socket.error: if the connection to the target host/port failed
+            or the SAP Router returned an error
         """
         # If no route was provided, use the standard SAPNIStreamSocket
         # get_nisocket method
