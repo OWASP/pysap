@@ -29,43 +29,43 @@ Features
 
 This tool counts with the following components:
 
-- SAPNI module
+- `SAPNI` module
 
     Scapy class for the SAP NI (Network Interface protocol). It also includes a
     Stream Socket implementation for the SAP NI protocol, as well as a base 
     proxy and server implementations.
 
-- SAPDiag module
+- `SAPDiag` module
 
-    Contain Scapy classes for craft and dissect DiagDP headers, Diag packets 
-    and items. The main class is SAPDiag that is in charge of handling 
+    Contain Scapy classes for craft and dissect Diag DP headers, Diag packets 
+    and items. The main class is `SAPDiag`, that is in charge of handling 
     compression/decompression of payload items and serve as a container for 
     them.
 
-- SAPDiagItems module
+- `SAPDiagItems` module
 
     Some classes for craft and dissect common Diag items.
 
-- SAPDiagClient module
+- `SAPDiagClient` module
 
     Basic class for establishing a connection with an application server.
 
-- SAPEnqueue module
+- `SAPEnqueue` module
 
     Scapy classes for the Enqueue protocol.
 
-- SAPRouter module
+- `SAPRouter` module
 
     Scapy classes for the different SAP Router packets (route, control, error
     and admin messages).
 
-- SAPMS module
+- `SAPMS` module
 
     Scapy classes for the Message Server protocol.
     
-- SAPSNC module
+- `SAPSNC` module
 
-    Basic class to serve as container of SNC Frames found in SAPRouter and
+    Basic class to serve as container of SNC Frames found in SAP Router and
     SAP Diag packets. 
 
 - Examples
@@ -120,7 +120,7 @@ Examples can be found in the `examples` directory.
 License
 -------
 
-This library is distributed under the GPLv2 license. Check the COPYING file for
+This library is distributed under the GPLv2 license. Check the `COPYING` file for
 more details.
 
 
