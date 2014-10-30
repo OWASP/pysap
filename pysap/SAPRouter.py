@@ -186,6 +186,23 @@ class SAPRouterRouteHop(PacketNoPadded):
         return result
 
 
+class SAPRouterInfoClient(PacketNoPadded):
+    """SAP Router Protocol Information Request Client
+
+    This packet is used to return the list of current connected clients.
+    """
+    name = "SAP Router Info"
+    fields_desc = [  # 137 bytes length
+        IntField("id", 1),
+        IntField("XXX1", 0),
+        StrFixedLenField("XXX2", None, length=5),
+        StrNullFixedLenField("address", None, length=45),
+        StrNullFixedLenField("partner", None, length=45),
+        StrNullFixedLenField("service", None, length=27),
+        StrFixedLenField("XXX3", None, length=4),
+    ]
+
+
 class SAPRouterError(PacketNoPadded):
     """SAP Router Protocol Error Text
 
