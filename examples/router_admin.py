@@ -199,6 +199,10 @@ def main():
         if SAPRouter in raw_response and raw_response[SAPRouter].payload:
             response = raw_response[SAPRouter]
 
+        # If the response was null, just return
+        elif raw_response.length == 0:
+            return
+
         # If the response is an error, print and exit
         if router_is_error(response):
             print("[*] Error requesting info:")
@@ -209,16 +213,29 @@ def main():
 
         # Otherwise, print the packets sent by the SAP Router
         else:
-            print("[*] Response:")
+            print("[*] Response:\n")
 
-            print("\t" + "\t".join(["ID", "Client", "Partner", "Service"]))
-            raw_response.decode_payload_as(SAPRouterInfoClients)
-            for client in raw_response.clients:
-                print("\t" + "\t".join([str(client.id), client.address,
-                                        client.partner, client.service]))
+            if options.info:
+                # Decode the first packet as a list of info client
+                raw_response.decode_payload_as(SAPRouterInfoClients)
 
-            try:
+                print("\t".join(["ID", "Client", "Partner", "Service"]))
+                for client in raw_response.clients:
+
+                    # If the trace flag is set, add a mark
+                    traced = "(*)" if client.flag_traced else ""
+
+                    fields = [str(client.id),
+                              "%s%s" % (traced, client.address),
+                              client.partner,
+                              client.service]
+                    print("\t".join(fields))
+                print("\n(*) Connections being traced")
+
                 raw_response = conn.recv()  # Skip the second packet
+
+            # Show the plain packets returned
+            try:
                 raw_response = conn.recv()
                 while (raw_response):
                     print(raw_response.payload)

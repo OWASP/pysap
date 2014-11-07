@@ -25,8 +25,9 @@ from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
 from scapy.supersocket import socket, StreamSocket
 from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
-    IntField, StrNullField, PacketListField, FieldLenField, FieldListField,
-    SignedIntEnumField, StrFixedLenField, PacketField)
+                          IntField, StrNullField, PacketListField,
+                          FieldLenField, FieldListField, SignedIntEnumField,
+                          StrFixedLenField, PacketField, BitField)
 # Custom imports
 from pysap.SAPSNC import SAPSNCFrame
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
@@ -194,7 +195,15 @@ class SAPRouterInfoClient(PacketNoPadded):
     name = "SAP Router Client Info"
     fields_desc = [  # 137 bytes length
         IntField("id", 1),
-        IntField("XXX1", 0),
+        BitField("flag_XXX1", 0, 1),
+        BitField("flag_XXX2", 0, 1),
+        BitField("flag_XXX3", 0, 1),
+        BitField("flag_XXX4", 0, 1),
+        BitField("flag_XXX5", 0, 1),
+        BitField("flag_traced", 0, 1),
+        BitField("flag_XXX7", 0, 1),
+        BitField("flag_XXX8", 0, 1),
+        StrFixedLenField("XXX1", None, length=3),
         StrFixedLenField("XXX2", None, length=5),
         StrNullFixedLenField("address", None, length=45),
         StrNullFixedLenField("partner", None, length=45),
