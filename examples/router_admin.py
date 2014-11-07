@@ -29,7 +29,7 @@ from scapy.packet import bind_layers
 import pysap
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
 from pysap.SAPRouter import (SAPRouter, router_is_error, get_router_version,
-                             SAPRouterInfoClients)
+                             SAPRouterInfoClients, SAPRouterInfoServer)
 
 
 # Bind the SAPRouter layer
@@ -232,7 +232,14 @@ def main():
                     print("\t".join(fields))
                 print("\n(*) Connections being traced")
 
-                raw_response = conn.recv()  # Skip the second packet
+                # Decode the second packet as server info
+                raw_response = conn.recv()
+                raw_response.decode_payload_as(SAPRouterInfoServer)
+
+                raw_response.show()
+                print("\nSAP Network Interface Router running on port %d (PID = %d)\n"
+                      "Parent process: PID = %d, port = %d" % (raw_response.port, raw_response.pid,
+                                                               raw_response.ppid, raw_response.pport))
 
             # Show the plain packets returned
             try:

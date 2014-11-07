@@ -223,6 +223,22 @@ class SAPRouterInfoClients(PacketNoPadded):
     ]
 
 
+class SAPRouterInfoServer(PacketNoPadded):
+    """SAP Router Protocol Information Request Server info
+
+    This packet is used to return information about the SAP Router
+    """
+    name = "SAP Router Server Info"
+    fields_desc = [
+        IntField("pid", 0),
+        IntField("ppid", 0),
+        IntField("XXX2", 0),
+        IntField("XXX3", 0),
+        ShortField("port", 0),
+        ShortField("pport", 0),
+    ]
+
+
 class SAPRouterError(PacketNoPadded):
     """SAP Router Protocol Error Text
 
