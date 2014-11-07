@@ -28,7 +28,8 @@ from scapy.packet import bind_layers
 # Custom imports
 import pysap
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
-from pysap.SAPRouter import SAPRouter, router_is_error, get_router_version
+from pysap.SAPRouter import (SAPRouter, router_is_error, get_router_version,
+                             SAPRouterInfoClients)
 
 
 # Bind the SAPRouter layer
@@ -194,9 +195,9 @@ def main():
         # Some responses has no SAPRouter's packet format and are raw strings,
         # we need to get the SAP NI layer first and then check if we could go
         # down to the SAPRouter layer.
-        response = conn.recv()[SAPNI]
-        if SAPRouter in response and response[SAPRouter].payload:
-            response = response[SAPRouter]
+        raw_response = conn.recv()[SAPNI]
+        if SAPRouter in raw_response and raw_response[SAPRouter].payload:
+            response = raw_response[SAPRouter]
 
         # If the response is an error, print and exit
         if router_is_error(response):
@@ -206,13 +207,22 @@ def main():
             else:
                 print(response.err_text_value.error)
 
-        # Otherwise, print all the packets sent by the SAP Router
+        # Otherwise, print the packets sent by the SAP Router
         else:
             print("[*] Response:")
+
+            print("\t" + "\t".join(["ID", "Client", "Partner", "Service"]))
+            raw_response.decode_payload_as(SAPRouterInfoClients)
+            for client in raw_response.clients:
+                print("\t" + "\t".join([str(client.id), client.address,
+                                        client.partner, client.service]))
+
             try:
-                while (response):
-                    print(response.payload)
-                    response = conn.recv()
+                raw_response = conn.recv()  # Skip the second packet
+                raw_response = conn.recv()
+                while (raw_response):
+                    print(raw_response.payload)
+                    raw_response = conn.recv()
             except error:
                 pass
 
