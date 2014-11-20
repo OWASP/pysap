@@ -21,12 +21,12 @@
 import unittest
 from struct import pack
 # External imports
-from scapy.packet import Packet
 from scapy.fields import StrField
+from scapy.packet import Packet, Raw
 # Custom imports
 from tests.utils import read_data_file
 from pysap.SAPDiag import (SAPDiagItems, SAPDiagItem, SAPDiag, bind_diagitem,
-    diag_item_get_class)
+                           diag_item_get_class)
 from pysap.SAPDiagItems import SAPDiagDyntAtomItem
 
 
@@ -133,6 +133,11 @@ class PySAPDiagTest(unittest.TestCase):
         self.assertNotIn(sapdiag_appl_item, sapdiag.get_item(["SES", "APPL4"]))
         self.assertNotIn(sapdiag_appl_item, sapdiag.get_item(["APPL"], ["ST_R3INFO"]))
         self.assertNotIn(sapdiag_appl_item, sapdiag.get_item(["APPL"], ["ST_USER"], ["CONNECT"]))
+
+        # Insert a wrong item and observe that the lookup still works
+        sapdiag.message.append(Raw("\x00" * 10))
+        self.assertIn(sapdiag_ses_item, sapdiag.get_item("SES"))
+        self.assertIn(sapdiag_appl_item, sapdiag.get_item(["APPL"], "ST_USER", ["RFC_PARENT_UUID", "CONNECT"]))
 
     def test_sapdiag_items_bind(self):
         """Test binding of SAPDiagItem classes"""

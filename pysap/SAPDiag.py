@@ -610,11 +610,11 @@ class SAPDiag(PacketNoPadded):
 
         # Filter and return items
         if item_sid is None and item_id is None:
-            items = [item for item in self.message if item.item_type == item_type]
+            items = [item for item in self.message if hasattr(item, "item_type") and item.item_type == item_type]
         elif item_sid is None:
-            items = [item for item in self.message if item.item_type == item_type and item.item_id == item_id]
+            items = [item for item in self.message if hasattr(item, "item_type") and item.item_type == item_type and item.item_id == item_id]
         else:
-            items = [item for item in self.message if item.item_type == item_type and item.item_id == item_id and item.item_sid == item_sid]
+            items = [item for item in self.message if hasattr(item, "item_type") and item.item_type == item_type and item.item_id == item_id and item.item_sid == item_sid]
 
         return items
 
