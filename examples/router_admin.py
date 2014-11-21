@@ -21,6 +21,7 @@
 # Standard imports
 import logging
 from socket import error
+from datetime import datetime
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
@@ -219,7 +220,8 @@ def main():
                 # Decode the first packet as a list of info client
                 raw_response.decode_payload_as(SAPRouterInfoClients)
 
-                print("\t".join(["ID", "Client", "Partner", "Service"]))
+                clients = []
+                clients.append("\t".join(["ID", "Client", "Partner", "Service"]))
                 for client in raw_response.clients:
 
                     # If the trace flag is set, add a mark
@@ -229,17 +231,20 @@ def main():
                               "%s%s" % (traced, client.address),
                               client.partner,
                               client.service]
-                    print("\t".join(fields))
-                print("\n(*) Connections being traced")
+                    clients.append("\t".join(fields))
 
                 # Decode the second packet as server info
                 raw_response = conn.recv()
                 raw_response.decode_payload_as(SAPRouterInfoServer)
 
-                raw_response.show()
-                print("\nSAP Network Interface Router running on port %d (PID = %d)\n"
-                      "Parent process: PID = %d, port = %d" % (raw_response.port, raw_response.pid,
-                                                               raw_response.ppid, raw_response.pport))
+                print("SAP Network Interface Router running on port %d (PID = %d)\n"
+                      "Started on: %s\n"
+                      "Parent process: PID = %d, port = %d\n" % (raw_response.port, raw_response.pid,
+                                                                 datetime.fromtimestamp(raw_response.started_on).ctime(),
+                                                                 raw_response.ppid, raw_response.pport))
+
+                print("\n".join(clients))
+                print("(*) Connections being traced")
 
             # Show the plain packets returned
             try:

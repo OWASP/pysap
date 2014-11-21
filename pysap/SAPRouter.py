@@ -27,7 +27,7 @@ from scapy.supersocket import socket, StreamSocket
 from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
                           IntField, StrNullField, PacketListField,
                           FieldLenField, FieldListField, SignedIntEnumField,
-                          StrFixedLenField, PacketField, BitField)
+                          StrFixedLenField, PacketField, BitField, LongField)
 # Custom imports
 from pysap.SAPSNC import SAPSNCFrame
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
@@ -232,8 +232,7 @@ class SAPRouterInfoServer(PacketNoPadded):
     fields_desc = [
         IntField("pid", 0),
         IntField("ppid", 0),
-        IntField("XXX2", 0),
-        IntField("XXX3", 0),
+        LongField("started_on", 0),
         ShortField("port", 0),
         ShortField("pport", 0),
     ]
