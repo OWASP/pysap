@@ -197,20 +197,20 @@ def main():
         # we need to get the SAP NI layer first and then check if we could go
         # down to the SAPRouter layer.
         raw_response = conn.recv()[SAPNI]
-        if SAPRouter in raw_response and raw_response[SAPRouter].payload:
-            response = raw_response[SAPRouter]
+        if SAPRouter in raw_response and len(raw_response[SAPRouter].payload) > 0:
+            router_response = raw_response[SAPRouter]
 
         # If the response was null, just return
         elif raw_response.length == 0:
             return
 
         # If the response is an error, print and exit
-        if router_is_error(response):
+        if router_is_error(router_response):
             print("[*] Error requesting info:")
             if options.verbose:
-                response.show2()
+                router_response.show2()
             else:
-                print(response.err_text_value.error)
+                print(router_response.err_text_value.error)
 
         # Otherwise, print the packets sent by the SAP Router
         else:
@@ -220,17 +220,21 @@ def main():
                 # Decode the first packet as a list of info client
                 raw_response.decode_payload_as(SAPRouterInfoClients)
 
+                raw_response.show()  # TODO: Remove this
+
                 clients = []
-                clients.append("\t".join(["ID", "Client", "Partner", "Service"]))
+                clients.append("\t".join(["ID", "Client", "Partner", "Service", "Connected on"]))
+                clients.append("-" * 60)
                 for client in raw_response.clients:
 
                     # If the trace flag is set, add a mark
-                    traced = "(*)" if client.flag_traced else ""
+                    flag = "(*)" if client.flag_traced else "(+)" if client.flag_routed else ""
 
                     fields = [str(client.id),
-                              "%s%s" % (traced, client.address),
-                              client.partner,
-                              client.service]
+                              client.address,
+                              "%s%s" % (flag, client.partner) if client.flag_routed else "(no partner)",
+                              client.service if client.flag_routed else "",
+                              datetime.fromtimestamp(client.connected_on).ctime()]
                     clients.append("\t".join(fields))
 
                 # Decode the second packet as server info
