@@ -1,2 +1,2 @@
 epydoc==3.0.1
-scapy==2.2.0-dev
+scapy>=2.2.0-dev
