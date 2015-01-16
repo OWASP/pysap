@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
