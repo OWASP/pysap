@@ -28,7 +28,7 @@ Currently the following SAP protocols are included:
     - SAP RFC.
 """
 
-__version__ = '0.1.5-dev'
+__version__ = '0.1.5'
 """The version of pysap"""
 
 __url__ = "http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=tool&name=pysap"
