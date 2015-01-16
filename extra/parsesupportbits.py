@@ -2,7 +2,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2014 Core Security Technologies
+# Copyright (C) 2015 Core Security Technologies
 #
 # The library was designed and developed by Martin Gallo from the Security
 # Consulting Services team of Core Security Technologies.
@@ -53,7 +53,7 @@ def parse_options():
 # Main function
 def main():
     options = parse_options()
-    print "[*] Parsing input file", options.input_file
+    print("[*] Parsing input file", options.input_file)
 
     # Read and parse the data
     with open(options.input_file, 'r') as f:
@@ -83,7 +83,7 @@ def main():
         data[bit] = name, unknown
 
     pysap = wireshark_define = wireshark_hf = wireshark_parse = wireshark_module = ''
-    for bit in data.keys():
+    for bit in list(data.keys()):
         name, unknown = data[bit]
         notice = " (Unknown support bit)" if unknown else ''
 
@@ -106,16 +106,16 @@ def main():
                             '"sapdiag.diag.supportbits.%s", FT_BOOLEAN, 8, NULL, ' \
                             'SAPDIAG_SUPPORT_BIT_%s, "SAP Diag Support Bit %s",\n\tHFILL }},\n' % (name, name, name, name, name)
 
-    print "[*] pysap SAPDiagItems definition:"
-    print pysap
-    print "[*] wireshark plugin define:"
-    print wireshark_define
-    print "[*] wireshark plugin hf definitions:"
-    print wireshark_hf
-    print "[*] wireshark plugin parsing:"
-    print wireshark_parse
-    print "[*] wireshark plugin module:"
-    print wireshark_module
+    print("[*] pysap SAPDiagItems definition:")
+    print(pysap)
+    print("[*] wireshark plugin define:")
+    print(wireshark_define)
+    print("[*] wireshark plugin hf definitions:")
+    print(wireshark_hf)
+    print("[*] wireshark plugin parsing:")
+    print(wireshark_parse)
+    print("[*] wireshark plugin module:")
+    print(wireshark_module)
 
 
 if __name__ == "__main__":
