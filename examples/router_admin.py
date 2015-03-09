@@ -197,7 +197,7 @@ def main():
         # we need to get the SAP NI layer first and then check if we could go
         # down to the SAPRouter layer.
         raw_response = conn.recv()[SAPNI]
-        if SAPRouter in raw_response and len(raw_response[SAPRouter].payload) > 0:
+        if SAPRouter in raw_response:
             router_response = raw_response[SAPRouter]
 
         # If the response was null, just return
@@ -219,8 +219,6 @@ def main():
             if options.info:
                 # Decode the first packet as a list of info client
                 raw_response.decode_payload_as(SAPRouterInfoClients)
-
-                raw_response.show()  # TODO: Remove this
 
                 clients = []
                 clients.append("\t".join(["ID", "Client", "Partner", "Service", "Connected on"]))
