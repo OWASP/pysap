@@ -96,5 +96,8 @@ setup(name=pysap.__name__,   # Package information
       test_suite='tests.suite',
 
       # API Documentation command
-      cmdclass={'doc': APIDocumentationCommand}
+      cmdclass={'doc': APIDocumentationCommand},
+
+      # Requirements
+      install_requires=open('requirements.txt').read().splitlines(),
       )
