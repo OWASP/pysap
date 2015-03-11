@@ -89,18 +89,18 @@ The tool relays on the Scapy [2] library for crafting packets. Epydoc is also
 required for building the API documentation. To install the required libraries
 use:
 
-	pip install -r requirements.txt
+    pip install -r requirements.txt
 
 Some example scripts has additional required libraries:
 
-	tabulate
-	netaddr
-	wxPython
-	fau_timer (https://code.google.com/p/fau-timer/)
+    tabulate
+    netaddr
+    wxPython
+    fau_timer (https://code.google.com/p/fau-timer/)
 
-Those libraries can be installed using:
+Most of those libraries can be installed using:
 
-	pip install -r requirements-optional.txt 
+    pip install -r requirements-optional.txt 
 
 
 Install using Python's setuptools. Installation is as follows:
@@ -113,6 +113,16 @@ Some scapy installations also requires the following steps:
     Edit the file `supersocket.py` (located for example on 
     	`/usr/local/lib/python2.7/dist-packages/scapy/supersocket.py`)
     Add the line: `from scapy.packet import Padding`
+
+
+Documentation
+-------------
+
+Documentation of the API can be build using:
+
+    python setup.py doc
+
+A build is also available at [http://pythonhosted.org/pysap/](http://pythonhosted.org/pysap/).
 
 
 Example uses
