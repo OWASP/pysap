@@ -25,8 +25,9 @@ from binascii import unhexlify as unhex
 from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.SAPDiag import SAPDiag, SAPDiagDP, SAPDiagItem
 from pysap.SAPDiagItems import (user_connect_compressed,
-    user_connect_uncompressed, support_data as default_support_data,
-    SAPDiagStep, SAPDiagSupportBits)
+                                user_connect_uncompressed,
+                                support_data as default_support_data,
+                                SAPDiagStep, SAPDiagSupportBits)
 
 
 class SAPDiagConnection(object):

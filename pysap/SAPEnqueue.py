@@ -23,8 +23,8 @@ import logging
 from scapy.layers.inet import TCP
 from scapy.packet import bind_layers
 from scapy.fields import (IntField, IntEnumField, PacketListField,
-    StrFixedLenField, ConditionalField, ByteField, FieldLenField, LenField,
-    StrNullField)
+                          StrFixedLenField, ConditionalField, ByteField,
+                          FieldLenField, LenField, StrNullField)
 # Custom imports
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
 from pysap.utils import ByteEnumKeysField, PacketNoPadded, StrNullFixedLenField

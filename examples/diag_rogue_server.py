@@ -30,7 +30,7 @@ import pysap
 from pysap.SAPDiagItems import *
 from pysap.SAPDiag import SAPDiag, SAPDiagDP
 from pysap.SAPNI import (SAPNI, SAPNIClient, SAPNIServerHandler,
-    SAPNIServerThreaded)
+                         SAPNIServerThreaded)
 
 
 # Bind the SAPDiag layer

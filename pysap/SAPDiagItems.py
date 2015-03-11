@@ -23,8 +23,9 @@ from binascii import unhexlify as unhex
 # External imports
 from scapy.packet import Packet
 from scapy.fields import (IntField, BitField, ShortField, ByteField,
-    ConditionalField, StrLenField, StrField, StrNullField, FieldLenField,
-    PacketListField, FieldListField)
+                          ConditionalField, StrLenField, StrField,
+                          StrNullField, FieldLenField, PacketListField,
+                          FieldListField)
 # Custom imports
 from pysap.SAPDiag import bind_diagitem, SAPDiagItem
 from pysap.utils import PacketNoPadded, ByteEnumKeysField, ShortEnumKeysField

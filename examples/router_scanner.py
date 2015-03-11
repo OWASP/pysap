@@ -28,7 +28,8 @@ from scapy.packet import bind_layers
 import pysap
 from pysap.SAPNI import SAPNIStreamSocket, SAPNI
 from pysap.SAPRouter import (SAPRouterRouteHop, get_router_version,
-    SAPRoutedStreamSocket, SAPRouteException, SAPRouter)
+                             SAPRoutedStreamSocket, SAPRouteException,
+                             SAPRouter)
 # Optional imports
 try:
     import netaddr

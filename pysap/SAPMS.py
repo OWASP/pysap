@@ -21,13 +21,15 @@
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
 from scapy.fields import (ByteField, ConditionalField, StrFixedLenField, FlagsField,
-    IPField, ShortField, IntField, StrField, PacketListField, FieldLenField,
-    PacketField, StrLenField, IntEnumField, StrNullField)
+                          IPField, ShortField, IntField, StrField, PacketListField,
+                          FieldLenField, PacketField, StrLenField, IntEnumField,
+                          StrNullField)
 from scapy.layers.inet6 import IP6Field
 # Custom imports
 from pysap.SAPNI import SAPNI
 from pysap.utils import (PacketNoPadded, ByteEnumKeysField, IntToStrField,
-    ShortEnumKeysField, StrNullFixedLenPaddedField, StrNullFixedLenField)
+                         ShortEnumKeysField, StrNullFixedLenPaddedField,
+                         StrNullFixedLenField)
 
 
 # Message Server Flag values

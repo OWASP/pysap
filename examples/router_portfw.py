@@ -29,7 +29,7 @@ from scapy.packet import bind_layers
 import pysap
 from pysap.SAPNI import SAPNIProxy, SAPNIProxyHandler, SAPNI, SAPNIStreamSocket
 from pysap.SAPRouter import (SAPRouter, SAPRouterRouteHop, SAPRouteException,
-    router_is_error, router_is_pong)
+                             router_is_error, router_is_pong)
 
 
 # Bind the SAPRouter layer

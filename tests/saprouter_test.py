@@ -27,7 +27,7 @@ from threading import Thread
 # Custom imports
 from pysap.SAPNI import SAPNIServerHandler, SAPNIServerThreaded, SAPNI
 from pysap.SAPRouter import (SAPRouter, SAPRouterRouteHop, router_is_route,
-    SAPRoutedStreamSocket, SAPRouteException)
+                             SAPRoutedStreamSocket, SAPRouteException)
 
 
 class PySAPRouterTest(unittest.TestCase):

@@ -24,9 +24,9 @@ from threading import Thread, Event
 # External imports
 from scapy.packet import Packet
 from scapy.volatile import (RandEnum, RandomEnumeration, RandNum, RandTermString,
-    RandBin)
+                            RandBin)
 from scapy.fields import (ByteEnumField, ShortEnumField, MultiEnumField,
-    StrLenField, Field, StrFixedLenField, StrField)
+                          StrLenField, Field, StrFixedLenField, StrField)
 # Optional imports
 try:
     from tabulate import tabulate
