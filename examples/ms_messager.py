@@ -2,10 +2,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2015 Core Security Technologies
+# Copyright (C) 2015 by Martin Gallo, Core Security
 #
 # The library was designed and developed by Martin Gallo from the Security
-# Consulting Services team of Core Security Technologies.
+# Consulting Services team of Core Security.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

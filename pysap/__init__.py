@@ -1,10 +1,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2015 Core Security Technologies
+# Copyright (C) 2015 by Martin Gallo, Core Security
 #
 # The library was designed and developed by Martin Gallo from the Security
-# Consulting Services team of Core Security Technologies.
+# Consulting Services team of Core Security.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,7 +17,11 @@
 # GNU General Public License for more details.
 # ==============
 
-"""pysap - Python library for communicating using SAP network protocols.
+"""
+pysap
+=====
+
+pysap is a Python library for communicating using SAP network protocols.
 
 Currently the following SAP protocols are included:
     - SAP NI (Network Interface).
@@ -26,6 +30,9 @@ Currently the following SAP protocols are included:
     - SAP Message Server.
     - SAP Router.
     - SAP RFC.
+
+:copyright: (c) 2015 by Martin Gallo, Core Security.
+:license: GPLv2, see COPYING for more details.
 """
 
 __version__ = '0.1.6.dev0'
