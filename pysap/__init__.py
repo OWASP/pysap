@@ -32,8 +32,12 @@ Currently the following SAP protocols are included:
     - SAP RFC.
 
 :copyright: (c) 2015 by Martin Gallo, Core Security.
-:license: GPLv2, see COPYING for more details.
+:license: GNU General Public License v2 or later (GPLv2+).
+
 """
+
+__title__ = 'pysap'
+"""The title of the library"""
 
 __version__ = '0.1.6.dev0'
 """The version of pysap"""

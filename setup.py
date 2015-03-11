@@ -68,7 +68,7 @@ sapcompress = Extension('pysapcompress',
                         ])
 
 
-setup(name=pysap.__name__,   # Package information
+setup(name=pysap.__title__,   # Package information
       version=pysap.__version__,
       author='Martin Gallo',
       author_email='mgallo@coresecurity.com',

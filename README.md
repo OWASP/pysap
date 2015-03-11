@@ -16,16 +16,18 @@ Version 0.1.6.dev0 (XXX 2015)
 Overview
 --------
 
-SAP Netweaver [1] is a technology platform for building and integrating SAP
-business applications. Communication between components uses different network
-protocols. While some of them are standard and well-known protocols, others
-are proprietaries and public information is not available.
+[SAP Netweaver](http://www.sap.com/platform/netweaver/index.epx) [1] is a 
+technology platform for building and integrating SAP business applications.
+Communication between components uses different network protocols. While
+some of them are standard and well-known protocols, others are proprietaries
+and public information is not available.
 
 This Python library provides modules for crafting and sending packets using
 SAP's NI, Message Server, Router, RFC, SNC, Enqueue and Diag protocols. The
-modules are based on Scapy [2] and are based on information acquired at
-researching the different protocols and services. Detailed information about
-the research can be found at [3], [4], [5], [6] and [7].
+modules are based on [Scapy](http://www.secdev.org/projects/scapy/) [2] and
+are based on information acquired at researching the different protocols and
+services. Detailed information about the research can be found at [3], [4], 
+[5], [6] and [7].
 
 
 Features
@@ -85,9 +87,10 @@ This tool counts with the following components:
 Installation & Build
 --------------------
 
-The tool relays on the Scapy [2] library for crafting packets. Epydoc is also
-required for building the API documentation. To install the required libraries
-use:
+The tool relays on the [Scapy](http://www.secdev.org/projects/scapy/) [2]
+library for crafting packets. [Epydoc](http://epydoc.sourceforge.net/) is
+also required for building the API documentation. To install the required
+libraries use:
 
     pip install -r requirements.txt
 
@@ -103,7 +106,7 @@ Most of those libraries can be installed using:
     pip install -r requirements-optional.txt 
 
 
-Install using Python's setuptools. Installation is as follows:
+Install using Python's `setuptools`. Installation is as follows:
 
 1) `python setup.py test`
 
@@ -112,7 +115,14 @@ Install using Python's setuptools. Installation is as follows:
 Some scapy installations also requires the following steps:
     Edit the file `supersocket.py` (located for example on 
     	`/usr/local/lib/python2.7/dist-packages/scapy/supersocket.py`)
-    Add the line: `from scapy.packet import Padding`
+    Add the line `from scapy.packet import Padding`
+
+Additionally, runnnig Scapy on Windows might require some patching:
+    Edit the file `supersocket.py` 
+    Add the line `import arch` at the end of the file
+
+See this [scapy issue](https://bitbucket.org/secdev/scapy/pull-request/56)
+for more details.
 
 
 Documentation
@@ -160,5 +170,5 @@ Contact
 -------
 
 Whether you want to report a bug or give some suggestions on this package, drop
-us a few lines at oss@coresecurity.com or contact the author email 
-mgallo@coresecurity.com.
+us a few lines at `oss@coresecurity.com` or contact the author email 
+`mgallo@coresecurity.com`.
