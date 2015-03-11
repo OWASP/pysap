@@ -10,7 +10,7 @@ Copyright (C) 2015 Core Security Technologies
 The library was designed and developed by Martin Gallo from the Security
 Consulting Services team of Core Security Technologies.
 
-Version 0.1.6-dev (XXX 2015)
+Version 0.1.6.dev0 (XXX 2015)
 
 
 Overview
