@@ -49,7 +49,7 @@ class APIDocumentationCommand(Command):
             makedirs(self.target_dir)
 
         target = "pysap pysapcompress"
-        system('epydoc --graph all --html --name "%s" --url "%s" -v -o %s %s' % (pysap.__name__,
+        system('epydoc --graph all --html --name "%s" --url "%s" -v -o %s %s -qq' % (pysap.__name__,
                                                                                  pysap.__url__,
                                                                                  self.target_dir,
                                                                                  target))
