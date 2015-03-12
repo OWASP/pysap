@@ -8,9 +8,21 @@ env:
     - CXX=clang++ CC=clang
     - CXX=g++ CC=gcc
 
+os:
+  - linux
+  - osx
+
+matrix:
+  allow_failures:
+    - os: osx
+
 before_script:
-  - sudo apt-get -qq update
-  - sudo apt-get -qq install graphviz
+  # Install system requirements for Linux (only graphviz)
+  - if [ ${TRAVIS_OS_NAME} == "linux" ]; sudo apt-get -qq update && sudo apt-get -qq install graphviz; fi
+  # Install system requirements for OSX (pcapy, libdnet and graphviz)
+  - if [ ${TRAVIS_OS_NAME} == "osx" ]; brew install pcapy graphviz; fi
+  - if [ ${TRAVIS_OS_NAME} == "osx" ]; wget http://libdnet.googlecode.com/files/libdnet-1.12.tgz && tar xvf libdnet-1.12.tgz; fi
+  - if [ ${TRAVIS_OS_NAME} == "osx" ]; cd libdnet-1.12 && ./configure && make && sudo make install && cd python && python setup.py install && cd ../..; fi
 
 install:
   - python setup.py install
