@@ -3,9 +3,10 @@ language: python
 python:
   - "2.7"
 
-compiler:
-  - clang
-  - gcc
+env:
+  matrix:
+    - CXX=clang++ CC=clang
+    - CXX=g++ CC=gcc
 
 before_script:
   - sudo apt-get -qq update
