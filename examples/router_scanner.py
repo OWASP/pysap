@@ -128,6 +128,10 @@ def route_test(rhost, rport, thost, tport, talk_mode, router_version):
     # If an SAPRouteException is raised, the route was denied or an error
     # occurred with the SAP router
     except SAPRouteException:
+        status = 'denied'
+
+    # Another error occurred on the server (e.g. timeout), mark the target as error
+    except Exception:
         status = 'error'
 
     return status
