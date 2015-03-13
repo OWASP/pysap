@@ -66,6 +66,7 @@ def parse_options():
     target.add_option("-P", "--target-pass", dest="target_pass", help="Target password")
     target.add_option("-a", "--local-host", dest="local_host", help="Local host to listen [%default]", default="127.0.0.1")
     target.add_option("-l", "--local-port", dest="local_port", type="int", help="Local port to listen [target-port]")
+    target.add_option("--talk-mode", dest="talk_mode", help="Talk mode to use when requesting the route (raw or ni) [%default]", default="raw")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
@@ -80,6 +81,9 @@ def parse_options():
         parser.error("Target host to connect to is required")
     if not options.target_port:
         parser.error("Target port to connect to is required")
+    options.talk_mode = options.talk_mode.lower()
+    if options.talk_mode not in ["raw", "ni"]:
+        parser.error("Invalid talk mode")
 
     if not options.local_port:
         print("[*] No local port specified, using target port %d" % options.target_port)
@@ -152,7 +156,7 @@ class SAPRouterNativeProxy(SAPNIProxy):
         router_string_lens = list(map(len, list(map(str, router_string))))
         p = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
                       route_entries=len(router_string),
-                      route_talk_mode=1,
+                      route_talk_mode=self.options.talk_mode,
                       route_rest_nodes=1,
                       route_length=sum(router_string_lens),
                       route_offset=router_string_lens[0],
@@ -191,10 +195,15 @@ def main():
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    print("[*] Setting a proxy between %s:%d and remote SAP Router %s:%d" % (options.local_host,
-                                                                             options.local_port,
-                                                                             options.remote_host,
-                                                                             options.remote_port))
+    print("[*] Setting a proxy between %s:%d and remote SAP Router %s:%d (talk mode %s)" % (options.local_host,
+                                                                                            options.local_port,
+                                                                                            options.remote_host,
+                                                                                            options.remote_port,
+                                                                                            options.talk_mode))
+
+    options.talk_mode = {"raw": 1,
+                         "ni": 0}[options.talk_mode]
+
     proxy = SAPRouterNativeProxy(options.local_host, options.local_port,
                                  options.remote_host, options.remote_port,
                                  SAPRouterNativeRouterHandler,
