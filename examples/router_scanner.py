@@ -71,6 +71,7 @@ def parse_options():
     target.add_option("-t", "--target-hosts", dest="target_hosts", help="Target hosts to scan")
     target.add_option("-r", "--target-ports", dest="target_ports", help="Target ports to scan")
     target.add_option("--router-version", dest="router_version", type="int", help="SAP Router version to use [retrieve from the remote SAP Router]")
+    target.add_option("--talk-mode", dest="talk_mode", help="Talk mode to use when requesting the route (raw or ni) [%default]", default="raw")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
@@ -85,6 +86,9 @@ def parse_options():
         parser.error("Target hosts to scan are required")
     if not options.target_ports:
         parser.error("Target ports to scan are required")
+    options.talk_mode = options.talk_mode.lower()
+    if options.talk_mode not in ["raw", "ni"]:
+        parser.error("Invalid talk mode")
 
     return options
 
@@ -103,7 +107,7 @@ def parse_target_hosts(target_hosts, target_ports):
                 yield(host, port)
 
 
-def route_test(rhost, rport, thost, tport, router_version):
+def route_test(rhost, rport, thost, tport, talk_mode, router_version):
 
     print("[*] Routing connections to %s:%s" % (thost, tport))
 
@@ -116,7 +120,7 @@ def route_test(rhost, rport, thost, tport, router_version):
     # Try to connect to the target host using the routed stream socket
     try:
         conn = SAPRoutedStreamSocket.get_nisocket(route=route,
-                                                  talk_mode=1,
+                                                  talk_mode=talk_mode,
                                                   router_version=router_version)
         conn.close()
         status = 'open'
@@ -136,8 +140,9 @@ def main():
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    print("[*] Connecting to SAP Router %s:%d" % (options.remote_host,
-                                                  options.remote_port))
+    print("[*] Connecting to SAP Router %s:%d (talk mode %s)" % (options.remote_host,
+                                                                 options.remote_port,
+                                                                 options.talk_mode))
 
     # Retrieve the router version used by the server if not specified
     if options.router_version is None:
@@ -148,9 +153,13 @@ def main():
         conn.close()
     print("[*] Using SAP Router version %d" % options.router_version)
 
+    options.talk_mode = {"raw": 1,
+                         "ni": 0}[options.talk_mode]
+
     results = []
     for (host, port) in parse_target_hosts(options.target_hosts, options.target_ports):
-        status = route_test(options.remote_host, options.remote_port, host, port, options.router_version)
+        status = route_test(options.remote_host, options.remote_port, host, port,
+                            options.talk_mode, options.router_version)
         if options.verbose:
             print("[*] Status of %s:%s: %s" % (host, port, status))
         if status == "open":
