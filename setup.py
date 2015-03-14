@@ -50,9 +50,9 @@ class APIDocumentationCommand(Command):
 
         target = "pysap pysapcompress"
         system('epydoc --graph all --html --name "%s" --url "%s" -v -o %s %s -qq' % (pysap.__name__,
-                                                                                 pysap.__url__,
-                                                                                 self.target_dir,
-                                                                                 target))
+                                                                                     pysap.__url__,
+                                                                                     self.target_dir,
+                                                                                     target))
 
 
 sapcompress = Extension('pysapcompress',
