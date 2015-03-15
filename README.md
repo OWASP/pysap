@@ -87,42 +87,59 @@ This tool counts with the following components:
 Installation & Build
 --------------------
 
-The tool relays on the [Scapy](http://www.secdev.org/projects/scapy/) [2]
-library for crafting packets. [Epydoc](http://epydoc.sourceforge.net/) is
-also required for building the API documentation. To install the required
-libraries use:
+### Installation with pip ###
 
-    pip install -r requirements.txt
+Installing pysap is simple with [pip](https://pip.pypa.io/), just run the
+following command on a terminal:
+
+    $ pip install pysap
 
 Some example scripts has additional required libraries:
 
     tabulate
     netaddr
-    wxPython
+    wxPython (http://www.wxpython.org/)
     fau_timer (https://code.google.com/p/fau-timer/)
 
-Most of those libraries can be installed using:
+Some of those extra libraries can be installed with `pip` running the following
+command:
 
-    pip install -r requirements-optional.txt 
+    $ pip install pysap[examples] 
+
+### Manual installation ###
+
+The tool relays on the [Scapy](http://www.secdev.org/projects/scapy/) [2]
+library for crafting packets. [Epydoc](http://epydoc.sourceforge.net/) is
+also required for building the API documentation. To install the required
+libraries use:
+
+    $ pip install -r requirements.txt
+
+Once you have downloaded pysap's sources, you can install it easily using
+the Python's `setuptools` script provided:
+
+1) `$ python setup.py test`
+
+2) `$ python setup.py install`
+
+### Scapy installation ###
 
 
-Install using Python's `setuptools`. Installation is as follows:
+- Some scapy installations also requires the following steps:
 
-1) `python setup.py test`
-
-2) `python setup.py install`
-
-Some scapy installations also requires the following steps:
     Edit the file `supersocket.py` (located for example on 
     	`/usr/local/lib/python2.7/dist-packages/scapy/supersocket.py`)
+
     Add the line `from scapy.packet import Padding`
 
-Additionally, runnnig Scapy on Windows might require some patching:
+- Additionally, runnnig Scapy on Windows might require some patching:
+
     Edit the file `supersocket.py` 
+
     Add the line `import arch` at the end of the file
 
-See this [scapy issue](https://bitbucket.org/secdev/scapy/pull-request/56)
-for more details.
+  See this [scapy issue](https://bitbucket.org/secdev/scapy/pull-request/56)
+  for more details.
 
 
 Documentation
@@ -130,7 +147,7 @@ Documentation
 
 Documentation of the API can be build using:
 
-    python setup.py doc
+    $ python setup.py doc
 
 A build is also available at [http://pythonhosted.org/pysap/](http://pythonhosted.org/pysap/).
 
