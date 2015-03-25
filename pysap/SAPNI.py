@@ -386,10 +386,6 @@ class SAPNIServer(TCPServer):
     """ @cvar: Client class for storing data about new clients
         @type: L{SAPNIClient} class """
 
-    clients = {}
-    """ @ivar: Clients connected to the server
-        @type: L{clients_cls} """
-
     options = None
     """ @ivar: Options to pass to the request handler
         @type: C{object} """
@@ -401,12 +397,12 @@ class SAPNIServer(TCPServer):
         self.socket_cls = socket_cls or SAPNIStreamSocket
         self.keep_alive = keep_alive
         self.base_cls = base_cls
+        self.clients = {}
         TCPServer.__init__(self, server_address, RequestHandlerClass,
                            bind_and_activate=bind_and_activate)
 
     def handle_error(self, request, client_address):
-        log_sapni.warning("SAPNIServer: Client connection error: %s",
-                          sys.exc_info()[1])
+        log_sapni.exception("SAPNIServer: Client connection error: %s", sys.exc_info()[1])
 
     def get_request(self):
         """Wrap the socket object with a L{SAPNIStreamSocket} after accepting
