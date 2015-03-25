@@ -39,7 +39,7 @@ Currently the following SAP protocols are included:
 __title__ = 'pysap'
 """The title of the library"""
 
-__version__ = '0.1.6'
+__version__ = '0.1.7.dev0'
 """The version of pysap"""
 
 __url__ = "http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=tool&name=pysap"
