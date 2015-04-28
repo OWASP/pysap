@@ -27,9 +27,10 @@ from scapy.config import conf
 from scapy.packet import bind_layers
 # Custom imports
 import pysap
-from pysap.SAPNI import SAPNIProxy, SAPNIProxyHandler, SAPNI, SAPNIStreamSocket
-from pysap.SAPRouter import (SAPRouter, SAPRouterRouteHop, SAPRouteException,
-                             router_is_error, router_is_pong)
+from pysap.SAPNI import SAPNI
+from pysap.SAPRouter import (SAPRouter, SAPRouteException,
+                             SAPRouterNativeProxy,
+                             SAPRouterNativeRouterHandler)
 
 
 # Bind the SAPRouter layer
@@ -92,102 +93,6 @@ def parse_options():
     return options
 
 
-class SAPRouterNativeRouterHandler(SAPNIProxyHandler):
-
-    def __init__(self, client, server, options=None):
-        self.options = options
-        self.mtu = 2048
-        super(SAPRouterNativeRouterHandler, self).__init__(client, server, options)
-
-    def recv_send(self, local, remote, process):
-
-        # Receive a native packet (not SAP NI)
-        packet = local.ins.recv(self.mtu)
-        logging.debug("SAPNIProxyHandler: Received %d native bytes", len(packet))
-
-        # Handle close connection
-        if len(packet) == 0:
-            local.close()
-            raise SocketError((100, "Underlying stream socket tore down"))
-
-        # Send the packet to the remote peer
-        remote.ins.sendall(packet)
-        logging.debug("SAPNIProxyHandler: Sent %d native bytes", len(packet))
-
-
-class SAPRouterNativeProxy(SAPNIProxy):
-
-    def __init__(self, bind_address, bind_port, remote_address, remote_port,
-                 handler, backlog=5, keep_alive=True, options=None):
-        super(SAPRouterNativeProxy, self).__init__(bind_address, bind_port,
-                                                   remote_address, remote_port,
-                                                   handler, backlog, keep_alive,
-                                                   options)
-        self.route()
-
-    def handle_connection(self):
-        # Accept a client connection
-        (client, __) = self.listener.ins.accept()
-
-        # Creates a remote socket
-        router = self.route()
-
-        # Create the NI Stream Socket and handle it
-        proxy = self.handler(SAPNIStreamSocket(client, self.keep_alive),
-                             router,
-                             self.options)
-        return proxy
-
-    def route(self):
-        print("[*] Routing to %s:%d !" % (self.options.target_host,
-                                          self.options.target_port))
-
-        # Creates the connection with the SAP Router
-        router = SAPNIStreamSocket.get_nisocket(self.options.remote_host,
-                                                self.options.remote_port,
-                                                keep_alive=self.keep_alive)
-
-        # Build the Route request packet
-        router_string = [SAPRouterRouteHop(hostname=self.options.remote_host,
-                                           port=self.options.remote_port),
-                         SAPRouterRouteHop(hostname=self.options.target_host,
-                                           port=self.options.target_port,
-                                           password=self.options.target_pass)]
-        router_string_lens = list(map(len, list(map(str, router_string))))
-        p = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
-                      route_entries=len(router_string),
-                      route_talk_mode=self.options.talk_mode,
-                      route_rest_nodes=1,
-                      route_length=sum(router_string_lens),
-                      route_offset=router_string_lens[0],
-                      route_string=router_string)
-
-        if self.options.verbose:
-            p.show2()
-
-        # Send the request and grab the response
-        response = router.sr(p)
-
-        if SAPRouter in response:
-            response = response[SAPRouter]
-            if router_is_pong(response):
-                print("[*] Route request accepted !")
-                self.routed = True
-            elif router_is_error(response) and response.return_code == -94:
-                print("[*] Route request not accepted !")
-                print(response.err_text_value)
-                raise SAPRouteException("Route request not accepted")
-            else:
-                print("[*] Router send error")
-                print(response.err_text_value)
-                raise Exception("Router error: %s", response.err_text_value)
-        else:
-            print("[*] Wrong response received !")
-            raise Exception("Wrong response received")
-
-        return router
-
-
 # Main function
 def main():
     options = parse_options()
@@ -201,17 +106,20 @@ def main():
                                                                                             options.remote_port,
                                                                                             options.talk_mode))
 
-    options.talk_mode = {"raw": 1,
-                         "ni": 0}[options.talk_mode]
+    options.talk_mode = {"raw": 1, "ni": 0}[options.talk_mode]
 
     proxy = SAPRouterNativeProxy(options.local_host, options.local_port,
                                  options.remote_host, options.remote_port,
                                  SAPRouterNativeRouterHandler,
+                                 target_address=options.target_host,
+                                 target_port=options.target_port,
+                                 target_pass=options.target_pass,
+                                 talk_mode=options.talk_mode,
                                  keep_alive=False,
                                  options=options)
 
     try:
-        while (True):
+        while True:
             try:
                 proxy.handle_connection()
             except SocketError as e:
