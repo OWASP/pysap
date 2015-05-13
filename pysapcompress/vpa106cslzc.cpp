@@ -756,6 +756,12 @@ int CsObjectInt::CsDecomprLZC (SAP_BYTE * inbuf,
     /* Generate output characters in reverse order ...................*/
     while (code >= 256)
     {
+
+      /* Check for end of stack */
+      if (stackp >= (DE_STACK + DE_STACK_OFFSET)){
+        return (CS_E_STACK_OVERFLOW);
+      }
+
       *stackp++ = TAB_SUFFIXOF(code);
       OVERFLOW_CHECK
       code = TAB_PREFIXOF(code);

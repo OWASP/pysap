@@ -337,6 +337,11 @@ int CsObjectInt::BuildHufTree (
       }
       else
       {
+        /* Added check for out-of-bounds read of e & d arrays */
+        if ((*p - s) >= (LENGTH_CODES + 2)){
+          return (CS_E_BAD_HUF_TREE);
+        }
+
         r.e = (unsigned char) e[*p - s]; /*non-simple,look up in lists*/
         r.v.n = (unsigned short) d[*p - s];
         p++;
