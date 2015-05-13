@@ -1,17 +1,28 @@
+2015-05-13 Martin Gallo <mgallo@coresecurity.com>
+
+	* - Version v0.1.7 released.
+	* - Fixed vulnerabilities in LZC and LZH compression libraries
+	(CVE-2015-2282 and CVE-2015-2278). Added test cases for checking proper
+	fixes.
+	* pysap/SAPRouter.py: Moved SAP Router native proxy implementation to
+	the SAP Router module so it can be reused.
+	* examples/router_portfw.py: Using the native proxy implementation in
+	SAP Router module.
+
 2015-03-25 Martin Gallo <mgallo@coresecurity.com>
 
-    * - Version v0.1.6 released.
-    * - Requirements now handled by setuptools.
-    * - Test building with clang on travis.
-    * - Cleared installation docs.
-    * pysap/SAPNI.py: Made clients an instance variable in SAPNIServer.
-    * pysap/SAPRouter.py: Added unknown field.
-    * examples/diag_dos_exploit.py: Small fix.
-    * examples/router_admin.py: Small fix on response handling.
-    * examples/router_portfw.py: Added support for specify talk mode when
-    requesting routes.
-    * examples/router_scanner.py: Added support for specify talk mode when
-    requesting routes.
+	* - Version v0.1.6 released.
+	* - Requirements now handled by setuptools.
+	* - Test building with clang on travis.
+	* - Cleared installation docs.
+	* pysap/SAPNI.py: Made clients an instance variable in SAPNIServer.
+	* pysap/SAPRouter.py: Added unknown field.
+	* examples/diag_dos_exploit.py: Small fix.
+	* examples/router_admin.py: Small fix on response handling.
+	* examples/router_portfw.py: Added support for specify talk mode when
+	requesting routes.
+	* examples/router_scanner.py: Added support for specify talk mode when
+	requesting routes.
 
 2015-01-16 Martin Gallo <mgallo@coresecurity.com>
 
