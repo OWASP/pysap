@@ -382,6 +382,7 @@ class SAPRouter(Packet):
     NI Versions found (unconfirmed):
         - 36: Release <6.20
         - 38: Release 7.00/7.10
+        - 39: Release 7.11
         - 40: Release 7.20/7.21
     """
 
