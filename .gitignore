@@ -53,3 +53,9 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# IDEs
+.idea
+.project
+.pydevproject
+.settings
