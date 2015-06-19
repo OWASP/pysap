@@ -4,7 +4,7 @@ pysap - Python library for crafting SAP's network protocols packets
 [![Build Status](https://travis-ci.org/CoreSecurity/pysap.svg?branch=master)](https://travis-ci.org/CoreSecurity/pysap)
 [![Code Health](https://landscape.io/github/CoreSecurity/pysap/master/landscape.svg)](https://landscape.io/github/CoreSecurity/pysap/master)
 [![Code Issues](http://www.quantifiedcode.com/api/v1/project/53b997e2c9054c5ab44782614c572358/badge.svg)](http://www.quantifiedcode.com/app/project/53b997e2c9054c5ab44782614c572358)
-[![Latest Version](https://pypip.in/version/pysap/badge.svg)](https://pypi.python.org/pypi/pysap/)
+[![Latest Version](https://img.shields.io/pypi/v/pysap.svg)](https://pypi.python.org/pypi/pysap/)
 
 Copyright (C) 2015 by Martin Gallo, Core Security
 
