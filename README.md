@@ -186,15 +186,15 @@ References
 
 [2] http://www.secdev.org/projects/scapy/
 
-[3] http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=tool&name=pysap
+[3] http://www.coresecurity.com/corelabs-research/open-source-tools/pysap
 
 [4] http://www.coresecurity.com/content/sap-netweaver-dispatcher-multiple-vulnerabilities
 
 [5] http://www.coresecurity.com/content/SAP-netweaver-msg-srv-multiple-vulnerabilities
 
-[6] http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=publication&name=Uncovering_SAP_vulnerabilities
+[6] http://www.coresecurity.com/corelabs-research/publications/uncovering-sap-vulnerabilities-reversing-and-breaking-diag-protocol-brucon2012
 
-[7] http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=publication&name=saps_network_protocols_revisited
+[7] http://www.coresecurity.com/corelabs-research/publications/sap-network-protocols-revisited
 
 
 Contact
