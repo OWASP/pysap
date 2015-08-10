@@ -16,9 +16,15 @@ env:
 #  allow_failures:
 #    - os: osx
 
-before_script:
+sudo: false
+
+addons:
   # Install system requirements for Linux (only graphviz)
-  - if [ ${TRAVIS_OS_NAME} == "linux" ]; then sudo apt-get -qq update && sudo apt-get -qq install graphviz; fi
+  apt:
+    packages:
+    - graphviz
+
+before_script:
   # Install system requirements for OSX (pcapy, libdnet and graphviz)
   #- if [ ${TRAVIS_OS_NAME} == "osx" ]; then brew install pcapy graphviz; fi
   #- if [ ${TRAVIS_OS_NAME} == "osx" ]; then wget http://libdnet.googlecode.com/files/libdnet-1.12.tgz && tar xvf libdnet-1.12.tgz; fi
