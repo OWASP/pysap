@@ -122,6 +122,7 @@ the Python's `setuptools` script provided:
 
 ### Scapy installation ###
 
+- For installing Scapy on Windows, see some guidance [here](https://bitbucket.org/secdev/scapy/src/0bde7b23266e7cf1ba1ff3e3693fb3789c0ac751/doc/scapy/installation.rst?at=default).
 
 - Some scapy installations also requires the following steps:
 
