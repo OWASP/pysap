@@ -56,7 +56,7 @@ def parse_options():
     More details about the vulnerability in http://www.coresecurity.com/advisories/sap-router-password-timing-attack.
 
     The script make use of the fau_timer library for measuring the timing of
-    server's responses. Install the library from https://github.com/seecurity/mona-timing-lib.
+    server's responses. Install the library from https://github.com/martingalloar/mona-timing-lib.
     """
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
