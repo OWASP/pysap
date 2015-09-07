@@ -94,10 +94,10 @@ following command on a terminal:
 
 Some example scripts has additional required libraries:
 
-    tabulate
-    netaddr
-    [wxPython](http://www.wxpython.org/)
-    [fau_timer](https://github.com/martingalloar/mona-timing-lib)
+- tabulate
+- netaddr
+- [wxPython](http://www.wxpython.org/)
+- [fau_timer](https://github.com/martingalloar/mona-timing-lib)
 
 Some of those extra libraries can be installed with `pip` running the following
 command:
