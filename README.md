@@ -96,8 +96,8 @@ Some example scripts has additional required libraries:
 
     tabulate
     netaddr
-    wxPython (http://www.wxpython.org/)
-    fau_timer (https://code.google.com/p/fau-timer/)
+    [wxPython](http://www.wxpython.org/)
+    [fau_timer](https://github.com/seecurity/mona-timing-lib)
 
 Some of those extra libraries can be installed with `pip` running the following
 command:
