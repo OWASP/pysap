@@ -23,7 +23,6 @@ import logging
 from collections import defaultdict
 from optparse import OptionParser, OptionGroup
 # External imports
-import wx  # TODO: Change wx to Tkinter
 from scapy.config import conf
 from scapy.packet import bind_layers
 # Custom imports
@@ -32,6 +31,13 @@ from pysap.SAPNI import SAPNI
 from pysap.SAPDiagItems import *
 from pysap.SAPDiag import SAPDiag, SAPDiagDP
 from pysap.SAPDiagClient import SAPDiagConnection
+
+# Try to import wx for failing gracefully if not found
+try:
+    import wx  # TODO: Change wx to Tkinter
+    has_wx = True
+except ImportError:
+    has_wx = False
 
 
 # Bind the SAPDiag layer
@@ -256,6 +262,10 @@ def render_diag_screen(screen, verbose):
 # Main function
 def main():
     options = parse_options()
+
+    if not has_wx:
+        print ("[-] Required library not found. Please install it from http://wxpython.org/")
+        return
 
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
