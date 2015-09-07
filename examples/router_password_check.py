@@ -29,6 +29,13 @@ import pysap
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
 from pysap.SAPRouter import SAPRouter, get_router_version
 
+# Try to import fau-timer for failing gracefully if not found
+try:
+    import fau_timer
+    has_fau_timer = True
+except ImportError:
+    has_fau_timer = False
+
 
 # Bind the SAPRouter layer
 bind_layers(SAPNI, SAPRouter, )
@@ -89,7 +96,6 @@ def try_password(options, password, output=None, k=0):
     p.adm_password = password
     p = str(SAPNI() / p)
 
-    import fau_timer
     fau_timer.init()
     fau_timer.send_request(options.remote_host, options.remote_port, p, len(p))
     fau_timer.calculate_time()
@@ -110,6 +116,10 @@ def try_password(options, password, output=None, k=0):
 # Main function
 def main():
     options = parse_options()
+
+    if not has_fau_timer:
+        print ("[-] Required library not found. Please install it from https://github.com/seecurity/mona-timing-lib")
+        return
 
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
