@@ -213,6 +213,10 @@ int CsObjectInt::BuildHufTree (
 
   /* Generate counts for each bit length .............................*/
   memset(c, 0, sizeof(c));
+  memset(u, 0, sizeof(u));
+  memset(v, 0, sizeof(v));
+  memset(x, 0, sizeof(x));
+  
   p = b;  i = n;
   do
   {
