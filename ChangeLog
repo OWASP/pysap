@@ -1,3 +1,18 @@
+2015-10-29 Martin Gallo <mgallo@coresecurity.com>
+
+	* - Version v0.1.8 released.
+	* - Enabled travis containers for more quick builds.
+	* - Minor documentation and README improvements.
+	* pysap/SAPRouter.py: Documented some version numbers from old releases.
+	* pysapcompress/vpa108csulzh.cpp: Improved the fix for CVE-2015-2278 by
+	properly initializing arrays (thanks 'ret5ret').
+	* examples/diag_render_login_screen.py: Fail gracefully if wx is not found.
+	* examples/router_password_check.py: Updating the fau_timer library in
+	use and failing gracefully if it's not found.
+	* examples/router_fingerprint.py: New example script for performing
+	fingerprint over SAP Router versions. This is experimental and the database
+	included only contains a few SAP Router versions, but it might work.
+
 2015-05-13 Martin Gallo <mgallo@coresecurity.com>
 
 	* - Version v0.1.7 released.

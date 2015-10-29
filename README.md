@@ -8,7 +8,7 @@ pysap - Python library for crafting SAP's network protocols packets
 
 Copyright (C) 2015 by Martin Gallo, Core Security
 
-Version 0.1.8.dev0 (XXX 2015)
+Version 0.1.8 (October 2015)
 
 
 Overview
@@ -78,8 +78,8 @@ This tool counts with the following components:
     modules and protocols: login brute force, gather information on the
     application server, intercept communications, a rogue Diag server
     implementation, test of Denial of Server issues [4], a Message Server
-    monitor implementation, listener/messager for Message Server, SAP Router
-    internal networks scanner and port forwarder, etc.
+    monitor implementation, listener/messenger for Message Server, SAP Router
+    internal networks scanner, port forwarder, fingerprinting, etc.
 	
 
 Installation & Build
