@@ -380,6 +380,7 @@ class SAPRouter(Packet):
     function L{router_is_known_type}.
 
     NI Versions found (unconfirmed):
+        - 30: Release 40C
         - 36: Release <6.20
         - 38: Release 7.00/7.10
         - 39: Release 7.11
