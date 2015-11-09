@@ -93,14 +93,14 @@ def main():
             wireshark_parse += 'offset+=1;\n'
             wireshark_module += '\n'
 
-        pysap += 'BitField("%s", 0, 1),\t# %d%s\n' % (name, bit, notice)
+        pysap += '        BitField("%s", 0, 1),  # %d%s\n' % (name, bit, notice)
 
         bitt = 1 << bit % 8
-        wireshark_define += '#define SAPDIAG_SUPPORT_BIT_%s\t0x%02x // %d%s\n' % (name, bitt, bit, notice)
+        wireshark_define += '#define SAPDIAG_SUPPORT_BIT_%s\t0x%02x  /* %d%s */\n' % (name, bitt, bit, notice)
 
         wireshark_hf += 'static int hf_SAPDIAG_SUPPORT_BIT_%s = -1;\n' % name
 
-        wireshark_parse += 'proto_tree_add_item(tree, hf_SAPDIAG_SUPPORT_BIT_%s, tvb, offset, 1, FALSE); // %d%s\n' % (name, bit, notice)
+        wireshark_parse += 'proto_tree_add_item(tree, hf_SAPDIAG_SUPPORT_BIT_%s, tvb, offset, 1, FALSE);  /* %d%s */\n' % (name, bit, notice)
 
         wireshark_module += '{ &hf_SAPDIAG_SUPPORT_BIT_%s,\n\t{ "Support Bit %s", ' \
                             '"sapdiag.diag.supportbits.%s", FT_BOOLEAN, 8, NULL, ' \
