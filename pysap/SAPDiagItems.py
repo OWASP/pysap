@@ -295,8 +295,9 @@ class SAPDiagSupportBits(Packet):
         BitField("IDA_ALV", 0, 1),  # 196
         BitField("IDA_ALV_FRAGMENTS", 0, 1),  # 197
         BitField("AMC", 0, 1),  # 198
+        BitField("EXTMODE_FONT_METRIC", 0, 1),  # 199
 
-        BitField("padding_bits", 0, 57), ]
+        BitField("padding_bits", 0, 56), ]
 
 bind_diagitem(SAPDiagSupportBits, "APPL", 0x04, 0x0b)
 bind_diagitem(SAPDiagSupportBits, "APPL", 0x06, 0x11)
@@ -309,6 +310,7 @@ bind_diagitem(SAPDiagSupportBits, "APPL", 0x06, 0x11)
 # SAPGUI 7.02 Windows:              ff7ffa0d78b737def6196e9325bf1593ef73feebdb51ed010000000000000000
 # SAPGUI 7.01 Windows:              ff7ffa0d78b737def6196e9325bf1593ef73feebdb5501000000000000000000
 # SAPGUI 7.30 Windows:              ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed910200000000000000
+# SAPGUI 7.40 Windows:              ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed91ca00000000000000
 #
 # SAP EHP 1 for SAP Netweaver 7.0:  ff7ffe2dd8b737d674087e1305971597ebf22f8d03300f000000000000000000
 # SAP EHP 2 for SAP NetWeaver 7.0:  ff7ffe2dd8b737d674087e1305971597ebf23f8d0370ff0f0000000000000000
@@ -317,6 +319,7 @@ bind_diagitem(SAPDiagSupportBits, "APPL", 0x06, 0x11)
 support_data_sapgui_701_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1593ef73feebdb5501000000000000000000"))
 support_data_sapgui_702_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1593ef73feebdb51ed010000000000000000"))
 support_data_sapgui_730_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed910200000000000000"))
+support_data_sapgui_740_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed91ca00000000000000"))
 support_data_sapgui_702_java2 = SAPDiagSupportBits(unhex("ff7ffe2ddab737d674087e1305971597eff23f8d0770ff030000000000000000"))
 support_data_sapgui_702_java5 = SAPDiagSupportBits(unhex("ff7ffe2ddab737d674087e1305971597eff23f8d0770ff0f0000000000000000"))
 support_data_sapnw_701 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737d674087e1305971597ebf22f8d03300f000000000000000000"))
