@@ -70,7 +70,7 @@ def parse_options():
     database.add_option("-n", "--new-entries", dest="new_entries", action="store_true", default=False,
                         help="Generate new database entries even when the fingerprints matched")
     database.add_option("--new-fingerprints-file", dest="new_fingerprint_file",
-                        default="saprouter_new_fingerprints.json", help="File to write new fingerprints")
+                        default="saprouter_new_fingerprints.json", help="File to write or load from new fingerprints")
     parser.add_option_group(database)
 
     misc = OptionGroup(parser, "Misc options")
@@ -234,6 +234,9 @@ def main():
 
     # Check if we were asked to add a new fingerprint
     if options.add_fingerprint:
+        if not options.version_info:
+            print("[-] You must provide version info to add new entries to the fingerprint database !")
+            return
         print("[*] Adding a new entry to the fingerprint database")
         fingerprint_db.add_fingerprint(options.new_fingerprint_file, options.version_info)
         return
