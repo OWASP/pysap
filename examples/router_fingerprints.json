@@ -208,6 +208,25 @@
             "system_call": "",
             "update_level": "0",
             "version": "40"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "internal error",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "2425",
+            "module": "nirout.cpp",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-93",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "",
+            "update_level": "",
+            "version": "38"
         }
     ],
     "Empty route invalid offset": [
@@ -419,6 +438,25 @@
             "system_call": "",
             "update_level": "0",
             "version": "40"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "internal error",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "2481",
+            "module": "nirout.cpp",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-93",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "",
+            "update_level": "",
+            "version": "38"
         }
     ],
     "Empty route null offset": [
@@ -630,6 +668,25 @@
             "system_call": "",
             "update_level": "0",
             "version": "40"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "internal error",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "2460",
+            "module": "nirout.cpp",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-93",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "",
+            "update_level": "",
+            "version": "38"
         }
     ],
     "Empty route valid length": [
@@ -860,6 +917,44 @@
             "system_call": "",
             "update_level": "0",
             "version": "40"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "service '' unknown",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "489",
+            "module": "ninti.c",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-91",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "getservbyname",
+            "update_level": "",
+            "version": "38"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "service '' unknown",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "776",
+            "module": "nixxhsl.cpp",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-91",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "",
+            "update_level": "",
+            "version": "38"
         }
     ],
     "Invalid control opcode": [
@@ -1071,6 +1166,25 @@
             "system_call": "",
             "update_level": "0",
             "version": "40"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "invalid client version",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "2389",
+            "module": "nibuf.cpp",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-13",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "",
+            "update_level": "",
+            "version": "38"
         }
     ],
     "Network packet too big": [
@@ -1282,6 +1396,25 @@
             "system_call": "",
             "update_level": "0",
             "version": "40"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "Network packet too big",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "3073",
+            "module": "nibuf.cpp",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-93",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "",
+            "update_level": "",
+            "version": "38"
         }
     ],
     "No route": [
@@ -1493,6 +1626,25 @@
             "system_call": "",
             "update_level": "0",
             "version": "40"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "internal error",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "2460",
+            "module": "nirout.cpp",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-93",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "",
+            "update_level": "",
+            "version": "38"
         }
     ],
     "No route invalid length": [
@@ -1704,6 +1856,25 @@
             "system_call": "",
             "update_level": "0",
             "version": "40"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "internal error",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "2392",
+            "module": "nirout.cpp",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-93",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "",
+            "update_level": "",
+            "version": "38"
         }
     ],
     "No route one entry": [
@@ -1934,6 +2105,44 @@
             "system_call": "",
             "update_level": "0",
             "version": "40"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "connection timed out",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "5441",
+            "module": "nirout.cpp",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-5",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "",
+            "update_level": "",
+            "version": "38"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "internal error",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "2453",
+            "module": "nirout.cpp",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-93",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "",
+            "update_level": "",
+            "version": "38"
         }
     ],
     "Non existent domain": [
@@ -2259,6 +2468,44 @@
             "system_call": "",
             "update_level": "0",
             "version": "40"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "hostname 'non.existent.dom' unknown",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "320",
+            "module": "ninti.c",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-90",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "gethostbyname",
+            "update_level": "",
+            "version": "38"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "hostname 'non.existent.dom' unknown",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "223",
+            "module": "nixxhsl.cpp",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-90",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "",
+            "update_level": "",
+            "version": "38"
         }
     ],
     "Non existent domain old version": [
@@ -2470,6 +2717,25 @@
             "system_call": "",
             "update_level": "0",
             "version": "40"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "invalid client version",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "2601",
+            "module": "nirout.cpp",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-96",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "",
+            "update_level": "",
+            "version": "38"
         }
     ],
     "Timeout": [
@@ -2681,6 +2947,25 @@
             "system_call": "",
             "update_level": "0",
             "version": "40"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "connection timed out",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "5441",
+            "module": "nirout.cpp",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-5",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "",
+            "update_level": "",
+            "version": "38"
         }
     ],
     "Valid domain invalid service": [
@@ -2892,6 +3177,25 @@
             "system_call": "",
             "update_level": "0",
             "version": "40"
+        },
+        {
+            "comment": "",
+            "component": "NI (network interface)",
+            "error": "internal error",
+            "errorno": "",
+            "errorno_text": "",
+            "file_version": "7010.32.15.63503",
+            "line": "2425",
+            "module": "nirout.cpp",
+            "patch_number": "32",
+            "platform": "windows-x86-64",
+            "release": "701",
+            "return_code": "-93",
+            "source_id": "",
+            "submitted_by": "mgallo@coresecurity.com",
+            "system_call": "",
+            "update_level": "",
+            "version": "38"
         }
     ]
 }
