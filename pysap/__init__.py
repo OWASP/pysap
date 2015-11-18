@@ -42,7 +42,7 @@ __title__ = 'pysap'
 __version__ = '0.1.9.dev0'
 """The version of pysap"""
 
-__url__ = "http://corelabs.coresecurity.com/index.php?module=Wiki&action=view&type=tool&name=pysap"
+__url__ = "http://www.coresecurity.com/corelabs-research/open-source-tools/pysap"
 """The URL for pysap's homepage"""
 
 __repo__ = "https://github.com/CoreSecurity/pysap"
