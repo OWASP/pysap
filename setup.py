@@ -92,6 +92,9 @@ setup(name=pysap.__title__,   # Package information
       # Extension module compilation
       ext_modules=[sapcompress],
 
+      # Script files
+      scripts=['bin/pysapcar'],
+
       # Tests command
       test_suite='tests.suite',
 
