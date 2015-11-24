@@ -31,6 +31,10 @@ pysapcar_usage = """Usage:
 
 list the contents of an archive:
 pysapcar -t[v][f archive] [file1 file2 ...]
+
+extract files from an archive:
+pysapcar -x[v][f archive] [file1 file2....]
+
 """
 
 
@@ -44,6 +48,8 @@ class PySAPCAR(object):
     archive_fd = None
 
     def parse_options(self):
+        """Parses command-line options.
+        """
 
         description = "Basic and experimental implementation of SAPCAR archive format."
 
@@ -54,6 +60,7 @@ class PySAPCAR(object):
         parser = OptionParser(usage=pysapcar_usage, description=description, epilog=epilog)
 
         # Commands
+        parser.add_option("-x", dest="extract", action="store_true", help="Extract files from an archive")
         parser.add_option("-t", dest="list", action="store_true", help="List the contents of an archive")
         parser.add_option("-f", dest="filename", help="Archive filename", metavar="FILE")
 
@@ -67,6 +74,8 @@ class PySAPCAR(object):
 
     @property
     def logger(self):
+        """Sets the logger of the cli tool.
+        """
         if self._logger is None:
             self._logger = logging.getLogger("pysapcar")
             self._logger.setLevel(self.log_level + 1)
@@ -74,10 +83,14 @@ class PySAPCAR(object):
         return self._logger
 
     def main(self):
+        """Main routine for parsing options and dispatch desired action.
+        """
         options, args = self.parse_options()
 
         # Set the verbosity
         self.log_level = options.verbose or 0
+
+        self.logger.info("pysapcar version: %s", pysap.__version__)
 
         # Check the mode the archive file should be opened
         if options.list:
@@ -96,23 +109,60 @@ class PySAPCAR(object):
         try:
             if options.list:
                 self.list(options, args)
+            elif options.extract:
+                self.extract(options, args)
         finally:
             self.archive_fd.close()
 
-    def list(self, options, args):
+    def open_archive(self):
         sapcar = SAPCARArchive(self.archive_fd)
         self.logger.info("pysapcar: Processing archive %s (version %s)", self.archive_fd.name, sapcar.version)
+        return sapcar
 
+    def target_files(self, filenames, target_filenames=None):
+        """Obtains the list of files to work on. It calculates
+        the intersection between the file names selected in
+        command-line and the ones in the archive to work on.
+
+        @param filenames: filenames in the archive
+        @param target_filenames: filenames to work on
+
+        @return: set of files to work on
+        """
+        files = set(filenames)
+        if target_filenames:
+            files = files.intersection(set(target_filenames))
+        return files
+
+    def list(self, options, args):
+        """List files inside the archive file and print their
+        attributes: permissions, size, timestamp and filename.
+        """
+        # Open the archive file
+        sapcar = self.open_archive()
         # Build the list of files to list
-        files = set(sapcar.files_names)
-        if args:
-            files = files.intersection(set(args))
-
+        files = self.target_files(sapcar.files_names, args)
         # Print the info of each file
         for filename in files:
             fil = sapcar.files[filename]
             self.logger.info("%s\t%d\t%s\t%s", fil.permissions, fil.size, fil.timestamp, fil.filename)
 
+    def extract(self, options, args):
+        """Extract files from the archive file.
+        """
+        # Open the archive file
+        sapcar = self.open_archive()
+        # Build the list of files to extract
+        files = self.target_files(sapcar.files_names, args)
+        # Extract each file
+        no = 0
+        for filename in files:
+            fil = sapcar.files[filename]
+            with open(filename, "wb") as new_file:
+                new_file.write(fil.open().read())
+            self.logger.info("d %s", fil.filename)
+            no += 1
+        self.logger.info("pysapcar: %d file(s) processed", no)
 
 if __name__ == "__main__":
     pysapcar = PySAPCAR()
