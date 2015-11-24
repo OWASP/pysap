@@ -19,6 +19,7 @@
 
 # Standard imports
 import stat
+from datetime import datetime
 from cStringIO import StringIO
 # External imports
 from scapy.packet import Packet
@@ -100,11 +101,15 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
     fields_desc = [
         StrFixedLenField("unknown0", None, 2),
         LEIntField("perm_mode", 0),
-        StrFixedLenField("unknown1", None, 26),
+        LEIntField("unknown1", 0),  # some kind of length
+        LEIntField("unknown2", 0),
+        LEIntField("unknown3", 0),
+        LEIntField("timestamp", 0),
+        StrFixedLenField("unknown4", None, 10),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrFixedLenField("filename", None, length_from=lambda x: x.filename_length),
-        ByteField("unknown3", 0),
-        ByteField("unknown4", 0),
+        ByteField("unknown5", 0),
+        ByteField("unknown6", 0),
         PacketField("compressed", None, SAPCARCompressedFileFormat),
         StrFixedLenField("checksum", None, 4),
     ]
@@ -120,11 +125,15 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
     fields_desc = [
         StrFixedLenField("unknown0", None, 2),
         LEIntField("perm_mode", 0),
-        StrFixedLenField("unknown1", None, 26),
+        LEIntField("unknown1", 0),  # some kind of length
+        LEIntField("unknown2", 0),
+        LEIntField("unknown3", 0),
+        LEIntField("timestamp", 0),
+        StrFixedLenField("unknown4", None, 10),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrNullFixedLenField("filename", None, length_from=lambda x: x.filename_length - 1),
-        ByteField("unknown3", 0),
-        ByteField("unknown4", 0),
+        ByteField("unknown5", 0),
+        ByteField("unknown6", 0),
         PacketField("compressed", None, SAPCARCompressedFileFormat),
         StrFixedLenField("checksum", None, 4),
     ]
@@ -192,6 +201,15 @@ class SAPCARArchiveFile(object):
         """
         return filemode(self._file_format.perm_mode)
 
+    @property
+    def timestamp(self):
+        """The timestamp of the file.
+
+        @return: timestamp in human-readable format
+        @rtype: basestring
+        """
+        return datetime.fromtimestamp(self._file_format.timestamp).strftime('%d %b %Y %H:%M')
+
     def open(self):
         """Opens the compressed file and returns a file-like object that
         can be used to access its uncompressed content.
@@ -234,7 +252,7 @@ class SAPCARArchive(object):
         """The list of file objects inside this archive file.
 
         @return: list of file objects
-        @rtype: L{list} of L{SAPCARArchiveFile}
+        @rtype: L{dict} of L{SAPCARArchiveFile}
         """
         fils = {}
         for fil in self._files:
@@ -282,4 +300,3 @@ class SAPCARArchive(object):
         if filename not in self.files:
             raise Exception("Invalid filename")
         return self.files[filename].open()
-
