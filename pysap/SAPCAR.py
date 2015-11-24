@@ -20,6 +20,7 @@
 # Standard imports
 import stat
 from datetime import datetime
+from os import stat as os_stat
 from cStringIO import StringIO
 # External imports
 from scapy.packet import Packet
@@ -27,8 +28,8 @@ from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
                           PacketField, StrFixedLenField, PacketListField,
                           ConditionalField)
 # Custom imports
-from pysapcompress import decompress
 from pysap.utils import (PacketNoPadded, StrNullFixedLenField)
+from pysapcompress import decompress, compress, ALG_LZH, CompressError
 
 
 # Filemode code obtained from Python 3 stat.py
@@ -162,7 +163,7 @@ class SAPCARArchiveFile(object):
     # Instance attributes
     _file_format = None
 
-    def __init__(self, file_format):
+    def __init__(self, file_format=None):
         """Construct the file proxy object from a L{SAPCARArchiveFilev200Format}
         or L{SAPCARArchiveFilev201Format} object.
 
@@ -210,6 +211,35 @@ class SAPCARArchiveFile(object):
         """
         return datetime.fromtimestamp(self._file_format.timestamp).strftime('%d %b %Y %H:%M')
 
+    @classmethod
+    def from_file(cls, filename, version="2.0"):
+        """Populates the file format object from an actual file on the
+        local file system.
+        """
+
+        stat = os_stat(filename)
+        with open(filename, "r") as fd:
+            data = fd.read()
+
+        try:
+            (_, _, outbuffer) = compress(data, ALG_LZH)
+        except CompressError:
+            return None
+
+        if version == "2.0":
+            ff = SAPCARArchiveFilev200Format
+        else:
+            ff = SAPCARArchiveFilev201Format
+
+        archive_file = cls()
+        archive_file._file_format = ff()
+        archive_file._file_format.perm_mode = stat.st_mode
+        archive_file._file_format.timestamp = stat.st_atime
+        archive_file._file_format.filename = filename
+        archive_file._file_format.filename_length = len(filename)
+        archive_file._file_format.compressed = SAPCARCompressedFileFormat(outbuffer)
+        return archive_file
+
     def open(self):
         """Opens the compressed file and returns a file-like object that
         can be used to access its uncompressed content.
@@ -230,6 +260,7 @@ class SAPCARArchive(object):
     filename = None
 
     # Instance attributes
+    fd = None
     _files = None
     _sapcar = None
 
@@ -237,17 +268,19 @@ class SAPCARArchive(object):
         """Opens an archive file and allow access to it.
 
         @param fil: filename or file descriptor to open
-        @type fil: basestring or file
+        @type fil: string or file
         """
         if isinstance(fil, (basestring, unicode)):
             self.filename = fil
-            fd = open(fil, mode)
+            self.fd = open(fil, mode)
         else:
             self.filename = getattr(fil, "name", None)
-            fd = fil
+            self.fd = fil
 
         if "r" in mode:
-            self.read(fd)
+            self.read()
+        else:
+            self.create()
 
     @property
     def files(self):
@@ -275,21 +308,43 @@ class SAPCARArchive(object):
         """The version of the archive file.
 
         @return: version
-        @rtype: basestring
+        @rtype: string
         """
         return self._sapcar.version
 
-    def read(self, fd):
+    def read(self):
         """Reads the SAP CAR archive file and populates the files list.
-
-        @param fd: file descriptor to read
         """
-        self._sapcar = SAPCARArchiveFormat(fd.read())
+        self._sapcar = SAPCARArchiveFormat(self.fd.read())
 
-        if self._sapcar.version == "2.00":
-            self._files = self._sapcar.files0
+    @property
+    def _files(self):
+        """The file format objects according to the version.
+
+        @return: files format objects according to the version
+        """
+        if self.version == "2.00":
+            return self._sapcar.files0
         else:
-            self._files = self._sapcar.files1
+            return self._sapcar.files1
+
+    def create(self):
+        """Creates the structure for holding a new SAP CAR archive file.
+        """
+        self._sapcar = SAPCARArchiveFormat()
+
+    def write(self):
+        """Writes the SAP CAR archive file to the file descriptor.
+        """
+        self.fd.write(str(self._sapcar))
+
+    def add_file(self, filename):
+        """Adds a new file to the SAP CAR archive file.
+
+        @param filename: name of the file to add
+        """
+        fil = SAPCARArchiveFile.from_file(filename, self.version)
+        self._files.append(fil._file_format)
 
     def open(self, filename):
         """Returns a file-like object that can be used to access a file
@@ -302,3 +357,6 @@ class SAPCARArchive(object):
         if filename not in self.files:
             raise Exception("Invalid filename")
         return self.files[filename].open()
+
+    def close(self):
+        self.fd.close()

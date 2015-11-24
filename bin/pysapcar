@@ -95,8 +95,8 @@ class PySAPCAR(object):
         # Check the mode the archive file should be opened
         if options.list:
             mode = "r"
-        else:
-            mode = "r"
+        elif options.extract:
+            mode = "w"
 
         # Opens the input/output file
         self.archive_fd = None
@@ -115,6 +115,9 @@ class PySAPCAR(object):
             self.archive_fd.close()
 
     def open_archive(self):
+        """Opens the archive file to work with it and returns
+        the SAP Car Archive object.
+        """
         sapcar = SAPCARArchive(self.archive_fd)
         self.logger.info("pysapcar: Processing archive %s (version %s)", self.archive_fd.name, sapcar.version)
         return sapcar
