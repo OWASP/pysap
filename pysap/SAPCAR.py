@@ -18,19 +18,58 @@
 # ==============
 
 # Standard imports
+import stat
 from cStringIO import StringIO
 # External imports
 from scapy.packet import Packet
 from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
                           PacketField, StrFixedLenField, PacketListField,
-                          BitField, FlagsField, ConditionalField)
+                          ConditionalField)
 # Custom imports
 from pysapcompress import decompress
 from pysap.utils import (PacketNoPadded, StrNullFixedLenField)
 
 
-permissions_names = ["read", "write", "execute"]
-special_names = ["setuid", "setgid", "sticky"]
+# Filemode code obtained from Python 3 stat.py
+_filemode_table = (
+    ((stat.S_IFLNK,         "l"),
+     (stat.S_IFREG,         "-"),
+     (stat.S_IFBLK,         "b"),
+     (stat.S_IFDIR,         "d"),
+     (stat.S_IFCHR,         "c"),
+     (stat.S_IFIFO,         "p")),
+
+    ((stat.S_IRUSR,         "r"),),
+    ((stat.S_IWUSR,         "w"),),
+    ((stat.S_IXUSR|stat.S_ISUID, "s"),
+     (stat.S_ISUID,         "S"),
+     (stat.S_IXUSR,         "x")),
+
+    ((stat.S_IRGRP,         "r"),),
+    ((stat.S_IWGRP,         "w"),),
+    ((stat.S_IXGRP|stat.S_ISGID, "s"),
+     (stat.S_ISGID,         "S"),
+     (stat.S_IXGRP,         "x")),
+
+    ((stat.S_IROTH,         "r"),),
+    ((stat.S_IWOTH,         "w"),),
+    ((stat.S_IXOTH|stat.S_ISVTX, "t"),
+     (stat.S_ISVTX,         "T"),
+     (stat.S_IXOTH,         "x"))
+)
+
+
+def filemode(mode):
+    """Convert a file's mode to a string of the form '-rwxrwxrwx'."""
+    perm = []
+    for table in _filemode_table:
+        for bit, char in table:
+            if mode & bit == bit:
+                perm.append(char)
+                break
+        else:
+            perm.append("-")
+    return "".join(perm)
 
 
 class SAPCARCompressedFileFormat(PacketNoPadded):
@@ -60,20 +99,8 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
 
     fields_desc = [
         StrFixedLenField("unknown0", None, 2),
-        BitField("other_read", 0, 1),
-        BitField("other_write", 0, 1),
-        BitField("other_execute", 0, 1),
-        BitField("group_read", 0, 1),
-        BitField("group_write", 0, 1),
-        BitField("group_execute", 0, 1),
-        BitField("owner_read", 0, 1),
-        BitField("owner_write", 0, 1),
-        BitField("owner_execute", 0, 1),
-        BitField("padding", 0, 4),
-        BitField("setuid", 0, 1),
-        BitField("setgid", 0, 1),
-        BitField("sticky", 0, 1),
-        StrFixedLenField("unknown1", None, 28),
+        LEIntField("perm_mode", 0),
+        StrFixedLenField("unknown1", None, 26),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrFixedLenField("filename", None, length_from=lambda x: x.filename_length),
         ByteField("unknown3", 0),
@@ -92,20 +119,8 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
 
     fields_desc = [
         StrFixedLenField("unknown0", None, 2),
-        BitField("other_read", 0, 1),
-        BitField("other_write", 0, 1),
-        BitField("other_execute", 0, 1),
-        BitField("group_read", 0, 1),
-        BitField("group_write", 0, 1),
-        BitField("group_execute", 0, 1),
-        BitField("owner_read", 0, 1),
-        BitField("owner_write", 0, 1),
-        BitField("owner_execute", 0, 1),
-        BitField("padding", 0, 4),
-        BitField("setuid", 0, 1),
-        BitField("setgid", 0, 1),
-        BitField("sticky", 0, 1),
-        StrFixedLenField("unknown1", None, 28),
+        LEIntField("perm_mode", 0),
+        StrFixedLenField("unknown1", None, 26),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrNullFixedLenField("filename", None, length_from=lambda x: x.filename_length - 1),
         ByteField("unknown3", 0),
@@ -131,19 +146,38 @@ class SAPCARArchiveFormat(Packet):
 
 
 class SAPCARArchiveFile(object):
-    """Interface that can be used to access a file inside a SAP CAR
+    """Proxy class that can be used to access a file inside a SAP CAR
     archive and obtain its properties.
     """
 
+    # Instance attributes
+    _file_format = None
+
     def __init__(self, file_format):
+        """Construct the file proxy object from a L{SAPCARArchiveFilev200Format}
+        or L{SAPCARArchiveFilev201Format} object.
+
+        @param file_format: file format object
+        @type file_format: Packet
+        """
         self._file_format = file_format
 
     @property
     def filename(self):
+        """The name of the file.
+
+        @return: name of the file
+        @rtype: basestring
+        """
         return self._file_format.filename
 
     @property
     def size(self):
+        """The size of the file.
+
+        @return: size of the file
+        @rtype: int
+        """
         if self._file_format.compressed:
             return self._file_format.compressed.uncompress_length
         else:
@@ -151,46 +185,57 @@ class SAPCARArchiveFile(object):
 
     @property
     def permissions(self):
-        ff = self._file_format
-        perms = ""
-        perms += "r" if ff.owner_read else "-"
-        perms += "w" if ff.owner_write else "-"
-        perms += "x" if ff.owner_execute else "-"
-        perms += "r" if ff.group_read else "-"
-        perms += "w" if ff.group_write else "-"
-        perms += "x" if ff.group_execute else "-"
-        perms += "r" if ff.other_read else "-"
-        perms += "w" if ff.other_write else "-"
-        perms += "x" if ff.other_execute else "-"
-        return perms
+        """The permissions of the file.
+
+        @return: permissions in human-readable format
+        @rtype: basestring
+        """
+        return filemode(self._file_format.perm_mode)
 
     def open(self):
+        """Opens the compressed file and returns a file-like object that
+        can be used to access its uncompressed content.
+
+        @return: file-like object with the uncompressed file content
+        @rtype: file
+        """
         compressed = self._file_format.compressed
         (_, _, outbuffer) = decompress(str(compressed)[4:], compressed.uncompress_length)
         return StringIO(outbuffer)
 
 
 class SAPCARArchive(object):
-    """Interface that can be used to read SAP CAR archive files.
+    """Proxy class that can be used to read SAP CAR archive files.
     """
 
     files = None
     filename = None
 
     # Instance attributes
+    _files = None
     _sapcar = None
 
-    def __init__(self, file, mode="r"):
-        if isinstance(file, (basestring, unicode)):
-            self.filename = file
-            fd = open(file, mode)
+    def __init__(self, fil, mode="r"):
+        """Opens an archive file and allow access to it.
+
+        @param fil: filename or file descriptor to open
+        @type fil: basestring or file
+        """
+        if isinstance(fil, (basestring, unicode)):
+            self.filename = fil
+            fd = open(fil, mode)
         else:
-            self.filename = getattr(file, "name", None)
-            fd = file
+            self.filename = getattr(fil, "name", None)
+            fd = fil
         self.read(fd)
 
     @property
     def files(self):
+        """The list of file objects inside this archive file.
+
+        @return: list of file objects
+        @rtype: L{list} of L{SAPCARArchiveFile}
+        """
         fils = {}
         for fil in self._files:
             fils[fil.filename] = SAPCARArchiveFile(fil)
@@ -198,14 +243,26 @@ class SAPCARArchive(object):
 
     @property
     def files_names(self):
+        """The list of file names inside this archive file.
+
+        @return: list of file names
+        @rtype: L{list} of L{string}
+        """
         return self.files.keys()
 
     @property
     def version(self):
+        """The version of the archive file.
+
+        @return: version
+        @rtype: basestring
+        """
         return self._sapcar.version
 
     def read(self, fd):
         """Reads the SAP CAR archive file and populates the files list.
+
+        @param fd: file descriptor to read
         """
         self._sapcar = SAPCARArchiveFormat(fd.read())
 
@@ -217,6 +274,10 @@ class SAPCARArchive(object):
     def open(self, filename):
         """Returns a file-like object that can be used to access a file
         inside the SAP CAR archive.
+
+        @param filename: name of the file to open
+
+        @return: a file-like object that can be used to access the decompressed file.
         """
         if filename not in self.files:
             raise Exception("Invalid filename")
