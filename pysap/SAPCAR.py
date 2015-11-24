@@ -245,7 +245,9 @@ class SAPCARArchive(object):
         else:
             self.filename = getattr(fil, "name", None)
             fd = fil
-        self.read(fd)
+
+        if "r" in mode:
+            self.read(fd)
 
     @property
     def files(self):
