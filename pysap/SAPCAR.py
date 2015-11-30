@@ -290,8 +290,9 @@ class SAPCARArchive(object):
         @rtype: L{dict} of L{SAPCARArchiveFile}
         """
         fils = {}
-        for fil in self._files:
-            fils[fil.filename] = SAPCARArchiveFile(fil)
+        if self._files:
+            for fil in self._files:
+                fils[fil.filename] = SAPCARArchiveFile(fil)
         return fils
 
     @property
