@@ -44,6 +44,7 @@ class PySAPCAR(object):
     _logger = None
 
     # Instance attributes
+    mode = None
     log_level = None
     archive_fd = None
 
@@ -93,15 +94,15 @@ class PySAPCAR(object):
         self.logger.info("pysapcar version: %s", pysap.__version__)
 
         # Check the mode the archive file should be opened
-        if options.list:
-            mode = "r"
-        elif options.extract:
-            mode = "w"
+        if options.list or options.extract:
+            self.mode = "r"
+        else:  # default to read mode
+            self.mode = "r"
 
         # Opens the input/output file
         self.archive_fd = None
         if options.filename:
-            self.archive_fd = open(options.filename, mode)
+            self.archive_fd = open(options.filename, self.mode)
         else:
             self.archive_fd = stdin
 
@@ -118,7 +119,7 @@ class PySAPCAR(object):
         """Opens the archive file to work with it and returns
         the SAP Car Archive object.
         """
-        sapcar = SAPCARArchive(self.archive_fd)
+        sapcar = SAPCARArchive(self.archive_fd, mode=self.mode)
         self.logger.info("pysapcar: Processing archive %s (version %s)", self.archive_fd.name, sapcar.version)
         return sapcar
 
@@ -166,6 +167,7 @@ class PySAPCAR(object):
             self.logger.info("d %s", fil.filename)
             no += 1
         self.logger.info("pysapcar: %d file(s) processed", no)
+
 
 if __name__ == "__main__":
     pysapcar = PySAPCAR()

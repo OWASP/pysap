@@ -359,4 +359,6 @@ class SAPCARArchive(object):
         return self.files[filename].open()
 
     def close(self):
+        """Close the file descriptor object associated to the archive file.
+        """
         self.fd.close()
