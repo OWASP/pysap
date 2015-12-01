@@ -100,7 +100,8 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
     name = "SAP CAR Archive File"
 
     fields_desc = [
-        StrFixedLenField("unknown0", None, 2),
+        StrFixedLenField("type", None, 1),
+        StrFixedLenField("unknown0", None, 1),
         LEIntField("perm_mode", 0),
         LEIntField("unknown1", 0),  # some kind of length
         LEIntField("unknown2", 0),
@@ -109,10 +110,10 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
         StrFixedLenField("unknown4", None, 10),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrFixedLenField("filename", None, length_from=lambda x: x.filename_length),
-        ByteField("unknown5", 0),
-        ByteField("unknown6", 0),
-        PacketField("compressed", None, SAPCARCompressedFileFormat),
-        StrFixedLenField("checksum", None, 4),
+        ConditionalField(ByteField("unknown5", 0), lambda x: x.type == "R"),
+        ConditionalField(ByteField("unknown6", 0), lambda x: x.type == "R"),
+        ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == "R"),
+        ConditionalField(StrFixedLenField("checksum", None, 4), lambda x: x.type == "R"),
     ]
 
 
@@ -124,7 +125,8 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
     name = "SAP CAR Archive File"
 
     fields_desc = [
-        StrFixedLenField("unknown0", None, 2),
+        StrFixedLenField("type", None, 1),
+        StrFixedLenField("unknown0", None, 1),
         LEIntField("perm_mode", 0),
         LEIntField("unknown1", 0),  # some kind of length
         LEIntField("unknown2", 0),
@@ -133,10 +135,10 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
         StrFixedLenField("unknown4", None, 10),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrNullFixedLenField("filename", None, length_from=lambda x: x.filename_length - 1),
-        ByteField("unknown5", 0),
-        ByteField("unknown6", 0),
-        PacketField("compressed", None, SAPCARCompressedFileFormat),
-        StrFixedLenField("checksum", None, 4),
+        ConditionalField(ByteField("unknown5", 0), lambda x: x.type == "R"),
+        ConditionalField(ByteField("unknown6", 0), lambda x: x.type == "R"),
+        ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == "R"),
+        ConditionalField(StrFixedLenField("checksum", None, 4), lambda x: x.type == "R"),
     ]
 
 
