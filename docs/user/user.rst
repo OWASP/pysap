@@ -82,14 +82,17 @@ command::
 
     $ pip install pysap[examples]
 
+`Sphinx <https://sphinx-doc.org/>`_ is also required for building the API
+documentation. For installing it use::
+
+    $ pip install pysap[docs]
+
 
 Manual installation
 ~~~~~~~~~~~~~~~~~~~
 
 The tool relays on the `Scapy <http://www.secdev.org/projects/scapy/>`_
-library for crafting packets. `Sphinx <https://sphinx-doc.org/>`_ is
-also required for building the API documentation. To install the required
-libraries use::
+library for crafting packets. To install the required libraries use::
 
     $ pip install -r requirements.txt
 
