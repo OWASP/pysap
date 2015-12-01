@@ -166,6 +166,8 @@ class PySAPCAR(object):
                 new_file.write(fil.open().read())
             self.logger.info("d %s", fil.filename)
             no += 1
+            if not fil.check_checksum():
+                self.logger.info("pysapcar: checksum error in %s !", fil.filename)
         self.logger.info("pysapcar: %d file(s) processed", no)
 
 
