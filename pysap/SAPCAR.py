@@ -103,7 +103,7 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
         StrFixedLenField("type", None, 1),
         StrFixedLenField("unknown0", None, 1),
         LEIntField("perm_mode", 0),
-        LEIntField("unknown1", 0),  # some kind of length
+        LEIntField("file_length", 0),
         LEIntField("unknown2", 0),
         LEIntField("unknown3", 0),
         LEIntField("timestamp", 0),
@@ -128,7 +128,7 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
         StrFixedLenField("type", None, 1),
         StrFixedLenField("unknown0", None, 1),
         LEIntField("perm_mode", 0),
-        LEIntField("unknown1", 0),  # some kind of length
+        LEIntField("file_length", 0),
         LEIntField("unknown2", 0),
         LEIntField("unknown3", 0),
         LEIntField("timestamp", 0),
@@ -190,10 +190,7 @@ class SAPCARArchiveFile(object):
         @return: size of the file
         @rtype: int
         """
-        if self._file_format.compressed:
-            return self._file_format.compressed.uncompress_length
-        else:
-            return 0
+        return self._file_format.file_length
 
     @property
     def permissions(self):
