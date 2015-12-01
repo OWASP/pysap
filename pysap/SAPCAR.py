@@ -170,8 +170,8 @@ class SAPCARArchiveFile(object):
         """Construct the file proxy object from a L{SAPCARArchiveFilev200Format}
         or L{SAPCARArchiveFilev201Format} object.
 
-        @param file_format: file format object
-        @type file_format: Packet
+        :param file_format: file format object
+        :type file_format: Packet
         """
         self._file_format = file_format
 
@@ -179,8 +179,8 @@ class SAPCARArchiveFile(object):
     def filename(self):
         """The name of the file.
 
-        @return: name of the file
-        @rtype: basestring
+        :return: name of the file
+        :rtype: basestring
         """
         return self._file_format.filename
 
@@ -188,8 +188,8 @@ class SAPCARArchiveFile(object):
     def size(self):
         """The size of the file.
 
-        @return: size of the file
-        @rtype: int
+        :return: size of the file
+        :rtype: int
         """
         return self._file_format.file_length
 
@@ -197,8 +197,8 @@ class SAPCARArchiveFile(object):
     def permissions(self):
         """The permissions of the file.
 
-        @return: permissions in human-readable format
-        @rtype: basestring
+        :return: permissions in human-readable format
+        :rtype: basestring
         """
         return filemode(self._file_format.perm_mode)
 
@@ -206,8 +206,8 @@ class SAPCARArchiveFile(object):
     def timestamp(self):
         """The timestamp of the file.
 
-        @return: timestamp in human-readable format
-        @rtype: basestring
+        :return: timestamp in human-readable format
+        :rtype: basestring
         """
         return datetime.fromtimestamp(self._file_format.timestamp).strftime('%d %b %Y %H:%M')
 
@@ -244,8 +244,8 @@ class SAPCARArchiveFile(object):
         """Opens the compressed file and returns a file-like object that
         can be used to access its uncompressed content.
 
-        @return: file-like object with the uncompressed file content
-        @rtype: file
+        :return: file-like object with the uncompressed file content
+        :rtype: file
         """
         compressed = self._file_format.compressed
         (_, _, outbuffer) = decompress(str(compressed)[4:], compressed.uncompress_length)
@@ -278,8 +278,8 @@ class SAPCARArchive(object):
     def __init__(self, fil, mode="r"):
         """Opens an archive file and allow access to it.
 
-        @param fil: filename or file descriptor to open
-        @type fil: string or file
+        :param fil: filename or file descriptor to open
+        :type fil: string or file
         """
         if isinstance(fil, (basestring, unicode)):
             self.filename = fil
@@ -297,8 +297,8 @@ class SAPCARArchive(object):
     def files(self):
         """The list of file objects inside this archive file.
 
-        @return: list of file objects
-        @rtype: L{dict} of L{SAPCARArchiveFile}
+        :return: list of file objects
+        :rtype: L{dict} of L{SAPCARArchiveFile}
         """
         fils = {}
         if self._files:
@@ -310,8 +310,8 @@ class SAPCARArchive(object):
     def files_names(self):
         """The list of file names inside this archive file.
 
-        @return: list of file names
-        @rtype: L{list} of L{string}
+        :return: list of file names
+        :rtype: L{list} of L{string}
         """
         return self.files.keys()
 
@@ -319,8 +319,8 @@ class SAPCARArchive(object):
     def version(self):
         """The version of the archive file.
 
-        @return: version
-        @rtype: string
+        :return: version
+        :rtype: string
         """
         return self._sapcar.version
 
@@ -333,7 +333,7 @@ class SAPCARArchive(object):
     def _files(self):
         """The file format objects according to the version.
 
-        @return: files format objects according to the version
+        :return: files format objects according to the version
         """
         if self.version == "2.00":
             return self._sapcar.files0
@@ -353,7 +353,7 @@ class SAPCARArchive(object):
     def add_file(self, filename):
         """Adds a new file to the SAP CAR archive file.
 
-        @param filename: name of the file to add
+        :param filename: name of the file to add
         """
         fil = SAPCARArchiveFile.from_file(filename, self.version)
         self._files.append(fil._file_format)
@@ -362,9 +362,8 @@ class SAPCARArchive(object):
         """Returns a file-like object that can be used to access a file
         inside the SAP CAR archive.
 
-        @param filename: name of the file to open
-
-        @return: a file-like object that can be used to access the decompressed file.
+        :param filename: name of the file to open
+        :return: a file-like object that can be used to access the decompressed file.
         """
         if filename not in self.files:
             raise Exception("Invalid filename")

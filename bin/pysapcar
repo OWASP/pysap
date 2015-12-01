@@ -128,10 +128,10 @@ class PySAPCAR(object):
         the intersection between the file names selected in
         command-line and the ones in the archive to work on.
 
-        @param filenames: filenames in the archive
-        @param target_filenames: filenames to work on
+        :param filenames: filenames in the archive
+        :param target_filenames: filenames to work on
 
-        @return: set of files to work on
+        :return: set of files to work on
         """
         files = set(filenames)
         if target_filenames:
