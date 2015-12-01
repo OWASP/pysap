@@ -229,10 +229,10 @@ class SAPEnqueueStreamSocket(SAPNIStreamSocket):
         """Receive a packet at the Enqueue layer, performing reassemble of
         fragmented packets if necessary.
 
-        @return: received L{SAPEnqueue} packet
-        @rtype: L{SAPEnqueue}
+        :return: received :class:`SAPEnqueue` packet
+        :rtype: :class:`SAPEnqueue`
 
-        @raise socket.error: if the connection was close
+        :raise socket.error: if the connection was close
         """
         # Receive the NI packet
         packet = SAPNIStreamSocket.recv(self)

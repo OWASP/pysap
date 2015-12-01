@@ -309,11 +309,11 @@ diag_appl_sids = {
 def diag_item_is_short(item):
     """Returns if the item has a short length field
 
-    @param item: item to look at
-    @type item: L{SAPDiagItem}
+    :param item: item to look at
+    :type item: :class:`SAPDiagItem`
 
-    @return: if the item has a short length field (2 bytes)
-    @rtype: C{bool}
+    :return: if the item has a short length field (2 bytes)
+    :rtype: ``bool``
     """
     return item.item_type == 0x10  # APPL
 
@@ -321,11 +321,11 @@ def diag_item_is_short(item):
 def diag_item_is_long(item):
     """Returns if the item has a long length field
 
-    @param item: item to look at
-    @type item: L{SAPDiagItem}
+    :param item: item to look at
+    :type item: :class:`SAPDiagItem`
 
-    @return: if the item has a long length field (4 bytes)
-    @rtype: C{bool}
+    :return: if the item has a long length field (4 bytes)
+    :rtype: ``bool``
     """
     return item.item_type in [0x11, 0x12]    # DIAG_XMLBLOB or APPL4
 
@@ -333,11 +333,11 @@ def diag_item_is_long(item):
 def diag_item_is_appl_appl4(item):
     """Returns if an item is APPL or APPL4
 
-    @param item: item to look a
-    @type item: L{SAPDiagItem}
+    :param item: item to look a
+    :type item: :class:`SAPDiagItem`
 
-    @return: whether the item is a APPL or APPL4 item
-    @rtype: C{bool}
+    :return: whether the item is a APPL or APPL4 item
+    :rtype: ``bool``
     """
     return item.item_type in [0x10, 0x12]    # APPL or APPL4
 
@@ -345,11 +345,11 @@ def diag_item_is_appl_appl4(item):
 def diag_item_get_length(item):
     """Returns the item length according to the item_type
 
-    @param item: item to look at
-    @type item: L{SAPDiagItem}
+    :param item: item to look at
+    :type item: :class:`SAPDiagItem`
 
-    @return: the item length
-    @rtype: C{int}
+    :return: the item length
+    :rtype: ``int``
     """
     diag_item_sizes = {
         0x01: 16,                   # SES
@@ -379,14 +379,14 @@ diag_item_appl_classes = defaultdict(defaultdict)
 def bind_diagitem(item_class, item_type, item_id=None, item_sid=None):
     """Registers a Diag item class associated to a given type, ID and SID.
 
-    @param item_class: item class to associate
-    @type item_class: L{SAPDiagItem} class
+    :param item_class: item class to associate
+    :type item_class: :class:`SAPDiagItem` class
 
-    @param item_id: item ID to associate
-    @type item_id: C{int}
+    :param item_id: item ID to associate
+    :type item_id: ``int``
 
-    @param item_sid: item SID to associate
-    @type item_sid: C{int}
+    :param item_sid: item SID to associate
+    :type item_sid: ``int``
     """
     if item_type in [0x10, 0x12, "APPL", "APPL4"]:
         diag_item_appl_classes[item_id][item_sid] = item_class
@@ -398,19 +398,19 @@ def diag_item_get_class(pkt, item_type, item_id, item_sid):
     """Obtains the Diag item class according to the type, ID and SID of the packet.
     If the Type/ID/SID is not registered, returns None.
 
-    @param pkt: the item to look at
-    @type pkt: L{SAPDiagItem}
+    :param pkt: the item to look at
+    :type pkt: :class:`SAPDiagItem`
 
-    @param item_type: function that returns the item type
-    @type item_type: C{int}
+    :param item_type: function that returns the item type
+    :type item_type: ``int``
 
-    @param item_id: function that returns the item ID
-    @type item_id: C{int}
+    :param item_id: function that returns the item ID
+    :type item_id: ``int``
 
-    @param item_sid: functions that returns the item SID
-    @type item_sid: C{int}
+    :param item_sid: functions that returns the item SID
+    :type item_sid: ``int``
 
-    @return: the associated L{SAPDiagItem} class if registered or None
+    :return: the associated :class:`SAPDiagItem` class if registered or None
     """
     if item_type in [0x10, 0x12, "APPL", "APPL4"]:
         if item_id in diag_item_appl_classes and item_sid in diag_item_appl_classes[item_id]:
@@ -447,7 +447,7 @@ class SAPDiagItem(PacketNoPadded):
 class SAPDiagItems(Packet):
     """SAP Diag Items container
 
-    Container for L{SAPDiagItem} packets.
+    Container for :class:`SAPDiagItem` packets.
     """
     name = "SAP Diag Items"
     fields_desc = [PacketListField("message", None, SAPDiagItem)]
@@ -465,7 +465,7 @@ class SAPDiag(PacketNoPadded):
     """SAP Diag packet
 
     This packet holds the Diag Header and serve as a container for
-    L{SAPDiagItem} items. It handles compression/decompression, adding the
+    :class:`SAPDiagItem` items. It handles compression/decompression, adding the
     appropriate Compression Header when necessary.
     """
     name = "SAP Diag"
@@ -507,13 +507,13 @@ class SAPDiag(PacketNoPadded):
     def do_compress(self, s):
         """Compress a string using SAP compression C++ extension.
 
-        @param s: string to compress
-        @type s: C{string}
+        :param s: string to compress
+        :type s: C{string}
 
-        @return: string compression header plus the compressed string
-        @rtype: C{string}
+        :return: string compression header plus the compressed string
+        :rtype: C{string}
 
-        @raise pysapcompress.Error: when a compression error is raised
+        :raise pysapcompress.Error: when a compression error is raised
         """
         if (len(s) > 0):
             # Compress the payload and return the output
@@ -523,16 +523,16 @@ class SAPDiag(PacketNoPadded):
     def do_decompress(self, s, length):
         """Decompress a string using SAP compression C++ extension.
 
-        @param s: compression header plus compressed string
-        @type s: C{string}
+        :param s: compression header plus compressed string
+        :type s: C{string}
 
-        @param length: reported compressed length
-        @type length: C{int}
+        :param length: reported compressed length
+        :type length: ``int``
 
-        @return: decompressed string
-        @rtype: C{string}
+        :return: decompressed string
+        :rtype: C{string}
 
-        @raise pysapcompress.Error: when a decompression error is raised
+        :raise pysapcompress.Error: when a decompression error is raised
         """
         if (len(s) > 0):
             # Decompress the payload and return the output
@@ -575,17 +575,17 @@ class SAPDiag(PacketNoPadded):
         """Get an item from the packet's message. Returns None if the message
         is not found, or a list if the item is found multiple times.
 
-        @param item_type: item type byte or string value
-        @type item_type: C{int} or C{string} or C{list}
+        :param item_type: item type byte or string value
+        :type item_type: ``int`` or C{string} or ``list``
 
-        @param item_id: item ID byte or string value
-        @type item_id: C{int} or C{string} or C{list}
+        :param item_id: item ID byte or string value
+        :type item_id: ``int`` or C{string} or ``list``
 
-        @param item_sid: item SID byte or string value
-        @type item_sid: C{int} or C{string} or C{list}
+        :param item_sid: item SID byte or string value
+        :type item_sid: ``int`` or C{string} or ``list``
 
-        @return: list of items found on the packet or None
-        @rtype: C{list} of L{SAPDiagItem}
+        :return: list of items found on the packet or None
+        :rtype: ``list`` of :class:`SAPDiagItem`
         """
         # Expand list lookups
         items = []
@@ -639,9 +639,9 @@ bind_layers(TCP, SAPNI, dport=3200)
 
 
 def diag_guess_diagdp_header(self, payload):
-    """Guess if the payload is a L{SAPDiag} or L{SAPDiagDP}, base on the mode field.
-    Use this function as guess_payload_class for the L{SAPNI} packet if need to
-    dissect L{SAPDiag} packets.
+    """Guess if the payload is a :class:`SAPDiag` or :class:`SAPDiagDP`, base on the mode field.
+    Use this function as guess_payload_class for the :class:`SAPNI` packet if need to
+    dissect :class:`SAPDiag` packets.
     """
     if self.length == 14 and payload.startswith("**DPTMMSG**\x00"):
         return SAPDiagError

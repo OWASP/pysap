@@ -95,14 +95,14 @@ class MutablePacketField(StrLenField):
     """
     def __init__(self, name, default, length_from, get_class, evaluators=None):
         """
-        @param length_from: function to obtain the field length
-        @type length_from: C{callable}
+        :param length_from: function to obtain the field length
+        :type length_from: C{callable}
 
-        @param get_class: function to obtain the class
-        @type get_class: C{callable}
+        :param get_class: function to obtain the class
+        :type get_class: C{callable}
 
-        @param evaluators: evaluators
-        @type evaluators: C{list} of C{callable}
+        :param evaluators: evaluators
+        :type evaluators: ``list`` of C{callable}
         """
         StrLenField.__init__(self, name, default, length_from=length_from)
         self.evaluators = evaluators or []

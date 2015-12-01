@@ -39,47 +39,47 @@ class SAPDiagConnection(object):
     """
 
     last_response = None
-    """ @ivar: stores the last response received from the server
-        @type: L{SAPNI<SAPNI.SAPNI>} """
+    """ :ivar: stores the last response received from the server
+        :type: :class:`SAPNI<SAPNI.SAPNI>` """
 
     initialized = False
-    """ @ivar: if the connection was initialized
-        @type: C{bool} """
+    """ :ivar: if the connection was initialized
+        :type: ``bool`` """
 
     step = 0
-    """ @ivar: number of the last dialog step performed
-        @type: C{int} """
+    """ :ivar: number of the last dialog step performed
+        :type: ``int`` """
 
     def __init__(self, host, port, terminal=None, compress=False,
                  init=False, route=None, support_data=default_support_data):
         """Creates the connection to the Diag server.
 
-        @param host: remote host to connect to
-        @type host: C{string}
+        :param host: remote host to connect to
+        :type host: C{string}
 
-        @param port: remote port to connect to
-        @type port: C{int}
+        :param port: remote port to connect to
+        :type port: ``int``
 
-        @param terminal: terminal name to use when connecting to the server.
+        :param terminal: terminal name to use when connecting to the server.
             If no terminal name is specified, a random IP address will be
             generated and used instead of the terminal name.
-        @type terminal: C{string}
+        :type terminal: C{string}
 
-        @param compress: if true, the compression will be enabled for the
+        :param compress: if true, the compression will be enabled for the
             connection. Otherwise, the connection will be established using
             compression.
-        @type compress: C{bool}
+        :type compress: ``bool``
 
-        @param init: if true, the initialization will be performed after the
+        :param init: if true, the initialization will be performed after the
             connection is established.
-        @type init: C{bool}
+        :type init: ``bool``
 
-        @param route: route to use for connecting through a SAP Router
-        @type route: C{string}
+        :param route: route to use for connecting through a SAP Router
+        :type route: C{string}
 
-        @param support_data: support data bits to use when initializing. It
+        :param support_data: support data bits to use when initializing. It
             identifies the client's capabilities.
-        @type support_data: L{SAPDiagItem} or L{SAPDiagSupportBits} or C{string}
+        :type support_data: :class:`SAPDiagItem` or :class:`SAPDiagSupportBits` or C{string}
         """
 
         self.host = host
@@ -96,7 +96,7 @@ class SAPDiagConnection(object):
             self.init()
 
     def connect(self):
-        """Creates a L{SAPNIStreamSocket} connection to the host/port. If a route
+        """Creates a :class:`SAPNIStreamSocket` connection to the host/port. If a route
         was specified, connect to the target Diag server through the SAP Router.
         """
         self._connection = SAPRoutedStreamSocket.get_nisocket(self.host,
@@ -131,12 +131,12 @@ class SAPDiagConnection(object):
 
     def init(self):
         """Sends an initialization request. If the socket wasn't created,
-        call the L{connect} method. If compression was specified, the
+        call the :class:`connect` method. If compression was specified, the
         initialization will be performed using the respective User
         Connect item.
 
-        @return: initialization response (usually login screen)
-        @rtype: L{SAPNI<SAPNI.SAPNI>}
+        :return: initialization response (usually login screen)
+        :rtype: :class:`SAPNI<SAPNI.SAPNI>`
         """
         if self._connection is None:
             self.connect()
@@ -155,21 +155,21 @@ class SAPDiagConnection(object):
                        user_connect / self.support_data)
 
     def send(self, packet):
-        """Sends a packet using the L{SAPNIStreamSocket}
+        """Sends a packet using the :class:`SAPNIStreamSocket`
 
-        @param packet: packet to send
-        @type packet: L{SAPDiag<SAPDiag.SAPDiag>}
+        :param packet: packet to send
+        :type packet: :class:`SAPDiag<SAPDiag.SAPDiag>`
 
         """
         if self._connection is not None:
             self._connection.send(packet)
 
     def receive(self):
-        """Receive a L{SAPNI<SAPNI.SAPNI>} packet using the L{SAPNIStreamSocket}. Response is
-        returned and also stored in L{last_response}.
+        """Receive a :class:`SAPNI<SAPNI.SAPNI>` packet using the :class:`SAPNIStreamSocket`. Response is
+        returned and also stored in :class:`last_response`.
 
-        @return: packet received
-        @rtype: L{SAPNI<SAPNI.SAPNI>}
+        :return: packet received
+        :rtype: :class:`SAPNI<SAPNI.SAPNI>`
         """
         if self._connection is not None:
             self.last_response = self._connection.recv()
@@ -178,13 +178,13 @@ class SAPDiagConnection(object):
             return None
 
     def sr(self, packet):
-        """Sends and receive a L{SAPNI<SAPNI.SAPNI>} packet using the L{SAPNIStreamSocket}
+        """Sends and receive a :class:`SAPNI<SAPNI.SAPNI>` packet using the :class:`SAPNIStreamSocket`
 
-        @param packet: packet to send
-        @type packet: L{SAPDiag<SAPDiag.SAPDiag>}
+        :param packet: packet to send
+        :type packet: :class:`SAPDiag<SAPDiag.SAPDiag>`
 
-        @return: packet received
-        @rtype: L{SAPNI<SAPNI.SAPNI>}
+        :return: packet received
+        :rtype: :class:`SAPNI<SAPNI.SAPNI>`
         """
         if self._connection is not None:
             self.send(packet)
@@ -204,36 +204,36 @@ class SAPDiagConnection(object):
             pass
 
     def sr_message(self, msg):
-        """Sends and receive a L{SAPDiag<SAPDiag.SAPDiag>} message, prepending the
+        """Sends and receive a :class:`SAPDiag<SAPDiag.SAPDiag>` message, prepending the
         Diag header.
 
-        @param msg: items to send
-        @type msg: C{list} of L{SAPDiagItem}
+        :param msg: items to send
+        :type msg: ``list`` of :class:`SAPDiagItem`
 
-        @return: server's response
-        @rtype: L{SAPNI<SAPNI.SAPNI>}
+        :return: server's response
+        :rtype: :class:`SAPNI<SAPNI.SAPNI>`
 
         """
         return self.sr(SAPDiag(compress=self.compress, message=msg))
 
     def send_message(self, msg):
-        """Sends a L{SAPDiag<SAPDiag.SAPDiag>} message, prepending the Diag header.
+        """Sends a :class:`SAPDiag<SAPDiag.SAPDiag>` message, prepending the Diag header.
 
-        @param msg: items to send
-        @type msg: C{list} of L{SAPDiagItem}
+        :param msg: items to send
+        :type msg: ``list`` of :class:`SAPDiagItem`
 
         """
         self.send(SAPDiag(compress=self.compress, message=msg))
 
     def interact(self, message):
-        """Interacts with the SAP Diag server, adding the L{SAPDiagStep} item and
+        """Interacts with the SAP Diag server, adding the :class:`SAPDiagStep` item and
         ending with a 'end of message' item.
 
-        @param message: items to send
-        @type message: C{list} of L{SAPDiagItem}
+        :param message: items to send
+        :type message: ``list`` of :class:`SAPDiagItem`
 
-        @return: server's response
-        @rtype: L{SAPNI<SAPNI.SAPNI>}
+        :return: server's response
+        :rtype: :class:`SAPNI<SAPNI.SAPNI>`
         """
         if self.initialized:
             self.step = self.step + 1
