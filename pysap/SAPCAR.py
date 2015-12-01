@@ -19,6 +19,7 @@
 
 # Standard imports
 import stat
+from zlib import crc32
 from datetime import datetime
 from os import stat as os_stat
 from cStringIO import StringIO
@@ -113,7 +114,7 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
         ConditionalField(ByteField("unknown5", 0), lambda x: x.type == "R"),
         ConditionalField(ByteField("unknown6", 0), lambda x: x.type == "R"),
         ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == "R"),
-        ConditionalField(StrFixedLenField("checksum", None, 4), lambda x: x.type == "R"),
+        ConditionalField(LEIntField("checksum", 0), lambda x: x.type == "R"),
     ]
 
 
@@ -138,7 +139,7 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
         ConditionalField(ByteField("unknown5", 0), lambda x: x.type == "R"),
         ConditionalField(ByteField("unknown6", 0), lambda x: x.type == "R"),
         ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == "R"),
-        ConditionalField(StrFixedLenField("checksum", None, 4), lambda x: x.type == "R"),
+        ConditionalField(LEIntField("checksum", 0), lambda x: x.type == "R"),
     ]
 
 
@@ -249,6 +250,17 @@ class SAPCARArchiveFile(object):
         compressed = self._file_format.compressed
         (_, _, outbuffer) = decompress(str(compressed)[4:], compressed.uncompress_length)
         return StringIO(outbuffer)
+
+    def check_checksum(self):
+        """Checks if the checksum of the file is valid.
+
+        :return: if the checksum matches
+        :rtype: bool
+        """
+        f = self.open()
+        crc = -crc32(f.read(), -1) - 1
+        f.close()
+        return crc == self._file_format.checksum
 
 
 class SAPCARArchive(object):
