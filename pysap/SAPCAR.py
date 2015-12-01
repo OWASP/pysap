@@ -198,7 +198,7 @@ class SAPCARArchiveFile(object):
         """The permissions of the file.
 
         :return: permissions in human-readable format
-        :rtype: basestring
+        :rtype: string
         """
         return filemode(self._file_format.perm_mode)
 
@@ -207,9 +207,24 @@ class SAPCARArchiveFile(object):
         """The timestamp of the file.
 
         :return: timestamp in human-readable format
-        :rtype: basestring
+        :rtype: string
         """
         return datetime.fromtimestamp(self._file_format.timestamp).strftime('%d %b %Y %H:%M')
+
+    @property
+    def checksum(self):
+        """The checksum of the file.
+
+        :return: checksum
+        :rtype: int
+        """
+        return self._file_format.checksum
+
+    @classmethod
+    def calculate_checksum(cls, data):
+        """Calculates the CRC32 checksum of a given data string.
+        """
+        return -crc32(data, -1) - 1
 
     @classmethod
     def from_file(cls, filename, version="2.0"):
@@ -238,6 +253,7 @@ class SAPCARArchiveFile(object):
         archive_file._file_format.filename = filename
         archive_file._file_format.filename_length = len(filename)
         archive_file._file_format.compressed = SAPCARCompressedFileFormat(outbuffer)
+        archive_file._file_format.checksum = cls.calculate_checksum(data)
         return archive_file
 
     def open(self):
@@ -257,10 +273,8 @@ class SAPCARArchiveFile(object):
         :return: if the checksum matches
         :rtype: bool
         """
-        f = self.open()
-        crc = -crc32(f.read(), -1) - 1
-        f.close()
-        return crc == self._file_format.checksum
+        crc = self.calculate_checksum(self.open().read())
+        return crc == self.checksum
 
 
 class SAPCARArchive(object):
