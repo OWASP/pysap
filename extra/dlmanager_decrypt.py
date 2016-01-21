@@ -1,4 +1,22 @@
 #!/usr/bin/env python
+# ===========
+# pysap - Python library for crafting SAP's network protocols packets
+#
+# Copyright (C) 2012-2016 by Martin Gallo, Core Security
+#
+# The library was designed and developed by Martin Gallo from the Security
+# Consulting Services team of Core Security.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# ==============
 
 # Standard imports
 from sys import platform
@@ -223,9 +241,14 @@ def retrieve_serial_number():
 # Main function
 def main():
     # Parse command line options
-    description = "Extract SAP's Download Manager stored passwords"
+    description = \
+    """This example script extract SAP's Download Manager stored passwords.
+    """
 
-    parser = OptionParser(description=description)
+    usage = "Usage: %prog [options] -f <config filename>"
+
+    parser = OptionParser(usage=usage, description=description)
+
     parser.add_option("-f", "--filename", dest="filename", help="DLManager config filename", metavar="FILE")
     parser.add_option("-e", "--encrypted", dest="encrypted", help="If passwords are stored encrypted (version >= 2.1.140a)",
                       action="store_true")
