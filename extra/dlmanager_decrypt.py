@@ -258,8 +258,7 @@ def main():
     (options, args) = parser.parse_args()
 
     if not options.filename:
-        print("[-] DLManager config filename required !")
-        return
+        parser.error("[-] DLManager config filename required !")
 
     if options.retrieve:
         print("[*] Trying to retrieve the machine's serial number")
@@ -268,8 +267,7 @@ def main():
         print("[*] Retrieved serial number: %s" % options.serial_number)
 
     if options.encrypted and AES is None:
-        print("[-] pyCrypto library required to decrypt not found !")
-        return
+        parser.error("[-] pyCrypto library required to decrypt not found !")
 
     parse_config_file(options.filename, options.encrypted, options.serial_number)
 
