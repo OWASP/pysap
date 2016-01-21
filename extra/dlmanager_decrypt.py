@@ -235,7 +235,7 @@ def retrieve_serial_number():
         output = output.strip().split("\n")[1]
         return output
     elif platform.startswith("darwin"):
-        return ""
+        raise NotImplemented
 
 
 # Main function
