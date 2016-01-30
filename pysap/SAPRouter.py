@@ -28,12 +28,13 @@ from scapy.supersocket import socket, StreamSocket
 from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
                           IntField, StrNullField, PacketListField,
                           FieldLenField, FieldListField, SignedIntEnumField,
-                          StrFixedLenField, PacketField, BitField, LongField)
+                          StrFixedLenField, PacketField, BitField, LongField,
+                          ByteEnumKeysField)
 # Custom imports
 from pysap.SAPSNC import SAPSNCFrame
 from pysap.SAPNI import (SAPNI, SAPNIStreamSocket, SAPNIProxy,
                          SAPNIProxyHandler)
-from pysap.utils import PacketNoPadded, ByteEnumKeysField, StrNullFixedLenField
+from pysap.utils import (PacketNoPadded, StrNullFixedLenField)
 
 
 # Create a logger for the SAPRouter layer

@@ -23,12 +23,11 @@ from scapy.packet import Packet, bind_layers
 from scapy.fields import (ByteField, ConditionalField, StrFixedLenField, FlagsField,
                           IPField, ShortField, IntField, StrField, PacketListField,
                           FieldLenField, PacketField, StrLenField, IntEnumField,
-                          StrNullField)
+                          StrNullField, ByteEnumKeysField, ShortEnumKeysField)
 from scapy.layers.inet6 import IP6Field
 # Custom imports
 from pysap.SAPNI import SAPNI
-from pysap.utils import (PacketNoPadded, ByteEnumKeysField, IntToStrField,
-                         ShortEnumKeysField, StrNullFixedLenPaddedField,
+from pysap.utils import (PacketNoPadded, IntToStrField, StrNullFixedLenPaddedField,
                          StrNullFixedLenField)
 
 

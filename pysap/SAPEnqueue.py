@@ -17,17 +17,19 @@
 # GNU General Public License for more details.
 # ==============
 
-# External imports
+# Standard imports
 import struct
 import logging
+# External imports
 from scapy.layers.inet import TCP
 from scapy.packet import bind_layers
 from scapy.fields import (IntField, IntEnumField, PacketListField,
                           StrFixedLenField, ConditionalField, ByteField,
-                          FieldLenField, LenField, StrNullField)
+                          FieldLenField, LenField, StrNullField,
+                          ByteEnumKeysField)
 # Custom imports
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
-from pysap.utils import ByteEnumKeysField, PacketNoPadded, StrNullFixedLenField
+from pysap.utils import PacketNoPadded, StrNullFixedLenField
 
 
 # Create a logger for the SAEnqueue layer

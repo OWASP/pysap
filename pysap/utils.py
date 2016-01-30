@@ -23,10 +23,9 @@ from cmd import Cmd
 from threading import Thread, Event
 # External imports
 from scapy.packet import Packet
-from scapy.volatile import (RandEnum, RandomEnumeration, RandNum, RandTermString,
-                            RandBin)
-from scapy.fields import (ByteEnumField, ShortEnumField, MultiEnumField,
-                          StrLenField, Field, StrFixedLenField, StrField)
+from scapy.volatile import (RandNum, RandTermString, RandBin)
+from scapy.fields import (MultiEnumField, StrLenField, Field, StrFixedLenField,
+                          StrField)
 # Optional imports
 try:
     from tabulate import tabulate
@@ -39,34 +38,6 @@ class PacketNoPadded(Packet):
     """
     def extract_padding(self, s):
         return '', s
-
-
-class RandEnumKeys(RandEnum):
-    """Picks a random value from dict keys list. Used for fuzzing enum fields.
-
-    """
-    def __init__(self, enum):
-        self.enum = []
-        for key in list(enum.keys()):
-            self.enum.append(key)
-        self.seq = RandomEnumeration(0, len(list(enum.keys())) - 1)
-
-    def _fix(self):
-        return self.enum[self.seq.next()]
-
-
-class ByteEnumKeysField(ByteEnumField):
-    """ByteEnumField that picks valid values when fuzzed.
-    """
-    def randval(self):
-        return RandEnumKeys(self.i2s)
-
-
-class ShortEnumKeysField(ShortEnumField):
-    """ShortEnumField that picks valid values when fuzzed.
-    """
-    def randval(self):
-        return RandEnumKeys(self.i2s)
 
 
 class RandByteReduced(RandNum):

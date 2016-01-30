@@ -26,14 +26,15 @@ from scapy.packet import Packet, bind_layers
 from scapy.fields import (ByteEnumField, IntField, ByteField, LenField,
                           StrFixedLenField, ConditionalField, FieldLenField,
                           PacketListField, BitField, LEIntField, PacketField,
-                          SignedIntField, StrField, SignedShortField)
+                          SignedIntField, StrField, SignedShortField,
+                          ByteEnumKeysField)
 # Custom imports
 import pysapcompress
 from pysap.SAPNI import SAPNI
 from pysap.SAPSNC import SAPSNCFrame
-from pysap.utils import (PacketNoPadded, ByteEnumKeysField,
-                         ByteMultiEnumKeysField, MutablePacketField,
-                         StrNullFixedLenField, StrEncodedPaddedField)
+from pysap.utils import (PacketNoPadded, ByteMultiEnumKeysField,
+                         MutablePacketField, StrNullFixedLenField,
+                         StrEncodedPaddedField)
 from pysapcompress import DecompressError, CompressError
 
 
