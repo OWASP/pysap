@@ -106,6 +106,12 @@ class DiagParser(object):
                     if atom.etype in [121, 122, 123, 130, 131, 132]:
                         text = atom.field1_text or atom.field2_text
                         text = text.strip()
+                        if "@\Q" in text:
+                            parts = text.split("@")
+                            try:
+                                text = "%s (hint: %s)" % (parts[2], parts[1])
+                            except IndexError:
+                                pass
                         if atom.attr_DIAG_BSD_INVISIBLE and len(text) > 0:
                             # If the invisible flag was set, we're probably
                             # dealing with a password field
