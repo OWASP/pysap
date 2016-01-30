@@ -223,11 +223,6 @@ class IntToStrField(Field):
         return x
 
 
-class SignedShortField(Field):
-    def __init__(self, name, default):
-        Field.__init__(self, name, default, "h")
-
-
 class StrEncodedPaddedField(StrField):
     def __init__(self, name, default, encoding="utf-16", padd="\x0c",
                  fmt="H", remain=0):
