@@ -91,7 +91,7 @@ documentation. For installing it use::
 Manual installation
 ~~~~~~~~~~~~~~~~~~~
 
-The tool relays on the `Scapy <http://www.secdev.org/projects/scapy/>`_
+The tool relays on the `Scapy <http://www.secdev.org/projects/scapy/>`_ version 2.3.2
 library for crafting packets. To install the required libraries use::
 
     $ pip install -r requirements.txt
@@ -116,11 +116,3 @@ Scapy installation
 
     Add the line ``from scapy.packet import Padding``
 
-- Additionally, running `Scapy`_ on Windows might require some patching:
-
-    Edit the file ``supersocket.py``
-
-    Add the line ``import arch`` at the end of the file
-
-  See this `scapy issue <https://bitbucket.org/secdev/scapy/pull-request/56>`_
-  for more details.
