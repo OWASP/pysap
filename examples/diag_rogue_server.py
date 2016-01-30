@@ -174,7 +174,7 @@ class SAPDiagServerHandler(SAPNIServerHandler):
             self.logoff()
 
         # Handle events (UI EVENT SOURCE)
-        elif len(diag.get_item("APPL", "UI_EVENT", "UI_EVENT_SOURCE")) > 0:
+        elif diag.get_item("APPL", "UI_EVENT", "UI_EVENT_SOURCE"):
             print "[*] UI Event sent by the client %s" % str(self.client_address)
             ui_event_source = diag.get_item("APPL", "UI_EVENT", "UI_EVENT_SOURCE")[0].item_value
 
@@ -198,7 +198,7 @@ class SAPDiagServerHandler(SAPNIServerHandler):
 
         # Handle login request (DYNT Atom == \x00)
         atoms = diag.get_item(["APPL", "APPL4"], "DYNT", "DYNT_ATOM")
-        if len(atoms) > 0:
+        if atoms:
             print "[*] Login request sent by the client %s" % str(self.client_address)
             # Print the Atom items information
             print "[*] Input fields:"
