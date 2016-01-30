@@ -33,7 +33,8 @@ from pysap.utils import (PacketNoPadded, IntToStrField, StrNullFixedLenPaddedFie
 
 # Message Server Flag values
 ms_flag_values = {
-    0x01: "MS_ONE_WAY",  # One way messages are sent from the client to server and doesn't trigger a response from the server
+    0x01: "MS_ONE_WAY",  # One way messages are sent from the client to server and doesn't trigger a response
+                         # from the server
     0x02: "MS_REQUEST",
     0x03: "MS_REPLY",
     0x04: "MS_ADMIN",

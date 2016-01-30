@@ -247,7 +247,7 @@ class SAPEnqueueStreamSocket(SAPNIStreamSocket):
             total_length = packet[SAPEnqueue].len - 20
             recvd_length = len(packet[SAPEnqueue]) - 20
             log_sapenqueue.debug("Received %d up to %d bytes", recvd_length, total_length)
-            while (recvd_length < total_length and packet[SAPEnqueue].more_frags == 1):
+            while recvd_length < total_length and packet[SAPEnqueue].more_frags == 1:
                 response = SAPNIStreamSocket.recv(self)[SAPEnqueue]
                 data += str(response)[20:]
                 recvd_length += len(response) - 20
