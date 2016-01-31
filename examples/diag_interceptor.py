@@ -2,7 +2,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2015 by Martin Gallo, Core Security
+# Copyright (C) 2012-2016 by Martin Gallo, Core Security
 #
 # The library was designed and developed by Martin Gallo from the Security
 # Consulting Services team of Core Security.
@@ -50,7 +50,7 @@ def filter_client(packet):
         atoms = packet[SAPDiag].get_item(["APPL", "APPL4"], "DYNT", "DYNT_ATOM")
 
     # Print the Atom items information
-    if len(atoms) > 0:
+    if atoms:
         print("[*] Input fields:")
         for atom in [atom for atom_item in atoms for atom in atom_item.item_value.items]:
             if atom.etype in [121, 122, 123, 130, 131, 132]:

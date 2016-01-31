@@ -1,7 +1,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2015 by Martin Gallo, Core Security
+# Copyright (C) 2012-2016 by Martin Gallo, Core Security
 #
 # The library was designed and developed by Martin Gallo from the Security
 # Consulting Services team of Core Security.
@@ -28,12 +28,13 @@ from scapy.supersocket import socket, StreamSocket
 from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
                           IntField, StrNullField, PacketListField,
                           FieldLenField, FieldListField, SignedIntEnumField,
-                          StrFixedLenField, PacketField, BitField, LongField)
+                          StrFixedLenField, PacketField, BitField, LongField,
+                          ByteEnumKeysField)
 # Custom imports
 from pysap.SAPSNC import SAPSNCFrame
 from pysap.SAPNI import (SAPNI, SAPNIStreamSocket, SAPNIProxy,
                          SAPNIProxyHandler)
-from pysap.utils import PacketNoPadded, ByteEnumKeysField, StrNullFixedLenField
+from pysap.utils import (PacketNoPadded, StrNullFixedLenField)
 
 
 # Create a logger for the SAPRouter layer
@@ -141,8 +142,8 @@ class SAPRouterRouteHop(PacketNoPadded):
         (/[PW]/(?P<password>[\w.]+))?          # Optional password
         )
     """, re.VERBOSE)
-    """ @cvar: Regular expression for matching route strings
-        @type: regex
+    """ :cvar: Regular expression for matching route strings
+        :type: regex
     """
 
     @classmethod
@@ -156,11 +157,11 @@ class SAPRouterRouteHop(PacketNoPadded):
 
         (/H/host/S/service/P/pass)*
 
-        @param route_string: route string
-        @type route_string: C{string}
+        :param route_string: route string
+        :type route_string: C{string}
 
-        @return: route hops in the route string
-        @rtype: C{list} of L{SAPRouterRouteHop}
+        :return: route hops in the route string
+        :rtype: ``list`` of :class:`SAPRouterRouteHop`
         """
         result = []
         for route_hop in [x.groupdict() for x in cls.regex.finditer(route_string)]:
@@ -173,11 +174,11 @@ class SAPRouterRouteHop(PacketNoPadded):
     def from_hops(cls, route_hops):
         """Build a route string from a list of route hops.
 
-        @param route_hops: route hops
-        @type route_hops: C{list} of L{SAPRouterRouteHop}
+        :param route_hops: route hops
+        :type route_hops: ``list`` of :class:`SAPRouterRouteHop`
 
-        @return: route string
-        @rtype: C{string}
+        :return: route string
+        :rtype: C{string}
         """
         result = ""
         for route_hop in route_hops:
@@ -270,19 +271,19 @@ class SAPRouterError(PacketNoPadded):
     ]
 
     time_format = "%a %b %d %H:%M:%S %Y"
-    """ @cvar: Format to use when building the time field
-        @type: C{string}
+    """ :cvar: Format to use when building the time field
+        :type: C{string}
     """
 
 
 def router_is_route(pkt):
     """Returns if the packet is a Route packet.
 
-    @param pkt: packet to look at
-    @type pkt: L{SAPRouter}
+    :param pkt: packet to look at
+    :type pkt: :class:`SAPRouter`
 
-    @return: if the type of the packet is Route
-    @rtype: C{bool}
+    :return: if the type of the packet is Route
+    :rtype: ``bool``
     """
     return pkt.type == SAPRouter.SAPROUTER_ROUTE
 
@@ -290,11 +291,11 @@ def router_is_route(pkt):
 def router_is_admin(pkt):
     """Returns if the packet is a Admin packet.
 
-    @param pkt: packet to look at
-    @type pkt: L{SAPRouter}
+    :param pkt: packet to look at
+    :type pkt: :class:`SAPRouter`
 
-    @return: if the type of the packet is Admin
-    @rtype: C{bool}
+    :return: if the type of the packet is Admin
+    :rtype: ``bool``
     """
     return pkt.type == SAPRouter.SAPROUTER_ADMIN
 
@@ -302,11 +303,11 @@ def router_is_admin(pkt):
 def router_is_error(pkt):
     """Returns if the packet is a Error Information packet.
 
-    @param pkt: packet to look at
-    @type pkt: L{SAPRouter}
+    :param pkt: packet to look at
+    :type pkt: :class:`SAPRouter`
 
-    @return: if the type of the packet is Error
-    @rtype: C{bool}
+    :return: if the type of the packet is Error
+    :rtype: ``bool``
     """
     return pkt.type == SAPRouter.SAPROUTER_ERROR
 
@@ -314,11 +315,11 @@ def router_is_error(pkt):
 def router_is_control(pkt):
     """Returns if the packet is a Control packet.
 
-    @param pkt: packet to look at
-    @type pkt: L{SAPRouter}
+    :param pkt: packet to look at
+    :type pkt: :class:`SAPRouter`
 
-    @return: if the type of the packet is Control
-    @rtype: C{bool}
+    :return: if the type of the packet is Control
+    :rtype: ``bool``
     """
     return pkt.type == SAPRouter.SAPROUTER_CONTROL
 
@@ -326,11 +327,11 @@ def router_is_control(pkt):
 def router_is_pong(pkt):
     """Returns if the packet is a Pong (route accepted) packet.
 
-    @param pkt: packet to look at
-    @type pkt: L{SAPRouter}
+    :param pkt: packet to look at
+    :type pkt: :class:`SAPRouter`
 
-    @return: if the type of the packet is Pong
-    @rtype: C{bool}
+    :return: if the type of the packet is Pong
+    :rtype: ``bool``
     """
     return pkt.type == SAPRouter.SAPROUTER_PONG
 
@@ -338,11 +339,11 @@ def router_is_pong(pkt):
 def router_is_known_type(pkt):
     """Returns if the packet is of a known type (Admin, Route, Error or Pong).
 
-    @param pkt: packet to look at
-    @type pkt: L{SAPRouter}
+    :param pkt: packet to look at
+    :type pkt: :class:`SAPRouter`
 
-    @return: if the type of the packet is known
-    @rtype: C{bool}
+    :return: if the type of the packet is known
+    :rtype: ``bool``
 
     """
     return pkt.type in SAPRouter.router_type_values
@@ -356,7 +357,7 @@ class SAPRouter(Packet):
 
         1. Route packets. For requesting the routing of a connection to a
         remote hosts. The packet contains some general information and a
-        connection string with a list of routing hops (L{SAPRouterRouteHop}).
+        connection string with a list of routing hops (:class:`SAPRouterRouteHop`).
 
         2. Administration packets. This packet is used for the SAP Router to
         send administrative commands. It's suppose to be used only from the
@@ -377,7 +378,7 @@ class SAPRouter(Packet):
 
     Routed packets and some responses doesn't fill in these five packet
     types. For identifying those cases, you should check the type using the
-    function L{router_is_known_type}.
+    function :class:`router_is_known_type`.
 
     NI Versions found (unconfirmed):
         - 30: Release 40C
@@ -389,24 +390,24 @@ class SAPRouter(Packet):
 
     # Constants for router types
     SAPROUTER_ROUTE = "NI_ROUTE"
-    """ @cvar: Constant for route packets
-        @type: C{string} """
+    """ :cvar: Constant for route packets
+        :type: C{string} """
 
     SAPROUTER_ADMIN = "ROUTER_ADM"
-    """ @cvar: Constant for administration packets
-        @type: C{string} """
+    """ :cvar: Constant for administration packets
+        :type: C{string} """
 
     SAPROUTER_ERROR = "NI_RTERR"
-    """ @cvar: Constant for error information packets
-        @type: C{string} """
+    """ :cvar: Constant for error information packets
+        :type: C{string} """
 
     SAPROUTER_CONTROL = "NI_RTERR"
-    """ @cvar: Constant for control messages packets
-        @type: C{string} """
+    """ :cvar: Constant for control messages packets
+        :type: C{string} """
 
     SAPROUTER_PONG = "NI_PONG"
-    """ @cvar: Constant for route accepted packets
-        @type: C{string} """
+    """ :cvar: Constant for route accepted packets
+        :type: C{string} """
 
     router_type_values = [
         SAPROUTER_ADMIN,
@@ -415,8 +416,8 @@ class SAPRouter(Packet):
         SAPROUTER_ROUTE,
         SAPROUTER_PONG,
     ]
-    """ @cvar: List of known packet types
-        @type: C{list} of C{string} """
+    """ :cvar: List of known packet types
+        :type: ``list`` of C{string} """
 
     name = "SAP Router"
     fields_desc = [
@@ -478,10 +479,10 @@ def get_router_version(connection):
     """Helper function to retrieve the version of a remote SAP Router. It
     uses a control packet with the 'version request' operation code.
 
-    @param connection: connection with the SAP Router
-    @type connection: L{SAPNIStreamSocket}
+    :param connection: connection with the SAP Router
+    :type connection: :class:`SAPNIStreamSocket`
 
-    @return: version or None
+    :return: version or None
     """
     response = connection.sr(SAPRouter(type=SAPRouter.SAPROUTER_CONTROL,
                                        version=40,
@@ -499,8 +500,8 @@ class SAPRouteException(Exception):
 
 class SAPRoutedStreamSocket(SAPNIStreamSocket):
     """Stream socket implementation for a connection routed through a SAP
-    Router server. It works by wrapping a L{SAPNIStreamSocket} and connecting
-    first to the SAP Router given a route string or list of L{SAPRouterRouteHop}.
+    Router server. It works by wrapping a :class:`SAPNIStreamSocket` and connecting
+    first to the SAP Router given a route string or list of :class:`SAPRouterRouteHop`.
     """
 
     desc = "NI Stream socket routed trough a SAP Router"
@@ -513,28 +514,28 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         recv() would be made to the target host/service trough the SAP
         Router.
 
-        @param sock: a socket connected to the SAP Router
-        @type sock: C{socket}
+        :param sock: a socket connected to the SAP Router
+        :type sock: C{socket}
 
-        @param route: a route to specify to the SAP Router
-        @type route: C{list} of L{SAPRouterRouteHop}
+        :param route: a route to specify to the SAP Router
+        :type route: ``list`` of :class:`SAPRouterRouteHop`
 
-        @param talk_mode: the talk mode to use when routing
-        @type talk_mode: C{int}
+        :param talk_mode: the talk mode to use when routing
+        :type talk_mode: ``int``
 
-        @param router_version: the router version to use for requesting the
+        :param router_version: the router version to use for requesting the
             route. If no router version is provided, it will be obtained from
             the SAP Router by means of a control packet.
-        @type router_version: C{int}
+        :type router_version: ``int``
 
-        @param keep_alive: if true, the socket will automatically respond to
+        :param keep_alive: if true, the socket will automatically respond to
             keep-alive request messages. Otherwise, the keep-alive messages
-            are passed to the caller in L{recv} and L{sr} calls.
-        @type keep_alive: C{bool}
+            are passed to the caller in :class:`recv` and :class:`sr` calls.
+        :type keep_alive: ``bool``
 
-        @param base_cls: the base class to use when receiving packets, it uses
+        :param base_cls: the base class to use when receiving packets, it uses
             SAPNI as default if no class specified
-        @type base_cls: L{Packet} class
+        :type base_cls: :class:`Packet` class
 
         """
         self.routed = False
@@ -552,16 +553,16 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
     def route_to(self, route, talk_mode):
         """Make the route request to the target host/service.
 
-        @param route: a route to specify to the SAP Router
-        @type route: C{list} of L{SAPRouterRouteHop}
+        :param route: a route to specify to the SAP Router
+        :type route: ``list`` of :class:`SAPRouterRouteHop`
 
-        @param talk_mode: the talk mode to use when routing
-        @type talk_mode: C{int}
+        :param talk_mode: the talk mode to use when routing
+        :type talk_mode: ``int``
 
-        @raise SAPRouteException: if the route request to the target host/port
+        :raise SAPRouteException: if the route request to the target host/port
             was not accepted by the SAP Router
 
-        @raise socket.error: if the connection to the target host/port failed
+        :raise socket.error: if the connection to the target host/port failed
             or the SAP Router returned an error
         """
         # Build the route request packet
@@ -601,7 +602,7 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         """Receive a packet from the target host. If the talk mode in use is
         native and we've already set the route, the packet received is a raw
         packet. Otherwise, the packet received is a NI layer packet in the same
-        way the L{SAPNIStreamSocket} works.
+        way the :class:`SAPNIStreamSocket` works.
         """
         # If we're working on native mode and the route was accepted, we don't
         # need the NI layer anymore. Just use the plain socket inside the
@@ -616,37 +617,37 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
     @classmethod
     def get_nisocket(cls, host=None, port=None, route=None, password=None,
                      talk_mode=None, router_version=None, **kwargs):
-        """Helper function to obtain a L{SAPRoutedStreamSocket}.
+        """Helper function to obtain a :class:`SAPRoutedStreamSocket`.
 
-        @param host: target host to connect to if not specified in the route
-        @type host: C{string}
+        :param host: target host to connect to if not specified in the route
+        :type host: C{string}
 
-        @param port: target port to connect to if not specified in the route
-        @type port: C{int}
+        :param port: target port to connect to if not specified in the route
+        :type port: ``int``
 
-        @param route: route to use for determining the SAP Router to connect
-        @type route: C{string} or C{list} of L{SAPRouterRouteHop}
+        :param route: route to use for determining the SAP Router to connect
+        :type route: C{string} or ``list`` of :class:`SAPRouterRouteHop`
 
-        @param password: target password if not specified in the route
-        @type password: C{string}
+        :param password: target password if not specified in the route
+        :type password: C{string}
 
-        @param talk_mode: the talk mode to use for requesting the route
-        @type talk_mode: C{int}
+        :param talk_mode: the talk mode to use for requesting the route
+        :type talk_mode: ``int``
 
-        @param router_version: the router version to use for requesting the
+        :param router_version: the router version to use for requesting the
             route
-        @type router_version: C{int}
+        :type router_version: ``int``
 
-        @keyword kwargs: arguments to pass to L{SAPRoutedStreamSocket}
+        :keyword kwargs: arguments to pass to :class:`SAPRoutedStreamSocket`
             constructor
 
-        @return: connected socket through the specified route
-        @rtype: L{SAPRoutedStreamSocket}
+        :return: connected socket through the specified route
+        :rtype: :class:`SAPRoutedStreamSocket`
 
-        @raise SAPRouteException: if the route request to the target host/port
+        :raise SAPRouteException: if the route request to the target host/port
             was not accepted by the SAP Router
 
-        @raise socket.error: if the connection to the target host/port failed
+        :raise socket.error: if the connection to the target host/port failed
             or the SAP Router returned an error
         """
         # If no route was provided, use the standard SAPNIStreamSocket
@@ -677,12 +678,13 @@ class SAPRouterNativeProxy(SAPNIProxy):
     """SAP Router Native Proxy
 
     Proxy implementation that routes traffic through a remote SAP Router server
-    to a target host/port. It works by binding a L{SAPNIStreamSocket} and
+    to a target host/port. It works by binding a :class:`SAPNIStreamSocket` and
     requesting the SAP Router a route to the target location. If the route is
     accepted it keeps the listener open for connections and spawn a new
-    L{SAPRouterNativeRouterHandler} instance for each client.
+    :class:`SAPRouterNativeRouterHandler` instance for each client.
 
     Example usage::
+
         proxy = SAPRouterNativeProxy(local_host, local_port,
                                      remote_host, remote_port,
                                      SAPRouterNativeRouterHandler,
@@ -699,46 +701,46 @@ class SAPRouterNativeProxy(SAPNIProxy):
         route to the target address/port and setting the handler for the
         incoming connections.
 
-        @param bind_address: address to bind the listener socket
-        @type bind_address: C{string}
+        :param bind_address: address to bind the listener socket
+        :type bind_address: C{string}
 
-        @param bind_port: port to bind the listener socket
-        @type bind_port: C{int}
+        :param bind_port: port to bind the listener socket
+        :type bind_port: ``int``
 
-        @param remote_address: remote address to connect to
-        @param remote_address: C{string}
+        :param remote_address: remote address to connect to
+        :param remote_address: C{string}
 
-        @param remote_port: remote port to connect to
-        @type remote_port: C{int}
+        :param remote_port: remote port to connect to
+        :type remote_port: ``int``
 
-        @param handler: handler class
-        @type handler: L{SAPNIProxyHandler} class
+        :param handler: handler class
+        :type handler: :class:`SAPNIProxyHandler` class
 
-        @param target_address: target address to connect to
-        @param target_address: C{string}
+        :param target_address: target address to connect to
+        :param target_address: C{string}
 
-        @param target_port: target port to connect to
-        @type target_port: C{int}
+        :param target_port: target port to connect to
+        :type target_port: ``int``
 
-        @param target_pass: target password to use when requesting the route
-        @param target_pass: C{string}
+        :param target_pass: target password to use when requesting the route
+        :param target_pass: C{string}
 
-        @param talk_mode: talk mode to use when requesting the route
-        @type talk_mode: C{int}
+        :param talk_mode: talk mode to use when requesting the route
+        :type talk_mode: ``int``
 
-        @param backlog: backlog parameter to set in the listener socket
-        @type backlog: C{int}
+        :param backlog: backlog parameter to set in the listener socket
+        :type backlog: ``int``
 
-        @param keep_alive:  if true, the proxy will handle the keep-alive
+        :param keep_alive:  if true, the proxy will handle the keep-alive
             requests and responses. Otherwise, keep-alive messages are passed
             to the handler as regular packets.
-        @type keep_alive: C{bool}
+        :type keep_alive: ``bool``
 
-        @param options: options to pass to the handler instance
-        @type options: C{dict}
+        :param options: options to pass to the handler instance
+        :type options: ``dict``
 
-        @raise SAPRouteException: if the route request is denied
-        @raise Exception: if an error occurred when requesting the route
+        :raise SAPRouteException: if the route request is denied
+        :raise Exception: if an error occurred when requesting the route
         """
         super(SAPRouterNativeProxy, self).__init__(bind_address, bind_port,
                                                    remote_address, remote_port,
@@ -756,8 +758,8 @@ class SAPRouterNativeProxy(SAPNIProxy):
         a route to forward the traffic through the remote SAP Router and
         handle the client using the provided handler class.
 
-        @return: the handler instance handling the request
-        @rtype: L{SAPNIProxyHandler}
+        :return: the handler instance handling the request
+        :rtype: :class:`SAPNIProxyHandler`
         """
         # Accept a client connection
         (client, __) = self.listener.ins.accept()
@@ -775,8 +777,8 @@ class SAPRouterNativeProxy(SAPNIProxy):
         """Requests a route to forward the traffic through the remote SAP
         Router.
 
-        @raise SAPRouteException: if the route request is denied
-        @raise Exception: if an error occurred when requesting the route
+        :raise SAPRouteException: if the route request is denied
+        :raise Exception: if an error occurred when requesting the route
         """
         log_saprouter.debug("Routing to %s:%d" % (self.target_address,
                                                   self.target_port))
@@ -842,14 +844,14 @@ class SAPRouterNativeRouterHandler(SAPNIProxyHandler):
         """Receives data from one socket connection, process it and send to the
         remote connection.
 
-        @param local: the local socket
-        @type local: L{SAPNIStreamSocket}
+        :param local: the local socket
+        :type local: :class:`SAPNIStreamSocket`
 
-        @param remote: the remote socket
-        @type remote: L{SAPNIStreamSocket}
+        :param remote: the remote socket
+        :type remote: :class:`SAPNIStreamSocket`
 
-        @param process: the function that process the incoming data
-        @type process: function
+        :param process: the function that process the incoming data
+        :type process: function
         """
         # Receive a native packet (not SAP NI)
         packet = local.ins.recv(self.mtu)

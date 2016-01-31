@@ -2,7 +2,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2015 Core Security Technologies
+# Copyright (C) 2012-2016 Core Security Technologies
 #
 # The library was designed and developed by Martin Gallo from the Security
 # Consulting Services team of Core Security Technologies.
@@ -263,16 +263,16 @@ def main():
 
         matched = fingerprint_db.match_fingerprint(target, error_text)
 
-        if len(matched) > 0:
+        if matched:
             print("[*] (%d/%d) Fingerprint for packet '%s' matched !" % (i, l, target))
             matches.append((target, matched))
         else:
             print("[*] (%d/%d) Fingerprint for packet '%s' not matched" % (i, l, target))
             misses.append((target, error_text))
 
-        i = i + 1
+        i += 1
 
-    if len(matches) > 0:
+    if matches:
         versions = []
         counts = {}
         print("\n[*] Matched fingerprints (%d/%d):" % (len(matches), l))
@@ -286,7 +286,7 @@ def main():
                 if match not in versions:
                     counts[str(match)] = 0
                     versions.append(match)
-                counts[str(match)] = counts[str(match)] + 1
+                counts[str(match)] += 1
 
         print("\n[*] Probable versions (%d):" % len(versions))
         for version in versions:
@@ -294,7 +294,7 @@ def main():
                             if version[field] != ""])
             print("[*]\tHits: %d Version: %s" % (counts[str(version)], msg))
 
-    if len(misses) > 0:
+    if misses:
         print("\n[*] Non matched fingerprints (%d/%d):" % (len(misses), l))
         for (target, _) in misses:
             print("[-] Request: %s" % target)

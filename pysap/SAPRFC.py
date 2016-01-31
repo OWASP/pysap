@@ -1,7 +1,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2015 by Martin Gallo, Core Security
+# Copyright (C) 2012-2016 by Martin Gallo, Core Security
 #
 # The library was designed and developed by Martin Gallo from the Security
 # Consulting Services team of Core Security.
@@ -21,11 +21,11 @@
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
 from scapy.fields import (ByteField, ConditionalField, IPField, IntField,
-                          StrFixedLenField)
+                          StrFixedLenField, SignedShortField,
+                          ByteEnumKeysField)
 # Custom imports
 from pysap.SAPNI import SAPNI
-from pysap.utils import (SignedShortField, ByteEnumKeysField,
-                         StrFixedLenPaddedField)
+from pysap.utils import StrFixedLenPaddedField
 from scapy.layers.inet6 import IP6Field
 
 

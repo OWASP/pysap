@@ -2,7 +2,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2015 by Martin Gallo, Core Security
+# Copyright (C) 2012-2016 by Martin Gallo, Core Security
 #
 # The library was designed and developed by Martin Gallo from the Security
 # Consulting Services team of Core Security.
@@ -19,7 +19,7 @@
 # ==============
 
 # Standard imports
-from os import path, makedirs, system
+from os import system
 from setuptools import setup, Extension, Command
 # Custom imports
 import pysap
@@ -27,13 +27,10 @@ import pysap
 
 class APIDocumentationCommand(Command):
     """Custom command for building API documentation with epydoc.
-
-    @requires: epydoc installed
     """
 
-    description = "Builds the API documentation using epydoc"
+    description = "Builds the API documentation using Sphinx"
     user_options = []
-    target_dir = "./doc/"
 
     def initialize_options(self):
         pass
@@ -45,14 +42,7 @@ class APIDocumentationCommand(Command):
         """
         Runs epydoc
         """
-        if not path.exists(self.target_dir):
-            makedirs(self.target_dir)
-
-        target = "pysap pysapcompress"
-        system('epydoc --graph all --html --name "%s" --url "%s" -v -o %s %s -qq' % (pysap.__name__,
-                                                                                     pysap.__url__,
-                                                                                     self.target_dir,
-                                                                                     target))
+        system("cd docs && make html")
 
 
 sapcompress = Extension('pysapcompress',
@@ -104,6 +94,7 @@ setup(name=pysap.__title__,   # Package information
       # Requirements
       install_requires=open('requirements.txt').read().splitlines(),
 
-      # Optional requirements for some examples
-      extras_require={"examples": open('requirements-optional.txt').read().splitlines()},
+      # Optional requirements for docs and some examples
+      extras_require={"docs": "Sphinx==1.2.3",
+                      "examples": open('requirements-optional.txt').read().splitlines()},
       )

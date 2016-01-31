@@ -2,7 +2,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2015 by Martin Gallo, Core Security
+# Copyright (C) 2012-2016 by Martin Gallo, Core Security
 #
 # The library was designed and developed by Martin Gallo from the Security
 # Consulting Services team of Core Security.
@@ -174,7 +174,7 @@ class SAPDiagServerHandler(SAPNIServerHandler):
             self.logoff()
 
         # Handle events (UI EVENT SOURCE)
-        elif len(diag.get_item("APPL", "UI_EVENT", "UI_EVENT_SOURCE")) > 0:
+        elif diag.get_item("APPL", "UI_EVENT", "UI_EVENT_SOURCE"):
             print "[*] UI Event sent by the client %s" % str(self.client_address)
             ui_event_source = diag.get_item("APPL", "UI_EVENT", "UI_EVENT_SOURCE")[0].item_value
 
@@ -198,7 +198,7 @@ class SAPDiagServerHandler(SAPNIServerHandler):
 
         # Handle login request (DYNT Atom == \x00)
         atoms = diag.get_item(["APPL", "APPL4"], "DYNT", "DYNT_ATOM")
-        if len(atoms) > 0:
+        if atoms:
             print "[*] Login request sent by the client %s" % str(self.client_address)
             # Print the Atom items information
             print "[*] Input fields:"

@@ -1,7 +1,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2015 by Martin Gallo, Core Security
+# Copyright (C) 2012-2016 by Martin Gallo, Core Security
 #
 # The library was designed and developed by Martin Gallo from the Security
 # Consulting Services team of Core Security.
@@ -21,19 +21,37 @@
 pysap
 =====
 
-pysap is a Python library for communicating using SAP network protocols.
+[pysap](http://www.coresecurity.com/corelabs-research/open-source-tools/pysap)
+is a Python library that provides modules for crafting and sending packets
+using SAP's NI, Message Server, Router, RFC, SNC, Enqueue and Diag protocols.
+The modules are build on top of [Scapy](http://www.secdev.org/projects/scapy/)
+and are based on information acquired at researching the different protocols
+and services.
 
-Currently the following SAP protocols are included:
-    - SAP NI (Network Interface).
-    - SAP Diag.
-    - SAP Enqueue Server.
-    - SAP Message Server.
-    - SAP Router.
-    - SAP RFC.
+
+Features
+--------
+
+* Dissection and crafting of the following network protocols:
+
+    * SAP Network Interface (NI)
+    * SAP Diag
+    * SAP Enqueue
+    * SAP Router
+    * SAP Message Server (MS)
+    * SAP SNC
+
+* Library implementing SAP's LZH and LZC compression algorithms.
+
+* Automatic compression/decompression of payloads with SAP's algorithms.
+
+* Client, proxy and server classes implemented for some of the protocols.
+
+* Example scripts to illustrate the use of the different modules and protocols.
+
 
 :copyright: (c) 2015 by Martin Gallo, Core Security.
 :license: GNU General Public License v2 or later (GPLv2+).
-
 """
 
 __title__ = 'pysap'
@@ -42,7 +60,7 @@ __title__ = 'pysap'
 __version__ = '0.1.9.dev0'
 """The version of pysap"""
 
-__url__ = "http://www.coresecurity.com/corelabs-research/open-source-tools/pysap"
+__url__ = "https://www.coresecurity.com/corelabs-research/open-source-tools/pysap"
 """The URL for pysap's homepage"""
 
 __repo__ = "https://github.com/CoreSecurity/pysap"

@@ -1,7 +1,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2015 by Martin Gallo, Core Security
+# Copyright (C) 2012-2016 by Martin Gallo, Core Security
 #
 # The library was designed and developed by Martin Gallo from the Security
 # Consulting Services team of Core Security.
@@ -49,9 +49,9 @@ class PySAPDiagTest(unittest.TestCase):
         diag_header_compr.compress = 0
         self.assertEqual(str(diag_header_plain), str(diag_header_compr))
 
-    def test_sapdiag_header_dissection(self):
-        """Test SAPDiag headers dissection"""
-        diag_item = SAPDiagItem(item_value="TEST")
+    def test_sapdiag_header_dissection_plain(self):
+        """Test SAPDiag headers dissection without compression"""
+        diag_item = SAPDiagItem(item_value="TEST_PLAIN")
 
         diag_header_plain = SAPDiag(compress=0)
         diag_header_plain.message.append(diag_item)
@@ -60,12 +60,15 @@ class PySAPDiagTest(unittest.TestCase):
         self.assertEqual(str(diag_header_plain),
                          str(new_diag_header_plain))
 
+    def test_sapdiag_header_dissection_compressed(self):
+        """Test SAPDiag headers dissection with compression"""
+        diag_item = SAPDiagItem(item_value="TEST_COMPRESSED")
+
         diag_header_compr = SAPDiag(compress=1)
         diag_header_compr.message.append(diag_item)
         new_diag_header_compr = SAPDiag(str(diag_header_compr))
-
-        self.assertEqual(str(diag_header_compr),
-                         str(new_diag_header_compr))
+        self.assertEqual(str(diag_header_compr.message[0]),
+                         str(new_diag_header_compr.message[0]))
 
     def test_sapdiag_item(self):
         """Test construction of SAPDiag Items"""

@@ -1,7 +1,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2015 by Martin Gallo, Core Security
+# Copyright (C) 2012-2016 by Martin Gallo, Core Security
 #
 # The library was designed and developed by Martin Gallo from the Security
 # Consulting Services team of Core Security.
@@ -60,12 +60,12 @@ class SAPNI(Packet):
 
     # Constants for keep-alive messages
     SAPNI_PING = "NI_PING\x00"
-    """ @cvar: Constant for keep-alive request messages (NI_PING)
-        @type: C{string} """
+    """ :cvar: Constant for keep-alive request messages (NI_PING)
+        :type: C{string} """
 
     SAPNI_PONG = "NI_PONG\x00"
-    """ @cvar: Constant for keep-alive response messages (NI_PONG)
-        @type: C{string} """
+    """ :cvar: Constant for keep-alive response messages (NI_PONG)
+        :type: C{string} """
 
 
 class SAPNIStreamSocket(StreamSocket):
@@ -78,17 +78,17 @@ class SAPNIStreamSocket(StreamSocket):
     def __init__(self, sock, keep_alive=True, base_cls=None):
         """Initializes the NI stream socket.
 
-        @param sock: socket to wrap
-        @type sock: C{socket}
+        :param sock: socket to wrap
+        :type sock: C{socket}
 
-        @param keep_alive: if true, the socket will automatically respond to
+        :param keep_alive: if true, the socket will automatically respond to
             keep-alive request messages. Otherwise, the keep-alive messages
-            are passed to the caller in L{recv} and L{sr} calls.
-        @type keep_alive: C{bool}
+            are passed to the caller in :class:`recv` and :class:`sr` calls.
+        :type keep_alive: ``bool``
 
-        @param base_cls: the base class to use when receiving packets, it uses
-            L{SAPNI} as default if no class specified
-        @type base_cls: L{Packet} class
+        :param base_cls: the base class to use when receiving packets, it uses
+            :class:`SAPNI` as default if no class specified
+        :type base_cls: :class:`Packet` class
         """
         StreamSocket.__init__(self, sock, Raw)
         self.keep_alive = keep_alive
@@ -97,8 +97,8 @@ class SAPNIStreamSocket(StreamSocket):
     def send(self, packet):
         """Send a packet at the NI layer, prepending the length field.
 
-        @param packet: packet to send
-        @type packet: Packet
+        :param packet: packet to send
+        :type packet: Packet
         """
         # Add the NI layer and send
         log_sapni.debug("To send %d bytes", len(packet) + 4)
@@ -107,14 +107,14 @@ class SAPNIStreamSocket(StreamSocket):
     def recv(self):
         """Receive a packet at the NI layer, first reading the length field and
         the reading the data. If the stream is waiting for a new packet and
-        the remote peer sends a keep-alive request (L{NI_PING<SAPNI.SAPNI_PING>}),
+        the remote peer sends a keep-alive request (:class:`NI_PING<SAPNI.SAPNI_PING>`),
         the receive method will respond with a keep-alive response
-        (L{NI_PONG<SAPNI.SAPNI_PONG>}) to keep the communication stable.
+        (:class:`NI_PONG<SAPNI.SAPNI_PONG>`) to keep the communication stable.
 
-        @return: received L{SAPNI} packet
-        @rtype: L{SAPNI}
+        :return: received :class:`SAPNI` packet
+        :rtype: :class:`SAPNI`
 
-        @raise socket.error: if the connection was close
+        :raise socket.error: if the connection was close
         """
         # Receive the NI length field
         nidata = self.ins.recv(4, socket.MSG_PEEK)
@@ -125,9 +125,9 @@ class SAPNIStreamSocket(StreamSocket):
 
         # Receive the whole NI packet (length+payload)
         nidata = ''
-        while(len(nidata) < nilength + 4):
+        while len(nidata) < nilength + 4:
             nidata += self.ins.recv(nilength - len(nidata) + 4)
-            if (len(nidata) == 0):
+            if len(nidata) == 0:
                 raise socket.error((100, "Underlying stream socket tore down"))
 
         # If the packet received is a keep-alive request (NI_PING), send a
@@ -150,33 +150,33 @@ class SAPNIStreamSocket(StreamSocket):
 
     def sr(self, packet):
         """Send a given packet and receive the response. Wrapper around the send
-        and receive methods. The response packet is build in the L{SAPNI} layer.
+        and receive methods. The response packet is build in the :class:`SAPNI` layer.
 
-        @param packet: packet to send
-        @type packet: Packet
+        :param packet: packet to send
+        :type packet: Packet
 
-        @return: packet received
-        @rtype: Packet
+        :return: packet received
+        :rtype: Packet
         """
         self.send(packet)
         return self.recv()
 
     @classmethod
     def get_nisocket(cls, host, port, **kwargs):
-        """Helper function to obtain a L{SAPNIStreamSocket}.
+        """Helper function to obtain a :class:`SAPNIStreamSocket`.
 
-        @param host: host to connect to
-        @type host: C{string}
+        :param host: host to connect to
+        :type host: C{string}
 
-        @param port: port to connect to
-        @type port: C{int}
+        :param port: port to connect to
+        :type port: ``int``
 
-        @keyword kwargs: arguments to pass to L{SAPNIStreamSocket} constructor
+        :keyword kwargs: arguments to pass to :class:`SAPNIStreamSocket` constructor
 
-        @return: connected socket
-        @rtype: L{SAPNIStreamSocket}
+        :return: connected socket
+        :rtype: :class:`SAPNIStreamSocket`
 
-        @raise socket.error: if the connection to the target host/port failed
+        :raise socket.error: if the connection to the target host/port failed
         """
         sock = socket.create_connection((host, port))
         return cls(sock, **kwargs)
@@ -185,7 +185,7 @@ class SAPNIStreamSocket(StreamSocket):
 class SAPNIProxy(object):
     """SAP NI Proxy
 
-    It works by setting a listener L{SAPNIStreamSocket} and dispatching client's
+    It works by setting a listener :class:`SAPNIStreamSocket` and dispatching client's
     requests to a given handler class.
 
     Example usage::
@@ -198,31 +198,31 @@ class SAPNIProxy(object):
         """Create the proxy binding a socket in the giving port and setting the
         handler for the incoming connections.
 
-        @param bind_address: address to bind the listener socket
-        @type bind_address: C{string}
+        :param bind_address: address to bind the listener socket
+        :type bind_address: C{string}
 
-        @param bind_port: port to bind the listener socket
-        @type bind_port: C{int}
+        :param bind_port: port to bind the listener socket
+        :type bind_port: ``int``
 
-        @param remote_address: remote address to connect to
-        @param remote_address: C{string}
+        :param remote_address: remote address to connect to
+        :param remote_address: C{string}
 
-        @param remote_port: remote port to connect to
-        @type remote_port: C{int}
+        :param remote_port: remote port to connect to
+        :type remote_port: ``int``
 
-        @param handler: handler class
-        @type handler: L{SAPNIProxyHandler} class
+        :param handler: handler class
+        :type handler: :class:`SAPNIProxyHandler` class
 
-        @param backlog: backlog parameter to set in the listener socket
-        @type backlog: C{int}
+        :param backlog: backlog parameter to set in the listener socket
+        :type backlog: ``int``
 
-        @param keep_alive:  if true, the proxy will handle the keep-alive
+        :param keep_alive:  if true, the proxy will handle the keep-alive
             requests and responses. Otherwise, keep-alive messages are passed
             to the handler as regular packets.
-        @type keep_alive: C{bool}
+        :type keep_alive: ``bool``
 
-        @param options: options to pass to the handler instance
-        @type options: C{dict}
+        :param options: options to pass to the handler instance
+        :type options: ``dict``
         """
         self.remote_host = (remote_address, remote_port)
         self.handler = handler
@@ -245,8 +245,8 @@ class SAPNIProxy(object):
         """Block until a connection is received from the listener and handle that
         client using the provided handler class.
 
-        @return: the handler instance handling the request
-        @rtype: L{SAPNIProxyHandler}
+        :return: the handler instance handling the request
+        :rtype: :class:`SAPNIProxyHandler`
         """
         # Accept a client connection
         (client, address) = self.listener.ins.accept()
@@ -276,17 +276,17 @@ class SAPNIProxyHandler(object):
     """
 
     def __init__(self, client, server, options=None):
-        """It receives two L{SAPNIStreamSocket}s objects and creates the worker
+        """It receives two :class:`SAPNIStreamSocket`s objects and creates the worker
         for processing data. Thread is started as daemon.
 
-        @param client: client Stream Socket
-        @type client: L{SAPNIStreamSocket}
+        :param client: client Stream Socket
+        :type client: :class:`SAPNIStreamSocket`
 
-        @param server: server Stream Socket
-        @type server: L{SAPNIStreamSocket}
+        :param server: server Stream Socket
+        :type server: :class:`SAPNIStreamSocket`
 
-        @param options: options received from the proxy
-        @type options: C{dict}
+        :param options: options received from the proxy
+        :type options: ``dict``
         """
         self.client = client
         self.server = server
@@ -300,14 +300,14 @@ class SAPNIProxyHandler(object):
         """Receives data from one socket connection, process it and send to the
         remote connection.
 
-        @param local: the local socket
-        @type local: L{SAPNIStreamSocket}
+        :param local: the local socket
+        :type local: :class:`SAPNIStreamSocket`
 
-        @param remote: the remote socket
-        @type remote: L{SAPNIStreamSocket}
+        :param remote: the remote socket
+        :type remote: :class:`SAPNIStreamSocket`
 
-        @param process: the function that process the incoming data
-        @type process: function
+        :param process: the function that process the incoming data
+        :type process: function
         """
         # Receive a SAP NI packet
         packet = local.recv()
@@ -340,21 +340,21 @@ class SAPNIProxyHandler(object):
 
     def process_client(self, packet):
         """This method is called each time a packet arrives from the client.
-        It must return a packet in the same layer (L{SAPNI}). Stub method
+        It must return a packet in the same layer (:class:`SAPNI`). Stub method
         to be overloaded in subclasses.
 
-        @param packet: the packet to be processed
-        @type packet: Packet
+        :param packet: the packet to be processed
+        :type packet: Packet
         """
         return packet
 
     def process_server(self, packet):
         """This method is called each time a packet arrives from the server.
-        It must return a packet in the same layer (L{SAPNI}). Stub method
+        It must return a packet in the same layer (:class:`SAPNI`). Stub method
         to be overloaded in subclasses.
 
-        @param packet: the packet to be processed
-        @type packet: Packet
+        :param packet: the packet to be processed
+        :type packet: Packet
         """
         return packet
 
@@ -383,12 +383,12 @@ class SAPNIServer(TCPServer):
     """
 
     clients_cls = SAPNIClient
-    """ @cvar: Client class for storing data about new clients
-        @type: L{SAPNIClient} class """
+    """ :cvar: Client class for storing data about new clients
+        :type: :class:`SAPNIClient` class """
 
     options = None
-    """ @ivar: Options to pass to the request handler
-        @type: C{object} """
+    """ :ivar: Options to pass to the request handler
+        :type: ``object`` """
 
     def __init__(self, server_address, RequestHandlerClass,
                  bind_and_activate=True, socket_cls=None, keep_alive=True,
@@ -405,7 +405,7 @@ class SAPNIServer(TCPServer):
         log_sapni.exception("SAPNIServer: Client connection error: %s", sys.exc_info()[1])
 
     def get_request(self):
-        """Wrap the socket object with a L{SAPNIStreamSocket} after accepting
+        """Wrap the socket object with a :class:`SAPNIStreamSocket` after accepting
         a connection.
         """
         socket, addr = self.socket.accept()
@@ -430,7 +430,7 @@ class SAPNIServerThreaded(ThreadingMixIn, SAPNIServer):
 class SAPNIServerHandler(BaseRequestHandler):
     """SAP NI Server Handler
 
-    Handles L{SAPNI} packets coming from a L{SAPNIServer}.
+    Handles :class:`SAPNI` packets coming from a :class:`SAPNIServer`.
     """
 
     def setup(self):
@@ -454,7 +454,7 @@ class SAPNIServerHandler(BaseRequestHandler):
 
     def handle(self):
         """Handle a client connection. The handler assumes the client connection
-        is a L{SAPNIStreamSocket} object. After received a L{SAPNI} packet, it
+        is a :class:`SAPNIStreamSocket` object. After received a :class:`SAPNI` packet, it
         stores it on the 'packet' instance variable and pass the control to the
         handle_data method.
         """
@@ -470,7 +470,7 @@ class SAPNIServerHandler(BaseRequestHandler):
             self.handle_data()
 
     def handle_data(self):
-        """Handle the data coming from the client. The L{SAPNI} packet is stored
+        """Handle the data coming from the client. The :class:`SAPNI` packet is stored
         on data and client information on client_address instance variables.
         Stub method to be overloaded in subclasses.
         """
