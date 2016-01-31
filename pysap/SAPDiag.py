@@ -26,14 +26,14 @@ from scapy.packet import Packet, bind_layers
 from scapy.fields import (ByteEnumField, IntField, ByteField, LenField,
                           StrFixedLenField, ConditionalField, FieldLenField,
                           PacketListField, BitField, LEIntField, PacketField,
-                          SignedIntField, StrField)
+                          SignedIntField, StrField, SignedShortField,
+                          ByteEnumKeysField)
 # Custom imports
 import pysapcompress
 from pysap.SAPNI import SAPNI
 from pysap.SAPSNC import SAPSNCFrame
-from pysap.utils import (PacketNoPadded, ByteEnumKeysField,
-                         ByteMultiEnumKeysField, MutablePacketField,
-                         SignedShortField, StrNullFixedLenField,
+from pysap.utils import (PacketNoPadded, ByteMultiEnumKeysField,
+                         MutablePacketField, StrNullFixedLenField,
                          StrEncodedPaddedField)
 from pysapcompress import DecompressError, CompressError
 
@@ -57,9 +57,10 @@ class SAPDiagDP(Packet):
         SignedIntField("wp_id", -1),
         SignedIntField("wp_ca_blk", -1),
         SignedIntField("appc_ca_blk", -1),
-        LenField("length", None, fmt="<I"),  # The length in the DP Header is the length of the Diag Header (8 bytes) + the Diag Message
-                                             # (54 bytes for user_connect+support_data). As the DP Header is the layer after NI during
-                                             # initialization, a LenField works fine.
+        LenField("length", None, fmt="<I"),  # The length in the DP Header is the length of the Diag Header (8 bytes)
+                                             # plus the Diag Message (54 bytes for user_connect+support_data). As the
+                                             # DP Header is the layer after NI during initialization, a LenField works
+                                             # fine.
         ByteField("new_stat", 0),
         SignedIntField("unused1", -1),
         SignedShortField("rq_id", -1),
@@ -382,6 +383,9 @@ def bind_diagitem(item_class, item_type, item_id=None, item_sid=None):
     :param item_class: item class to associate
     :type item_class: :class:`SAPDiagItem` class
 
+    :param item_type: item type to associate
+    :type item_type: ``int`` or ``string``
+
     :param item_id: item ID to associate
     :type item_id: ``int``
 
@@ -515,7 +519,7 @@ class SAPDiag(PacketNoPadded):
 
         :raise pysapcompress.Error: when a compression error is raised
         """
-        if (len(s) > 0):
+        if len(s) > 0:
             # Compress the payload and return the output
             (_, _, outbuffer) = pysapcompress.compress(s, pysapcompress.ALG_LZH)
             return outbuffer
@@ -534,7 +538,7 @@ class SAPDiag(PacketNoPadded):
 
         :raise pysapcompress.Error: when a decompression error is raised
         """
-        if (len(s) > 0):
+        if len(s) > 0:
             # Decompress the payload and return the output
             (_, _, outbuffer) = pysapcompress.decompress(s, length)
             return outbuffer
@@ -564,7 +568,7 @@ class SAPDiag(PacketNoPadded):
             pay = ''
         if self.compress == 1:
             payload = "".join([str(item) for item in self.message]) + pay
-            if (len(payload) > 0):
+            if len(payload) > 0:
                 try:
                     return p[:8] + self.do_compress(payload)
                 except CompressError:

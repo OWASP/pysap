@@ -125,9 +125,9 @@ class SAPNIStreamSocket(StreamSocket):
 
         # Receive the whole NI packet (length+payload)
         nidata = ''
-        while(len(nidata) < nilength + 4):
+        while len(nidata) < nilength + 4:
             nidata += self.ins.recv(nilength - len(nidata) + 4)
-            if (len(nidata) == 0):
+            if len(nidata) == 0:
                 raise socket.error((100, "Underlying stream socket tore down"))
 
         # If the packet received is a keep-alive request (NI_PING), send a

@@ -17,17 +17,19 @@
 # GNU General Public License for more details.
 # ==============
 
-# External imports
+# Standard imports
 import struct
 import logging
+# External imports
 from scapy.layers.inet import TCP
 from scapy.packet import bind_layers
 from scapy.fields import (IntField, IntEnumField, PacketListField,
                           StrFixedLenField, ConditionalField, ByteField,
-                          FieldLenField, LenField, StrNullField)
+                          FieldLenField, LenField, StrNullField,
+                          ByteEnumKeysField)
 # Custom imports
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
-from pysap.utils import ByteEnumKeysField, PacketNoPadded, StrNullFixedLenField
+from pysap.utils import PacketNoPadded, StrNullFixedLenField
 
 
 # Create a logger for the SAEnqueue layer
@@ -245,7 +247,7 @@ class SAPEnqueueStreamSocket(SAPNIStreamSocket):
             total_length = packet[SAPEnqueue].len - 20
             recvd_length = len(packet[SAPEnqueue]) - 20
             log_sapenqueue.debug("Received %d up to %d bytes", recvd_length, total_length)
-            while (recvd_length < total_length and packet[SAPEnqueue].more_frags == 1):
+            while recvd_length < total_length and packet[SAPEnqueue].more_frags == 1:
                 response = SAPNIStreamSocket.recv(self)[SAPEnqueue]
                 data += str(response)[20:]
                 recvd_length += len(response) - 20

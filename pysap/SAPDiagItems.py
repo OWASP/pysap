@@ -25,10 +25,11 @@ from scapy.packet import Packet
 from scapy.fields import (IntField, BitField, ShortField, ByteField,
                           ConditionalField, StrLenField, StrField,
                           StrNullField, FieldLenField, PacketListField,
-                          FieldListField)
+                          FieldListField, ByteEnumKeysField,
+                          ShortEnumKeysField)
 # Custom imports
+from pysap.utils import PacketNoPadded
 from pysap.SAPDiag import bind_diagitem, SAPDiagItem
-from pysap.utils import PacketNoPadded, ByteEnumKeysField, ShortEnumKeysField
 
 
 # Diag User connect item

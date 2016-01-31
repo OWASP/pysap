@@ -75,7 +75,7 @@ class DiagParser(object):
         streams = {}
         for key, value in list(self.packets_metadata.items()):
             value.sort()
-            value = list(value for value, __ in itertools.groupby(value))
+            value = list(value for value, _ in itertools.groupby(value))
             streams[key] = ''
             for pkts in sorted(value):
                 streams[key] += pkts[1]
@@ -84,7 +84,7 @@ class DiagParser(object):
         packets = {}
         for key, stream in list(streams.items()):
             packets[key] = []
-            while len(stream) > 0:
+            while stream:
                 length = unpack("!I", stream[:4])[0]
                 packets[key].append(SAPNI(stream[:length + 4]))
                 stream = stream[length + 4:]
@@ -100,18 +100,24 @@ class DiagParser(object):
         if SAPDiag in pkt and pkt[SAPDiag].message:
             atoms = pkt[SAPDiag].get_item(["APPL", "APPL4"], "DYNT", "DYNT_ATOM")
             # Print the Atom items information
-            if len(atoms) > 0:
+            if atoms:
                 print("[*] Input fields:")
                 for atom in [atom for atom_item in atoms for atom in atom_item.item_value.items]:
                     if atom.etype in [121, 122, 123, 130, 131, 132]:
                         text = atom.field1_text or atom.field2_text
                         text = text.strip()
+                        if "@\Q" in text:
+                            parts = text.split("@")
+                            try:
+                                text = "%s (hint: %s)" % (parts[2], parts[1])
+                            except IndexError:
+                                pass
                         if atom.attr_DIAG_BSD_INVISIBLE and len(text) > 0:
                             # If the invisible flag was set, we're probably
                             # dealing with a password field
-                            print("[*]\tPassword field:\t%s" % (text))
+                            print("[*]\tPassword field:\t%s" % text)
                         else:
-                            print("[*]\tRegular field:\t%s" % (text))
+                            print("[*]\tRegular field:\t%s" % text)
 
 
 # Command line options parser

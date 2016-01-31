@@ -21,11 +21,11 @@
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
 from scapy.fields import (ByteField, ConditionalField, IPField, IntField,
-                          StrFixedLenField)
+                          StrFixedLenField, SignedShortField,
+                          ByteEnumKeysField)
 # Custom imports
 from pysap.SAPNI import SAPNI
-from pysap.utils import (SignedShortField, ByteEnumKeysField,
-                         StrFixedLenPaddedField)
+from pysap.utils import StrFixedLenPaddedField
 from scapy.layers.inet6 import IP6Field
 
 

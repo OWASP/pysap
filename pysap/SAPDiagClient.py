@@ -107,12 +107,12 @@ class SAPDiagConnection(object):
     def get_terminal_name(self):
         """Generates a random IP address to use as a terminal name. In SAP
         systems that don't implement SAP Note 1497445, the dispatcher registers
-        logs the terminal name as provided by the client, or fallbacks to
+        logs the terminal name as provided by the client, or fallback to
         registering the IP address if the terminal name can't be resolved.
         Using a random IP address as terminal name in unpatched systems will
         make the 'terminal' field of the security audit log unreliable.
         """
-        return '.'.join('%s' % randint(0, 255) for __ in range(4))
+        return '.'.join('%s' % randint(0, 255) for _ in range(4))
 
     def get_support_data_item(self, support_data):
         if isinstance(support_data, str):
@@ -236,7 +236,7 @@ class SAPDiagConnection(object):
         :rtype: :class:`SAPNI<SAPNI.SAPNI>`
         """
         if self.initialized:
-            self.step = self.step + 1
+            self.step += 1
             message.insert(0, SAPDiagItem(item_type="APPL", item_id="ST_USER",
                                           item_sid=0x26,
                                           item_value=SAPDiagStep(step=self.step)))

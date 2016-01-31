@@ -169,7 +169,7 @@ def render_diag_screen(screen, verbose):
 
     def get_item_value(screen, item_type, item_id, item_sid, i=0):
         item = screen.get_item(item_type, item_id, item_sid)
-        if (len(item) > 0):
+        if item:
             return item[i].item_value
         else:
             return []
@@ -198,7 +198,7 @@ def render_diag_screen(screen, verbose):
 
     # Render the atoms (control boxes and labels)
     atoms = screen.get_item(["APPL", "APPL4"], "DYNT", "DYNT_ATOM")
-    if atoms and len(atoms) > 0:
+    if atoms:
         for atom_item in [atom for atom_item in atoms for atom in atom_item.item_value.items]:
             if atom_item.etype in [121, 123]:
                 text = atom_item.field1_text
@@ -228,28 +228,28 @@ def render_diag_screen(screen, verbose):
                 print "[*] Found label without text"
 
     # Render the menus
-    if len(menus) > 0:
+    if menus:
         for menu in menus.entries:
             if verbose:
                 print "[*] Found menu item: \"%s\"" % menu.text
             login_frame.add_menu(menu.position_1, menu.text)
 
         # Render the submenus
-        if len(menudetails) > 0:
+        if menudetails:
             for menu in menudetails.entries:
                 if verbose:
                     print "[*] Found child menu item: \"%s\", pos %d, %d, %d, %d" % (menu.text, menu.position_1, menu.position_2, menu.position_3, menu.position_4)
                 login_frame.add_child_menu(menu.text, menu.position_1, menu.position_2, menu.position_3, menu.position_4, menu.flag_TERM_SEL, menu.flag_TERM_MEN, menu.flag_TERM_SEP)
 
     # Render the buttonbar
-    if len(buttonbars) > 0:
+    if buttonbars:
         for button in buttonbars.entries:
             if verbose:
                 print "[*] Found button item: \"%s\"" % button.text
             login_frame.add_button(button.text)
 
     # Render the toolbar
-    if len(toolbars) > 0:
+    if toolbars:
         for toolbar in toolbars.entries:
             if verbose:
                 print "[*] Found toolbar item: \"%s\"" % toolbar.text

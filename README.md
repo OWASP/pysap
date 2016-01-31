@@ -14,13 +14,13 @@ Version 0.1.9.dev0 (XXX 2016)
 Overview
 --------
 
-[SAP Netweaver](http://www.sap.com/platform/netweaver/index.epx) is a 
+[SAP Netweaver](https://www.sap.com/platform/netweaver/index.epx) is a 
 technology platform for building and integrating SAP business applications.
 Communication between components uses different network protocols. While
 some of them are standard and well-known protocols, others are proprietaries
 and public information is not available.
 
-[pysap](http://www.coresecurity.com/corelabs-research/open-source-tools/pysap)
+[pysap](https://www.coresecurity.com/corelabs-research/open-source-tools/pysap)
 is a Python library that provides modules for crafting and sending packets
 using SAP's NI, Message Server, Router, RFC, SNC, Enqueue and Diag protocols.
 The modules are build on top of [Scapy](http://www.secdev.org/projects/scapy/)
@@ -60,7 +60,7 @@ To install pysap simply run:
 Documentation
 -------------
 
-Documentation is available at [http://pythonhosted.org/pysap/](http://pythonhosted.org/pysap/).
+Documentation is available at [pythonhosted.org](https://pythonhosted.org/pysap/).
 
 
 License
