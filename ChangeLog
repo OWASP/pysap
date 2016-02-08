@@ -1,3 +1,15 @@
+2016-02-08 Martin Gallo <mgallo@coresecurity.com>
+
+	* - Version v0.1.9 released.
+	* - Using Scapy version 2.3.2.
+	* - Replaced epydoc with Sphinx for documentation.
+	* - Minor enhancement and code arrangements.
+    * pysap/SAPDiagItems.py: Added new support bits from SAP GUI 7.30p9 and 7.40
+    versions.
+    * pysap/utils.py: Removed custom fields now available on Scapy.
+	* examples/router_fingerprints.json: Added some fingerprints from SAP Router
+	releases 720.32 and 742.
+
 2015-10-29 Martin Gallo <mgallo@coresecurity.com>
 
 	* - Version v0.1.8 released.
