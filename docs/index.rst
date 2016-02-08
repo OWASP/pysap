@@ -8,6 +8,10 @@ pysap - Python library for crafting SAP's network protocols packets
 
 Version v\ |release| (:ref:`installation`)
 
+
+Overview
+--------
+
 `SAP Netweaver <https://www.sap.com/platform/netweaver/index.epx>`_ is a
 technology platform for building and integrating SAP business applications.
 Communication between components uses different network protocols. While some
@@ -21,6 +25,27 @@ modules are based on `Scapy <http://www.secdev.org/projects/scapy/>`_ and are
 based on information acquired at researching the different protocols and services.
 
 
+Features
+--------
+
+* Dissection and crafting of the following network protocols:
+
+    * SAP Network Interface (NI)
+    * SAP Diag
+    * SAP Enqueue
+    * SAP Router
+    * SAP Message Server (MS)
+    * SAP SNC
+
+* Library implementing SAP's LZH and LZC compression algorithms.
+
+* Automatic compression/decompression of payloads with SAP's algorithms.
+
+* Client, proxy and server classes implemented for some of the protocols.
+
+* Example scripts to illustrate the use of the different modules and protocols.
+
+
 Content
 =======
 
@@ -29,9 +54,9 @@ Content
 
    user/user
    api/api
+   dev/dev
 
 .. examples/examples
-.. dev/dev
 
 
 Indices and tables
