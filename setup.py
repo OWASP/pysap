@@ -92,6 +92,6 @@ setup(name=pysap.__title__,   # Package information
       install_requires=open('requirements.txt').read().splitlines(),
 
       # Optional requirements for docs and some examples
-      extras_require={"docs": "Sphinx==1.2.3",
+      extras_require={"docs": "Sphinx==1.3.5",
                       "examples": open('requirements-optional.txt').read().splitlines()},
       )
