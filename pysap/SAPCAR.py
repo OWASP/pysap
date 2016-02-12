@@ -133,7 +133,7 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
         LEIntField("unknown2", 0),
         LEIntField("timestamp", 0),
         StrFixedLenField("unknown3", None, 10),
-        FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
+        FieldLenField("filename_length", None, length_of="filename", fmt="<H", adjust=lambda x: x + 1),
         StrNullFixedLenField("filename", None, length_from=lambda x: x.filename_length - 1),
         ConditionalField(ByteField("unknown4", 0), lambda x: x.type == "RG"),
         ConditionalField(ByteField("unknown5", 0), lambda x: x.type == "RG"),
