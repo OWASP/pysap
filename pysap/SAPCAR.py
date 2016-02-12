@@ -20,6 +20,7 @@
 # Standard imports
 import stat
 from zlib import crc32
+from struct import pack
 from datetime import datetime
 from os import stat as os_stat
 from cStringIO import StringIO
@@ -27,7 +28,7 @@ from cStringIO import StringIO
 from scapy.packet import Packet
 from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
                           PacketField, StrFixedLenField, PacketListField,
-                          ConditionalField)
+                          ConditionalField, LESignedIntField)
 # Custom imports
 from pysap.utils import (PacketNoPadded, StrNullFixedLenField)
 from pysapcompress import decompress, compress, ALG_LZH, CompressError
@@ -101,20 +102,19 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
     name = "SAP CAR Archive File"
 
     fields_desc = [
-        StrFixedLenField("type", None, 1),
-        StrFixedLenField("unknown0", None, 1),
+        StrFixedLenField("type", "RG", 2),
         LEIntField("perm_mode", 0),
         LEIntField("file_length", 0),
+        LEIntField("unknown1", 0),
         LEIntField("unknown2", 0),
-        LEIntField("unknown3", 0),
         LEIntField("timestamp", 0),
-        StrFixedLenField("unknown4", None, 10),
+        StrFixedLenField("unknown3", None, 10),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrFixedLenField("filename", None, length_from=lambda x: x.filename_length),
-        ConditionalField(ByteField("unknown5", 0), lambda x: x.type == "R"),
-        ConditionalField(ByteField("unknown6", 0), lambda x: x.type == "R"),
-        ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == "R"),
-        ConditionalField(LEIntField("checksum", 0), lambda x: x.type == "R"),
+        ConditionalField(ByteField("unknown4", 0), lambda x: x.type == "RG"),
+        ConditionalField(ByteField("unknown5", 0), lambda x: x.type == "RG"),
+        ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == "RG"),
+        ConditionalField(LEIntField("checksum", 0), lambda x: x.type == "RG"),
     ]
 
 
@@ -126,20 +126,19 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
     name = "SAP CAR Archive File"
 
     fields_desc = [
-        StrFixedLenField("type", None, 1),
-        StrFixedLenField("unknown0", None, 1),
+        StrFixedLenField("type", "RG", 2),
         LEIntField("perm_mode", 0),
         LEIntField("file_length", 0),
+        LEIntField("unknown1", 0),
         LEIntField("unknown2", 0),
-        LEIntField("unknown3", 0),
         LEIntField("timestamp", 0),
-        StrFixedLenField("unknown4", None, 10),
+        StrFixedLenField("unknown3", None, 10),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrNullFixedLenField("filename", None, length_from=lambda x: x.filename_length - 1),
-        ConditionalField(ByteField("unknown5", 0), lambda x: x.type == "R"),
-        ConditionalField(ByteField("unknown6", 0), lambda x: x.type == "R"),
-        ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == "R"),
-        ConditionalField(LEIntField("checksum", 0), lambda x: x.type == "R"),
+        ConditionalField(ByteField("unknown4", 0), lambda x: x.type == "RG"),
+        ConditionalField(ByteField("unknown5", 0), lambda x: x.type == "RG"),
+        ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == "RG"),
+        ConditionalField(LESignedIntField("checksum", 0), lambda x: x.type == "RG"),
     ]
 
 
@@ -184,6 +183,10 @@ class SAPCARArchiveFile(object):
         """
         return self._file_format.filename
 
+    @filename.setter
+    def filename(self, filename):
+        self._file_format.filename = filename
+
     @property
     def size(self):
         """The size of the file.
@@ -192,6 +195,10 @@ class SAPCARArchiveFile(object):
         :rtype: int
         """
         return self._file_format.file_length
+
+    @size.setter
+    def size(self, file_length):
+        self._file_format.file_length = file_length
 
     @property
     def permissions(self):
@@ -202,6 +209,10 @@ class SAPCARArchiveFile(object):
         """
         return filemode(self._file_format.perm_mode)
 
+    @permissions.setter
+    def permissions(self, perm_mode):
+        self._file_format.perm_mode = perm_mode
+
     @property
     def timestamp(self):
         """The timestamp of the file.
@@ -211,6 +222,10 @@ class SAPCARArchiveFile(object):
         """
         return datetime.fromtimestamp(self._file_format.timestamp).strftime('%d %b %Y %H:%M')
 
+    @timestamp.setter
+    def timestamp(self, timestamp):
+        self._file_format.timestamp = timestamp
+
     @property
     def checksum(self):
         """The checksum of the file.
@@ -219,6 +234,10 @@ class SAPCARArchiveFile(object):
         :rtype: int
         """
         return self._file_format.checksum
+
+    @checksum.setter
+    def checksum(self, checksum):
+        self._file_format.checksum = checksum
 
     @classmethod
     def calculate_checksum(cls, data):
@@ -230,6 +249,12 @@ class SAPCARArchiveFile(object):
     def from_file(cls, filename, version="2.0"):
         """Populates the file format object from an actual file on the
         local file system.
+
+        :param filename: filename to build the file format object from
+        :type filename: string
+
+        :param version: version of the file to construct
+        :type version: string
         """
 
         stat = os_stat(filename)
@@ -237,9 +262,11 @@ class SAPCARArchiveFile(object):
             data = fd.read()
 
         try:
-            (_, _, outbuffer) = compress(data, ALG_LZH)
+            (_, _, out_buffer) = compress(data, ALG_LZH)
         except CompressError:
             return None
+
+        out_buffer = pack("<I", len(out_buffer)) + out_buffer
 
         if version == "2.0":
             ff = SAPCARArchiveFilev200Format
@@ -250,9 +277,10 @@ class SAPCARArchiveFile(object):
         archive_file._file_format = ff()
         archive_file._file_format.perm_mode = stat.st_mode
         archive_file._file_format.timestamp = stat.st_atime
+        archive_file._file_format.file_length = stat.st_size
         archive_file._file_format.filename = filename
         archive_file._file_format.filename_length = len(filename)
-        archive_file._file_format.compressed = SAPCARCompressedFileFormat(outbuffer)
+        archive_file._file_format.compressed = SAPCARCompressedFileFormat(out_buffer)
         archive_file._file_format.checksum = cls.calculate_checksum(data)
         return archive_file
 
@@ -264,8 +292,8 @@ class SAPCARArchiveFile(object):
         :rtype: file
         """
         compressed = self._file_format.compressed
-        (_, _, outbuffer) = decompress(str(compressed)[4:], compressed.uncompress_length)
-        return StringIO(outbuffer)
+        (_, _, out_buffer) = decompress(str(compressed)[4:], compressed.uncompress_length)
+        return StringIO(out_buffer)
 
     def check_checksum(self):
         """Checks if the checksum of the file is valid.
@@ -362,7 +390,9 @@ class SAPCARArchive(object):
     def write(self):
         """Writes the SAP CAR archive file to the file descriptor.
         """
+        self.fd.seek(0)
         self.fd.write(str(self._sapcar))
+        self.fd.flush()
 
     def add_file(self, filename):
         """Adds a new file to the SAP CAR archive file.
