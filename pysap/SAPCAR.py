@@ -133,7 +133,7 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
         LEIntField("unknown2", 0),
         LEIntField("timestamp", 0),
         StrFixedLenField("unknown3", None, 10),
-        FieldLenField("filename_length", None, length_of="filename", fmt="<H", adjust=lambda x: x + 1),
+        FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrNullFixedLenField("filename", None, length_from=lambda x: x.filename_length - 1),
         ConditionalField(ByteField("unknown4", 0), lambda x: x.type == "RG"),
         ConditionalField(ByteField("unknown5", 0), lambda x: x.type == "RG"),
@@ -268,7 +268,7 @@ class SAPCARArchiveFile(object):
 
         out_buffer = pack("<I", len(out_buffer)) + out_buffer
 
-        if version == "2.0":
+        if version == "2.00":
             ff = SAPCARArchiveFilev200Format
         else:
             ff = SAPCARArchiveFilev201Format
@@ -280,6 +280,8 @@ class SAPCARArchiveFile(object):
         archive_file._file_format.file_length = stat.st_size
         archive_file._file_format.filename = filename
         archive_file._file_format.filename_length = len(filename)
+        if ff == SAPCARArchiveFilev201Format:
+            archive_file._file_format.filename_length += 1
         archive_file._file_format.compressed = SAPCARCompressedFileFormat(out_buffer)
         archive_file._file_format.checksum = cls.calculate_checksum(data)
         return archive_file
@@ -317,11 +319,17 @@ class SAPCARArchive(object):
     _files = None
     _sapcar = None
 
-    def __init__(self, fil, mode="r"):
+    def __init__(self, fil, mode="r", version="2.01"):
         """Opens an archive file and allow access to it.
 
         :param fil: filename or file descriptor to open
         :type fil: string or file
+
+        :param mode: mode to open the file
+        :type mode: string
+
+        :param version: archive file version to use when creating
+        :type version: string
         """
         if isinstance(fil, (basestring, unicode)):
             self.filename = fil
@@ -334,6 +342,7 @@ class SAPCARArchive(object):
             self.read()
         else:
             self.create()
+            self.version = version
 
     @property
     def files(self):
@@ -365,6 +374,10 @@ class SAPCARArchive(object):
         :rtype: string
         """
         return self._sapcar.version
+
+    @version.setter
+    def version(self, version):
+        self._sapcar.version = version
 
     def read(self):
         """Reads the SAP CAR archive file and populates the files list.
