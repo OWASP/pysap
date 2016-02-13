@@ -99,7 +99,7 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
 
     This is ued to parse files inside a SAP CAR archive.
     """
-    name = "SAP CAR Archive File"
+    name = "SAP CAR Archive File 2.00"
 
     fields_desc = [
         StrFixedLenField("type", "RG", 2),
@@ -123,7 +123,7 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
 
     This is ued to parse files inside a SAP CAR archive.
     """
-    name = "SAP CAR Archive File"
+    name = "SAP CAR Archive File 2.01"
 
     fields_desc = [
         StrFixedLenField("type", "RG", 2),

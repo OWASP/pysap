@@ -21,6 +21,7 @@
 import unittest
 # Custom imports
 from tests import sapni_test
+from tests import sapcar_test
 from tests import sapdiag_test
 from tests import saprouter_test
 from tests import pysapcompress_test
@@ -29,6 +30,7 @@ from tests import pysapcompress_test
 def suite():
     suite = unittest.TestSuite()
     suite.addTests(sapni_test.suite())
+    suite.addTests(sapcar_test.suite())
     suite.addTests(sapdiag_test.suite())
     suite.addTests(saprouter_test.suite())
     suite.addTests(pysapcompress_test.suite())
