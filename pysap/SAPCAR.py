@@ -31,7 +31,7 @@ from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
                           ConditionalField, LESignedIntField)
 # Custom imports
 from pysap.utils import (PacketNoPadded, StrNullFixedLenField)
-from pysapcompress import decompress, compress, ALG_LZH, CompressError
+from pysapcompress import (decompress, compress, ALG_LZH, CompressError)
 
 
 # Filemode code obtained from Python 3 stat.py
@@ -114,7 +114,7 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
         ConditionalField(ByteField("unknown4", 0), lambda x: x.type == "RG"),
         ConditionalField(ByteField("unknown5", 0), lambda x: x.type == "RG"),
         ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == "RG"),
-        ConditionalField(LEIntField("checksum", 0), lambda x: x.type == "RG"),
+        ConditionalField(LESignedIntField("checksum", 0), lambda x: x.type == "RG"),
     ]
 
 
@@ -140,6 +140,13 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
         ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == "RG"),
         ConditionalField(LESignedIntField("checksum", 0), lambda x: x.type == "RG"),
     ]
+
+
+sapcar_archive_file_versions = {
+    "2.00": SAPCARArchiveFilev200Format,
+    "2.01": SAPCARArchiveFilev201Format,
+}
+"""SAP CAR file format versions"""
 
 
 class SAPCARArchiveFormat(Packet):
@@ -268,10 +275,9 @@ class SAPCARArchiveFile(object):
 
         out_buffer = pack("<I", len(out_buffer)) + out_buffer
 
-        if version == "2.00":
-            ff = SAPCARArchiveFilev200Format
-        else:
-            ff = SAPCARArchiveFilev201Format
+        if version not in sapcar_archive_file_versions:
+            raise ValueError("Invalid version")
+        ff = sapcar_archive_file_versions[version]
 
         archive_file = cls()
         archive_file._file_format = ff()
@@ -285,6 +291,33 @@ class SAPCARArchiveFile(object):
         archive_file._file_format.compressed = SAPCARCompressedFileFormat(out_buffer)
         archive_file._file_format.checksum = cls.calculate_checksum(data)
         return archive_file
+
+    @classmethod
+    def from_archive_file(cls, archive_file, version="2.01"):
+        """Populates the file format object from another archive file object.
+
+        :param archive_file: archive file object to build the file format object from
+        :type archive_file: L{SAPCARArchiveFile}
+
+        :param version: version of the file to construct
+        :type version: string
+        """
+
+        if version not in sapcar_archive_file_versions:
+            raise ValueError("Invalid version")
+        ff = sapcar_archive_file_versions[version]
+
+        new_archive_file = cls()
+        new_archive_file._file_format = ff()
+        new_archive_file._file_format.type = archive_file._file_format.type
+        new_archive_file._file_format.perm_mode = archive_file._file_format.perm_mode
+        new_archive_file._file_format.timestamp = archive_file._file_format.timestamp
+        new_archive_file._file_format.file_length = archive_file._file_format.file_length
+        new_archive_file._file_format.filename = archive_file._file_format.filename
+        new_archive_file._file_format.filename_length = archive_file._file_format.filename_length
+        new_archive_file._file_format.compressed = archive_file._file_format.compressed
+        new_archive_file._file_format.checksum = archive_file._file_format.checksum
+        return new_archive_file
 
     def open(self):
         """Opens the compressed file and returns a file-like object that
@@ -331,6 +364,10 @@ class SAPCARArchive(object):
         :param version: archive file version to use when creating
         :type version: string
         """
+
+        if version not in sapcar_archive_file_versions:
+            raise ValueError("Invalid version")
+
         if isinstance(fil, (basestring, unicode)):
             self.filename = fil
             self.fd = open(fil, mode)
@@ -377,6 +414,8 @@ class SAPCARArchive(object):
 
     @version.setter
     def version(self, version):
+        if version not in sapcar_archive_file_versions:
+            raise ValueError("Invalid version")
         self._sapcar.version = version
 
     def read(self):

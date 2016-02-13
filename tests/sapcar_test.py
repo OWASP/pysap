@@ -23,7 +23,7 @@ from os.path import basename
 # External imports
 # Custom imports
 from tests.utils import data_filename
-from pysap.SAPCAR import SAPCARArchive
+from pysap.SAPCAR import SAPCARArchive, SAPCARArchiveFile
 
 
 class PySAPCARTest(unittest.TestCase):
@@ -63,6 +63,15 @@ class PySAPCARTest(unittest.TestCase):
             self.assertEqual(self.test_string, af.read())
             af.close()
 
+    def test_sapcar_archive(self):
+        """Test some basic construction of a SAP CAR archive"""
+
+        try:
+            ar = SAPCARArchive("somefile", "w", version="2.02")
+            self.fail("Do not raise invalid version")
+        except ValueError:
+            pass
+
     def test_sapcar_archive_200(self):
         """Test SAP CAR archive file version 200"""
 
@@ -72,6 +81,20 @@ class PySAPCARTest(unittest.TestCase):
         """Test SAP CAR archive file version 201"""
 
         self.check_sapcar_archive("car201_test_string.sar", "2.01")
+
+    def test_sapcar_archive_file_200_to_201(self):
+        """Test SAP CAR archive file object"""
+
+        with open(data_filename("car200_test_string.sar")) as fd200:
+            ar200 = SAPCARArchive(fd200, mode="r")
+            ff200 = ar200.files[self.test_filename]
+            ff201 = SAPCARArchiveFile.from_archive_file(ff200, "2.01")
+
+            self.assertEqual(ff200.size, ff201.size)
+            self.assertEqual(ff200.filename, ff201.filename)
+            self.assertEqual(ff200.timestamp, ff201.timestamp)
+            self.assertEqual(ff200.permissions, ff201.permissions)
+            self.assertEqual(ff200.checksum, ff201.checksum)
 
 
 def suite():
