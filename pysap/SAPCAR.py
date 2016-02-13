@@ -416,11 +416,13 @@ class SAPCARArchive(object):
     def version(self, version):
         if version not in sapcar_archive_file_versions:
             raise ValueError("Invalid version")
+        # TODO: Must be sure current files are on the same version, or otherwise convert them
         self._sapcar.version = version
 
     def read(self):
         """Reads the SAP CAR archive file and populates the files list.
         """
+        self.fd.seek(0)
         self._sapcar = SAPCARArchiveFormat(self.fd.read())
 
     @property
