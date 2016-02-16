@@ -74,17 +74,17 @@ class PySAPCARTest(unittest.TestCase):
             pass
 
     def test_sapcar_archive_200(self):
-        """Test SAP CAR archive file version 200"""
+        """Test SAP CAR archive file version 2.00"""
 
         self.check_sapcar_archive("car200_test_string.sar", SAPCAR_VERSION_200)
 
     def test_sapcar_archive_201(self):
-        """Test SAP CAR archive file version 201"""
+        """Test SAP CAR archive file version 2.01"""
 
         self.check_sapcar_archive("car201_test_string.sar", SAPCAR_VERSION_201)
 
     def test_sapcar_archive_file_200_to_201(self):
-        """Test SAP CAR archive file object"""
+        """Test SAP CAR archive file object conversion from 2.00 to 2.01"""
 
         with open(data_filename("car200_test_string.sar")) as fd200:
             ar200 = SAPCARArchive(fd200, mode="r")
@@ -96,6 +96,50 @@ class PySAPCARTest(unittest.TestCase):
             self.assertEqual(ff200.timestamp, ff201.timestamp)
             self.assertEqual(ff200.permissions, ff201.permissions)
             self.assertEqual(ff200.checksum, ff201.checksum)
+
+            af = ff201.open()
+            self.assertEqual(self.test_string, af.read())
+            af.close()
+
+    def test_sapcar_archive_200_to_201(self):
+        """Test SAP CAR archive object conversion from 2.00 to 2.01"""
+
+        with open(data_filename("car200_test_string.sar")) as fd:
+            ar = SAPCARArchive(fd, mode="r")
+            ff200 = ar.files[self.test_filename]
+
+            ar.version = SAPCAR_VERSION_201
+            ff201 = ar.files[self.test_filename]
+
+            self.assertEqual(ff200.size, ff201.size)
+            self.assertEqual(ff200.filename, ff201.filename)
+            self.assertEqual(ff200.timestamp, ff201.timestamp)
+            self.assertEqual(ff200.permissions, ff201.permissions)
+            self.assertEqual(ff200.checksum, ff201.checksum)
+
+            af = ff201.open()
+            self.assertEqual(self.test_string, af.read())
+            af.close()
+
+    def test_sapcar_archive_201_to_200(self):
+        """Test SAP CAR archive object conversion from 2.01 to 2.00"""
+
+        with open(data_filename("car201_test_string.sar")) as fd:
+            ar = SAPCARArchive(fd, mode="r")
+            ff201 = ar.files[self.test_filename]
+
+            ar.version = SAPCAR_VERSION_200
+            ff200 = ar.files[self.test_filename]
+
+            self.assertEqual(ff200.size, ff201.size)
+            self.assertEqual(ff200.filename, ff201.filename)
+            self.assertEqual(ff200.timestamp, ff201.timestamp)
+            self.assertEqual(ff200.permissions, ff201.permissions)
+            self.assertEqual(ff200.checksum, ff201.checksum)
+
+            af = ff200.open()
+            self.assertEqual(self.test_string, af.read())
+            af.close()
 
 
 def suite():

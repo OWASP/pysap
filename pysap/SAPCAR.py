@@ -422,8 +422,17 @@ class SAPCARArchive(object):
     def version(self, version):
         if version not in sapcar_archive_file_versions:
             raise ValueError("Invalid version")
-        # TODO: Must be sure current files are on the same version, or otherwise convert them
-        self._sapcar.version = version
+        # If version is different, we should convert each file
+        if version != self._sapcar.version:
+            fils = []
+            for fil in self.files.values():
+                new_file = SAPCARArchiveFile.from_archive_file(fil, version=version)
+                fils.append(new_file._file_format)
+                self._files.remove(fil._file_format)
+            self._sapcar.version = version
+            if self._files is None:
+                self._files = []
+            self._files.extend(fils)
 
     def read(self):
         """Reads the SAP CAR archive file and populates the files list.
@@ -441,6 +450,13 @@ class SAPCARArchive(object):
             return self._sapcar.files0
         else:
             return self._sapcar.files1
+
+    @_files.setter
+    def _files(self, files):
+        if self.version == SAPCAR_VERSION_200:
+            self._sapcar.files0 = files
+        else:
+            self._sapcar.files1 = files
 
     def create(self):
         """Creates the structure for holding a new SAP CAR archive file.
