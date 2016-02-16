@@ -142,9 +142,15 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
     ]
 
 
+SAPCAR_VERSION_200 = "2.00"
+"""SAP CAR file format version 2.00 string"""
+
+SAPCAR_VERSION_201 = "2.01"
+"""SAP CAR file format version 2.01 string"""
+
 sapcar_archive_file_versions = {
-    "2.00": SAPCARArchiveFilev200Format,
-    "2.01": SAPCARArchiveFilev201Format,
+    SAPCAR_VERSION_200: SAPCARArchiveFilev200Format,
+    SAPCAR_VERSION_201: SAPCARArchiveFilev201Format,
 }
 """SAP CAR file format versions"""
 
@@ -158,9 +164,9 @@ class SAPCARArchiveFormat(Packet):
 
     fields_desc = [
         StrFixedLenField("eyecatcher", "CAR ", 4),
-        StrFixedLenField("version", "2.01", 4),
-        ConditionalField(PacketListField("files0", None, SAPCARArchiveFilev200Format), lambda x: x.version == "2.00"),
-        ConditionalField(PacketListField("files1", None, SAPCARArchiveFilev201Format), lambda x: x.version == "2.01"),
+        StrFixedLenField("version", SAPCAR_VERSION_201, 4),
+        ConditionalField(PacketListField("files0", None, SAPCARArchiveFilev200Format), lambda x: x.version == SAPCAR_VERSION_200),
+        ConditionalField(PacketListField("files1", None, SAPCARArchiveFilev201Format), lambda x: x.version == SAPCAR_VERSION_201),
     ]
 
 
@@ -253,7 +259,7 @@ class SAPCARArchiveFile(object):
         return -crc32(data, -1) - 1
 
     @classmethod
-    def from_file(cls, filename, version="2.0"):
+    def from_file(cls, filename, version=SAPCAR_VERSION_201):
         """Populates the file format object from an actual file on the
         local file system.
 
@@ -293,7 +299,7 @@ class SAPCARArchiveFile(object):
         return archive_file
 
     @classmethod
-    def from_archive_file(cls, archive_file, version="2.01"):
+    def from_archive_file(cls, archive_file, version=SAPCAR_VERSION_201):
         """Populates the file format object from another archive file object.
 
         :param archive_file: archive file object to build the file format object from
@@ -352,7 +358,7 @@ class SAPCARArchive(object):
     _files = None
     _sapcar = None
 
-    def __init__(self, fil, mode="r", version="2.01"):
+    def __init__(self, fil, mode="r", version=SAPCAR_VERSION_201):
         """Opens an archive file and allow access to it.
 
         :param fil: filename or file descriptor to open
@@ -431,7 +437,7 @@ class SAPCARArchive(object):
 
         :return: files format objects according to the version
         """
-        if self.version == "2.00":
+        if self.version == SAPCAR_VERSION_200:
             return self._sapcar.files0
         else:
             return self._sapcar.files1

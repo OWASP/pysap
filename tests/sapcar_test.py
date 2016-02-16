@@ -23,7 +23,8 @@ from os.path import basename
 # External imports
 # Custom imports
 from tests.utils import data_filename
-from pysap.SAPCAR import SAPCARArchive, SAPCARArchiveFile
+from pysap.SAPCAR import (SAPCARArchive, SAPCARArchiveFile,
+                          SAPCAR_VERSION_200, SAPCAR_VERSION_201)
 
 
 class PySAPCARTest(unittest.TestCase):
@@ -75,12 +76,12 @@ class PySAPCARTest(unittest.TestCase):
     def test_sapcar_archive_200(self):
         """Test SAP CAR archive file version 200"""
 
-        self.check_sapcar_archive("car200_test_string.sar", "2.00")
+        self.check_sapcar_archive("car200_test_string.sar", SAPCAR_VERSION_200)
 
     def test_sapcar_archive_201(self):
         """Test SAP CAR archive file version 201"""
 
-        self.check_sapcar_archive("car201_test_string.sar", "2.01")
+        self.check_sapcar_archive("car201_test_string.sar", SAPCAR_VERSION_201)
 
     def test_sapcar_archive_file_200_to_201(self):
         """Test SAP CAR archive file object"""
@@ -88,7 +89,7 @@ class PySAPCARTest(unittest.TestCase):
         with open(data_filename("car200_test_string.sar")) as fd200:
             ar200 = SAPCARArchive(fd200, mode="r")
             ff200 = ar200.files[self.test_filename]
-            ff201 = SAPCARArchiveFile.from_archive_file(ff200, "2.01")
+            ff201 = SAPCARArchiveFile.from_archive_file(ff200, SAPCAR_VERSION_201)
 
             self.assertEqual(ff200.size, ff201.size)
             self.assertEqual(ff200.filename, ff201.filename)
