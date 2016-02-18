@@ -199,6 +199,9 @@ class SAPCARArchiveFile(object):
     @filename.setter
     def filename(self, filename):
         self._file_format.filename = filename
+        self._file_format.filename_length = len(filename)
+        if isinstance(self._file_format, SAPCARArchiveFilev201Format):
+            self._file_format.filename_length += 1
 
     @property
     def size(self):
