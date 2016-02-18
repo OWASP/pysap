@@ -259,7 +259,7 @@ class SAPCARArchiveFile(object):
         return -crc32(data, -1) - 1
 
     @classmethod
-    def from_file(cls, filename, version=SAPCAR_VERSION_201):
+    def from_file(cls, filename, version=SAPCAR_VERSION_201, archive_filename=None):
         """Populates the file format object from an actual file on the
         local file system.
 
@@ -268,34 +268,45 @@ class SAPCARArchiveFile(object):
 
         :param version: version of the file to construct
         :type version: string
+
+        :param archive_filename: filename to use inside the archive file
+        :type archive_filename: string
         """
 
+        # Read the file properties and its content
         stat = os_stat(filename)
         with open(filename, "r") as fd:
             data = fd.read()
 
+        # Compress the file content and build the compressed string
         try:
             (_, _, out_buffer) = compress(data, ALG_LZH)
         except CompressError:
             return None
-
         out_buffer = pack("<I", len(out_buffer)) + out_buffer
 
+        # Check the version and grab the file format class
         if version not in sapcar_archive_file_versions:
             raise ValueError("Invalid version")
         ff = sapcar_archive_file_versions[version]
 
+        # If an archive filename was not provided, use the actual filename
+        if archive_filename is None:
+            archive_filename = filename
+
+        # Build the object and fill the fields
         archive_file = cls()
         archive_file._file_format = ff()
         archive_file._file_format.perm_mode = stat.st_mode
         archive_file._file_format.timestamp = stat.st_atime
         archive_file._file_format.file_length = stat.st_size
-        archive_file._file_format.filename = filename
-        archive_file._file_format.filename_length = len(filename)
+        archive_file._file_format.filename = archive_filename
+        archive_file._file_format.filename_length = len(archive_filename)
         if ff == SAPCARArchiveFilev201Format:
             archive_file._file_format.filename_length += 1
         archive_file._file_format.compressed = SAPCARCompressedFileFormat(out_buffer)
         archive_file._file_format.checksum = cls.calculate_checksum(data)
+
         return archive_file
 
     @classmethod
@@ -470,12 +481,16 @@ class SAPCARArchive(object):
         self.fd.write(str(self._sapcar))
         self.fd.flush()
 
-    def add_file(self, filename):
+    def add_file(self, filename, archive_filename=None):
         """Adds a new file to the SAP CAR archive file.
 
         :param filename: name of the file to add
+        :type filename: string
+
+        :param archive_filename: name of the file to use in the archive
+        :type archive_filename: string
         """
-        fil = SAPCARArchiveFile.from_file(filename, self.version)
+        fil = SAPCARArchiveFile.from_file(filename, self.version, archive_filename)
         self._files.append(fil._file_format)
 
     def open(self, filename):

@@ -19,7 +19,8 @@
 
 # Standard imports
 import unittest
-from os.path import basename
+from os import unlink
+from os.path import basename, exists
 # External imports
 # Custom imports
 from tests.utils import data_filename
@@ -33,6 +34,14 @@ class PySAPCARTest(unittest.TestCase):
     test_timestamp = "01 Dec 2015 19:48"
     test_permissions = "-rw-rw-r--"
     test_string = "The quick brown fox jumps over the lazy dog"
+
+    def setUp(self):
+        with open(self.test_filename, "w") as fd:
+            fd.write(self.test_string)
+
+    def tearDown(self):
+        if exists(self.test_filename):
+            unlink(self.test_filename)
 
     def check_sapcar_archive(self, filename, version):
         """Test SAP CAR archive file version 201"""
@@ -72,6 +81,57 @@ class PySAPCARTest(unittest.TestCase):
             self.fail("Do not raise invalid version")
         except ValueError:
             pass
+
+    def test_sapcar_archive_add_file(self):
+        """Test some basic construction of a SAP CAR archive adding from an existent file"""
+
+        ar = SAPCARArchive("somefile", "w")
+        ar.add_file(self.test_filename)
+        ar.add_file(self.test_filename, archive_filename=self.test_filename+"two")
+
+        self.assertEqual("2.01", ar.version)
+        self.assertEqual(2, len(ar.files))
+        self.assertEqual(2, len(ar.files_names))
+        self.assertListEqual([self.test_filename, self.test_filename+"two"], ar.files_names)
+        self.assertListEqual([self.test_filename, self.test_filename+"two"], ar.files.keys())
+
+        for filename in [self.test_filename, self.test_filename+"two"]:
+            af = ar.open(filename)
+            self.assertEqual(self.test_string, af.read())
+            af.close()
+
+            ff = ar.files[filename]
+            self.assertEqual(len(self.test_string), ff.size)
+            self.assertEqual(filename, ff.filename)
+
+            self.assertTrue(ff.check_checksum())
+            self.assertEqual(ff.calculate_checksum(self.test_string), ff.checksum)
+
+            af = ff.open()
+            self.assertEqual(self.test_string, af.read())
+            af.close()
+
+    def test_sapcar_archive_from_file(self):
+        """Test SAP CAR archive file object construction from file using the original name
+        and a different one"""
+        ff = SAPCARArchiveFile.from_file(self.test_filename)
+        self.assertEqual(len(self.test_string), ff.size)
+        self.assertEqual(self.test_filename, ff.filename)
+        self.assertTrue(ff.check_checksum())
+
+        af = ff.open()
+        self.assertEqual(self.test_string, af.read())
+        af.close()
+
+        test_filename_new = "some_other_filename.txt"
+        ff = SAPCARArchiveFile.from_file(self.test_filename, archive_filename=test_filename_new)
+        self.assertEqual(len(self.test_string), ff.size)
+        self.assertEqual(test_filename_new, ff.filename)
+        self.assertTrue(ff.check_checksum())
+
+        af = ff.open()
+        self.assertEqual(self.test_string, af.read())
+        af.close()
 
     def test_sapcar_archive_200(self):
         """Test SAP CAR archive file version 2.00"""
