@@ -94,6 +94,13 @@ class SAPCARCompressedFileFormat(PacketNoPadded):
     ]
 
 
+SAPCAR_TYPE_FILE = "RG"
+"""SAP CAR regular file string"""
+
+SAPCAR_TYPE_DIR = "DR"
+"""SAP CAR directory file string"""
+
+
 class SAPCARArchiveFilev200Format(PacketNoPadded):
     """SAP CAR file information format
 
@@ -102,7 +109,7 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
     name = "SAP CAR Archive File 2.00"
 
     fields_desc = [
-        StrFixedLenField("type", "RG", 2),
+        StrFixedLenField("type", SAPCAR_TYPE_FILE, 2),
         LEIntField("perm_mode", 0),
         LEIntField("file_length", 0),
         LEIntField("unknown1", 0),
@@ -111,10 +118,10 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
         StrFixedLenField("unknown3", None, 10),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrFixedLenField("filename", None, length_from=lambda x: x.filename_length),
-        ConditionalField(ByteField("unknown4", 0), lambda x: x.type == "RG"),
-        ConditionalField(ByteField("unknown5", 0), lambda x: x.type == "RG"),
-        ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == "RG"),
-        ConditionalField(LESignedIntField("checksum", 0), lambda x: x.type == "RG"),
+        ConditionalField(ByteField("unknown4", 0), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
+        ConditionalField(ByteField("unknown5", 0), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
+        ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
+        ConditionalField(LESignedIntField("checksum", 0), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
     ]
 
 
@@ -126,7 +133,7 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
     name = "SAP CAR Archive File 2.01"
 
     fields_desc = [
-        StrFixedLenField("type", "RG", 2),
+        StrFixedLenField("type", SAPCAR_TYPE_FILE, 2),
         LEIntField("perm_mode", 0),
         LEIntField("file_length", 0),
         LEIntField("unknown1", 0),
@@ -135,10 +142,10 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
         StrFixedLenField("unknown3", None, 10),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrNullFixedLenField("filename", None, length_from=lambda x: x.filename_length - 1),
-        ConditionalField(ByteField("unknown4", 0), lambda x: x.type == "RG"),
-        ConditionalField(ByteField("unknown5", 0), lambda x: x.type == "RG"),
-        ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == "RG"),
-        ConditionalField(LESignedIntField("checksum", 0), lambda x: x.type == "RG"),
+        ConditionalField(ByteField("unknown4", 0), lambda x: x.type == SAPCAR_TYPE_FILE and x.filename_length > 0),
+        ConditionalField(ByteField("unknown5", 0), lambda x: x.type == SAPCAR_TYPE_FILE and x.filename_length > 0),
+        ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == SAPCAR_TYPE_FILE and x.filename_length > 0),
+        ConditionalField(LESignedIntField("checksum", 0), lambda x: x.type == SAPCAR_TYPE_FILE and x.filename_length > 0),
     ]
 
 
