@@ -102,7 +102,12 @@ class PySAPCAR(object):
         # Opens the input/output file
         self.archive_fd = None
         if options.filename:
-            self.archive_fd = open(options.filename, self.mode)
+            try:
+                self.archive_fd = open(options.filename, self.mode)
+            except IOError as e:
+                self.logger.error("pysapcar: error opening %s. %s" % (options.filename,
+                                                                      e.strerror))
+                return
         else:
             self.archive_fd = stdin
 
@@ -167,7 +172,7 @@ class PySAPCAR(object):
             self.logger.info("d %s", fil.filename)
             no += 1
             if not fil.check_checksum():
-                self.logger.info("pysapcar: checksum error in %s !", fil.filename)
+                self.logger.warning("pysapcar: checksum error in %s !", fil.filename)
         self.logger.info("pysapcar: %d file(s) processed", no)
 
 
