@@ -375,7 +375,7 @@ class SAPCARArchive(object):
         :param fil: filename or file descriptor to open
         :type fil: string or file
 
-        :param mode: mode to open the file
+        :param mode: mode to open the file (r+w)
         :type mode: string
 
         :param version: archive file version to use when creating
@@ -384,6 +384,8 @@ class SAPCARArchive(object):
 
         if version not in sapcar_archive_file_versions:
             raise ValueError("Invalid version")
+        if mode not in ["r", "rw", "w", "wr"]:
+            raise ValueError("Invalid mode")
 
         if isinstance(fil, (basestring, unicode)):
             self.filename = fil
