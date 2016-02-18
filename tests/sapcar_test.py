@@ -76,11 +76,18 @@ class PySAPCARTest(unittest.TestCase):
     def test_sapcar_archive(self):
         """Test some basic construction of a SAP CAR archive"""
 
-        try:
-            ar = SAPCARArchive("somefile", "w", version="2.02")
-            self.fail("Do not raise invalid version")
-        except ValueError:
-            pass
+        self.assertRaises(ValueError, SAPCARArchive, "somefile", "w", version="2.02")
+        self.assertRaises(ValueError, SAPCARArchive, "somefile", "x")
+
+    def test_sapcar_archive_200(self):
+        """Test SAP CAR archive file version 2.00"""
+
+        self.check_sapcar_archive("car200_test_string.sar", SAPCAR_VERSION_200)
+
+    def test_sapcar_archive_201(self):
+        """Test SAP CAR archive file version 2.01"""
+
+        self.check_sapcar_archive("car201_test_string.sar", SAPCAR_VERSION_201)
 
     def test_sapcar_archive_add_file(self):
         """Test some basic construction of a SAP CAR archive adding from an existent file"""
@@ -111,7 +118,7 @@ class PySAPCARTest(unittest.TestCase):
             self.assertEqual(self.test_string, af.read())
             af.close()
 
-    def test_sapcar_archive_from_file(self):
+    def test_sapcar_archive_file_from_file(self):
         """Test SAP CAR archive file object construction from file using the original name
         and a different one"""
         ff = SAPCARArchiveFile.from_file(self.test_filename)
@@ -132,16 +139,6 @@ class PySAPCARTest(unittest.TestCase):
         af = ff.open()
         self.assertEqual(self.test_string, af.read())
         af.close()
-
-    def test_sapcar_archive_200(self):
-        """Test SAP CAR archive file version 2.00"""
-
-        self.check_sapcar_archive("car200_test_string.sar", SAPCAR_VERSION_200)
-
-    def test_sapcar_archive_201(self):
-        """Test SAP CAR archive file version 2.01"""
-
-        self.check_sapcar_archive("car201_test_string.sar", SAPCAR_VERSION_201)
 
     def test_sapcar_archive_file_200_to_201(self):
         """Test SAP CAR archive file object conversion from 2.00 to 2.01"""
