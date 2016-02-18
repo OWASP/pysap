@@ -36,7 +36,7 @@ class PySAPCARTest(unittest.TestCase):
     test_string = "The quick brown fox jumps over the lazy dog"
 
     def setUp(self):
-        with open(self.test_filename, "w") as fd:
+        with open(self.test_filename, "wb") as fd:
             fd.write(self.test_string)
 
     def tearDown(self):
@@ -46,7 +46,7 @@ class PySAPCARTest(unittest.TestCase):
     def check_sapcar_archive(self, filename, version):
         """Test SAP CAR archive file version 201"""
 
-        with open(data_filename(filename)) as fd:
+        with open(data_filename(filename), "rb") as fd:
             sapcar_archive = SAPCARArchive(fd, mode="r")
 
             self.assertEqual(filename, basename(sapcar_archive.filename))
@@ -143,7 +143,7 @@ class PySAPCARTest(unittest.TestCase):
     def test_sapcar_archive_file_200_to_201(self):
         """Test SAP CAR archive file object conversion from 2.00 to 2.01"""
 
-        with open(data_filename("car200_test_string.sar")) as fd200:
+        with open(data_filename("car200_test_string.sar"), "rb") as fd200:
             ar200 = SAPCARArchive(fd200, mode="r")
             ff200 = ar200.files[self.test_filename]
             ff201 = SAPCARArchiveFile.from_archive_file(ff200, SAPCAR_VERSION_201)
@@ -161,7 +161,7 @@ class PySAPCARTest(unittest.TestCase):
     def test_sapcar_archive_200_to_201(self):
         """Test SAP CAR archive object conversion from 2.00 to 2.01"""
 
-        with open(data_filename("car200_test_string.sar")) as fd:
+        with open(data_filename("car200_test_string.sar"), "rb") as fd:
             ar = SAPCARArchive(fd, mode="r")
             ff200 = ar.files[self.test_filename]
 
@@ -181,7 +181,7 @@ class PySAPCARTest(unittest.TestCase):
     def test_sapcar_archive_201_to_200(self):
         """Test SAP CAR archive object conversion from 2.01 to 2.00"""
 
-        with open(data_filename("car201_test_string.sar")) as fd:
+        with open(data_filename("car201_test_string.sar"), "rb") as fd:
             ar = SAPCARArchive(fd, mode="r")
             ff201 = ar.files[self.test_filename]
 

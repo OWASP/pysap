@@ -275,7 +275,7 @@ class SAPCARArchiveFile(object):
 
         # Read the file properties and its content
         stat = os_stat(filename)
-        with open(filename, "r") as fd:
+        with open(filename, "rb") as fd:
             data = fd.read()
 
         # Compress the file content and build the compressed string
@@ -369,23 +369,30 @@ class SAPCARArchive(object):
     _files = None
     _sapcar = None
 
-    def __init__(self, fil, mode="r", version=SAPCAR_VERSION_201):
+    def __init__(self, fil, mode="rb+", version=SAPCAR_VERSION_201):
         """Opens an archive file and allow access to it.
 
         :param fil: filename or file descriptor to open
         :type fil: string or file
 
-        :param mode: mode to open the file (r+w)
+        :param mode: mode to open the file
         :type mode: string
 
         :param version: archive file version to use when creating
         :type version: string
         """
 
+        # Ensure version is withing supported versions
         if version not in sapcar_archive_file_versions:
             raise ValueError("Invalid version")
-        if mode not in ["r", "rw", "w", "wr"]:
+
+        # Ensure mode is within supported modes
+        if mode not in ["r", "r+", "w", "w+", "rb", "rb+", "wb", "wb+"]:
             raise ValueError("Invalid mode")
+
+        # Ensure file is open in binary mode
+        if "b" not in mode:
+            mode += "b"
 
         if isinstance(fil, (basestring, unicode)):
             self.filename = fil
