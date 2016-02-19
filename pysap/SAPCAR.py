@@ -195,6 +195,15 @@ class SAPCARArchiveFile(object):
         self._file_format = file_format
 
     @property
+    def type(self):
+        """The type of the file.
+
+        :return: type of the file
+        :rtype: basestring
+        """
+        return self._file_format.type
+
+    @property
     def filename(self):
         """The name of the file.
 
@@ -353,8 +362,13 @@ class SAPCARArchiveFile(object):
         :return: file-like object with the uncompressed file content
         :rtype: file
         """
-        compressed = self._file_format.compressed
-        (_, _, out_buffer) = decompress(str(compressed)[4:], compressed.uncompress_length)
+        if not self._file_format.type == SAPCAR_TYPE_FILE:
+            raise Exception("Invalid file type")
+
+        out_buffer = ""
+        if self._file_format.file_length != 0:
+            compressed = self._file_format.compressed
+            (_, _, out_buffer) = decompress(str(compressed)[4:], compressed.uncompress_length)
         return StringIO(out_buffer)
 
     def check_checksum(self):
