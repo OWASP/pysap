@@ -40,6 +40,10 @@ Features
     * SAP Message Server (MS)
     * SAP SNC
 
+* Client interfaces for handling the following file formats:
+
+    * SAP CAR/SAR archive files
+
 * Library implementing SAP's LZH and LZC compression algorithms.
 
 * Automatic compression/decompression of payloads with SAP's algorithms.
