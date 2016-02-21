@@ -129,7 +129,7 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
 class SAPCARArchiveFilev201Format(PacketNoPadded):
     """SAP CAR file information format
 
-    This is ued to parse files inside a SAP CAR archive.
+    This is used to parse files inside a SAP CAR archive.
     """
     name = "SAP CAR Archive File 2.01"
 
