@@ -516,6 +516,18 @@ class SAPCARArchive(object):
         self.fd.write(str(self._sapcar))
         self.fd.flush()
 
+    def write_as(self, filename=None):
+        """Writes the SAP CAR archive file to another file.
+
+        :param filename: name of the file to write to
+        :type filename: string
+        """
+        if not filename:
+            self.write()
+        else:
+            with open(filename, "w") as fd:
+                fd.write(str(self._sapcar))
+
     def add_file(self, filename, archive_filename=None):
         """Adds a new file to the SAP CAR archive file.
 
