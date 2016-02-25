@@ -300,10 +300,10 @@ class SAPCARArchiveFile(object):
 
         # Compress the file content and build the compressed string
         try:
-            (_, _, out_buffer) = compress(data, ALG_LZH)
+            (_, out_length, out_buffer) = compress(data, ALG_LZH)
         except CompressError:
             return None
-        out_buffer = pack("<I", len(out_buffer)) + out_buffer
+        out_buffer = pack("<I", out_length) + out_buffer
 
         # Check the version and grab the file format class
         if version not in sapcar_archive_file_versions:
@@ -369,8 +369,9 @@ class SAPCARArchiveFile(object):
         out_buffer = ""
         if self._file_format.file_length != 0:
             compressed = self._file_format.compressed
-            out_length = self._file_format.file_length
-            (_, _, out_buffer) = decompress(str(compressed)[4:], out_length)
+            exp_length = self._file_format.file_length
+            (_, out_length, out_buffer) = decompress(str(compressed)[4:], exp_length)
+
         return StringIO(out_buffer)
 
     def check_checksum(self):
