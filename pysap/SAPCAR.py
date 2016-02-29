@@ -31,7 +31,8 @@ from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
                           ConditionalField, LESignedIntField, StrField)
 # Custom imports
 from pysap.utils import (PacketNoPadded, StrNullFixedLenField)
-from pysapcompress import (decompress, compress, ALG_LZH, CompressError)
+from pysapcompress import (decompress, compress, ALG_LZH, CompressError,
+                           DecompressError)
 
 
 # Filemode code obtained from Python 3 stat.py
@@ -371,7 +372,8 @@ class SAPCARArchiveFile(object):
             compressed = self._file_format.compressed
             exp_length = self._file_format.file_length
             (_, out_length, out_buffer) = decompress(str(compressed)[4:], exp_length)
-
+            if out_length != exp_length or not out_buffer:
+                raise DecompressError("Decompression error")
         return StringIO(out_buffer)
 
     def check_checksum(self):
