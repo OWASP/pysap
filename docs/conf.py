@@ -48,7 +48,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pysap'
-copyright = u'2015, Martin Gallo, Core Security'
+copyright = u'2016, Martin Gallo, Core Security'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -245,7 +245,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'pysap', u'pysap Documentation',
-   u'Martin Gallo, Core Security', 'pysap', 'One line description of project.',
+   u'Martin Gallo, Core Security', 'pysap', 'Python library for crafting SAP\'s network protocols packets',
    'Miscellaneous'),
 ]
 

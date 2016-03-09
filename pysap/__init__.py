@@ -50,14 +50,14 @@ Features
 * Example scripts to illustrate the use of the different modules and protocols.
 
 
-:copyright: (c) 2015 by Martin Gallo, Core Security.
+:copyright: (c) 2016 by Martin Gallo, Core Security.
 :license: GNU General Public License v2 or later (GPLv2+).
 """
 
 __title__ = 'pysap'
 """The title of the library"""
 
-__version__ = '0.1.9.dev0'
+__version__ = '0.1.10.dev0'
 """The version of pysap"""
 
 __url__ = "https://www.coresecurity.com/corelabs-research/open-source-tools/pysap"
