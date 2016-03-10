@@ -22,8 +22,12 @@ from binascii import unhexlify
 from os.path import join as join, dirname
 
 
+def data_filename(filename):
+    return join(dirname(__file__), 'data', filename)
+
+
 def read_data_file(filename, unhex=True):
-    filename = join(dirname(__file__), 'data', filename)
+    filename = data_filename(filename)
     with open(filename, 'r') as f:
         data = f.read()
 

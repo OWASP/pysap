@@ -8,7 +8,7 @@ pysap - Python library for crafting SAP's network protocols packets
 
 Copyright (C) 2012-2016 by Martin Gallo, Core Security
 
-Version 0.1.9.dev0 (XXX 2016)
+Version 0.1.10.dev0 (February 2016)
 
 
 Overview
@@ -39,6 +39,10 @@ Features
     * SAP Router
     * SAP Message Server (MS)
     * SAP SNC
+
+* Client interfaces for handling the following file formats:
+
+    * SAP CAR/SAR archive files
 
 * Library implementing SAP's LZH and LZC compression algorithms.
 

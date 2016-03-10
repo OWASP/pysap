@@ -1,0 +1,181 @@
+#!/usr/bin/env python
+# ===========
+# pysap - Python library for crafting SAP's network protocols packets
+#
+# Copyright (C) 2015 by Martin Gallo, Core Security
+#
+# The library was designed and developed by Martin Gallo from the Security
+# Consulting Services team of Core Security.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# ==============
+
+# Standard imports
+import logging
+from sys import stdin
+from optparse import OptionParser, OptionGroup
+# Custom imports
+import pysap
+from pysap.SAPCAR import SAPCARArchive
+
+
+pysapcar_usage = """Usage:
+
+list the contents of an archive:
+pysapcar -t[v][f archive] [file1 file2 ...]
+
+extract files from an archive:
+pysapcar -x[v][f archive] [file1 file2....]
+
+"""
+
+
+class PySAPCAR(object):
+
+    # Private attributes
+    _logger = None
+
+    # Instance attributes
+    mode = None
+    log_level = None
+    archive_fd = None
+
+    def parse_options(self):
+        """Parses command-line options.
+        """
+
+        description = "Basic and experimental implementation of SAPCAR archive format."
+
+        epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
+                                                             "url": pysap.__url__,
+                                                             "repo": pysap.__repo__}
+
+        parser = OptionParser(usage=pysapcar_usage, description=description, epilog=epilog)
+
+        # Commands
+        parser.add_option("-x", dest="extract", action="store_true", help="Extract files from an archive")
+        parser.add_option("-t", dest="list", action="store_true", help="List the contents of an archive")
+        parser.add_option("-f", dest="filename", help="Archive filename", metavar="FILE")
+
+        misc = OptionGroup(parser, "Misc options")
+        misc.add_option("-v", dest="verbose", action="count", help="Verbose output")
+        parser.add_option_group(misc)
+
+        (options, args) = parser.parse_args()
+
+        return options, args
+
+    @property
+    def logger(self):
+        """Sets the logger of the cli tool.
+        """
+        if self._logger is None:
+            self._logger = logging.getLogger("pysapcar")
+            self._logger.setLevel(self.log_level + 1)
+            self._logger.addHandler(logging.StreamHandler())
+        return self._logger
+
+    def main(self):
+        """Main routine for parsing options and dispatch desired action.
+        """
+        options, args = self.parse_options()
+
+        # Set the verbosity
+        self.log_level = options.verbose or 0
+
+        self.logger.info("pysapcar version: %s", pysap.__version__)
+
+        # Check the mode the archive file should be opened
+        if options.list or options.extract:
+            self.mode = "r"
+        else:  # default to read mode
+            self.mode = "r"
+
+        # Opens the input/output file
+        self.archive_fd = None
+        if options.filename:
+            try:
+                self.archive_fd = open(options.filename, self.mode)
+            except IOError as e:
+                self.logger.error("pysapcar: error opening %s. %s" % (options.filename,
+                                                                      e.strerror))
+                return
+        else:
+            self.archive_fd = stdin
+
+        # Execute the action
+        try:
+            if options.list:
+                self.list(options, args)
+            elif options.extract:
+                self.extract(options, args)
+        finally:
+            self.archive_fd.close()
+
+    def open_archive(self):
+        """Opens the archive file to work with it and returns
+        the SAP Car Archive object.
+        """
+        sapcar = SAPCARArchive(self.archive_fd, mode=self.mode)
+        self.logger.info("pysapcar: Processing archive %s (version %s)", self.archive_fd.name, sapcar.version)
+        return sapcar
+
+    def target_files(self, filenames, target_filenames=None):
+        """Obtains the list of files to work on. It calculates
+        the intersection between the file names selected in
+        command-line and the ones in the archive to work on.
+
+        :param filenames: filenames in the archive
+        :param target_filenames: filenames to work on
+
+        :return: set of files to work on
+        """
+        files = set(filenames)
+        if target_filenames:
+            files = files.intersection(set(target_filenames))
+        return files
+
+    def list(self, options, args):
+        """List files inside the archive file and print their
+        attributes: permissions, size, timestamp and filename.
+        """
+        # Open the archive file
+        sapcar = self.open_archive()
+        # Build the list of files to list
+        files = self.target_files(sapcar.files_names, args)
+        # Print the info of each file
+        for filename in files:
+            fil = sapcar.files[filename]
+            self.logger.info("{}  {:>10}    {} {}".format(fil.permissions, fil.size, fil.timestamp, fil.filename))
+
+    def extract(self, options, args):
+        """Extract files from the archive file.
+        """
+        # Open the archive file
+        sapcar = self.open_archive()
+        # Build the list of files to extract
+        files = self.target_files(sapcar.files_names, args)
+        # Extract each file
+        no = 0
+        for filename in files:
+            fil = sapcar.files[filename]
+            with open(filename, "wb") as new_file:
+                new_file.write(fil.open().read())
+            self.logger.info("d %s", fil.filename)
+            no += 1
+            if not fil.check_checksum():
+                self.logger.warning("pysapcar: checksum error in %s !", fil.filename)
+        self.logger.info("pysapcar: %d file(s) processed", no)
+
+
+if __name__ == "__main__":
+    pysapcar = PySAPCAR()
+    pysapcar.main()

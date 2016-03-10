@@ -25,6 +25,16 @@ Network protocols
    protocols/*
 
 
+File formats
+------------
+
+.. toctree::
+   :maxdepth: 2
+   :glob:
+
+   files/*
+
+
 Utilities modules
 -----------------
 

@@ -360,6 +360,13 @@ int compress_packet (const unsigned char *in, const int in_length, unsigned char
 
 
 /* Compress Python function */
+static char pysapcompress_compress_doc[] = "Compress a buffer using SAP's compression algorithms.\n\n"
+                                           ":param str in: input buffer to compress\n\n"
+                                           ":param int algorithm: algorithm to use\n\n"
+                                           ":return: tuple with return code, output length and output buffer\n"
+                                           ":rtype: tuple of int, int, string\n\n"
+                                           ":raises CompressError: if an error occurred during compression\n";
+
 static PyObject *
 pysapcompress_compress(PyObject *self, PyObject *args, PyObject *keywds)
 {
@@ -396,6 +403,13 @@ pysapcompress_compress(PyObject *self, PyObject *args, PyObject *keywds)
 
 
 /* Decompress Python function */
+static char pysapcompress_decompress_doc[] = "Decompress a buffer using SAP's compression algorithms.\n\n"
+                                             ":param str in: input buffer to decompress\n"
+                                             ":param int out_length: length of the output to decompress\n"
+                                             ":return: tuple of return code, output length and output buffer\n"
+                                             ":rtype: tuple of int, int, string\n\n"
+                                             ":raises DecompressError: if an error occurred during decompression\n";
+
 static PyObject *
 pysapcompress_decompress(PyObject *self, PyObject *args)
 {
@@ -426,11 +440,14 @@ pysapcompress_decompress(PyObject *self, PyObject *args)
 
 /* Method definitions */
 static PyMethodDef pysapcompressMethods[] = {
-    {"compress", (PyCFunction)pysapcompress_compress, METH_VARARGS | METH_KEYWORDS, "Compress a buffer using the SAP Compression functions."},
-    {"decompress", pysapcompress_decompress, METH_VARARGS, "Decompress a buffer using the SAP Compression functions."},
+    {"compress", (PyCFunction)pysapcompress_compress, METH_VARARGS | METH_KEYWORDS, pysapcompress_compress_doc},
+    {"decompress", pysapcompress_decompress, METH_VARARGS, pysapcompress_decompress_doc},
     {NULL, NULL, 0, NULL}
 };
 
+
+/* pysapcompress module doc string */
+static char pysapcompress_module_doc[] = "Library implementing SAP's LZH and LZC compression algorithms.";
 
 /* Module initialization */
 PyMODINIT_FUNC
@@ -438,11 +455,11 @@ initpysapcompress(void)
 {
     PyObject *module = NULL;
     /* Create the module and define the methods */
-    module = Py_InitModule("pysapcompress", pysapcompressMethods);
+    module = Py_InitModule3("pysapcompress", pysapcompressMethods, pysapcompress_module_doc);
 
     /* Add the algorithm constants */
-    PyModule_AddIntConstant (module, "ALG_LZC", ALG_LZC);
-    PyModule_AddIntConstant (module, "ALG_LZH", ALG_LZH);
+    PyModule_AddIntConstant(module, "ALG_LZC", ALG_LZC);
+    PyModule_AddIntConstant(module, "ALG_LZH", ALG_LZH);
 
     /* Create a custom exception and add it to the module */
     compression_exception = PyErr_NewException(compression_exception_name, NULL, NULL);
