@@ -39,7 +39,7 @@ Features
 
 * Client interfaces for handling the following file formats:
 
-    * SAP CAR/SAR archive files
+    * SAP SAR archive files
 
 * Library implementing SAP's LZH and LZC compression algorithms.
 
