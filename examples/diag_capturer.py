@@ -123,10 +123,8 @@ class DiagParser(object):
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This example script can be used to grab SAP GUI login credentials from
-    a pcap file or by sniffing on a network interface.
-    """
+    description = "This example script can be used to grab SAP GUI login credentials from a pcap file or by sniffing " \
+                  "on a network interface."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

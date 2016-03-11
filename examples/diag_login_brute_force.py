@@ -88,12 +88,9 @@ class ThreadPool(object):
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This example script can be used to perform a brute force attack
-    against a SAP Netweaver application server. The scripts performs a
-    login through the Diag protocol. It can also discover available
-    clients.
-    """
+    description = "This example script can be used to perform a brute force attack against a SAP Netweaver " \
+                  "application server. The scripts performs a login through the Diag protocol. It can also discover " \
+                  "available clients."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

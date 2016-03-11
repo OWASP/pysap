@@ -43,13 +43,9 @@ conf.verb = 0
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This example script connects with a SAP Router server and allows
-    perform administrative tasks. The options are the ones found on the
-    regular SAP Router tool with the addition of some undocumented
-    operation codes.
-
-    """
+    description = "This example script connects with a SAP Router server and allows perform administrative tasks. " \
+                  "The options are the ones found on the regular SAP Router tool with the addition of some " \
+                  "undocumented operation codes."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

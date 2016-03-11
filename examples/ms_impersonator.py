@@ -37,12 +37,8 @@ conf.debug_dissector = True
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This example script connects with the Message Server service of a SAP
-    Netweaver Application Server and impersonates an application server
-    registering as a Dialog instance server.
-
-    """
+    description = "This example script connects with the Message Server service of a SAP Netweaver Application Server "\
+                  "and impersonates an application server registering as a Dialog instance server."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

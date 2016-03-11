@@ -530,15 +530,10 @@ class SAPMSMonitorConsole(BaseConsole):
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This script is an example implementation of SAP's Message Server Monitor
-    program (msmon). It allows the monitoring of a Message Server service and
-    allows sending different commands and opcodes. Includes some commands not
-    available on the msmon program. Some commands requires the server running
-    in monitor mode, the most requires access to the Message Server internal
-    port.
-
-    """
+    description = "This script is an example implementation of SAP's Message Server Monitor program (msmon). It " \
+                  "allows the monitoring of a Message Server service and allows sending different commands and " \
+                  "opcodes. Includes some commands not available on the msmon program. Some commands requires the " \
+                  "server running in monitor mode, the most requires access to the Message Server internal port."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

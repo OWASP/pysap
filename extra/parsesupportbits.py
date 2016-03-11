@@ -27,11 +27,8 @@ import pysap
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This script can be used to parse support bits info  and generate
-    required info for pysap/wireshark plugin. Input file can be obtained
-    from SAP Gui traces (for example file 'sapguidll_01_0001.trc').
-    """
+    description = "This script can be used to parse support bits info  and generate required info for pysap/wireshark "\
+                  "plugin. Input file can be obtained from SAP Gui traces (for example file 'sapguidll_01_0001.trc')."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,
