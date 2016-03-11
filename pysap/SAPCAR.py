@@ -558,3 +558,10 @@ class SAPCARArchive(object):
         """Close the file descriptor object associated to the archive file.
         """
         self.fd.close()
+
+    def raw(self):
+        """Returns the raw data of the archive file.
+        """
+        if self._sapcar:
+            return str(self._sapcar)
+        return ""
