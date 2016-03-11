@@ -120,8 +120,7 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
         StrFixedLenField("unknown3", None, 10),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrFixedLenField("filename", None, length_from=lambda x: x.filename_length),
-        ConditionalField(ByteField("unknown4", 0), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
-        ConditionalField(ByteField("unknown5", 0), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
+        ConditionalField(StrFixedLenField("mark", "ED", 2), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
         ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
         ConditionalField(LESignedIntField("checksum", 0), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
     ]
@@ -144,8 +143,7 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
         StrFixedLenField("unknown3", None, 10),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrNullFixedLenField("filename", None, length_from=lambda x: x.filename_length - 1),
-        ConditionalField(ByteField("unknown4", 0), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
-        ConditionalField(ByteField("unknown5", 0), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
+        ConditionalField(StrFixedLenField("mark", "ED", 2), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
         ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
         ConditionalField(LESignedIntField("checksum", 0), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
     ]
@@ -353,6 +351,7 @@ class SAPCARArchiveFile(object):
         new_archive_file._file_format.file_length = archive_file._file_format.file_length
         new_archive_file._file_format.filename = archive_file._file_format.filename
         new_archive_file._file_format.filename_length = archive_file._file_format.filename_length
+        new_archive_file._file_format.mark = archive_file._file_format.mark
         new_archive_file._file_format.compressed = archive_file._file_format.compressed
         new_archive_file._file_format.checksum = archive_file._file_format.checksum
         return new_archive_file
