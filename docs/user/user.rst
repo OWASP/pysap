@@ -8,27 +8,6 @@ about pysap, as well as some step-by-step instructions for installing,
 configuring and using pysap.
 
 
-Features
---------
-
-* Dissection and crafting of the following network protocols:
-
-    * SAP Network Interface (NI)
-    * SAP Diag
-    * SAP Enqueue
-    * SAP Router
-    * SAP Message Server (MS)
-    * SAP SNC
-
-* Library implementing SAP's LZH and LZC compression algorithms.
-
-* Automatic compression/decompression of payloads with SAP's algorithms.
-
-* Client, proxy and server classes implemented for some of the protocols.
-
-* Example scripts to illustrate the use of the different modules and protocols.
-
-
 References
 ----------
 
