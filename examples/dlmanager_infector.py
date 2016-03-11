@@ -55,7 +55,11 @@ def infect_sar_file(sar_filename, inject_files):
 def parse_options(args=None, req_filename=True):
 
     description = "This example script can be used to infect a given SAR v2.00 or v2.01 file by means of adding new " \
-                  "files to it. Files can take arbitrary names."
+                  "files to it. Each file to infect is specified by a pair: filename (original filename) and archive "\
+                  "filename (the name we want inside the archive). The script can also be used to dynamically infect "\
+                  "SAR files being downloaded using mitmproxy. In that case, the scripts takes the files to inject as "\
+                  "parameters, performs an SSLStrip-like MitM and when identifies a SAR file that is going to be " \
+                  "offered as a download it infects it."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,
