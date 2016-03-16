@@ -55,10 +55,8 @@ conf.verb = 0
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This example script renders the login screen provided by an SAP
-    Netweaver Application Server using wx.
-    """
+    description = "This example script renders the login screen provided by an SAP Netweaver Application Server using "\
+                  "wxPython."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

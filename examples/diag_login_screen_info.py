@@ -49,11 +49,8 @@ conf.verb = 0
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This example script gather information provided by a SAP Netweaver
-    Application Server during the login process. This information includes
-    generally hostname, instance, database name, etc.
-    """
+    description = "This example script gather information provided by a SAP Netweaver Application Server during the " \
+                  "login process. This information includes generally hostname, instance, database name, etc."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

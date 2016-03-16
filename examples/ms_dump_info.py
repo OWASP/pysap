@@ -36,12 +36,9 @@ conf.verb = 0
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This example script gather information provided by a SAP Netweaver
-    Application Server with the Message Server protocol using the Dump
-    command. Execution of the dump commands require accessing the internal
-    Message Server port.
-    """
+    description = "This example script gather information provided by a SAP Netweaver Application Server with the " \
+                  "Message Server protocol using the Dump command. Execution of the dump commands require accessing " \
+                  "the internal Message Server port."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

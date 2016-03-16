@@ -178,12 +178,9 @@ class SAPEnqueueAdminConsole(BaseConsole):
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This script is an example implementation of SAP's Enqueue Server Monitor
-    program (ens_mon). It allows the monitoring of a Enqueue Server service and
-    allows sending different admin commands and opcodes. Includes some commands
-    not available on the ensmon program.
-    """
+    description = "This script is an example implementation of SAP's Enqueue Server Monitor program (ens_mon). It " \
+                  "allows the monitoring of a Enqueue Server service and allows sending different admin commands and " \
+                  "opcodes. Includes some commands not available on the ensmon program."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

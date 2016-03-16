@@ -43,13 +43,10 @@ conf.verb = 0
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This example script routes a connection through a SAP Router service.
-
-    Similar to Bizploit's 'saprouterNative', for more information check:
-    * http://blog.onapsis.com/assessing-a-saprouters-security-with-onapsis-bizploit-part-i/
-    * http://blog.onapsis.com/assessing-a-saprouters-security-with-onapsis-bizploit-part-ii/
-    """
+    description = "This example script routes a connection through a SAP Router service. Similar to Bizploit's " \
+                  "'saprouterNative', for more information check: " \
+                  "http://blog.onapsis.com/assessing-a-saprouters-security-with-onapsis-bizploit-part-i/ and "\
+                  "http://blog.onapsis.com/assessing-a-saprouters-security-with-onapsis-bizploit-part-ii/"
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

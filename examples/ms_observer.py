@@ -37,12 +37,8 @@ conf.verb = 0
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This example script connects with the Message Server service of a SAP
-    Netweaver Application Server and monitors the clients to identify new
-    application servers. Similar to SAP's msprot tool.
-
-    """
+    description = "This example script connects with the Message Server service of a SAP Netweaver Application Server "\
+                  "and monitors the clients to identify new application servers. Similar to SAP's msprot tool."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

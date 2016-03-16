@@ -241,9 +241,7 @@ def retrieve_serial_number():
 # Main function
 def main():
     # Parse command line options
-    description = \
-    """This example script extract SAP's Download Manager stored passwords.
-    """
+    description = "This example script extract and decrypt SAP's Download Manager stored passwords."
 
     usage = "Usage: %prog [options] -f <config filename>"
 

@@ -232,11 +232,9 @@ class SAPDiagThreadedServer(SAPNIServerThreaded):
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This example script implements a rogue server using the Diag protocol.
-    It offers users a customizable login screen and gathers entered credentials.
-    Tested with SAP Gui for Java 7.20 Patch Level 5 running on Ubuntu.
-    """
+    description = "This example script implements a rogue server using the Diag protocol. It offers users a " \
+                  "customizable login screen and gathers entered credentials. Tested with SAP Gui for Java 7.20 Patch "\
+                  "Level 5 running on Ubuntu."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

@@ -37,11 +37,7 @@ conf.verb = 0
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This example script connects with the Message Server service and sends
-    a message to another client.
-
-    """
+    description = "This example script connects with the Message Server service and sends a message to another client."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

@@ -41,11 +41,9 @@ conf.verb = 0
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This example script connects with a SAP Router service and tries to
-    determine its version. Finger printing is performed by triggering
-    different errors and looking at the lines where the error is produced.
-    """
+    description = "This example script connects with a SAP Router service and tries to determine its version. " \
+                  "Finger printing is performed by triggering different errors and looking at the lines where the " \
+                  "error is produced."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

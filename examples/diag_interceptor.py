@@ -96,13 +96,9 @@ class SAPDiagProxyHandler(SAPNIProxyHandler):
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This example script can be used to establish a proxy between a SAP GUI
-    client and a SAP Netweaver Application Server and inspect the traffic via
-    the filter_client and filter_server functions.
-
-    The given example grabs input fields sent by the client.
-    """
+    description = "This example script can be used to establish a proxy between a SAP GUI client and a SAP Netweaver " \
+                  "Application Server and inspect the traffic via the filter_client and filter_server functions.\n" \
+                  "The given example grabs input fields sent by the client."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

@@ -100,12 +100,8 @@ class SAPRFCMonitorConsole(BaseConsole):
 # Command line options parser
 def parse_options():
 
-    description = \
-    """This script is an example implementation of SAP's Gateway Monitor
-    program (gwmon). It allows the monitoring of a Gateway service and allows
-    sending different commands and opcodes.
-
-    """
+    description = "This script is an example implementation of SAP's Gateway Monitor program (gwmon). It allows the " \
+                  "monitoring of a Gateway service and allows sending different commands and opcodes."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,
