@@ -31,7 +31,7 @@ from pysap.SAPCAR import (SAPCARArchive, SAPCARArchiveFile,
 class PySAPCARTest(unittest.TestCase):
 
     test_filename = "test_string.txt"
-    test_timestamp = "01 Dec 2015 19:48"
+    test_timestamp = "01 Dec 2015 22:48"
     test_permissions = "-rw-rw-r--"
     test_string = "The quick brown fox jumps over the lazy dog"
 

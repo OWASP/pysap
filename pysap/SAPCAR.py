@@ -252,7 +252,7 @@ class SAPCARArchiveFile(object):
         :return: timestamp in human-readable format
         :rtype: string
         """
-        return datetime.fromtimestamp(self._file_format.timestamp).strftime('%d %b %Y %H:%M')
+        return datetime.utcfromtimestamp(self._file_format.timestamp).strftime('%d %b %Y %H:%M')
 
     @timestamp.setter
     def timestamp(self, timestamp):
