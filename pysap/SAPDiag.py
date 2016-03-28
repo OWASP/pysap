@@ -83,11 +83,13 @@ diag_item_types = {
     0x07: "DiagMessage",
     0x08: "OKC",
     0x09: "CHL",
-    0x0b: "SBA",  # SBA/SFE/SLC
+    0x0a: "SFE",
+    0x0b: "SBA",
     0x0c: "EOM",
     0x10: "APPL",
     0x11: "DIAG_XMLBLOB",
     0x12: "APPL4",
+    0x13: "SLC",
     0x15: "SBA2",
 }
 """Diag Item Types"""
@@ -359,11 +361,13 @@ def diag_item_get_length(item):
         0x07: 76,                   # DiagMessage (old format)
         0x08: 0,                    # OKC XXX: Never seen this, check proper size
         0x09: 22,                   # CHL
-        0x0b: 9,                    # SBA/SFE/SLC
+        0x0a: 3,                    # SFE
+        0x0b: 2,                    # SBA
         0x0c: 0,                    # EOM
         0x10: item.item_length,     # APPL
         0x11: item.item_length4,    # DIAG_XMLBLOB
         0x12: item.item_length4,    # APPL4
+        0x13: 2,                    # SLC
         0x15: 36,                   # SBA2
     }
     return diag_item_sizes[item.item_type]
