@@ -24,6 +24,7 @@ import itertools
 from struct import unpack
 from optparse import OptionParser, OptionGroup
 # External imports
+import scapy.arch
 from scapy.config import conf
 from scapy.sendrecv import sniff
 from scapy.layers.inet import IP, TCP
