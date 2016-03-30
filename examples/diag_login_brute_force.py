@@ -48,6 +48,8 @@ bind_layers(SAPDiagItem, SAPDiagItem,)
 conf.verb = 0
 
 
+# TODO: Add support for interpolating usernames with SID/CLIENT to test for SOLMAN accounts
+
 # Simple Thread Pool implementation based on http://code.activestate.com/recipes/577187-python-thread-pool/
 # WorkerQueue class
 class WorkerQueue(Thread):
