@@ -303,9 +303,17 @@ def main():
     else:
         try:
             for username in file(options.usernames, 'r').readlines():
+                username = username.strip()
+                # Check for comments or empty lines
+                if len(username) == 0 or username.startswith("#"):
+                    continue
                 for password in file(options.passwords, 'r').readlines():
+                    password = password.strip()
+                    # Check for comments or empty lines
+                    if len(password) == 0 or password.startswith("#"):
+                        continue
                     for client in client_list:
-                        testcases.append((username.strip(), password.strip(), client))
+                        testcases.append((username, password, client))
         except IOError:
             print("Error reading username or passwords file !")
             exit(0)
