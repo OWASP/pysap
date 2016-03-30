@@ -280,7 +280,13 @@ def main():
     if options.credentials:
         try:
             for line in file(options.credentials, 'r').readlines():
-                (username, password, clients) = line.strip().split(':')
+                line = line.strip()
+
+                # Check for comments or empty lines
+                if len(line) == 0 or line.startswith("#"):
+                    continue
+
+                (username, password, clients) = line.split(':')
                 if clients == "*":
                     clients = client_list
                 else:
