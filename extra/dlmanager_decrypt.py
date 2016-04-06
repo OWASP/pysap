@@ -241,7 +241,12 @@ def retrieve_serial_number():
 # Main function
 def main():
     # Parse command line options
-    description = "This example script extract and decrypt SAP's Download Manager stored passwords."
+    description = "This example script extract SAP's Download Manager stored passwords. For SAP Download Manager "   \
+                  "versions before 2.1.140a, stored passwords were kept unencrypted. For versions between 2.1.140a " \
+                  "and 2.1.142, the script should be able to decrypt the password given possible to obtain the "     \
+                  "machine serial number. For more details on the encryption mechanism see CVE-2016-3685, "          \
+                  "CVE-2016-3684 documented at " \
+                  "http://www.coresecurity.com/advisories/sap-download-manager-password-weak-encryption."
 
     usage = "Usage: %prog [options] -f <config filename>"
 
