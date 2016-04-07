@@ -491,7 +491,7 @@ class SAPDiag(PacketNoPadded):
         BitField("com_flag_TERM_EOS", 0, 1),
 
         ByteField("mode_stat", 0),
-        ByteField("err_flag", 0),
+        ByteField("err_no", 0),
         ByteField("msg_type", 0),
         ByteField("msg_info", 0),
         ByteField("msg_rc", 0),
@@ -507,7 +507,7 @@ class SAPDiag(PacketNoPadded):
         ConditionalField(PacketField("snc_frame", None, SAPSNCFrame), lambda pkt: pkt.compress in [2, 3]),
 
         # Message info
-        ConditionalField(StrEncodedPaddedField("info", None), lambda pkt: pkt.err_flag != 0),
+        ConditionalField(StrEncodedPaddedField("info", None), lambda pkt: pkt.err_no != 0),
 
         # Payload
         PacketListField("message", None, SAPDiagItem)]
