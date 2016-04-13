@@ -27,7 +27,7 @@ import pysap
 # Command line options parser
 def parse_options():
 
-    description = "This script can be used to parse support bits info  and generate required info for pysap/wireshark "\
+    description = "This script can be used to parse support bits info and generate required info for pysap/wireshark "\
                   "plugin. Input file can be obtained from SAP Gui traces (for example file 'sapguidll_01_0001.trc')."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
@@ -97,7 +97,7 @@ def main():
 
         wireshark_hf += 'static int hf_SAPDIAG_SUPPORT_BIT_%s = -1;\n' % name
 
-        wireshark_parse += 'proto_tree_add_item(tree, hf_SAPDIAG_SUPPORT_BIT_%s, tvb, offset, 1, FALSE);  /* %d%s */\n' % (name, bit, notice)
+        wireshark_parse += 'proto_tree_add_item(tree, hf_SAPDIAG_SUPPORT_BIT_%s, tvb, offset, 1, ENC_BIG_ENDIAN);  /* %d%s */\n' % (name, bit, notice)
 
         wireshark_module += '{ &hf_SAPDIAG_SUPPORT_BIT_%s,\n\t{ "Support Bit %s", ' \
                             '"sapdiag.diag.supportbits.%s", FT_BOOLEAN, 8, NULL, ' \
