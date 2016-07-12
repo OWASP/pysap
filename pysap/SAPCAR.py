@@ -77,13 +77,12 @@ def filemode(mode):
     return "".join(perm)
 
 
-class SAPCARCompressedFileFormat(PacketNoPadded):
+class SAPCARCompressedBlobFormat(PacketNoPadded):
     """SAP CAR compressed blob
 
-    This is used for decompressing blobs inside the file info
-    packets.
+    This is used for decompressing blobs inside the compressed block.
     """
-    name = "SAP CAR Archive Compressed file"
+    name = "SAP CAR Archive Compressed blob"
 
     fields_desc = [
         LEIntField("compressed_length", None),
@@ -92,7 +91,37 @@ class SAPCARCompressedFileFormat(PacketNoPadded):
         StrFixedLenField("magic_bytes", "\x1f\x9d", 2),
         ByteField("special", 2),
         ConditionalField(StrField("blob", None, remain=4), lambda x: x.compressed_length <= 8),
-        ConditionalField(StrFixedLenField("blob", None, length_from=lambda x: x.compressed_length - 8), lambda x: x.compressed_length > 8),
+        ConditionalField(StrFixedLenField("blob", None, length_from=lambda x: x.compressed_length - 8),
+                         lambda x: x.compressed_length > 8),
+    ]
+
+
+SAPCAR_BLOCK_TYPE_COMPRESSED_LAST = "ED"
+"""SAP CAR compressed last block"""
+
+SAPCAR_BLOCK_TYPE_COMPRESSED = "DA"
+"""SAP CAR compressed block"""
+
+SAPCAR_BLOCK_TYPE_UNCOMPRESSED_LAST = "UE"
+"""SAP CAR uncompressed last block"""
+
+SAPCAR_BLOCK_TYPE_UNCOMPRESSED = "UD"
+"""SAP CAR uncompressed block"""
+
+
+class SAPCARCompressedBlockFormat(PacketNoPadded):
+    """SAP CAR compressed block
+
+    This is used for decompressing blocks inside the file info format.
+    """
+    name = "SAP CAR Archive Compressed block"
+
+    fields_desc = [
+        StrFixedLenField("type", SAPCAR_BLOCK_TYPE_COMPRESSED_LAST, 2),
+        ConditionalField(PacketField("compressed", None, SAPCARCompressedBlobFormat),
+                         lambda x: x.type in [SAPCAR_BLOCK_TYPE_COMPRESSED_LAST, SAPCAR_BLOCK_TYPE_COMPRESSED]),
+        ConditionalField(LESignedIntField("checksum", 0),
+                         lambda x: x.type == SAPCAR_BLOCK_TYPE_COMPRESSED_LAST),
     ]
 
 
@@ -120,9 +149,8 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
         StrFixedLenField("unknown3", None, 10),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrFixedLenField("filename", None, length_from=lambda x: x.filename_length),
-        ConditionalField(StrFixedLenField("mark", "ED", 2), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
-        ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
-        ConditionalField(LESignedIntField("checksum", 0), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
+        ConditionalField(PacketListField("blocks", None, SAPCARCompressedBlockFormat),
+                         lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
     ]
 
 
@@ -143,9 +171,8 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
         StrFixedLenField("unknown3", None, 10),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrNullFixedLenField("filename", None, length_from=lambda x: x.filename_length - 1),
-        ConditionalField(StrFixedLenField("mark", "ED", 2), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
-        ConditionalField(PacketField("compressed", None, SAPCARCompressedFileFormat), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
-        ConditionalField(LESignedIntField("checksum", 0), lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
+        ConditionalField(PacketListField("blocks", None, SAPCARCompressedBlockFormat),
+                         lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
     ]
 
 
@@ -172,8 +199,10 @@ class SAPCARArchiveFormat(Packet):
     fields_desc = [
         StrFixedLenField("eyecatcher", "CAR ", 4),
         StrFixedLenField("version", SAPCAR_VERSION_201, 4),
-        ConditionalField(PacketListField("files0", None, SAPCARArchiveFilev200Format), lambda x: x.version == SAPCAR_VERSION_200),
-        ConditionalField(PacketListField("files1", None, SAPCARArchiveFilev201Format), lambda x: x.version == SAPCAR_VERSION_201),
+        ConditionalField(PacketListField("files0", None, SAPCARArchiveFilev200Format),
+                         lambda x: x.version == SAPCAR_VERSION_200),
+        ConditionalField(PacketListField("files1", None, SAPCARArchiveFilev201Format),
+                         lambda x: x.version == SAPCAR_VERSION_201),
     ]
 
 
