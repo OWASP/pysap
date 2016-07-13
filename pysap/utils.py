@@ -22,10 +22,11 @@ import struct
 from cmd import Cmd
 from threading import Thread, Event
 # External imports
+from scapy.config import conf
 from scapy.packet import Packet
 from scapy.volatile import (RandNum, RandTermString, RandBin)
 from scapy.fields import (MultiEnumField, StrLenField, Field, StrFixedLenField,
-                          StrField)
+                          StrField, PacketListField)
 # Optional imports
 try:
     from tabulate import tabulate
@@ -219,6 +220,51 @@ class StrEncodedPaddedField(StrField):
         if l < 0:
             return "", s
         return s[l + 1:], self.m2i(pkt, s[:l])
+
+
+class PacketListStopField(PacketListField):
+    """Custom field that contains a list of packets until a 'stop' condition is met.
+    """
+    def __init__(self, name, default, cls, count_from=None, length_from=None, stop=None):
+        PacketListField.__init__(self, name, default, cls, count_from=count_from, length_from=length_from)
+        self.stop = stop
+
+    def getfield(self, pkt, s):
+        c = l = None
+        if self.length_from is not None:
+            l = self.length_from(pkt)
+        elif self.count_from is not None:
+            c = self.count_from(pkt)
+
+        lst = []
+        ret = ""
+        remain = s
+        if l is not None:
+            remain, ret = s[:l], s[l:]
+        while remain:
+            if c is not None:
+                if c <= 0:
+                    break
+                c -= 1
+            try:
+                p = self.m2i(pkt, remain)
+            except Exception:
+                if conf.debug_dissector:
+                    raise
+                p = conf.raw_layer(load=remain)
+                remain = ""
+            else:
+                if conf.padding_layer in p:
+                    pad = p[conf.padding_layer]
+                    remain = pad.load
+                    del (pad.underlayer.payload)
+                else:
+                    remain = ""
+            lst.append(p)
+            # Evaluate the stop condition
+            if self.stop and self.stop(p):
+                break
+        return remain + ret, lst
 
 
 class Worker(Thread):
