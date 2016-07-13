@@ -30,7 +30,7 @@ from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
                           PacketField, StrFixedLenField, PacketListField,
                           ConditionalField, LESignedIntField, StrField)
 # Custom imports
-from pysap.utils import (PacketNoPadded, StrNullFixedLenField)
+from pysap.utils import (PacketNoPadded, StrNullFixedLenField, PacketListStopField)
 from pysapcompress import (decompress, compress, ALG_LZH, CompressError,
                            DecompressError)
 
@@ -125,6 +125,12 @@ class SAPCARCompressedBlockFormat(PacketNoPadded):
     ]
 
 
+def sapcar_is_last_block(packet):
+    """Helper function that evaluates if a block packet is the last one or not.
+    """
+    return packet.type in [SAPCAR_BLOCK_TYPE_COMPRESSED_LAST, SAPCAR_BLOCK_TYPE_UNCOMPRESSED_LAST]
+
+
 SAPCAR_TYPE_FILE = "RG"
 """SAP CAR regular file string"""
 
@@ -149,7 +155,7 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
         StrFixedLenField("unknown3", None, 10),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrFixedLenField("filename", None, length_from=lambda x: x.filename_length),
-        ConditionalField(PacketListField("blocks", None, SAPCARCompressedBlockFormat),
+        ConditionalField(PacketListStopField("blocks", None, SAPCARCompressedBlockFormat, stop=sapcar_is_last_block),
                          lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
     ]
 
@@ -294,11 +300,25 @@ class SAPCARArchiveFile(object):
         :return: checksum
         :rtype: int
         """
-        return self._file_format.checksum
+        checksum = None
+        for block in self._file_format.blocks:
+            if block.type == SAPCAR_BLOCK_TYPE_COMPRESSED_LAST:
+                if checksum is not None:
+                    raise Exception("More than one last block found for the file")
+                checksum = block.checksum
+        return checksum
 
     @checksum.setter
     def checksum(self, checksum):
-        self._file_format.checksum = checksum
+        checksum_set = False
+        for block in self._file_format.blocks:
+            if block.type == SAPCAR_BLOCK_TYPE_COMPRESSED_LAST:
+                if checksum_set:
+                    raise Exception("More than one last block found for the file")
+                block.checksum = checksum
+                checksum_set = True
+        if not checksum_set:
+            raise Exception("No last block found for the file")
 
     @classmethod
     def calculate_checksum(cls, data):
@@ -352,8 +372,12 @@ class SAPCARArchiveFile(object):
         archive_file._file_format.filename_length = len(archive_filename)
         if ff == SAPCARArchiveFilev201Format:
             archive_file._file_format.filename_length += 1
-        archive_file._file_format.compressed = SAPCARCompressedFileFormat(out_buffer)
-        archive_file._file_format.checksum = cls.calculate_checksum(data)
+        # Put the compressed blob inside a last block and add it to the object
+        block = SAPCARCompressedBlockFormat()
+        block.type = SAPCAR_BLOCK_TYPE_COMPRESSED_LAST
+        block.compressed = SAPCARCompressedBlobFormat(out_buffer)
+        block.checksum = cls.calculate_checksum(data)
+        archive_file._file_format.blocks.append(block)
 
         return archive_file
 
@@ -380,9 +404,14 @@ class SAPCARArchiveFile(object):
         new_archive_file._file_format.file_length = archive_file._file_format.file_length
         new_archive_file._file_format.filename = archive_file._file_format.filename
         new_archive_file._file_format.filename_length = archive_file._file_format.filename_length
-        new_archive_file._file_format.mark = archive_file._file_format.mark
-        new_archive_file._file_format.compressed = archive_file._file_format.compressed
-        new_archive_file._file_format.checksum = archive_file._file_format.checksum
+
+        for block in archive_file._file_format.blocks:
+            new_block = SAPCARCompressedBlockFormat()
+            new_block.type = block.type
+            new_block.compressed = SAPCARCompressedBlobFormat(str(block.compressed))
+            new_block.checksum = block.checksum
+            new_archive_file._file_format.blocks.append(new_block)
+
         return new_archive_file
 
     def open(self):
