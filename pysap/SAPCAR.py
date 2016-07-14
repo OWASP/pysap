@@ -77,6 +77,10 @@ def filemode(mode):
     return "".join(perm)
 
 
+class InvalidSAPCARFileException(Exception):
+    """Exception to denote an invalid SAP CAR file"""
+
+
 class SAPCARCompressedBlobFormat(PacketNoPadded):
     """SAP CAR compressed blob
 
@@ -304,7 +308,7 @@ class SAPCARArchiveFile(object):
         for block in self._file_format.blocks:
             if block.type == SAPCAR_BLOCK_TYPE_COMPRESSED_LAST:
                 if checksum is not None:
-                    raise Exception("More than one last block found for the file")
+                    raise InvalidSAPCARFileException("More than one last block found for the file")
                 checksum = block.checksum
         return checksum
 
@@ -314,11 +318,11 @@ class SAPCARArchiveFile(object):
         for block in self._file_format.blocks:
             if block.type == SAPCAR_BLOCK_TYPE_COMPRESSED_LAST:
                 if checksum_set:
-                    raise Exception("More than one last block found for the file")
+                    raise InvalidSAPCARFileException("More than one last block found for the file")
                 block.checksum = checksum
                 checksum_set = True
         if not checksum_set:
-            raise Exception("No last block found for the file")
+            raise InvalidSAPCARFileException("No last block found for the file")
 
     @classmethod
     def calculate_checksum(cls, data):
