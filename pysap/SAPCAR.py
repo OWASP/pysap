@@ -233,6 +233,22 @@ class SAPCARArchiveFile(object):
         """
         self._file_format = file_format
 
+    def is_file(self):
+        """Determines if the file is a regular file.
+
+        :return: if the file is a regular file
+        :rtype: bool
+        """
+        return self._file_format.type == SAPCAR_TYPE_FILE
+
+    def is_directory(self):
+        """Determines if the file is a directory.
+
+        :return: if the file is a directory
+        :rtype: bool
+        """
+        return self._file_format.type == SAPCAR_TYPE_DIR
+
     @property
     def type(self):
         """The type of the file.
@@ -285,6 +301,15 @@ class SAPCARArchiveFile(object):
         self._file_format.perm_mode = perm_mode
 
     @property
+    def perm_mode(self):
+        """The permissions mode of the file.
+
+        :return: permissions in numeric format
+        :rtype: int
+        """
+        return self._file_format.perm_mode
+
+    @property
     def timestamp(self):
         """The timestamp of the file.
 
@@ -298,6 +323,15 @@ class SAPCARArchiveFile(object):
         self._file_format.timestamp = timestamp
 
     @property
+    def timestamp_raw(self):
+        """The timestamp of the file.
+
+        :return: timestamp in numeric format
+        :rtype: int
+        """
+        return self._file_format.timestamp
+
+    @property
     def checksum(self):
         """The checksum of the file.
 
@@ -305,11 +339,12 @@ class SAPCARArchiveFile(object):
         :rtype: int
         """
         checksum = None
-        for block in self._file_format.blocks:
-            if block.type == SAPCAR_BLOCK_TYPE_COMPRESSED_LAST:
-                if checksum is not None:
-                    raise InvalidSAPCARFileException("More than one last block found for the file")
-                checksum = block.checksum
+        if self._file_format.blocks:
+            for block in self._file_format.blocks:
+                if block.type == SAPCAR_BLOCK_TYPE_COMPRESSED_LAST:
+                    if checksum is not None:
+                        raise InvalidSAPCARFileException("More than one last block found for the file")
+                    checksum = block.checksum
         return checksum
 
     @checksum.setter
@@ -425,16 +460,36 @@ class SAPCARArchiveFile(object):
         :return: file-like object with the uncompressed file content
         :rtype: file
         """
-        if not self._file_format.type == SAPCAR_TYPE_FILE:
+        # Check that the type is file, so we don't try to extract from a directory
+        if self.is_directory():
             raise Exception("Invalid file type")
 
         out_buffer = ""
         if self._file_format.file_length != 0:
-            compressed = self._file_format.compressed
-            exp_length = self._file_format.file_length
-            (_, out_length, out_buffer) = decompress(str(compressed)[4:], exp_length)
-            if out_length != exp_length or not out_buffer:
-                raise DecompressError("Decompression error")
+            remaining_length = self._file_format.file_length
+            for block in self._file_format.blocks:
+                # Process uncompressed block types
+                if block.type in [SAPCAR_BLOCK_TYPE_UNCOMPRESSED, SAPCAR_BLOCK_TYPE_UNCOMPRESSED_LAST]:
+                    out_buffer += block.compressed
+                    remaining_length -= len(block.compressed)
+                # Process compressed block types
+                elif block.type in [SAPCAR_BLOCK_TYPE_COMPRESSED, SAPCAR_BLOCK_TYPE_COMPRESSED_LAST]:
+                    compressed = block.compressed
+                    exp_block_length = compressed.uncompress_length
+                    (_, block_length, block_buffer) = decompress(str(compressed)[4:], exp_block_length)
+                    if block_length != exp_block_length or not block_buffer:
+                        raise DecompressError("Error decompressing block")
+                    out_buffer += block_buffer
+                    remaining_length -= block_length
+                else:
+                    raise InvalidSAPCARFileException("Invalid block type found")
+
+                # Check end of the file
+                if sapcar_is_last_block(block):
+                    if remaining_length != 0:
+                        raise InvalidSAPCARFileException("Invalid blocks found")
+                    break
+
         return StringIO(out_buffer)
 
     def check_checksum(self):
