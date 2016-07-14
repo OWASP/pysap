@@ -498,6 +498,8 @@ class SAPCARArchiveFile(object):
         :return: if the checksum matches
         :rtype: bool
         """
+        if self.size == 0:
+            return True
         crc = self.calculate_checksum(self.open().read())
         return crc == self.checksum
 
