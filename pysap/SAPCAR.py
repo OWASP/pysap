@@ -669,6 +669,8 @@ class SAPCARArchive(object):
 
     def read(self):
         """Reads the SAP CAR archive file and populates the files list.
+
+        :raise Exception: if the file is invalid or unsupported
         """
         self.fd.seek(0)
         self._sapcar = SAPCARArchiveFormat(self.fd.read())
