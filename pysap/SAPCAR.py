@@ -181,7 +181,7 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
         StrFixedLenField("unknown3", None, 10),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrNullFixedLenField("filename", None, length_from=lambda x: x.filename_length - 1),
-        ConditionalField(PacketListField("blocks", None, SAPCARCompressedBlockFormat),
+        ConditionalField(PacketListStopField("blocks", None, SAPCARCompressedBlockFormat, stop=sapcar_is_last_block),
                          lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
     ]
 
