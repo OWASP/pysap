@@ -77,7 +77,7 @@ def filemode(mode):
     return "".join(perm)
 
 
-class InvalidSAPCARFileException(Exception):
+class SAPCARInvalidFileException(Exception):
     """Exception to denote an invalid SAP CAR file"""
 
 
@@ -343,7 +343,7 @@ class SAPCARArchiveFile(object):
             for block in self._file_format.blocks:
                 if block.type == SAPCAR_BLOCK_TYPE_COMPRESSED_LAST:
                     if checksum is not None:
-                        raise InvalidSAPCARFileException("More than one last block found for the file")
+                        raise SAPCARInvalidFileException("More than one last block found for the file")
                     checksum = block.checksum
         return checksum
 
@@ -353,11 +353,11 @@ class SAPCARArchiveFile(object):
         for block in self._file_format.blocks:
             if block.type == SAPCAR_BLOCK_TYPE_COMPRESSED_LAST:
                 if checksum_set:
-                    raise InvalidSAPCARFileException("More than one last block found for the file")
+                    raise SAPCARInvalidFileException("More than one last block found for the file")
                 block.checksum = checksum
                 checksum_set = True
         if not checksum_set:
-            raise InvalidSAPCARFileException("No last block found for the file")
+            raise SAPCARInvalidFileException("No last block found for the file")
 
     @classmethod
     def calculate_checksum(cls, data):
@@ -482,12 +482,12 @@ class SAPCARArchiveFile(object):
                     out_buffer += block_buffer
                     remaining_length -= block_length
                 else:
-                    raise InvalidSAPCARFileException("Invalid block type found")
+                    raise SAPCARInvalidFileException("Invalid block type found")
 
                 # Check end of the file
                 if sapcar_is_last_block(block):
                     if remaining_length != 0:
-                        raise InvalidSAPCARFileException("Invalid blocks found")
+                        raise SAPCARInvalidFileException("Invalid blocks found")
                     break
 
         return StringIO(out_buffer)
