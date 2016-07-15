@@ -89,6 +89,7 @@ Contributions made by:
   * Joris van de Vis
   * Victor Portal Gonzalez 
   * Dmitry Yudin (@ret5et)
+  * Hans-Christian Esperer (@hce)
 
 
 Contact

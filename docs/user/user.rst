@@ -3,22 +3,22 @@
 User guide
 ==========
 
-The following parts of the documentation contains some background information
-about pysap, as well as some step-by-step instructions for installing,
-configuring and using pysap.
+The following parts of the documentation contains some background information about pysap, as well as some
+step-by-step instructions for installing, configuring and using pysap.
 
 
 References
 ----------
 
-Additional information about the protocols and the research can be found at
-different publications:
+Additional information about the protocols and the research can be found at different publications:
 
 * `Uncovering SAP vulnerabilities: reversing and breaking the Diag protocol <https://www.coresecurity.com/corelabs-research/publications/uncovering-sap-vulnerabilities-reversing-and-breaking-diag-protocol-brucon2012>`_
 
 * `SAP’s Network Protocols Revisited <https://www.coresecurity.com/corelabs-research/publications/sap-network-protocols-revisited>`_
 
 * `HoneySAP: Who really wants your money <https://www.coresecurity.com/corelabs-research/publications/honeysap-who-really-wants-your-money>`_
+
+* `Deep-dive into SAP archive file formats <https://www.coresecurity.com/corelabs-research/publications/deep-dive-sap-archive-file-formats>`_
 
 And advisories:
 
