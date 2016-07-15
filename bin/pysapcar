@@ -26,7 +26,7 @@ from os.path import dirname, exists, normpath
 from optparse import OptionParser, OptionGroup
 # Custom imports
 import pysap
-from pysap.SAPCAR import SAPCARArchive
+from pysap.SAPCAR import SAPCARArchive, SAPCARInvalidChecksumException, SAPCARInvalidFileException
 
 
 pysapcar_usage = """Usage:
@@ -69,6 +69,9 @@ class PySAPCAR(object):
 
         misc = OptionGroup(parser, "Misc options")
         misc.add_option("-v", dest="verbose", action="count", help="Verbose output")
+        misc.add_option("-e", "--enforce-checksum", dest="enforce_checksum", action="store_true",
+                        help="If the checksum validation is enforced. A file with an invalid checksum won't be "
+                             "extracted. When not set, only a warning would be thrown if checksum is invalid.")
         parser.add_option_group(misc)
 
         (options, args) = parser.parse_args()
@@ -163,7 +166,8 @@ class PySAPCAR(object):
         """
         # Open the archive file
         sapcar = self.open_archive()
-        # Extract each file
+
+        # Extract each file in the archive
         no = 0
         for filename in self.target_files(sapcar.files_names, args):
             fil = sapcar.files[filename]
@@ -185,15 +189,26 @@ class PySAPCAR(object):
                     mkdir(file_dirname)
                     self.logger.info("d %s", file_dirname)
 
-                # Extract the file and set the permissions
+                # Extract the file
+                try:
+                    data = fil.open(enforce_checksum=options.enforce_checksum).read()
+                except SAPCARInvalidFileException as e:
+                    self.logger.error("pysapcar: Invalid SAP CAR file %s (%s)", self.archive_fd.name, e.message)
+                    break
+                except SAPCARInvalidChecksumException as e:
+                    self.logger.error("pysapcar: Invalid checksum found for file %s", fil.filename)
+                    break
+
+                # Write the new file and set permissions
                 with open(filename, "wb") as new_file:
-                    new_file.write(fil.open().read())
+                    new_file.write(data)
                     fchmod(new_file.fileno(), fil.perm_mode)
 
                 # Set the timestamp
                 utime(filename, (fil.timestamp_raw, fil.timestamp_raw))
 
-                # Warn if the checksum is invalid
+                # If this path is reached and checksum is not valid, means checksum is not enforced, so we should warn
+                # only.
                 if not fil.check_checksum():
                     self.logger.warning("pysapcar: checksum error in %s !", filename)
 

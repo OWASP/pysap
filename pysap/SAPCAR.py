@@ -81,6 +81,10 @@ class SAPCARInvalidFileException(Exception):
     """Exception to denote an invalid SAP CAR file"""
 
 
+class SAPCARInvalidChecksumException(Exception):
+    """Exception to denote a syntactically valid SAP CAR file with an invalid checksum"""
+
+
 class SAPCARCompressedBlobFormat(PacketNoPadded):
     """SAP CAR compressed blob
 
@@ -453,12 +457,18 @@ class SAPCARArchiveFile(object):
 
         return new_archive_file
 
-    def open(self):
+    def open(self, enforce_checksum=False):
         """Opens the compressed file and returns a file-like object that
         can be used to access its uncompressed content.
 
+        :param enforce_checksum: If the checksum validation should be enforce
+        :type enforce_checksum: bool
+
         :return: file-like object with the uncompressed file content
         :rtype: file
+
+        :raise SAPCARInvalidFileException: If the file is invalid
+        :raise SAPCARInvalidChecksumException: If the checksum is invalid
         """
         # Check that the type is file, so we don't try to extract from a directory
         if self.is_directory():
@@ -488,6 +498,8 @@ class SAPCARArchiveFile(object):
                 if sapcar_is_last_block(block):
                     if remaining_length != 0:
                         raise SAPCARInvalidFileException("Invalid blocks found")
+                    if enforce_checksum and block.checksum != self.calculate_checksum(out_buffer):
+                        raise SAPCARInvalidChecksumException("Invalid checksum found")
                     break
 
         return StringIO(out_buffer)
