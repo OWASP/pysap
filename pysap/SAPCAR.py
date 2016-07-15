@@ -672,6 +672,10 @@ class SAPCARArchive(object):
         """
         self.fd.seek(0)
         self._sapcar = SAPCARArchiveFormat(self.fd.read())
+        if self._sapcar.eyecatcher != "CAR ":
+            raise Exception("Invalid or unsupported eyecatcher in file")
+        if self._sapcar.version not in sapcar_archive_file_versions:
+            raise Exception("Invalid or unsupported version in file")
 
     @property
     def _files(self):

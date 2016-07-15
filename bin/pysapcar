@@ -129,8 +129,12 @@ class PySAPCAR(object):
         """Opens the archive file to work with it and returns
         the SAP Car Archive object.
         """
-        sapcar = SAPCARArchive(self.archive_fd, mode=self.mode)
-        self.logger.info("pysapcar: Processing archive %s (version %s)", self.archive_fd.name, sapcar.version)
+        try:
+            sapcar = SAPCARArchive(self.archive_fd, mode=self.mode)
+            self.logger.info("pysapcar: Processing archive %s (version %s)", self.archive_fd.name, sapcar.version)
+        except Exception as e:
+            self.logger.error("pysapcar: Error processing archive %s (%s)", self.archive_fd.name, e.message)
+            return None
         return sapcar
 
     def target_files(self, filenames, target_filenames=None):
@@ -156,6 +160,8 @@ class PySAPCAR(object):
         """
         # Open the archive file
         sapcar = self.open_archive()
+        if not sapcar:
+            return
         # Print the info of each file
         for filename in self.target_files(sapcar.files_names, args):
             fil = sapcar.files[filename]
@@ -166,7 +172,8 @@ class PySAPCAR(object):
         """
         # Open the archive file
         sapcar = self.open_archive()
-
+        if not sapcar:
+            return
         # Extract each file in the archive
         no = 0
         for filename in self.target_files(sapcar.files_names, args):
