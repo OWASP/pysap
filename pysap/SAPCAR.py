@@ -135,6 +135,12 @@ class SAPCARCompressedBlockFormat(PacketNoPadded):
 
 def sapcar_is_last_block(packet):
     """Helper function that evaluates if a block packet is the last one or not.
+
+    :param packet: packet to check
+    :type packet: Packet
+
+    :return: if the block packet is the last one
+    :rtype: bool
     """
     return packet.type in [SAPCAR_BLOCK_TYPE_COMPRESSED_LAST, SAPCAR_BLOCK_TYPE_UNCOMPRESSED_LAST]
 
@@ -258,7 +264,7 @@ class SAPCARArchiveFile(object):
         """The type of the file.
 
         :return: type of the file
-        :rtype: basestring
+        :rtype: string
         """
         return self._file_format.type
 
@@ -267,12 +273,17 @@ class SAPCARArchiveFile(object):
         """The name of the file.
 
         :return: name of the file
-        :rtype: basestring
+        :rtype: string
         """
         return self._file_format.filename
 
     @filename.setter
     def filename(self, filename):
+        """Sets the name of the file.
+
+        :param filename: the name of the file
+        :type filename: string
+        """
         self._file_format.filename = filename
         self._file_format.filename_length = len(filename)
         if isinstance(self._file_format, SAPCARArchiveFilev201Format):
@@ -289,6 +300,11 @@ class SAPCARArchiveFile(object):
 
     @size.setter
     def size(self, file_length):
+        """Sets the size of the file.
+
+        :param file_length: the size of the file
+        :type file_length: int
+        """
         self._file_format.file_length = file_length
 
     @property
@@ -302,6 +318,11 @@ class SAPCARArchiveFile(object):
 
     @permissions.setter
     def permissions(self, perm_mode):
+        """Sets the permissions on the file.
+
+        :param perm_mode: the permissions to set
+        :type perm_mode: int
+        """
         self._file_format.perm_mode = perm_mode
 
     @property
@@ -324,6 +345,11 @@ class SAPCARArchiveFile(object):
 
     @timestamp.setter
     def timestamp(self, timestamp):
+        """Sets the file timestamp.
+
+        :param timestamp: the timestamp to set
+        :type timestamp: int
+        """
         self._file_format.timestamp = timestamp
 
     @property
@@ -341,6 +367,8 @@ class SAPCARArchiveFile(object):
 
         :return: checksum
         :rtype: int
+
+        :raise SAPCARInvalidFileException: if the file is invalid and contains more than one last block
         """
         checksum = None
         if self._file_format.blocks:
@@ -353,6 +381,13 @@ class SAPCARArchiveFile(object):
 
     @checksum.setter
     def checksum(self, checksum):
+        """Sets the file checksum.
+
+        :param checksum: checksum to set
+        :rtype checksum: int
+
+        :raise SAPCARInvalidFileException: if the file is invalid and contains more than one last block
+        """
         checksum_set = False
         for block in self._file_format.blocks:
             if block.type == SAPCAR_BLOCK_TYPE_COMPRESSED_LAST:
@@ -366,6 +401,12 @@ class SAPCARArchiveFile(object):
     @classmethod
     def calculate_checksum(cls, data):
         """Calculates the CRC32 checksum of a given data string.
+
+        :param data: data to calculate the checksum over
+        :type data: str
+
+        :return: the CRC32 checksum
+        :rtype: int
         """
         return -crc32(data, -1) - 1
 
@@ -382,6 +423,8 @@ class SAPCARArchiveFile(object):
 
         :param archive_filename: filename to use inside the archive file
         :type archive_filename: string
+
+        :raise ValueError: if the version requested is invalid
         """
 
         # Read the file properties and its content
@@ -433,6 +476,8 @@ class SAPCARArchiveFile(object):
 
         :param version: version of the file to construct
         :type version: string
+
+        :raise ValueError: if the version requested is invalid
         """
 
         if version not in sapcar_archive_file_versions:
@@ -467,7 +512,10 @@ class SAPCARArchiveFile(object):
         :return: file-like object with the uncompressed file content
         :rtype: file
 
+        :raise Exception: If the file to open is a directory
+
         :raise SAPCARInvalidFileException: If the file is invalid
+
         :raise SAPCARInvalidChecksumException: If the checksum is invalid
         """
         # Check that the type is file, so we don't try to extract from a directory
@@ -599,6 +647,12 @@ class SAPCARArchive(object):
 
     @version.setter
     def version(self, version):
+        """Sets the version of the file. If the version is different to the current one, it
+        converts the archive file.
+
+        :param version: version to set
+        :type version: string
+        """
         if version not in sapcar_archive_file_versions:
             raise ValueError("Invalid version")
         # If version is different, we should convert each file
@@ -678,7 +732,10 @@ class SAPCARArchive(object):
         inside the SAP CAR archive.
 
         :param filename: name of the file to open
+        :type filename: string
+
         :return: a file-like object that can be used to access the decompressed file.
+        :rtype: file
         """
         if filename not in self.files:
             raise Exception("Invalid filename")
@@ -691,6 +748,9 @@ class SAPCARArchive(object):
 
     def raw(self):
         """Returns the raw data of the archive file.
+
+        :return: raw data
+        :rtype: string
         """
         if self._sapcar:
             return str(self._sapcar)
