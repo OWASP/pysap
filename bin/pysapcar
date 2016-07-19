@@ -26,6 +26,7 @@ from os.path import dirname, exists, normpath
 from optparse import OptionParser, OptionGroup
 # Custom imports
 import pysap
+from pysapcompress import DecompressError
 from pysap.SAPCAR import SAPCARArchive, SAPCARInvalidChecksumException, SAPCARInvalidFileException
 
 
@@ -70,8 +71,10 @@ class PySAPCAR(object):
         misc = OptionGroup(parser, "Misc options")
         misc.add_option("-v", dest="verbose", action="count", help="Verbose output")
         misc.add_option("-e", "--enforce-checksum", dest="enforce_checksum", action="store_true",
-                        help="If the checksum validation is enforced. A file with an invalid checksum won't be "
+                        help="Whether the checksum validation is enforced. A file with an invalid checksum won't be "
                              "extracted. When not set, only a warning would be thrown if checksum is invalid.")
+        misc.add_option("-b", "--break-on-error", dest="break_on_error", action="store_true",
+                        help="Whether the extraction would continue if an error is identified.")
         parser.add_option_group(misc)
 
         (options, args) = parser.parse_args()
@@ -110,8 +113,8 @@ class PySAPCAR(object):
             try:
                 self.archive_fd = open(options.filename, self.mode)
             except IOError as e:
-                self.logger.error("pysapcar: error opening %s. %s" % (options.filename,
-                                                                      e.strerror))
+                self.logger.error("pysapcar: error opening '%s' (%s)" % (options.filename,
+                                                                         e.strerror))
                 return
         else:
             self.archive_fd = stdin
@@ -131,9 +134,9 @@ class PySAPCAR(object):
         """
         try:
             sapcar = SAPCARArchive(self.archive_fd, mode=self.mode)
-            self.logger.info("pysapcar: Processing archive %s (version %s)", self.archive_fd.name, sapcar.version)
+            self.logger.info("pysapcar: Processing archive '%s' (version %s)", self.archive_fd.name, sapcar.version)
         except Exception as e:
-            self.logger.error("pysapcar: Error processing archive %s (%s)", self.archive_fd.name, e.message)
+            self.logger.error("pysapcar: Error processing archive '%s' (%s)", self.archive_fd.name, e.message)
             return None
         return sapcar
 
@@ -170,6 +173,10 @@ class PySAPCAR(object):
     def extract(self, options, args):
         """Extract files from the archive file.
         """
+        CONTINUE = 1
+        SKIP = 2
+        STOP = 3
+
         # Open the archive file
         sapcar = self.open_archive()
         if not sapcar:
@@ -177,6 +184,7 @@ class PySAPCAR(object):
         # Extract each file in the archive
         no = 0
         for filename in self.target_files(sapcar.files_names, args):
+            flag = CONTINUE
             fil = sapcar.files[filename]
             filename = normpath(filename.replace("\x00", ""))  # Take out null bytes if found
 
@@ -196,14 +204,26 @@ class PySAPCAR(object):
                     mkdir(file_dirname)
                     self.logger.info("d %s", file_dirname)
 
-                # Extract the file
+                # Try to extract the file and handle potential errors
                 try:
                     data = fil.open(enforce_checksum=options.enforce_checksum).read()
-                except SAPCARInvalidFileException as e:
-                    self.logger.error("pysapcar: Invalid SAP CAR file %s (%s)", self.archive_fd.name, e.message)
-                    break
+                except (SAPCARInvalidFileException, DecompressError) as e:
+                    self.logger.error("pysapcar: Invalid SAP CAR file '%s' (%s)", self.archive_fd.name, e.message)
+                    if options.break_on_error:
+                        flag = STOP
+                    else:
+                        flag = SKIP
                 except SAPCARInvalidChecksumException as e:
-                    self.logger.error("pysapcar: Invalid checksum found for file %s", fil.filename)
+                    self.logger.error("pysapcar: Invalid checksum found for file '%s'", fil.filename)
+                    if options.enforce_checksum:
+                        flag = STOP
+
+                # Check the result before starting to write the file
+                if flag == SKIP:
+                    self.logger.info("pysapcar: Skipping execution of file '%s'", fil.filename)
+                    continue
+                elif flag == STOP:
+                    self.logger.info("pysapcar: Stopping extraction")
                     break
 
                 # Write the new file and set permissions
@@ -217,12 +237,12 @@ class PySAPCAR(object):
                 # If this path is reached and checksum is not valid, means checksum is not enforced, so we should warn
                 # only.
                 if not fil.check_checksum():
-                    self.logger.warning("pysapcar: checksum error in %s !", filename)
+                    self.logger.warning("pysapcar: checksum error in '%s' !", filename)
 
                 self.logger.info("d %s", filename)
                 no += 1
             else:
-                self.logger.warning("pysapcar: Invalid file type %s", filename)
+                self.logger.warning("pysapcar: Invalid file type '%s'", filename)
 
         self.logger.info("pysapcar: %d file(s) processed", no)
 
