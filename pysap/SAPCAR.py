@@ -265,6 +265,15 @@ class SAPCARArchiveFile(object):
         return self._file_format.type == SAPCAR_TYPE_DIR
 
     @property
+    def version(self):
+        """The version of the file.
+
+        :return: version of the file
+        :rtype: string
+        """
+        return self._file_format.version
+
+    @property
     def type(self):
         """The type of the file.
 
