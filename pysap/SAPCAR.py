@@ -152,12 +152,21 @@ SAPCAR_TYPE_DIR = "DR"
 """SAP CAR directory file string"""
 
 
+SAPCAR_VERSION_200 = "2.00"
+"""SAP CAR file format version 2.00 string"""
+
+SAPCAR_VERSION_201 = "2.01"
+"""SAP CAR file format version 2.01 string"""
+
+
 class SAPCARArchiveFilev200Format(PacketNoPadded):
     """SAP CAR file information format
 
     This is ued to parse files inside a SAP CAR archive.
     """
     name = "SAP CAR Archive File 2.00"
+
+    version = SAPCAR_VERSION_200
 
     fields_desc = [
         StrFixedLenField("type", SAPCAR_TYPE_FILE, 2),
@@ -181,6 +190,8 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
     """
     name = "SAP CAR Archive File 2.01"
 
+    version = SAPCAR_VERSION_201
+
     fields_desc = [
         StrFixedLenField("type", SAPCAR_TYPE_FILE, 2),
         LEIntField("perm_mode", 0),
@@ -195,12 +206,6 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
                          lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
     ]
 
-
-SAPCAR_VERSION_200 = "2.00"
-"""SAP CAR file format version 2.00 string"""
-
-SAPCAR_VERSION_201 = "2.01"
-"""SAP CAR file format version 2.01 string"""
 
 sapcar_archive_file_versions = {
     SAPCAR_VERSION_200: SAPCARArchiveFilev200Format,
@@ -456,7 +461,7 @@ class SAPCARArchiveFile(object):
         archive_file._file_format.file_length = stat.st_size
         archive_file._file_format.filename = archive_filename
         archive_file._file_format.filename_length = len(archive_filename)
-        if ff == SAPCARArchiveFilev201Format:
+        if archive_file.version == SAPCAR_VERSION_201:
             archive_file._file_format.filename_length += 1
         # Put the compressed blob inside a last block and add it to the object
         block = SAPCARCompressedBlockFormat()
