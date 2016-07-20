@@ -291,7 +291,7 @@ class SAPCARArchiveFile(object):
         """
         self._file_format.filename = filename
         self._file_format.filename_length = len(filename)
-        if isinstance(self._file_format, SAPCARArchiveFilev201Format):
+        if self._file_format.version == SAPCAR_VERSION_201:
             self._file_format.filename_length += 1
 
     @property
@@ -461,7 +461,7 @@ class SAPCARArchiveFile(object):
         archive_file._file_format.file_length = stat.st_size
         archive_file._file_format.filename = archive_filename
         archive_file._file_format.filename_length = len(archive_filename)
-        if archive_file.version == SAPCAR_VERSION_201:
+        if archive_file._file_format.version == SAPCAR_VERSION_201:
             archive_file._file_format.filename_length += 1
         # Put the compressed blob inside a last block and add it to the object
         block = SAPCARCompressedBlockFormat()
