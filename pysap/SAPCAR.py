@@ -192,11 +192,14 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
         :raise DecompressError: if there's a decompression error
         :raise SAPCARInvalidFileException: If the file is invalid
         """
+
         if self.file_length == 0:
             return "", 0
 
+        compressed = ""
         out_buffer = ""
         checksum = 0
+        exp_length = None
 
         remaining_length = self.file_length
         for block in self.blocks:
@@ -204,21 +207,25 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
             if block.type in [SAPCAR_BLOCK_TYPE_UNCOMPRESSED, SAPCAR_BLOCK_TYPE_UNCOMPRESSED_LAST]:
                 out_buffer += block.compressed
                 remaining_length -= len(block.compressed)
-            # Process compressed block types
+            # Store compressed block types for later decompression
             elif block.type in [SAPCAR_BLOCK_TYPE_COMPRESSED, SAPCAR_BLOCK_TYPE_COMPRESSED_LAST]:
-                compressed = block.compressed
-                exp_block_length = compressed.uncompress_length
-                (_, block_length, block_buffer) = decompress(str(compressed)[4:], exp_block_length)
-                if block_length != exp_block_length or not block_buffer:
-                    raise DecompressError("Error decompressing block")
-                out_buffer += block_buffer
-                remaining_length -= block_length
+                # Add compressed block to a buffer, skipping the first 4 bytes of each block (uncompressed length)
+                compressed += str(block.compressed)[4:]
+                # If the expected length wasn't already set, do it
+                if not exp_length:
+                    exp_length = block.compressed.uncompress_length
             else:
                 raise SAPCARInvalidFileException("Invalid block type found")
 
-            # Check end of the file
+            # Check last block, performing decompression if needed
             if sapcar_is_last_block(block):
                 checksum = block.checksum
+                # If there was at least one compressed block that set the expected length, decompress it
+                if exp_length:
+                    (_, block_length, block_buffer) = decompress(str(compressed), exp_length)
+                    if block_length != exp_length or not block_buffer:
+                        raise DecompressError("Error decompressing block")
+                    out_buffer += block_buffer
                 break
 
         return out_buffer, checksum
