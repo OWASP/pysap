@@ -182,14 +182,17 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
                          lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
     ]
 
-    def decompress(self):
-        """Decompress the archive file and returns the plain data and the checksum obtained from the
-        file.
+    def extract(self):
+        """Extracts the archive file and returns the plain data and the checksum obtained from the archive.
+        If blocks are uncompressed, the file is directly extracted. If the blocks are compressed, each block is
+        added to a buffer, skipping the length field, and decompression is performed after the block marked as
+        last. Expected length and compression header is obtained from the first block and checksum from the last
+        block.
 
-        :return: decompressed file and checksum
+        :return: extracted file and checksum
         :type: pair of strings
 
-        :raise DecompressError: if there's a decompression error
+        :raise DecompressError: If there's a decompression error
         :raise SAPCARInvalidFileException: If the file is invalid
         """
 
@@ -254,14 +257,15 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
                          lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
     ]
 
-    def decompress(self):
-        """Decompress the archive file and returns the plain data and the checksum obtained from the
-        file.
+    def extract(self):
+        """Extracts the archive file and returns the plain data and the checksum obtained from the archive.
+        If blocks are uncompressed, the file is directly extracted. If the blocks are compressed, each block is
+        decompressed independently. Checksum is obtained from the last block.
 
-        :return: decompressed file and checksum
+        :return: extracted file and checksum
         :type: pair of strings
 
-        :raise DecompressError: if there's a decompression error
+        :raise DecompressError: If there's a decompression error
         :raise SAPCARInvalidFileException: If the file is invalid
         """
         if self.file_length == 0:
@@ -624,14 +628,14 @@ class SAPCARArchiveFile(object):
         if self.is_directory():
             raise Exception("Invalid file type")
 
-        # Decompress the file
-        out_buffer, checksum = self._file_format.decompress()
+        # Extract the file
+        out_buffer, checksum = self._file_format.extract()
 
         # Validate the checksum if required
         if enforce_checksum and checksum != self.calculate_checksum(out_buffer):
             raise SAPCARInvalidChecksumException("Invalid checksum found")
 
-        # Return a file-like object with the decompressed data
+        # Return a file-like object with the extracted data
         return StringIO(out_buffer)
 
     def check_checksum(self):
