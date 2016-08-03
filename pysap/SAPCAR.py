@@ -182,6 +182,47 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
                          lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
     ]
 
+    def decompress(self):
+        """Decompress the archive file and returns the plain data and the checksum obtained from the
+        file.
+
+        :return: decompressed file and checksum
+        :type: pair of strings
+
+        :raise DecompressError: if there's a decompression error
+        :raise SAPCARInvalidFileException: If the file is invalid
+        """
+        if self.file_length == 0:
+            return "", 0
+
+        out_buffer = ""
+        checksum = 0
+
+        remaining_length = self.file_length
+        for block in self.blocks:
+            # Process uncompressed block types
+            if block.type in [SAPCAR_BLOCK_TYPE_UNCOMPRESSED, SAPCAR_BLOCK_TYPE_UNCOMPRESSED_LAST]:
+                out_buffer += block.compressed
+                remaining_length -= len(block.compressed)
+            # Process compressed block types
+            elif block.type in [SAPCAR_BLOCK_TYPE_COMPRESSED, SAPCAR_BLOCK_TYPE_COMPRESSED_LAST]:
+                compressed = block.compressed
+                exp_block_length = compressed.uncompress_length
+                (_, block_length, block_buffer) = decompress(str(compressed)[4:], exp_block_length)
+                if block_length != exp_block_length or not block_buffer:
+                    raise DecompressError("Error decompressing block")
+                out_buffer += block_buffer
+                remaining_length -= block_length
+            else:
+                raise SAPCARInvalidFileException("Invalid block type found")
+
+            # Check end of the file
+            if sapcar_is_last_block(block):
+                checksum = block.checksum
+                break
+
+        return out_buffer, checksum
+
 
 class SAPCARArchiveFilev201Format(PacketNoPadded):
     """SAP CAR file information format
@@ -205,6 +246,47 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
         ConditionalField(PacketListStopField("blocks", None, SAPCARCompressedBlockFormat, stop=sapcar_is_last_block),
                          lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
     ]
+
+    def decompress(self):
+        """Decompress the archive file and returns the plain data and the checksum obtained from the
+        file.
+
+        :return: decompressed file and checksum
+        :type: pair of strings
+
+        :raise DecompressError: if there's a decompression error
+        :raise SAPCARInvalidFileException: If the file is invalid
+        """
+        if self.file_length == 0:
+            return "", 0
+
+        out_buffer = ""
+        checksum = 0
+
+        remaining_length = self.file_length
+        for block in self.blocks:
+            # Process uncompressed block types
+            if block.type in [SAPCAR_BLOCK_TYPE_UNCOMPRESSED, SAPCAR_BLOCK_TYPE_UNCOMPRESSED_LAST]:
+                out_buffer += block.compressed
+                remaining_length -= len(block.compressed)
+            # Process compressed block types
+            elif block.type in [SAPCAR_BLOCK_TYPE_COMPRESSED, SAPCAR_BLOCK_TYPE_COMPRESSED_LAST]:
+                compressed = block.compressed
+                exp_block_length = compressed.uncompress_length
+                (_, block_length, block_buffer) = decompress(str(compressed)[4:], exp_block_length)
+                if block_length != exp_block_length or not block_buffer:
+                    raise DecompressError("Error decompressing block")
+                out_buffer += block_buffer
+                remaining_length -= block_length
+            else:
+                raise SAPCARInvalidFileException("Invalid block type found")
+
+            # Check end of the file
+            if sapcar_is_last_block(block):
+                checksum = block.checksum
+                break
+
+        return out_buffer, checksum
 
 
 sapcar_archive_file_versions = {
@@ -527,43 +609,22 @@ class SAPCARArchiveFile(object):
         :rtype: file
 
         :raise Exception: If the file to open is a directory
-
+        :raise DecompressError: If there's a decompression error
         :raise SAPCARInvalidFileException: If the file is invalid
-
         :raise SAPCARInvalidChecksumException: If the checksum is invalid
         """
         # Check that the type is file, so we don't try to extract from a directory
         if self.is_directory():
             raise Exception("Invalid file type")
 
-        out_buffer = ""
-        if self._file_format.file_length != 0:
-            remaining_length = self._file_format.file_length
-            for block in self._file_format.blocks:
-                # Process uncompressed block types
-                if block.type in [SAPCAR_BLOCK_TYPE_UNCOMPRESSED, SAPCAR_BLOCK_TYPE_UNCOMPRESSED_LAST]:
-                    out_buffer += block.compressed
-                    remaining_length -= len(block.compressed)
-                # Process compressed block types
-                elif block.type in [SAPCAR_BLOCK_TYPE_COMPRESSED, SAPCAR_BLOCK_TYPE_COMPRESSED_LAST]:
-                    compressed = block.compressed
-                    exp_block_length = compressed.uncompress_length
-                    (_, block_length, block_buffer) = decompress(str(compressed)[4:], exp_block_length)
-                    if block_length != exp_block_length or not block_buffer:
-                        raise DecompressError("Error decompressing block")
-                    out_buffer += block_buffer
-                    remaining_length -= block_length
-                else:
-                    raise SAPCARInvalidFileException("Invalid block type found")
+        # Decompress the file
+        out_buffer, checksum = self._file_format.decompress()
 
-                # Check end of the file
-                if sapcar_is_last_block(block):
-                    if remaining_length != 0:
-                        raise SAPCARInvalidFileException("Invalid blocks found")
-                    if enforce_checksum and block.checksum != self.calculate_checksum(out_buffer):
-                        raise SAPCARInvalidChecksumException("Invalid checksum found")
-                    break
+        # Validate the checksum if required
+        if enforce_checksum and checksum != self.calculate_checksum(out_buffer):
+            raise SAPCARInvalidChecksumException("Invalid checksum found")
 
+        # Return a file-like object with the decompressed data
         return StringIO(out_buffer)
 
     def check_checksum(self):
