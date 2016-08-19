@@ -25,8 +25,8 @@ before_script:
   #- if [ ${TRAVIS_OS_NAME} == "osx" ]; then cd libdnet-1.12 && ./configure && make && sudo make install && cd python && python setup.py install && cd ../..; fi
 
 install:
-  - python setup.py install
-  - pip install Sphinx
+  - pip install .
+  - pip install .[docs]
 
 script:
   - python setup.py test
