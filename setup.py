@@ -26,7 +26,7 @@ import pysap
 
 
 class APIDocumentationCommand(Command):
-    """Custom command for building API documentation with epydoc.
+    """Custom command for building API documentation with Sphinx.
     """
 
     description = "Builds the API documentation using Sphinx"
@@ -39,9 +39,9 @@ class APIDocumentationCommand(Command):
         pass
 
     def run(self):
+        """Runs Sphinx
         """
-        Runs epydoc
-        """
+        system("sphinx-apidoc -o docs/api/ -f -e -M pysap pysapcompress")
         system("cd docs && make html")
 
 

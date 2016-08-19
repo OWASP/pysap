@@ -50,6 +50,8 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+docs/api/modules.rst
+docs/api/pysap.*rst
 
 # PyBuilder
 target/
