@@ -252,12 +252,15 @@ def main():
 
     parser = OptionParser(usage=usage, description=description)
 
-    parser.add_option("-f", "--filename", dest="filename", help="DLManager config filename", metavar="FILE")
-    parser.add_option("-e", "--encrypted", dest="encrypted", help="If passwords are stored encrypted (version >= 2.1.140a)",
-                      action="store_true")
-    parser.add_option("-s", "--serial-number", dest="serial_number", help="The machine's BIOS serial number")
-    parser.add_option("-r", "--retrieve-serial-number", dest="retrieve", help="If the script should try to retrieve the "
-                      "serial number from the machine and use it for decryption", action="store_true")
+    parser.add_option("-f", "--filename", dest="filename", metavar="FILE",
+                      help="DLManager config filename")
+    parser.add_option("-e", "--encrypted", dest="encrypted", action="store_true",
+                      help="If passwords are stored encrypted (version >= 2.1.140a)")
+    parser.add_option("-s", "--serial-number", dest="serial_number",
+                      help="The machine's BIOS serial number")
+    parser.add_option("-r", "--retrieve-serial-number", dest="retrieve", action="store_true",
+                      help="If the script should try to retrieve the serial number from the machine and use it for "
+                           "decryption")
     (options, args) = parser.parse_args()
 
     if not options.filename:
