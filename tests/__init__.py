@@ -27,7 +27,7 @@ from tests import saprouter_test
 from tests import pysapcompress_test
 
 
-def suite():
+def test_suite():
     suite = unittest.TestSuite()
     suite.addTests(sapni_test.suite())
     suite.addTests(sapcar_test.suite())
@@ -38,4 +38,4 @@ def suite():
 
 
 if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    unittest.TextTestRunner(verbosity=2).run(test_suite())

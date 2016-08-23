@@ -337,7 +337,7 @@ class PySAPNIProxyTest(unittest.TestCase):
         self.stop_sapniproxy()
 
 
-def suite():
+def test_suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPNITest))
@@ -348,4 +348,4 @@ def suite():
 
 
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    unittest.TextTestRunner(verbosity=2).run(test_suite())
