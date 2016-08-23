@@ -104,7 +104,8 @@ class SAPDiagConnection(object):
                                                               self.route,
                                                               base_cls=SAPDiag)
 
-    def get_terminal_name(self):
+    @staticmethod
+    def get_terminal_name():
         """Generates a random IP address to use as a terminal name. In SAP
         systems that don't implement SAP Note 1497445, the dispatcher registers
         logs the terminal name as provided by the client, or fallback to

@@ -509,8 +509,8 @@ class SAPCARArchiveFile(object):
         if not checksum_set:
             raise SAPCARInvalidFileException("No last block found for the file")
 
-    @classmethod
-    def calculate_checksum(cls, data):
+    @staticmethod
+    def calculate_checksum(data):
         """Calculates the CRC32 checksum of a given data string.
 
         :param data: data to calculate the checksum over
