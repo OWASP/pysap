@@ -30,6 +30,7 @@ from pysap.SAPCAR import (SAPCARArchive, SAPCARArchiveFile,
 
 class PySAPCARTest(unittest.TestCase):
 
+    test_archive_file = "somefile"
     test_filename = "test_string.txt"
     test_timestamp_raw = 1449010128
     test_timestamp = "01 Dec 2015 22:48"
@@ -42,8 +43,9 @@ class PySAPCARTest(unittest.TestCase):
             fd.write(self.test_string)
 
     def tearDown(self):
-        if exists(self.test_filename):
-            unlink(self.test_filename)
+        for filename in [self.test_filename, self.test_archive_file]:
+            if exists(filename):
+                unlink(filename)
 
     def check_sapcar_archive(self, filename, version):
         """Test SAP CAR archive file"""
@@ -83,8 +85,8 @@ class PySAPCARTest(unittest.TestCase):
     def test_sapcar_archive(self):
         """Test some basic construction of a SAP CAR archive"""
 
-        self.assertRaises(ValueError, SAPCARArchive, "somefile", "w", version="2.02")
-        self.assertRaises(ValueError, SAPCARArchive, "somefile", "x")
+        self.assertRaises(ValueError, SAPCARArchive, self.test_archive_file, "w", version="2.02")
+        self.assertRaises(ValueError, SAPCARArchive, self.test_archive_file, "x")
 
     def test_sapcar_archive_200(self):
         """Test SAP CAR archive file version 2.00"""
@@ -99,7 +101,7 @@ class PySAPCARTest(unittest.TestCase):
     def test_sapcar_archive_add_file(self):
         """Test some basic construction of a SAP CAR archive adding from an existent file"""
 
-        ar = SAPCARArchive("somefile", "w")
+        ar = SAPCARArchive(self.test_archive_file, "w")
         ar.add_file(self.test_filename)
         ar.add_file(self.test_filename, archive_filename=self.test_filename+"two")
 
