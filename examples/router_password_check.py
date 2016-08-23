@@ -64,16 +64,23 @@ def parse_options():
     parser = OptionParser(usage=usage, description=description, epilog=epilog)
 
     target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host [%default]", default="127.0.0.1")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3299)
-    target.add_option("--router-version", dest="router_version", type="int", help="SAP Router version to use [retrieve from the remote SAP Router]")
+    target.add_option("-d", "--remote-host", dest="remote_host", default="127.0.0.1",
+                      help="Remote host [%default]")
+    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3299,
+                      help="Remote port [%default]")
+    target.add_option("--router-version", dest="router_version", type="int",
+                      help="SAP Router version to use [retrieve from the remote SAP Router]")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-t", "--tries", dest="tries", default=10, type="int", help="Amount of tries to make for each length [%default]")
-    misc.add_option("--password", dest="password", default="password", help="Correct password to test")
-    misc.add_option("-o", "--output", dest="output", default="output.csv", help="Output file [%default]")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose output [%default]")
+    misc.add_option("-t", "--tries", dest="tries", default=10, type="int",
+                    help="Amount of tries to make for each length [%default]")
+    misc.add_option("--password", dest="password", default="password",
+                    help="Correct password to test")
+    misc.add_option("-o", "--output", dest="output", default="output.csv",
+                    help="Output file [%default]")
+    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
+                    help="Verbose output [%default]")
     parser.add_option_group(misc)
 
     (options, _) = parser.parse_args()
@@ -94,12 +101,12 @@ def try_password(options, password, output=None, k=0):
     fau_timer.init()
     fau_timer.send_request(options.remote_host, options.remote_port, p, len(p))
     fau_timer.calculate_time()
-    cpuSpeed = fau_timer.get_speed()
-    cpuTicks = fau_timer.get_cpu_ticks()
+    cpu_peed = fau_timer.get_speed()
+    cpu_ticks = fau_timer.get_cpu_ticks()
     time = fau_timer.get_time()
 
     if options.verbose:
-        print("Request time: CPU Speed: %s Hz CPU Ticks: %s Time: %s nanosec" % (cpuSpeed, cpuTicks, time))
+        print("Request time: CPU Speed: %s Hz CPU Ticks: %s Time: %s nanosec" % (cpu_peed, cpu_ticks, time))
 
     # Write the time to the output file
     if output:
