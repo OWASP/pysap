@@ -41,7 +41,7 @@ def parse_options():
                   "(ms/monitor=1)[1] and the internal port should be reachable. Keep in mind that some of the " \
                   "parameters are not dynamic and can't be changed using this method. If the parameter value is not " \
                   "specified, the script retrieve the current value. " \
-                  "[1] http://help.sap.com/saphelp_nw70/helpdata/en/4e/cffdb69d10424e97eb1d993b1e2cfd/content.htm"
+                  "[1] https://help.sap.com/saphelp_nw70/helpdata/en/4e/cffdb69d10424e97eb1d993b1e2cfd/content.htm"
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

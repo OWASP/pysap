@@ -246,7 +246,7 @@ def main():
                   "and 2.1.142, the script should be able to decrypt the password given possible to obtain the "     \
                   "machine serial number. For more details on the encryption mechanism see CVE-2016-3685, "          \
                   "CVE-2016-3684 documented at " \
-                  "http://www.coresecurity.com/advisories/sap-download-manager-password-weak-encryption."
+                  "https://www.coresecurity.com/advisories/sap-download-manager-password-weak-encryption."
 
     usage = "Usage: %prog [options] -f <config filename>"
 

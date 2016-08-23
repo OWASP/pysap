@@ -21,7 +21,7 @@
 pysap
 =====
 
-[pysap](http://www.coresecurity.com/corelabs-research/open-source-tools/pysap)
+[pysap](https://www.coresecurity.com/corelabs-research/open-source-tools/pysap)
 is a Python library that provides modules for crafting and sending packets
 using SAP's NI, Message Server, Router, RFC, SNC, Enqueue and Diag protocols.
 The modules are build on top of [Scapy](http://www.secdev.org/projects/scapy/)

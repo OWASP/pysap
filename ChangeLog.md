@@ -10,7 +10,7 @@ v0.1.11 - XXXX-XX-XX
 - `pysap/SAPDiag.py`: Renamed error flag to error number. 
 - `examples/diag_capturer.py`: Fix imports for running diag capturer example script in Windows.
 - `examples/diag_login_brute_force.py`: Added SOLMAN [default](https://www.troopers.de/media/filer_public/37/34/3734ebb3-989c-4750-9d48-ea478674991a/an_easy_way_into_your_sap_systems_v30.pdf)
-  [credentials](https://service.sap.com/sap/support/notes/2293011) and improved reading credentials file. 
+  [credentials](https://launchpad.support.sap.com/#/notes/2293011) and improved reading credentials file. 
 
 
 v0.1.10 - 2016-03-25

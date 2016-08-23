@@ -53,8 +53,8 @@ Some example scripts has additional required libraries:
 
 - ``tabulate``
 - ``netaddr``
-- `wxPython <http://www.wxpython.org/>`_
-- `fau_timer <https://github.com/martingalloar/mona-timing-lib>`_
+- `wxPython <https://www.wxpython.org/>`_
+- `fau_timer <https://github.com/seecurity/mona-timing-lib>`_
 
 Some of those extra libraries can be installed with `pip`_ running the following
 command::
