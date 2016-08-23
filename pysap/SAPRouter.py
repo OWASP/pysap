@@ -607,9 +607,8 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         # If we're working on native mode and the route was accepted, we don't
         # need the NI layer anymore. Just use the plain socket inside the
         # NIStreamSockets.
-        if self.routed:
-            if self.talk_mode == 1:
-                return StreamSocket.recv(self)
+        if self.routed and self.talk_mode == 1:
+            return StreamSocket.recv(self)
         # If the route was not accepted yet or we're working on non-native talk
         # mode, we need the NI layer.
         return SAPNIStreamSocket.recv(self)
