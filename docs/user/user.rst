@@ -32,6 +32,10 @@ And advisories:
 
 * `SAP LZC LZH Compression Multiple Vulnerabilities <https://www.coresecurity.com/advisories/sap-lzc-lzh-compression-multiple-vulnerabilities>`_
 
+Initial research about the SAP CAR file format was performed by Martin Gallo and published in `Deep-dive into SAP archive file formats <https://www.coresecurity.com/corelabs-research/publications/deep-dive-sap-archive-file-formats>`_
+at the `Troopers 2016 Security Conference <https://www.troopers.de/troopers16/agenda/>`_. Additional research was
+performed by `Hans-Christian Esperer <https://github.com/hce>`_ and published in the
+`Hascar <https://github.com/VirtualForgeGmbH/hascar>`_ tool.
 
 .. _installation:
 

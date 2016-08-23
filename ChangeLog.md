@@ -6,6 +6,8 @@ v0.1.11 - XXXX-XX-XX
 
 - Some documentation improvements.
 - ChangeLog file in Markdown format for better documentation.
+- Improvements over the `pysapcar` tool, general fixes and added handling of multi-block SAP CAR archive files. Thanks
+  [Hans-Christian Esperer](https://github.com/hce) for the feedback!
 - `pysap/SAPDiag.py`: Splitted `SBA`/`SFE`/`SLC` fields.
 - `pysap/SAPDiag.py`: Renamed error flag to error number. 
 - `examples/diag_capturer.py`: Fix imports for running diag capturer example script in Windows.
