@@ -662,10 +662,8 @@ class SAPCARArchive(object):
     """Proxy class that can be used to read SAP CAR archive files.
     """
 
-    files = None
-    filename = None
-
     # Instance attributes
+    filename = None
     fd = None
     _files = None
     _sapcar = None
