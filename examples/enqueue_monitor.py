@@ -191,16 +191,22 @@ def parse_options():
     parser = OptionParser(usage=usage, description=description, epilog=epilog)
 
     target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3200)
+    target.add_option("-d", "--remote-host", dest="remote_host",
+                      help="Remote host")
+    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3200,
+                      help="Remote port [%default]")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-c", "--client", dest="client", default="pysap's-monitor", help="Client name [%default]")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose output [%default]")
-    misc.add_option("--log-file", dest="logfile", help="Log file")
-    misc.add_option("--console-log", dest="consolelog", help="Console log file")
-    misc.add_option("--script", dest="script", help="Script file to run")
+    misc.add_option("-c", "--client", dest="client", default="pysap's-monitor",
+                    help="Client name [%default]")
+    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
+                    help="Verbose output [%default]")
+    misc.add_option("--log-file", dest="logfile", metavar="FILE",
+                    help="Log file")
+    misc.add_option("--console-log", dest="consolelog", metavar="FILE",
+                    help="Console log file")
+    misc.add_option("--script", dest="script", metavar="FILE", help="Script file to run")
     parser.add_option_group(misc)
 
     (options, _) = parser.parse_args()

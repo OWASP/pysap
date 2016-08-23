@@ -56,29 +56,46 @@ def parse_options():
     parser = OptionParser(usage=usage, description=description, epilog=epilog)
 
     target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host [%default]", default="127.0.0.1")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3299)
-    target.add_option("--router-version", dest="router_version", type="int", help="SAP Router version to use [retrieve from the remote SAP Router]")
+    target.add_option("-d", "--remote-host", dest="remote_host", default="127.0.0.1",
+                      help="Remote host [%default]")
+    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3299,
+                      help="Remote port [%default]")
+    target.add_option("--router-version", dest="router_version", type="int",
+                      help="SAP Router version to use [retrieve from the remote SAP Router]")
     parser.add_option_group(target)
 
     command = OptionGroup(parser, "Command")
-    command.add_option("-s", "--stop-router", dest="stop", action="store_true", help="Stop router request")
-    command.add_option("-o", "--soft-shutdown", dest="soft", action="store_true", help="Soft shutdown request")
-    command.add_option("-l", "--router-info", dest="info", action="store_true", help="Router info request")
-    command.add_option("-P", "--info-pass", dest="info_password", action="store", help="Password for info request")
-    command.add_option("-n", "--new-route", dest="new_route", action="store_true", help="New route table request")
-    command.add_option("-t", "--toggle-trace", dest="trace", action="store_true", help="Toggle trace request")
-    command.add_option("-c", "--cancel-route", dest="cancel", action="store", help="Cancel route request")
-    command.add_option("-b", "--dump-buffer", dest="dump", action="store_true", help="Dump buffers request")
-    command.add_option("-f", "--flush-buffer", dest="flush", action="store_true", help="Flush buffers request")
-    command.add_option("-z", "--hide-errors", dest="hide", action="store_true", help="Hide errors info")
-    command.add_option("--set-peer-trace", dest="set_peer", action="store", help="Set peer trace (undocumented command)")
-    command.add_option("--clear-peer-trace", dest="clear_peer", action="store", help="Clear peer trace (undocumented command)")
-    command.add_option("--trace-connection", dest="trace_conn", action="store", help="Trace connection (undocumented command)")
+    command.add_option("-s", "--stop-router", dest="stop", action="store_true",
+                       help="Stop router request")
+    command.add_option("-o", "--soft-shutdown", dest="soft", action="store_true",
+                       help="Soft shutdown request")
+    command.add_option("-l", "--router-info", dest="info", action="store_true",
+                       help="Router info request")
+    command.add_option("-P", "--info-pass", dest="info_password", action="store",
+                       help="Password for info request")
+    command.add_option("-n", "--new-route", dest="new_route", action="store_true",
+                       help="New route table request")
+    command.add_option("-t", "--toggle-trace", dest="trace", action="store_true",
+                       help="Toggle trace request")
+    command.add_option("-c", "--cancel-route", dest="cancel", action="store",
+                       help="Cancel route request")
+    command.add_option("-b", "--dump-buffer", dest="dump", action="store_true",
+                       help="Dump buffers request")
+    command.add_option("-f", "--flush-buffer", dest="flush", action="store_true",
+                       help="Flush buffers request")
+    command.add_option("-z", "--hide-errors", dest="hide", action="store_true",
+                       help="Hide errors info")
+    command.add_option("--set-peer-trace", dest="set_peer", action="store",
+                       help="Set peer trace (undocumented command)")
+    command.add_option("--clear-peer-trace", dest="clear_peer", action="store",
+                       help="Clear peer trace (undocumented command)")
+    command.add_option("--trace-connection", dest="trace_conn", action="store",
+                       help="Trace connection (undocumented command)")
     parser.add_option_group(command)
 
     misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose output [%default]")
+    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
+                    help="Verbose output [%default]")
     parser.add_option_group(misc)
 
     (options, _) = parser.parse_args()
@@ -247,7 +264,7 @@ def main():
             # Show the plain packets returned
             try:
                 raw_response = conn.recv()
-                while (raw_response):
+                while raw_response:
                     print(raw_response.payload)
                     raw_response = conn.recv()
             except error:

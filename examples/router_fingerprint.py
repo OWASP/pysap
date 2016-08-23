@@ -54,20 +54,22 @@ def parse_options():
     parser = OptionParser(usage=usage, description=description, epilog=epilog)
 
     target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host [%default]", default="127.0.0.1")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3299)
+    target.add_option("-d", "--remote-host", dest="remote_host", default="127.0.0.1",
+                      help="Remote host [%default]")
+    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3299,
+                      help="Remote port [%default]")
     parser.add_option_group(target)
 
     database = OptionGroup(parser, "Database options")
-    database.add_option("-f", "--fingerprints-file", dest="fingerprints", default="router_fingerprints.json",
-                        help="Fingerprints file to use [%default]")
+    database.add_option("-f", "--fingerprints-file", dest="fingerprints", metavar="FILE",
+                        default="router_fingerprints.json", help="Fingerprints file to use [%default]")
     database.add_option("-a", "--add-fingerprint", dest="add_fingerprint", action="store_true", default=False,
                         help="New fingerprint to add to the database in json format")
     database.add_option("-i", "--version-information", dest="version_info",
                         help="Version information to use when adding new entries in json format")
     database.add_option("-n", "--new-entries", dest="new_entries", action="store_true", default=False,
                         help="Generate new database entries even when the fingerprints matched")
-    database.add_option("--new-fingerprints-file", dest="new_fingerprint_file",
+    database.add_option("--new-fingerprints-file", dest="new_fingerprint_file", metavar="FILE",
                         default="saprouter_new_fingerprints.json", help="File to write or load from new fingerprints")
     parser.add_option_group(database)
 
@@ -165,8 +167,10 @@ fingerprint_targets = {
                                               route_rest_nodes=1,
                                               route_length=56,
                                               route_offset=28,
-                                              route_string=[SAPRouterRouteHop(hostname="www.coresecurity.com", port="someservice"),
-                                                            SAPRouterRouteHop(hostname="www.coresecurity.com", port="someservice")]),
+                                              route_string=[SAPRouterRouteHop(hostname="www.coresecurity.com",
+                                                                              port="someservice"),
+                                                            SAPRouterRouteHop(hostname="www.coresecurity.com",
+                                                                              port="someservice")]),
 }
 
 
@@ -214,7 +218,8 @@ class FingerprintDB(object):
                 for key, value in list(finger.items()):
                     if key in fingerprint_fields and hasattr(error_text, key) and getattr(error_text, key) != value:
                         match = False
-                        print("[ ]\tUnmatched field: \"%s\" Value: \"%s\" vs \"%s\"" % (key, value, getattr(error_text, key)))
+                        print("[ ]\tUnmatched field: \"%s\" Value: \"%s\" vs \"%s\"" % (key, value, getattr(error_text,
+                                                                                                            key)))
                 if match:
                     matches.append(finger)
         return matches

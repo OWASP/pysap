@@ -112,13 +112,13 @@ def parse_options():
     parser.add_option_group(target)
 
     credentials = OptionGroup(parser, "Credentials")
-    credentials.add_option("-u", "--usernames", dest="usernames",
+    credentials.add_option("-u", "--usernames", dest="usernames", metavar="FILE",
                            help="Usernames file")
-    credentials.add_option("-l", "--passwords", dest="passwords",
+    credentials.add_option("-l", "--passwords", dest="passwords", metavar="FILE",
                            help="Passwords file")
     credentials.add_option("-m", "--client", dest="client", default="000,001,066",
                            help="Client number [%default]")
-    credentials.add_option("-c", "--credentials", dest="credentials",
+    credentials.add_option("-c", "--credentials", dest="credentials", metavar="FILE",
                            help="Credentials file (username:password:client)")
     credentials.add_option("-t", "--max-tries", dest="max_tries",
                            help="Max tries per username")

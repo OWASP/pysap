@@ -48,16 +48,23 @@ def parse_options():
     parser = OptionParser(usage=usage, description=description, epilog=epilog)
 
     target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3900)
-    target.add_option("--route-string", dest="route_string", help="Route string for connecting through a SAP Router")
+    target.add_option("-d", "--remote-host", dest="remote_host",
+                      help="Remote host")
+    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3900,
+                      help="Remote port [%default]")
+    target.add_option("--route-string", dest="route_string",
+                      help="Route string for connecting through a SAP Router")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-c", "--client", dest="client", default="pysap's-messager", help="Client name [%default]")
-    misc.add_option("-m", "--message", dest="message", default="Message", help="Message to send to the target client [%default]")
-    misc.add_option("-t", "--target", dest="target", default="pysap's-listener", help="Target client name to send the message [%default]")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose output [%default]")
+    misc.add_option("-c", "--client", dest="client", default="pysap's-messager",
+                    help="Client name [%default]")
+    misc.add_option("-m", "--message", dest="message", default="Message",
+                    help="Message to send to the target client [%default]")
+    misc.add_option("-t", "--target", dest="target", default="pysap's-listener",
+                    help="Target client name to send the message [%default]")
+    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
+                    help="Verbose output [%default]")
     parser.add_option_group(misc)
 
     (options, _) = parser.parse_args()

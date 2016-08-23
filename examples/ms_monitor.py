@@ -104,7 +104,8 @@ class SAPMSMonitorConsole(BaseConsole):
         self._print("Attached to %s / %d" % (self.options.remote_host, self.options.remote_port))
 
         # Send MS_LOGIN_2 packet
-        p = SAPMS(flag=0x00, iflag=0x08, toname=self.runtimeoptions["client_string"], fromname=self.runtimeoptions["client_string"])
+        p = SAPMS(flag=0x00, iflag=0x08, toname=self.runtimeoptions["client_string"],
+                  fromname=self.runtimeoptions["client_string"])
 
         self._debug("Sending login packet")
         response = self.connection.sr(p)[SAPMS]
@@ -112,7 +113,8 @@ class SAPMSMonitorConsole(BaseConsole):
         if response.errorno == 0:
             self.runtimeoptions["server_string"] = response.fromname
             self._debug("Login performed, server string: %s" % response.fromname)
-            self._print("pysap's Message Server monitor, connected to %s / %d" % (self.options.remote_host, self.options.remote_port))
+            self._print("pysap's Message Server monitor, connected to %s / %d" % (self.options.remote_host,
+                                                                                  self.options.remote_port))
             self.connected = True
         else:
             if response.errorno in ms_errorno_values:
@@ -499,7 +501,7 @@ class SAPMSMonitorConsole(BaseConsole):
         response = self.connection.sr(p)[SAPMS]
 
         if response:
-            self._print("Parameter value: %s" % (response.adm_records[0].parameter))
+            self._print("Parameter value: %s" % response.adm_records[0].parameter)
 
     def do_parameter_set(self, args):
         """ Set parameter value (requires monitor mode enabled).
@@ -544,17 +546,25 @@ def parse_options():
     parser = OptionParser(usage=usage, description=description, epilog=epilog)
 
     target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3900)
-    target.add_option("--route-string", dest="route_string", help="Route string for connecting through a SAP Router")
+    target.add_option("-d", "--remote-host", dest="remote_host",
+                      help="Remote host")
+    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3900,
+                      help="Remote port [%default]")
+    target.add_option("--route-string", dest="route_string",
+                      help="Route string for connecting through a SAP Router")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-c", "--client", dest="client", default="pysap's-monitor", help="Client name [%default]")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose output [%default]")
-    misc.add_option("--log-file", dest="logfile", help="Log file")
-    misc.add_option("--console-log", dest="consolelog", help="Console log file")
-    misc.add_option("--script", dest="script", help="Script file to run")
+    misc.add_option("-c", "--client", dest="client", default="pysap's-monitor",
+                    help="Client name [%default]")
+    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
+                    help="Verbose output [%default]")
+    misc.add_option("--log-file", dest="logfile", metavar="FILE",
+                    help="Log file")
+    misc.add_option("--console-log", dest="consolelog", metavar="FILE",
+                    help="Console log file")
+    misc.add_option("--script", dest="script", metavar="FILE",
+                    help="Script file to run")
     parser.add_option_group(misc)
 
     (options, _) = parser.parse_args()

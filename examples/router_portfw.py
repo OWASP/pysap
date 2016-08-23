@@ -57,18 +57,27 @@ def parse_options():
     parser = OptionParser(usage=usage, description=description, epilog=epilog)
 
     target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host [%default]", default="127.0.0.1")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3299)
-    target.add_option("-t", "--target-host", dest="target_host", help="Target host to connect")
-    target.add_option("-r", "--target-port", dest="target_port", type="int", help="Target port to connect")
-    target.add_option("-P", "--target-pass", dest="target_pass", help="Target password")
-    target.add_option("-a", "--local-host", dest="local_host", help="Local host to listen [%default]", default="127.0.0.1")
-    target.add_option("-l", "--local-port", dest="local_port", type="int", help="Local port to listen [target-port]")
-    target.add_option("--talk-mode", dest="talk_mode", help="Talk mode to use when requesting the route (raw or ni) [%default]", default="raw")
+    target.add_option("-d", "--remote-host", dest="remote_host", default="127.0.0.1",
+                      help="Remote host [%default]")
+    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3299,
+                      help="Remote port [%default]")
+    target.add_option("-t", "--target-host", dest="target_host",
+                      help="Target host to connect")
+    target.add_option("-r", "--target-port", dest="target_port", type="int",
+                      help="Target port to connect")
+    target.add_option("-P", "--target-pass", dest="target_pass",
+                      help="Target password")
+    target.add_option("-a", "--local-host", dest="local_host", default="127.0.0.1",
+                      help="Local host to listen [%default]")
+    target.add_option("-l", "--local-port", dest="local_port", type="int",
+                      help="Local port to listen [target-port]")
+    target.add_option("--talk-mode", dest="talk_mode", default="raw",
+                      help="Talk mode to use when requesting the route (raw or ni) [%default]")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose output [%default]")
+    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
+                    help="Verbose output [%default]")
     parser.add_option_group(misc)
 
     (options, _) = parser.parse_args()

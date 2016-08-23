@@ -137,7 +137,7 @@ def parse_options():
 
     target = OptionGroup(parser, "Target")
     target.add_option("-i", "--interface", dest="interface", help="Choose an interface")
-    target.add_option("-f", "--file", dest="pcap", help="Parse info from a pcap file")
+    target.add_option("-f", "--file", dest="pcap", metavar="FILE", help="Parse info from a pcap file")
     target.add_option("-p", "--port", dest="port", type="int", default=3200, help="Port to use as filter [%default]")
     parser.add_option_group(target)
 

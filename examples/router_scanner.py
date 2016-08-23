@@ -62,16 +62,23 @@ def parse_options():
     parser = OptionParser(usage=usage, description=description, epilog=epilog)
 
     target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host [%default]", default="127.0.0.1")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3299)
-    target.add_option("-t", "--target-hosts", dest="target_hosts", help="Target hosts to scan")
-    target.add_option("-r", "--target-ports", dest="target_ports", help="Target ports to scan")
-    target.add_option("--router-version", dest="router_version", type="int", help="SAP Router version to use [retrieve from the remote SAP Router]")
-    target.add_option("--talk-mode", dest="talk_mode", help="Talk mode to use when requesting the route (raw or ni) [%default]", default="raw")
+    target.add_option("-d", "--remote-host", dest="remote_host", default="127.0.0.1",
+                      help="Remote host [%default]")
+    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3299,
+                      help="Remote port [%default]")
+    target.add_option("-t", "--target-hosts", dest="target_hosts",
+                      help="Target hosts to scan")
+    target.add_option("-r", "--target-ports", dest="target_ports",
+                      help="Target ports to scan")
+    target.add_option("--router-version", dest="router_version", type="int",
+                      help="SAP Router version to use [retrieve from the remote SAP Router]")
+    target.add_option("--talk-mode", dest="talk_mode", default="raw",
+                      help="Talk mode to use when requesting the route (raw or ni) [%default]")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose output [%default]")
+    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
+                    help="Verbose output [%default]")
     parser.add_option_group(misc)
 
     (options, _) = parser.parse_args()
