@@ -103,28 +103,41 @@ def parse_options():
     parser = OptionParser(usage=usage, description=description, epilog=epilog)
 
     target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host", help="Remote host")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", help="Remote port [%default]", default=3200)
-    target.add_option("--route-string", dest="route_string", help="Route string for connecting through a SAP Router")
+    target.add_option("-d", "--remote-host", dest="remote_host",
+                      help="Remote host")
+    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3200,
+                      help="Remote port [%default]")
+    target.add_option("--route-string", dest="route_string",
+                      help="Route string for connecting through a SAP Router")
     parser.add_option_group(target)
 
     credentials = OptionGroup(parser, "Credentials")
-    credentials.add_option("-u", "--usernames", dest="usernames", help="Usernames file")
-    credentials.add_option("-l", "--passwords", dest="passwords", help="Passwords file")
-    credentials.add_option("-m", "--client", dest="client", help="Client number [%default]", default="000,001,066")
-    credentials.add_option("-c", "--credentials", dest="credentials", help="Credentials file (username:password:client)")
-    credentials.add_option("-t", "--max-tries", dest="max_tries", help="Max tries per username")
+    credentials.add_option("-u", "--usernames", dest="usernames",
+                           help="Usernames file")
+    credentials.add_option("-l", "--passwords", dest="passwords",
+                           help="Passwords file")
+    credentials.add_option("-m", "--client", dest="client", default="000,001,066",
+                           help="Client number [%default]")
+    credentials.add_option("-c", "--credentials", dest="credentials",
+                           help="Credentials file (username:password:client)")
+    credentials.add_option("-t", "--max-tries", dest="max_tries",
+                           help="Max tries per username")
     parser.add_option_group(credentials)
 
     discovery = OptionGroup(parser, "Clients Discovery")
-    discovery.add_option("--discovery", dest="discovery", action="store_true", default=False, help="Performs discovery of available clients [%default]")
-    discovery.add_option("--discovery-range", dest="discovery_range", help="Client range for the discovery of available clients [%default]", default="000-099")
+    discovery.add_option("--discovery", dest="discovery", action="store_true", default=False,
+                         help="Performs discovery of available clients [%default]")
+    discovery.add_option("--discovery-range", dest="discovery_range", default="000-099",
+                         help="Client range for the discovery of available clients [%default]")
     parser.add_option_group(discovery)
 
     misc = OptionGroup(parser, "Misc options")
-    misc.add_option("--threads", dest="threads", type="int", help="Number of threads [%default]", default=1)
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose output [%default]")
-    misc.add_option("--terminal", dest="terminal", default=None, help="Terminal name")
+    misc.add_option("--threads", dest="threads", type="int", default=1,
+                    help="Number of threads [%default]")
+    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
+                    help="Verbose output [%default]")
+    misc.add_option("--terminal", dest="terminal", default=None,
+                    help="Terminal name")
     parser.add_option_group(misc)
 
     (options, _) = parser.parse_args()
@@ -142,9 +155,13 @@ def make_login(username, password, client):
 
     # Login information is sent to the server as Dynt Atoms
     login_atom = SAPDiagDyntAtom(items=[
-        SAPDiagDyntAtomItem(field2_text=client, field2_maxnrchars=3, row=0, group=0, dlg_flag_2=0, dlg_flag_1=0, etype=130, field2_mlen=3, attr_DIAG_BSD_YES3D=1, field2_dlen=len(client), block=1, col=20),
-        SAPDiagDyntAtomItem(field2_text=username, field2_maxnrchars=12, row=2, group=0, dlg_flag_2=1, dlg_flag_1=0, etype=130, field2_mlen=12, attr_DIAG_BSD_YES3D=1, field2_dlen=len(username), block=1, col=20),
-        SAPDiagDyntAtomItem(field2_text=password, field2_maxnrchars=40, row=3, group=0, dlg_flag_2=1, dlg_flag_1=4, etype=130, field2_mlen=12, attr_DIAG_BSD_YES3D=1, attr_DIAG_BSD_INVISIBLE=1, field2_dlen=len(password), block=1, col=20)])
+        SAPDiagDyntAtomItem(field2_text=client, field2_maxnrchars=3, row=0, group=0, dlg_flag_2=0, dlg_flag_1=0,
+                            etype=130, field2_mlen=3, attr_DIAG_BSD_YES3D=1, field2_dlen=len(client), block=1, col=20),
+        SAPDiagDyntAtomItem(field2_text=username, field2_maxnrchars=12, row=2, group=0, dlg_flag_2=1, dlg_flag_1=0,
+                            etype=130, field2_mlen=12, attr_DIAG_BSD_YES3D=1, field2_dlen=len(username), block=1, col=20),
+        SAPDiagDyntAtomItem(field2_text=password, field2_maxnrchars=40, row=3, group=0, dlg_flag_2=1, dlg_flag_1=4,
+                            etype=130, field2_mlen=12, attr_DIAG_BSD_YES3D=1, attr_DIAG_BSD_INVISIBLE=1,
+                            field2_dlen=len(password), block=1, col=20)])
     # An XML Blob is also required
     xml_blob = """<?xml version="1.0" encoding="sap*"?><DATAMANAGER><COPY id="copy"><GUI id="gui"><METRICS id="metrics" X3="2966" X2="8" X1="8" X0="283" Y3="900" Y2="23" Y1="17" Y0="283"/></GUI></COPY></DATAMANAGER>"""
 
@@ -189,7 +206,8 @@ def login(host, port, terminal, route, username, password, client, verbose, resu
         st_username = response[SAPDiag].get_item("APPL", "ST_USER", "USERNAME")[0].item_value
         if st_username == username:
             success = True
-    # If the response doesn't contain a message item but the Internal Mode Number is set to 1, we have found a successful login
+    # If the response doesn't contain a message item but the Internal Mode Number is set to 1, we have found a
+    # successful login
     elif response[SAPDiag].get_item("APPL", "ST_R3INFO", "IMODENUMBER"):
         imodenumber = response[SAPDiag].get_item("APPL", "ST_R3INFO", "IMODENUMBER")[0].item_value
         if imodenumber == "\x00\x01":
@@ -202,7 +220,9 @@ def login(host, port, terminal, route, username, password, client, verbose, resu
     connection.close()
 
     if verbose:
-        print("[*] Results: \tClient: %s\tUsername: %s\tPassword: %s\tValid: %s\tStatus: %s" % (client, username, password, success, status))
+        print("[*] Results: \tClient: %s\tUsername: %s\tPassword: %s\tValid: %s\tStatus: %s" % (client, username,
+                                                                                                password, success,
+                                                                                                status))
     results.append((success, status, username, password, client))
 
 
@@ -277,25 +297,27 @@ def main():
         print("[*] Not testing passwords as credentials or usernames/passwords files were not provided")
         exit(0)
 
-    # Build the test cases using either the supplied credentials file (username:password:client) or the username/password file
+    # Build the test cases using either the supplied credentials file (username:password:client) or the
+    # username/password file
     testcases = []
     if options.credentials:
         try:
-            for line in file(options.credentials, 'r').readlines():
-                line = line.strip()
+            with open(options.credentials) as creds_file:
+                for line in creds_file.readlines():
+                    line = line.strip()
 
-                # Check for comments or empty lines
-                if len(line) == 0 or line.startswith("#"):
-                    continue
+                    # Check for comments or empty lines
+                    if len(line) == 0 or line.startswith("#"):
+                        continue
 
-                (username, password, clients) = line.split(':')
-                if clients == "*":
-                    clients = client_list
-                else:
-                    clients = clients.split(',')
+                    (username, password, clients) = line.split(':')
+                    if clients == "*":
+                        clients = client_list
+                    else:
+                        clients = clients.split(',')
 
-                for client in clients:
-                    testcases.append((username, password, client))
+                    for client in clients:
+                        testcases.append((username, password, client))
         except IOError:
             print("Error reading credentials file !")
             exit(0)
@@ -304,18 +326,19 @@ def main():
             exit(0)
     else:
         try:
-            for username in file(options.usernames, 'r').readlines():
-                username = username.strip()
-                # Check for comments or empty lines
-                if len(username) == 0 or username.startswith("#"):
-                    continue
-                for password in file(options.passwords, 'r').readlines():
-                    password = password.strip()
+            with open(options.usernames) as usernames_file, open(options.passwords) as passwords_file:
+                for username in usernames_file.readlines():
+                    username = username.strip()
                     # Check for comments or empty lines
-                    if len(password) == 0 or password.startswith("#"):
+                    if len(username) == 0 or username.startswith("#"):
                         continue
-                    for client in client_list:
-                        testcases.append((username, password, client))
+                    for password in passwords_file.readlines():
+                        password = password.strip()
+                        # Check for comments or empty lines
+                        if len(password) == 0 or password.startswith("#"):
+                            continue
+                        for client in client_list:
+                            testcases.append((username, password, client))
         except IOError:
             print("Error reading username or passwords file !")
             exit(0)
@@ -334,7 +357,10 @@ def main():
     # Print the credentials found
     for (success, status, username, password, client) in results:
         if success:
-            print("[+] Valid credentials found: \tClient: %s\tUsername: %s\tPassword: %s\tStatus: %s" % (client, username, password, status))
+            print("[+] Valid credentials found: \tClient: %s\tUsername: %s\tPassword: %s\tStatus: %s" % (client,
+                                                                                                         username,
+                                                                                                         password,
+                                                                                                         status))
 
 
 if __name__ == "__main__":
