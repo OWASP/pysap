@@ -59,17 +59,16 @@ class DiagParser(object):
         self.port = options.port
 
     def parse_packet(self, pkt):
-        if TCP in pkt and Raw in pkt:
-            if self.port in [pkt[TCP].sport,
-                             pkt[TCP].dport]:
-                key = ["%s_%d" % (pkt[IP].src, pkt[TCP].sport),
-                       "%s_%d" % (pkt[IP].dst, pkt[TCP].dport)]
-                key.sort()
-                key = "_".join(key)
-                if key not in self.packets_metadata:
-                    self.packets_metadata[key] = []
-                self.packets_metadata[key].append((pkt[TCP].seq + pkt[TCP].ack,
-                                                   str(pkt[Raw].load)))
+        if TCP in pkt and Raw in pkt and self.port in [pkt[TCP].sport,
+                                                       pkt[TCP].dport]:
+            key = ["%s_%d" % (pkt[IP].src, pkt[TCP].sport),
+                   "%s_%d" % (pkt[IP].dst, pkt[TCP].dport)]
+            key.sort()
+            key = "_".join(key)
+            if key not in self.packets_metadata:
+                self.packets_metadata[key] = []
+            self.packets_metadata[key].append((pkt[TCP].seq + pkt[TCP].ack,
+                                               str(pkt[Raw].load)))
 
     def reassemble(self):
         # Build a stream of packets for each connection
