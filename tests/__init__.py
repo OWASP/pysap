@@ -29,11 +29,11 @@ from tests import pysapcompress_test
 
 def test_suite():
     suite = unittest.TestSuite()
-    suite.addTests(sapni_test.suite())
-    suite.addTests(sapcar_test.suite())
-    suite.addTests(sapdiag_test.suite())
-    suite.addTests(saprouter_test.suite())
-    suite.addTests(pysapcompress_test.suite())
+    suite.addTests(sapni_test.test_suite())
+    suite.addTests(sapcar_test.test_suite())
+    suite.addTests(sapdiag_test.test_suite())
+    suite.addTests(saprouter_test.test_suite())
+    suite.addTests(pysapcompress_test.test_suite())
     return suite
 
 

@@ -86,7 +86,7 @@ setup(name=pysap.__title__,   # Package information
       scripts=['bin/pysapcar'],
 
       # Tests command
-      test_suite='tests.suite',
+      test_suite='tests.test_suite',
 
       # API Documentation command
       cmdclass={'doc': APIDocumentationCommand},
