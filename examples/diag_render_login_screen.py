@@ -262,7 +262,7 @@ def main():
     options = parse_options()
 
     if not has_wx:
-        print ("[-] Required library not found. Please install it from http://wxpython.org/")
+        print ("[-] Required library not found. Please install it from https://wxpython.org/")
         return
 
     if options.verbose:

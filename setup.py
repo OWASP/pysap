@@ -26,7 +26,7 @@ import pysap
 
 
 class APIDocumentationCommand(Command):
-    """Custom command for building API documentation with epydoc.
+    """Custom command for building API documentation with Sphinx.
     """
 
     description = "Builds the API documentation using Sphinx"
@@ -39,9 +39,9 @@ class APIDocumentationCommand(Command):
         pass
 
     def run(self):
+        """Runs Sphinx
         """
-        Runs epydoc
-        """
+        system("sphinx-apidoc -o docs/api/ -f -e -M pysap pysapcompress")
         system("cd docs && make html")
 
 
@@ -95,6 +95,6 @@ setup(name=pysap.__title__,   # Package information
       install_requires=open('requirements.txt').read().splitlines(),
 
       # Optional requirements for docs and some examples
-      extras_require={"docs": "Sphinx==1.3.5",
+      extras_require={"docs": "Sphinx==1.4.5",
                       "examples": open('requirements-optional.txt').read().splitlines()},
       )

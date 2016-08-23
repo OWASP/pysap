@@ -50,8 +50,8 @@ def parse_options():
 
     description = "This example script performs a port scanning through a SAP Router service. Similar to Bizploit's " \
                   "'saprouterSpy', for more information check: " \
-                  "http://blog.onapsis.com/assessing-a-saprouters-security-with-onapsis-bizploit-part-i/ and " \
-                  "http://blog.onapsis.com/assessing-a-saprouters-security-with-onapsis-bizploit-part-ii/"
+                  "https://blog.onapsis.com/blog/assessing-a-saprouters-security-with-onapsis-bizploit-part-i/ and " \
+                  "https://blog.onapsis.com/blog/assessing-a-saprouters-security-with-onapsis-bizploit-part-ii/"
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

@@ -51,9 +51,9 @@ def parse_options():
                   "provided password. It then records the time the remote service takes to respond to the request. " \
                   "Further analysis of the time records could be performed in order to identify whether the server " \
                   "is vulnerable to a timing attack on the password check (CVE-2014-0984). More details about the  " \
-                  "vulnerability in http://www.coresecurity.com/advisories/sap-router-password-timing-attack. The  " \
+                  "vulnerability in https://www.coresecurity.com/advisories/sap-router-password-timing-attack. The  " \
                   "script make use of the fau_timer library for measuring the timing of server's responses. " \
-                  "Install the library from https://github.com/martingalloar/mona-timing-lib."
+                  "Install the library from https://github.com/seecurity/mona-timing-lib."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,

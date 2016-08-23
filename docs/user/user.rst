@@ -53,8 +53,8 @@ Some example scripts has additional required libraries:
 
 - ``tabulate``
 - ``netaddr``
-- `wxPython <http://www.wxpython.org/>`_
-- `fau_timer <https://github.com/martingalloar/mona-timing-lib>`_
+- `wxPython <https://www.wxpython.org/>`_
+- `fau_timer <https://github.com/seecurity/mona-timing-lib>`_
 
 Some of those extra libraries can be installed with `pip`_ running the following
 command::
@@ -86,7 +86,7 @@ the Python's ``setuptools`` script provided:
 Scapy installation
 ~~~~~~~~~~~~~~~~~~
 
-- For installing `Scapy`_ on Windows, see some guidance `here <https://bitbucket.org/secdev/scapy/src/0bde7b23266e7cf1ba1ff3e3693fb3789c0ac751/doc/scapy/installation.rst?at=default>`_.
+- For installing `Scapy`_ on Windows, see some guidance `here <https://github.com/secdev/scapy/blob/master/doc/scapy/installation.rst#windows>`_.
 
 - Some scapy installations also requires the following steps:
 
