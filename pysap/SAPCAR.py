@@ -665,7 +665,6 @@ class SAPCARArchive(object):
     # Instance attributes
     filename = None
     fd = None
-    _files = None
     _sapcar = None
 
     def __init__(self, fil, mode="rb+", version=SAPCAR_VERSION_201):
