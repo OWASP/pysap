@@ -31,7 +31,9 @@ from pysap.SAPCAR import (SAPCARArchive, SAPCARArchiveFile,
 class PySAPCARTest(unittest.TestCase):
 
     test_filename = "test_string.txt"
+    test_timestamp_raw = 1449010128
     test_timestamp = "01 Dec 2015 22:48"
+    test_perm_mode = 33204
     test_permissions = "-rw-rw-r--"
     test_string = "The quick brown fox jumps over the lazy dog"
 
@@ -44,7 +46,7 @@ class PySAPCARTest(unittest.TestCase):
             unlink(self.test_filename)
 
     def check_sapcar_archive(self, filename, version):
-        """Test SAP CAR archive file version 201"""
+        """Test SAP CAR archive file"""
 
         with open(data_filename(filename), "rb") as fd:
             sapcar_archive = SAPCARArchive(fd, mode="r")
@@ -64,7 +66,12 @@ class PySAPCARTest(unittest.TestCase):
             self.assertEqual(len(self.test_string), ff.size)
             self.assertEqual(self.test_filename, ff.filename)
             self.assertEqual(self.test_timestamp, ff.timestamp)
+            self.assertEqual(self.test_timestamp_raw, ff.timestamp_raw)
             self.assertEqual(self.test_permissions, ff.permissions)
+            self.assertEqual(self.test_perm_mode, ff.perm_mode)
+            self.assertEqual(version, ff.version)
+            self.assertTrue(ff.is_file())
+            self.assertFalse(ff.is_directory())
 
             self.assertTrue(ff.check_checksum())
             self.assertEqual(ff.calculate_checksum(self.test_string), ff.checksum)
@@ -151,8 +158,12 @@ class PySAPCARTest(unittest.TestCase):
             self.assertEqual(ff200.size, ff201.size)
             self.assertEqual(ff200.filename, ff201.filename)
             self.assertEqual(ff200.timestamp, ff201.timestamp)
+            self.assertEqual(ff200.timestamp_raw, ff201.timestamp_raw)
             self.assertEqual(ff200.permissions, ff201.permissions)
+            self.assertEqual(ff200.perm_mode, ff201.perm_mode)
             self.assertEqual(ff200.checksum, ff201.checksum)
+            self.assertIs(ff200.is_file(), ff201.is_file())
+            self.assertIs(ff200.is_directory(), ff201.is_directory())
 
             af = ff201.open()
             self.assertEqual(self.test_string, af.read())
@@ -171,8 +182,12 @@ class PySAPCARTest(unittest.TestCase):
             self.assertEqual(ff200.size, ff201.size)
             self.assertEqual(ff200.filename, ff201.filename)
             self.assertEqual(ff200.timestamp, ff201.timestamp)
+            self.assertEqual(ff200.timestamp_raw, ff201.timestamp_raw)
             self.assertEqual(ff200.permissions, ff201.permissions)
+            self.assertEqual(ff200.perm_mode, ff201.perm_mode)
             self.assertEqual(ff200.checksum, ff201.checksum)
+            self.assertIs(ff200.is_file(), ff201.is_file())
+            self.assertIs(ff200.is_directory(), ff201.is_directory())
 
             af = ff201.open()
             self.assertEqual(self.test_string, af.read())
@@ -191,8 +206,12 @@ class PySAPCARTest(unittest.TestCase):
             self.assertEqual(ff200.size, ff201.size)
             self.assertEqual(ff200.filename, ff201.filename)
             self.assertEqual(ff200.timestamp, ff201.timestamp)
+            self.assertEqual(ff200.timestamp_raw, ff201.timestamp_raw)
             self.assertEqual(ff200.permissions, ff201.permissions)
+            self.assertEqual(ff200.perm_mode, ff201.perm_mode)
             self.assertEqual(ff200.checksum, ff201.checksum)
+            self.assertIs(ff200.is_file(), ff201.is_file())
+            self.assertIs(ff200.is_directory(), ff201.is_directory())
 
             af = ff200.open()
             self.assertEqual(self.test_string, af.read())
