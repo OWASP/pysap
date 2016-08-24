@@ -41,7 +41,6 @@ class APIDocumentationCommand(Command):
     def run(self):
         """Runs Sphinx
         """
-        system("sphinx-apidoc -o docs/api/ -f -e -M pysap pysapcompress")
         system("cd docs && make html")
 
 
