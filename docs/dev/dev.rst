@@ -19,7 +19,7 @@ Documentation can be build using:
 
     $ python setup.py doc
 
-A build is also available at `Python Hosted <https://pythonhosted.org/pysap/>`_.
+A build is also available at `Read the Docs <https://pysap.readthedocs.io/en/latest/>`_.
 
 
 Code contributions

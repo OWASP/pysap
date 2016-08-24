@@ -5,6 +5,7 @@ pysap - Python library for crafting SAP's network protocols packets
 [![Code Health](https://landscape.io/github/CoreSecurity/pysap/master/landscape.svg)](https://landscape.io/github/CoreSecurity/pysap/master)
 [![Code Issues](http://www.quantifiedcode.com/api/v1/project/53b997e2c9054c5ab44782614c572358/badge.svg)](http://www.quantifiedcode.com/app/project/53b997e2c9054c5ab44782614c572358)
 [![Latest Version](https://img.shields.io/pypi/v/pysap.svg)](https://pypi.python.org/pypi/pysap/)
+[![Documentation Status](http://readthedocs.org/projects/pysap/badge/?version=latest)](http://pysap.readthedocs.io/en/latest/?badge=latest)
 
 Copyright (C) 2012-2016 by Martin Gallo, Core Security
 
@@ -64,7 +65,7 @@ To install pysap simply run:
 Documentation
 -------------
 
-Documentation is available at [pythonhosted.org](https://pythonhosted.org/pysap/).
+Documentation is available at [Read the Docs](https://pysap.readthedocs.io/en/latest/).
 
 
 License
