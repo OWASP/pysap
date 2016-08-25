@@ -695,6 +695,70 @@ class SAPMSProperty(PacketNoPadded):
     ]
 
 
+class SAPMSJ2EECluster(Packet):
+    """SAP Message Server J2EE Cluster packet
+
+    This packet is used for the Message Server protocol for J2EE cluster nodes.
+    """
+    name = "SAP Message Server J2EE Cluster"
+    aCluster = 68199
+    aNodeNr = 5
+    aClusterId = aCluster + 100 + 50 + aNodeNr
+    aICMPort = 5020
+
+    fields_desc = [
+        IntField("cluster_id", aClusterId),
+        IntField("group_id", aCluster),
+        IntField("join_port", aICMPort),
+        StrFixedLenField("name", "J2EE{}".format(aClusterId), 32),
+        StrFixedLenField("host", "localhost", 32),
+        IPField("hostaddrv4", "127.0.0.1"),
+        ByteField("type", 0x02),
+        ByteField("state", 0x00),
+        StrFixedLenField("service_mask", 32 * "\xff", 32),
+        ByteField("version", 0x02),
+        ByteField("modifiers", 0x02),
+        StrFixedLenField("reserved", 4 * "\x00", 4),
+        IP6Field("hostaddrv6", "::1")
+    ]
+
+
+class SAPMSJ2EEHeader(Packet):
+    """SAP Message Server J2EE Header packet
+
+    This packet is used for the Message Server protocol for J2EE nodes.
+    """
+    name = "SAP Message Server J2EE Cluster"
+    aCluster = 68199
+
+    fields_desc = [
+        IntField("sender_cluster_id", aCluster),
+        IntField("cluster_id", aCluster),
+        IntField("service_id", 9),
+        IntField("group_id", 0),
+        ByteField("node_type", 0x02),
+        IntField("total_length", 0),
+        IntField("current_length", 0),
+        IntField("current_offset", 0),
+        ByteField("total_blocks", 0),
+        ByteField("current_block", 0),
+        IntField("message_type", 0)
+    ]
+
+
+class SAPMSJ2EEService(PacketNoPadded):
+    """SAP Message Server J2EE Service packet
+
+    This packet is used to describe a J2EE service.
+    """
+    name = "SAP Message Server J2EE Service"
+    fields_desc = [
+        ByteField("service_id", 0x00),
+        ByteField("attached_nodes", 0x00),
+        StrFixedLenField("name", "\x00", 50),
+    ]
+
+
 class SAPMS(Packet):
     """SAP Message Server packet
 
