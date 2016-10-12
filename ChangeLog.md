@@ -1,7 +1,7 @@
 Changelog
 =========
 
-v0.1.11 - XXXX-XX-XX
+v0.1.11 - 2016-10-12
 --------------------
 
 - Some documentation improvements. Hosting the documentation in [Read the Docs](https://pysap.readthedocs.io/en/latest/).
