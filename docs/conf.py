@@ -264,4 +264,4 @@ texinfo_documents = [
 
 
 # Automatically build API docs
-apidoc_main(["-f", "-e", "-o", "api/", "../pysap"])
+apidoc_main(["-f", "-e", "-M", "-o", "api/", "../pysap"])
