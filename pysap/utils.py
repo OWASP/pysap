@@ -179,6 +179,7 @@ class StrNullFixedLenPaddedField(StrFixedLenField):
 class IntToStrField(Field):
     """Custom field from int to str values, with a variable length
     """
+    __slots__ = ["length", "format"]
 
     def __init__(self, name, default, length=11):
         """Initialize the field with a variable length. The 'machine'
