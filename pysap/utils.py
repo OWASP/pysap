@@ -65,6 +65,8 @@ class MutablePacketField(StrLenField):
 
     If the class can't be found, the field is treated as a StrLenField.
     """
+    __slots__ = ["length_from", "evaluators", "_get_class"]
+
     def __init__(self, name, default, length_from, get_class, evaluators=None):
         """
         :param length_from: function to obtain the field length
@@ -104,6 +106,8 @@ class MutablePacketField(StrLenField):
 class StrNullFixedLenField(StrFixedLenField):
     """Packet field that has a fixed length and is null-terminated.
     """
+    __slots__ = ["length_from", "max_length"]
+
     def __init__(self, name, default, length=None, length_from=None, max_length=None):
         self.max_length = max_length or 200
         StrFixedLenField.__init__(self, name, default, length=length, length_from=length_from)
@@ -133,6 +137,7 @@ class StrFixedLenPaddedField(StrFixedLenField):
     """Packet field that has a fixed length and is padded with a
     given character.
     """
+    __slots__ = ["length_from", "padd"]
 
     def __init__(self, name, default, length=None, length_from=None, padd=" "):
         StrFixedLenField.__init__(self, name, default, length, length_from)
@@ -152,6 +157,7 @@ class StrNullFixedLenPaddedField(StrFixedLenField):
     """Packet field that has a fixed length and is padded with a
     given character and null terminated.
     """
+    __slots__ = ["length_from", "padd"]
 
     def __init__(self, name, default, length=None, length_from=None, padd=" "):
         StrFixedLenField.__init__(self, name, default, length, length_from)
@@ -196,6 +202,8 @@ class IntToStrField(Field):
 
 
 class StrEncodedPaddedField(StrField):
+    __slots__ = ["remain", "encoding", "padd"]
+
     def __init__(self, name, default, encoding="utf-16", padd="\x0c",
                  fmt="H", remain=0):
         StrField.__init__(self, name, default, fmt, remain)
@@ -225,6 +233,8 @@ class StrEncodedPaddedField(StrField):
 class PacketListStopField(PacketListField):
     """Custom field that contains a list of packets until a 'stop' condition is met.
     """
+    __slots__ = ["count_from", "length_from", "stop"]
+
     def __init__(self, name, default, cls, count_from=None, length_from=None, stop=None):
         PacketListField.__init__(self, name, default, cls, count_from=count_from, length_from=length_from)
         self.stop = stop
