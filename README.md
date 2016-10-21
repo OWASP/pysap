@@ -87,7 +87,7 @@ Contributions made by:
 
   * Florian Grunow
   * Scott Walsh ([@invisiblethreat](https://github.com/invisiblethreat))
-  * Joris van de Vis
+  * Joris van de Vis ([@jvis](https://twitter.com/jvis))
   * Victor Portal Gonzalez 
   * Dmitry Yudin ([@ret5et](https://github.com/ret5et))
   * Hans-Christian Esperer ([@hce](https://github.com/hce))
