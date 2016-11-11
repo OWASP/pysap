@@ -4,6 +4,9 @@ Changelog
 v0.1.12 - XXXX-XX-XX
 --------------------
 
+- `examples/enqueue_dos_exploit.py`: New example script to check for [CVE-2016-4015](https://erpscan.com/advisories/erpscan-16-019-sap-netweaver-enqueue-server-dos-vulnerability/)
+  DoS vulnerability on Standalone Enqueue Server and fixed at [SAP Note 2258784](https://launchpad.support.sap.com/#/notes/0002258784).
+
 
 v0.1.11 - 2016-10-12
 --------------------
