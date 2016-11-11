@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 vulnerable SAP packages 
 SAP KERNEL 7.21 32-BIT
