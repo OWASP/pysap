@@ -38,6 +38,6 @@ Enqueue server connector https://github.com/CoreSecurity/pysap/blob/master/examp
 
 if __name__ == "__main__":
     if len(argv)<2:
-        print "missing parameters, example for execute : ./dos_exploit.py server_ip server_port"
+        print "missing parameters, example for execute : ./enqueue_server_DoS.py server_ip server_port"
         exit()
     main(argv[1],argv[2])
