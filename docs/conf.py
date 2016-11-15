@@ -14,6 +14,7 @@
 
 import sys
 import os
+from sphinx.apidoc import main as apidoc_main
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -260,3 +261,7 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+
+# Automatically build API docs
+apidoc_main(["-f", "-e", "-M", "-o", "api/", "../pysap"])

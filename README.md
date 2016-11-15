@@ -5,10 +5,11 @@ pysap - Python library for crafting SAP's network protocols packets
 [![Code Health](https://landscape.io/github/CoreSecurity/pysap/master/landscape.svg)](https://landscape.io/github/CoreSecurity/pysap/master)
 [![Code Issues](http://www.quantifiedcode.com/api/v1/project/53b997e2c9054c5ab44782614c572358/badge.svg)](http://www.quantifiedcode.com/app/project/53b997e2c9054c5ab44782614c572358)
 [![Latest Version](https://img.shields.io/pypi/v/pysap.svg)](https://pypi.python.org/pypi/pysap/)
+[![Documentation Status](http://readthedocs.org/projects/pysap/badge/?version=latest)](http://pysap.readthedocs.io/en/latest/?badge=latest)
 
 Copyright (C) 2012-2016 by Martin Gallo, Core Security
 
-Version 0.1.11.dev0 (XXX 2016)
+Version 0.1.12.dev0 (XXX 2016)
 
 
 Overview
@@ -64,7 +65,7 @@ To install pysap simply run:
 Documentation
 -------------
 
-Documentation is available at [pythonhosted.org](https://pythonhosted.org/pysap/).
+Documentation is available at [Read the Docs](https://pysap.readthedocs.io/en/latest/).
 
 
 License
@@ -85,11 +86,11 @@ Consulting Services team of Core Security.
 Contributions made by:
 
   * Florian Grunow
-  * Scott Walsh (@invisiblethreat)
-  * Joris van de Vis
+  * Scott Walsh ([@invisiblethreat](https://github.com/invisiblethreat))
+  * Joris van de Vis ([@jvis](https://twitter.com/jvis))
   * Victor Portal Gonzalez 
-  * Dmitry Yudin (@ret5et)
-  * Hans-Christian Esperer (@hce)
+  * Dmitry Yudin ([@ret5et](https://github.com/ret5et))
+  * Hans-Christian Esperer ([@hce](https://github.com/hce))
 
 
 Contact

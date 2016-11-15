@@ -21,13 +21,20 @@
 # Standard imports
 import logging
 from sys import stdin
-from os import chmod, fchmod, mkdir, utime
+from os import mkdir, utime
 from os.path import dirname, exists, normpath
 from optparse import OptionParser, OptionGroup
 # Custom imports
 import pysap
 from pysapcompress import DecompressError
 from pysap.SAPCAR import SAPCARArchive, SAPCARInvalidChecksumException, SAPCARInvalidFileException
+
+
+# Try to import OS-dependent functions
+try:
+    from os import chmod, fchmod
+except ImportError:
+    chmod = fchmod = None
 
 
 pysapcar_usage = """Usage:
@@ -181,6 +188,11 @@ class PySAPCAR(object):
         sapcar = self.open_archive()
         if not sapcar:
             return
+
+        # Warn if permissions can't be set
+        if not chmod:
+            self.logger.warning("pysapcar: Setting extracted files permissions not implemented in this platform")
+
         # Extract each file in the archive
         no = 0
         for filename in self.target_files(sapcar.files_names, args):
@@ -192,7 +204,8 @@ class PySAPCAR(object):
                 # If the directory doesn't exist, create it and set permissions and timestamp
                 if not exists(filename):
                     mkdir(filename)
-                    chmod(filename, fil.perm_mode)
+                    if chmod:
+                        chmod(filename, fil.perm_mode)
                     utime(filename, (fil.timestamp_raw, fil.timestamp_raw))
                 self.logger.info("d %s", filename)
                 no += 1
@@ -229,7 +242,8 @@ class PySAPCAR(object):
                 # Write the new file and set permissions
                 with open(filename, "wb") as new_file:
                     new_file.write(data)
-                    fchmod(new_file.fileno(), fil.perm_mode)
+                    if fchmod:
+                        fchmod(new_file.fileno(), fil.perm_mode)
 
                 # Set the timestamp
                 utime(filename, (fil.timestamp_raw, fil.timestamp_raw))

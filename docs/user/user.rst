@@ -74,7 +74,7 @@ documentation. For installing it use::
 Manual installation
 ~~~~~~~~~~~~~~~~~~~
 
-The tool relays on the `Scapy <http://www.secdev.org/projects/scapy/>`_ version 2.3.2
+The tool relays on the `Scapy <http://www.secdev.org/projects/scapy/>`_ version 2.3.3
 library for crafting packets. To install the required libraries use::
 
     $ pip install -r requirements.txt
