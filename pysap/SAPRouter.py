@@ -182,11 +182,11 @@ class SAPRouterRouteHop(PacketNoPadded):
         """
         result = ""
         for route_hop in route_hops:
-            result += "/H/%s" % route_hop.hostname
+            result += "/H/{}".format(route_hop.hostname)
             if route_hop.port:
-                result += "/S/%s" % route_hop.port
+                result += "/S/{}".format(route_hop.port)
             if route_hop.password:
-                result += "/W/%s" % route_hop.password
+                result += "/W/{}".format(route_hop.password)
         return result
 
 
@@ -779,8 +779,7 @@ class SAPRouterNativeProxy(SAPNIProxy):
         :raise SAPRouteException: if the route request is denied
         :raise Exception: if an error occurred when requesting the route
         """
-        log_saprouter.debug("Routing to %s:%d" % (self.target_address,
-                                                  self.target_port))
+        log_saprouter.debug("Routing to %s:%d", self.target_address, self.target_port)
 
         # Creates the connection with the SAP Router
         (remote_address, remote_port) = self.remote_host
@@ -808,17 +807,17 @@ class SAPRouterNativeProxy(SAPNIProxy):
         if SAPRouter in response:
             response = response[SAPRouter]
             if router_is_pong(response):
-                log_saprouter.debug("Route request to %s:%d accepted by %s:%d" %
-                                    (self.target_address, self.target_port,
-                                     remote_address, remote_port))
+                log_saprouter.debug("Route request to %s:%d accepted by %s:%d",
+                                    self.target_address, self.target_port,
+                                    remote_address, remote_port)
                 self.routed = True
             elif router_is_error(response) and response.return_code == -94:
-                log_saprouter.debug("Route request to %s:%d not accepted by %s:%d" %
-                                    (self.target_address, self.target_port,
-                                     remote_address, remote_port))
+                log_saprouter.debug("Route request to %s:%d not accepted by %s:%d",
+                                    self.target_address, self.target_port,
+                                    remote_address, remote_port)
                 raise SAPRouteException("Route request not accepted")
             else:
-                log_saprouter.error("Router send error: %s" % response.err_text_value)
+                log_saprouter.error("Router send error: %s", response.err_text_value)
                 raise Exception("Router error: %s", response.err_text_value)
         else:
             log_saprouter.error("Wrong response received")

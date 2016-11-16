@@ -113,7 +113,7 @@ class SAPDiagConnection(object):
         Using a random IP address as terminal name in unpatched systems will
         make the 'terminal' field of the security audit log unreliable.
         """
-        return '.'.join('%s' % randint(0, 255) for _ in range(4))
+        return '.'.join(str(randint(0, 255)) for _ in range(4))
 
     def get_support_data_item(self, support_data):
         if isinstance(support_data, str):
