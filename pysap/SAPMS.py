@@ -701,16 +701,16 @@ class SAPMSJ2EECluster(Packet):
     This packet is used for the Message Server protocol for J2EE cluster nodes.
     """
     name = "SAP Message Server J2EE Cluster"
-    aCluster = 68199
-    aNodeNr = 5
-    aClusterId = aCluster + 100 + 50 + aNodeNr
-    aICMPort = 5020
+    cluster_no = 68199
+    node_no = 5
+    cluster_no_id = cluster_no + 100 + 50 + node_no
+    icm_port = 5020
 
     fields_desc = [
-        IntField("cluster_id", aClusterId),
-        IntField("group_id", aCluster),
-        IntField("join_port", aICMPort),
-        StrFixedLenField("name", "J2EE{}".format(aClusterId), 32),
+        IntField("cluster_id", cluster_no_id),
+        IntField("group_id", cluster_no),
+        IntField("join_port", icm_port),
+        StrFixedLenField("name", "J2EE{}".format(cluster_no_id), 32),
         StrFixedLenField("host", "localhost", 32),
         IPField("hostaddrv4", "127.0.0.1"),
         ByteField("type", 0x02),
@@ -728,12 +728,12 @@ class SAPMSJ2EEHeader(Packet):
 
     This packet is used for the Message Server protocol for J2EE nodes.
     """
-    name = "SAP Message Server J2EE Cluster"
-    aCluster = 68199
+    name = "SAP Message Server J2EE Header"
+    cluster_no = 68199
 
     fields_desc = [
-        IntField("sender_cluster_id", aCluster),
-        IntField("cluster_id", aCluster),
+        IntField("sender_cluster_id", cluster_no),
+        IntField("cluster_id", cluster_no),
         IntField("service_id", 9),
         IntField("group_id", 0),
         ByteField("node_type", 0x02),
