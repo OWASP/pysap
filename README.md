@@ -91,6 +91,7 @@ Contributions made by:
   * Victor Portal Gonzalez 
   * Dmitry Yudin ([@ret5et](https://github.com/ret5et))
   * Hans-Christian Esperer ([@hce](https://github.com/hce))
+  * Vahagn Vardanyan ([@vah13](https://github.com/vah13))
 
 
 Contact

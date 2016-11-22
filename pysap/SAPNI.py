@@ -402,6 +402,8 @@ class SAPNIServer(TCPServer):
                            bind_and_activate=bind_and_activate)
 
     def handle_error(self, request, client_address):
+        """Called to handle an error or exception occurred with the server.
+        """
         log_sapni.exception("SAPNIServer: Client connection error: %s", sys.exc_info()[1])
 
     def get_request(self):

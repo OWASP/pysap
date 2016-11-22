@@ -28,6 +28,7 @@ import scapy.arch
 from scapy.config import conf
 from scapy.sendrecv import sniff
 from scapy.layers.inet import IP, TCP
+from scapy.arch import get_if_list, get_if_addr
 from scapy.packet import bind_layers, split_layers, Raw
 # Custom imports
 import pysap
@@ -159,9 +160,23 @@ def main():
 
     parser = DiagParser(options)
 
+    def print_interfaces():
+        print("[*] Available interfaces:")
+        for iface in get_if_list():
+            print("[ ]\t%s (%s)" % (iface, get_if_addr(iface)))
+
+    if not (options.interface or options.pcap):
+        print("[*] Must provide a pcap file or an interface to sniff on")
+        print_interfaces()
+        return
+
     if options.pcap:
         print("[*] Parsing pcap file (%s)" % options.pcap)
     else:
+        if options.interface not in get_if_list():
+            print("[*] Invalid interface '%s'" % options.interface)
+            print_interfaces()
+            return
         print("[*] Listening on interface (%s)" % options.interface)
 
     try:
