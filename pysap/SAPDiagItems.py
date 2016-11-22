@@ -308,6 +308,7 @@ bind_diagitem(SAPDiagSupportBits, "APPL", 0x06, 0x11)
 #
 # SAPGUI 7.02 Java rev 5:           ff7ffe2ddab737d674087e1305971597eff23f8d0770ff0f0000000000000000
 # SAPGUI 7.02 Java rev 2:           ff7ffe2ddab737d674087e1305971597eff23f8d0770ff030000000000000000
+# SAPGUI 7.40 Java rev 8:           ff7ffe2ddab737f674087e9305971597eff2bf8f4f71ff9f8606000000000000
 # SAPGUI 7.02 Windows:              ff7ffa0d78b737def6196e9325bf1593ef73feebdb51ed010000000000000000
 # SAPGUI 7.01 Windows:              ff7ffa0d78b737def6196e9325bf1593ef73feebdb5501000000000000000000
 # SAPGUI 7.30 Windows:              ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed910200000000000000
@@ -323,6 +324,7 @@ support_data_sapgui_730_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e93
 support_data_sapgui_740_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed91ca00000000000000"))
 support_data_sapgui_702_java2 = SAPDiagSupportBits(unhex("ff7ffe2ddab737d674087e1305971597eff23f8d0770ff030000000000000000"))
 support_data_sapgui_702_java5 = SAPDiagSupportBits(unhex("ff7ffe2ddab737d674087e1305971597eff23f8d0770ff0f0000000000000000"))
+support_data_sapgui_740_java8 = SAPDiagSupportBits(unhex("ff7ffe2ddab737f674087e9305971597eff2bf8f4f71ff9f8606000000000000"))
 support_data_sapnw_701 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737d674087e1305971597ebf22f8d03300f000000000000000000"))
 support_data_sapnw_702 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737d674087e1305971597ebf23f8d0370ff0f0000000000000000"))
 
