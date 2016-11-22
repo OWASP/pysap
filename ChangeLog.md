@@ -4,6 +4,9 @@ Changelog
 v0.1.12 - XXXX-XX-XX
 --------------------
 
+- Using Scapy version 2.3.3.
+- Minor fixes and code arrangements.
+- `examples/diag_capturer.py`: Added option to display available capture interfaces.
 - `examples/enqueue_dos_exploit.py`: New example script to check for [CVE-2016-4015](https://erpscan.com/advisories/erpscan-16-019-sap-netweaver-enqueue-server-dos-vulnerability/)
   DoS vulnerability on Standalone Enqueue Server and fixed at [SAP Note 2258784](https://launchpad.support.sap.com/#/notes/0002258784)
   ([\#6](https://github.com/CoreSecurity/pysap/pull/6)). Thanks [@vah13](https://github.com/vah13)!
