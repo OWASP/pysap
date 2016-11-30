@@ -13,7 +13,7 @@ environment:
 
 # Install requirements
 install:
-  - %PYTHON%\\python.exe -m pip install wheel
+  - ""%PYTHON%\\python.exe -m pip install wheel"
   # Installing WinPcap directly does not work,
   # see http://help.appveyor.com/discussions/problems/2280-winpcap-installation-issue
   - cinst nmap
@@ -24,18 +24,18 @@ build: off
 
 test_script:
   # Set path
-  - set PYTHONPATH=%APPVEYOR_BUILD_FOLDER%
-  - set PATH=%APPVEYOR_BUILD_FOLDER%;%PATH%
+  - "set PYTHONPATH=%APPVEYOR_BUILD_FOLDER%"
+  - "set PATH=%APPVEYOR_BUILD_FOLDER%;%PATH%"
   # Copy WinPcap libraries so scapy can found them
-  - copy C:\Windows\System32\Npcap\wpcap.dll %APPVEYOR_BUILD_FOLDER%
-  - copy C:\Windows\System32\Npcap\packet.dll %APPVEYOR_BUILD_FOLDER%
+  - "copy C:\Windows\System32\Npcap\wpcap.dll %APPVEYOR_BUILD_FOLDER%"
+  - "copy C:\Windows\System32\Npcap\packet.dll %APPVEYOR_BUILD_FOLDER%"
   # Build and run tests
-  - %PYTHON%\\python.exe setup.py test
-  - %PYTHON%\\python.exe setup.py doc
+  - ""%PYTHON%\\python.exe setup.py test"
+  - ""%PYTHON%\\python.exe setup.py doc"
 
 after_test:
   # Build a wheel artifact
-  - %PYTHON%\\python.exe setup.py bdist_wheel
+  - ""%PYTHON%\\python.exe setup.py bdist_wheel"
 
 artifacts:
   - path: dist\*
