@@ -92,7 +92,7 @@ def parse_options(args=None, req_filename=True):
         parser.error("Invalid number or arguments!")
 
     inject_files = []
-    while len(args) > 0:
+    while args:
         inject_files.append((args.pop(0), args.pop(0)))
 
     return options, inject_files

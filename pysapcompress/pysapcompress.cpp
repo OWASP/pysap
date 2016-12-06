@@ -51,36 +51,38 @@
 /* Returns an error strings for compression library return codes */
 const char *error_string(int return_code){
 	switch (return_code){
-	case CS_IEND_OF_STREAM: return ("end of data (internal)");
-	case CS_IEND_OUTBUFFER: return ("end of output buffer");
-	case CS_IEND_INBUFFER: return ("end of input buffer");
-	case CS_E_OUT_BUFFER_LEN: return ("invalid output length");
-	case CS_E_IN_BUFFER_LEN: return ("invalid input length");
-	case CS_E_NOSAVINGS: return ("no savings");
-	case CS_E_INVALID_SUMLEN: return ("invalid len of stream");
-	case CS_E_IN_EQU_OUT: return ("inbuf == outbuf");
-	case CS_E_INVALID_ADDR: return ("inbuf == NULL,outbuf == NULL");
-	case CS_E_FATAL: return ("internal error !");
-	case CS_E_BOTH_ZERO: return ("inlen = outlen = 0");
-	case CS_E_UNKNOWN_ALG: return ("unknown algorithm");
-	case CS_E_UNKNOWN_TYPE: return ("unknown type");
-	/* for decompress */
-	case CS_E_FILENOTCOMPRESSED: return ("input not compressed");
-	case CS_E_MAXBITS_TOO_BIG: return ("maxbits to large");
-	case CS_E_BAD_HUF_TREE: return ("bad hufman tree");
-	case CS_E_NO_STACKMEM: return ("no stack memory in decomp");
-	case CS_E_INVALIDCODE: return ("invalid code");
-	case CS_E_BADLENGTH: return ("bad lengths");
-	case CS_E_STACK_OVERFLOW: return ("stack overflow in decomp");
-	case CS_E_STACK_UNDERFLOW: return ("stack underflow in decomp");
-	/* only Windows */
-	case CS_NOT_INITIALIZED: return ("storage not allocated");
-	/* non error return codes */
-	case CS_END_INBUFFER: return ("end of input buffer");
-	case CS_END_OUTBUFFER: return ("end of output buffer");
-	case CS_END_OF_STREAM: return ("end of data");
-	/* unknown error */
-	default: return ("unknown error");
+		case CS_IEND_OF_STREAM: return ("CS_IEND_OF_STREAM: end of data (internal)");
+		case CS_IEND_OUTBUFFER: return ("CS_IEND_OUTBUFFER: end of output buffer");
+		case CS_IEND_INBUFFER: return ("CS_IEND_INBUFFER: end of input buffer");
+		case CS_E_OUT_BUFFER_LEN: return ("CS_E_OUT_BUFFER_LEN: invalid output length");
+		case CS_E_IN_BUFFER_LEN: return ("CS_E_IN_BUFFER_LEN: invalid input length");
+		case CS_E_NOSAVINGS: return ("CS_E_NOSAVINGS: no savings");
+		case CS_E_INVALID_SUMLEN: return ("CS_E_INVALID_SUMLEN: invalid len of stream");
+		case CS_E_IN_EQU_OUT: return ("CS_E_IN_EQU_OUT: inbuf == outbuf");
+		case CS_E_INVALID_ADDR: return ("CS_E_INVALID_ADDR: inbuf == NULL,outbuf == NULL");
+		case CS_E_FATAL: return ("CS_E_FATAL: internal error !");
+		case CS_E_BOTH_ZERO: return ("CS_E_BOTH_ZERO: inlen = outlen = 0");
+		case CS_E_UNKNOWN_ALG: return ("CS_E_UNKNOWN_ALG: unknown algorithm");
+		case CS_E_UNKNOWN_TYPE: return ("CS_E_UNKNOWN_TYPE: unknown type");
+		/* for decompress */
+		case CS_E_FILENOTCOMPRESSED: return ("CS_E_FILENOTCOMPRESSED: input not compressed");
+		case CS_E_MAXBITS_TOO_BIG: return ("CS_E_MAXBITS_TOO_BIG: maxbits to large");
+		case CS_E_BAD_HUF_TREE: return ("CS_E_BAD_HUF_TREE: bad hufman tree");
+		case CS_E_NO_STACKMEM: return ("CS_E_NO_STACKMEM: no stack memory in decomp");
+		case CS_E_INVALIDCODE: return ("CS_E_INVALIDCODE: invalid code");
+		case CS_E_BADLENGTH: return ("CS_E_BADLENGTH: bad lengths");
+		case CS_E_STACK_OVERFLOW: return ("CS_E_STACK_OVERFLOW: stack overflow in decomp");
+		case CS_E_STACK_UNDERFLOW: return ("CS_E_STACK_UNDERFLOW: stack underflow in decomp");
+		/* only Windows */
+		case CS_NOT_INITIALIZED: return ("CS_NOT_INITIALIZED: storage not allocated");
+		/* non error return codes */
+		case CS_END_INBUFFER: return ("CS_END_INBUFFER: end of input buffer");
+		case CS_END_OUTBUFFER: return ("CS_END_OUTBUFFER: end of output buffer");
+		case CS_END_OF_STREAM: return ("CS_END_OF_STREAM: end of data");
+		/* custom error */
+		case CS_E_MEMORY_ERROR: return ("CS_E_MEMORY_ERROR: custom memory error");
+		/* unknown error */
+		default: return ("unknown error");
 	}
 }
 

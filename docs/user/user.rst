@@ -90,12 +90,6 @@ the Python's ``setuptools`` script provided:
 Scapy installation
 ~~~~~~~~~~~~~~~~~~
 
-- For installing `Scapy`_ on Windows, see some guidance `here <https://github.com/secdev/scapy/blob/master/doc/scapy/installation.rst#windows>`_.
+- For installing `Scapy`_ on Mac OSX, see some guidance `here <http://scapy.readthedocs.io/en/latest/installation.html#mac-os-x>`_.
 
-- Some scapy installations also requires the following steps:
-
-    Edit the file ``supersocket.py`` (located for example on
-    	``/usr/local/lib/python2.7/dist-packages/scapy/supersocket.py``)
-
-    Add the line ``from scapy.packet import Padding``
-
+- For installing `Scapy`_ on Windows, see some guidance `here <https://scapy.readthedocs.io/en/latest/installation.html#windows>`_.

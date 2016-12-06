@@ -1,0 +1,41 @@
+# AppVeyor configuration based on https://github.com/guedou/scapy-appveyor/blob/master/appveyor.yml
+
+environment:
+
+  # Python versions that will be tested
+  matrix:
+    - PYTHON: "C:\\Python27"
+      PYTHON_VERSION: "2.7.x"
+      PYTHON_ARCH: "32"
+    - PYTHON: "C:\\Python27-x64"
+      PYTHON_VERSION: "2.7.x"
+      PYTHON_ARCH: "64"
+
+# Install requirements
+install:
+  - "%PYTHON%\\python.exe -m pip install wheel"
+  # Installing WinPcap directly does not work,
+  # see http://help.appveyor.com/discussions/problems/2280-winpcap-installation-issue
+  - cinst nmap
+  - refreshenv
+  - pip install Sphinx==1.4.5
+
+build: off
+
+test_script:
+  # Set path
+  - "set PYTHONPATH=%APPVEYOR_BUILD_FOLDER%"
+  - "set PATH=%APPVEYOR_BUILD_FOLDER%;%PATH%"
+  # Copy WinPcap libraries so scapy can found them
+  - "copy C:\\Windows\\System32\\Npcap\\wpcap.dll %APPVEYOR_BUILD_FOLDER%"
+  - "copy C:\\Windows\\System32\\Npcap\\packet.dll %APPVEYOR_BUILD_FOLDER%"
+  # Build and run tests
+  - "%PYTHON%\\python.exe setup.py test"
+  - "%PYTHON%\\python.exe setup.py doc"
+
+after_test:
+  # Build a wheel artifact
+  - "%PYTHON%\\python.exe setup.py bdist_wheel"
+
+artifacts:
+  - path: dist\*

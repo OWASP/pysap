@@ -23,6 +23,8 @@ from sys import platform
 from struct import pack, unpack
 from optparse import OptionParser
 from subprocess import check_output
+# Custom imports
+import pysap
 # pyCrypto import
 try:
     from Crypto.Cipher import AES
@@ -248,9 +250,13 @@ def main():
                   "CVE-2016-3684 documented at " \
                   "https://www.coresecurity.com/advisories/sap-download-manager-password-weak-encryption."
 
+    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
+                                                         "url": pysap.__url__,
+                                                         "repo": pysap.__repo__}
+
     usage = "Usage: %prog [options] -f <config filename>"
 
-    parser = OptionParser(usage=usage, description=description)
+    parser = OptionParser(usage=usage, description=description, epilog=epilog)
 
     parser.add_option("-f", "--filename", dest="filename", metavar="FILE",
                       help="DLManager config filename")
