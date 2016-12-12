@@ -6,6 +6,7 @@ v0.1.12 - XXXX-XX-XX
 
 - Using Scapy version 2.3.3.
 - Minor fixes and code arrangements.
+- Building and testing in OSX with Travis and Windows with Appveyor.
 - `pysap/SAPDiagItems.py`: Added default support bits from SAP GUI 7.40 version.
 - `examples/diag_capturer.py`: Added option to display available capture interfaces.
 - `examples/enqueue_dos_exploit.py`: New example script to check for [CVE-2016-4015](https://erpscan.com/advisories/erpscan-16-019-sap-netweaver-enqueue-server-dos-vulnerability/)
