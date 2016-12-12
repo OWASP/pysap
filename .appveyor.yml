@@ -1,5 +1,9 @@
 # AppVeyor configuration based on https://github.com/guedou/scapy-appveyor/blob/master/appveyor.yml
 
+platform:
+  - x86
+  - x64
+
 environment:
 
   # Python versions that will be tested
@@ -18,7 +22,7 @@ install:
   # see http://help.appveyor.com/discussions/problems/2280-winpcap-installation-issue
   - cinst nmap
   - refreshenv
-  - pip install Sphinx==1.4.5
+  - "%PYTHON%\\python.exe -m pip install Sphinx==1.4.5"
 
 build: off
 
