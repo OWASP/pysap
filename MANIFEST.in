@@ -1,0 +1,15 @@
+# Include the additional files
+include ChangeLog.md
+include COPYING
+include README.md
+include requirements.txt
+include requirements-optional.txt
+
+# Include the docs
+recursive-include docs *
+
+# Include the extra scripts
+recursive-include extra *.py
+
+# Include the example scripts
+recursive-include examples *
