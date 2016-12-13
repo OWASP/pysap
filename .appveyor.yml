@@ -28,9 +28,12 @@ test_script:
   - "copy C:\\Windows\\System32\\Npcap\\packet.dll %APPVEYOR_BUILD_FOLDER%"
   # Build and run tests
   #- "%PYTHON%\\python.exe setup.py test"
+  # Build the docs
   - "%PYTHON%\\python.exe setup.py doc"
 
 after_test:
+  # Build a source artifact
+  - "%PYTHON%\\python.exe setup.py sdist"
   # Build a wheel artifact
   - "%PYTHON%\\python.exe setup.py bdist_wheel"
 
