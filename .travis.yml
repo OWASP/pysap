@@ -38,7 +38,7 @@ deploy:
     provider: releases
     api_key:
         secure: jph0ZzpFytrPyZKm71s7LwaXvQ2QkGMM1DgwiBu4p9E99vAKvpNdVOXvyp4BmMp7PEksUKtPYpyGWIQCoTY7ffJUf72VbXLxLfsNqpGMP62UteVt5ssleYvpzVqfTt26gqGvsMZB2EhP9zpH3AgYaGuJIB1L0/CM+5Ilf3u2j4I=
-    file: "dist/*"
+    file: "dist/*.whl"
     skip_cleanup: true
     on:
         tags: true
