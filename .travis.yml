@@ -29,3 +29,9 @@ install:
 script:
   - python setup.py test
   - python setup.py doc
+
+before_deploy:
+  # Build a source artifact
+  - python setup.py sdist
+  # Build a wheel artifact
+  - python setup.py bdist_wheel
