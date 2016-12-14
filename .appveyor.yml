@@ -4,9 +4,15 @@ environment:
 
   # Python versions that will be tested
   matrix:
+    - PYTHON: "C:\\Python27"
+      PYTHON_VERSION: "2.7.x"
+      ARCH: "64"
+      PLAT_NAME: "win32"
+
     - PYTHON: "C:\\Python27-x64"
       PYTHON_VERSION: "2.7.x"
-      PYTHON_ARCH: "64"
+      ARCH: "64"
+      PLAT_NAME: "win-amd64"
 
 # Install requirements
 install:
@@ -16,17 +22,22 @@ install:
   - cinst nmap
   - refreshenv
   - "%PYTHON%\\python.exe -m pip install Sphinx==1.4.5"
-
-build: off
-
-test_script:
   # Set path
   - "set PYTHONPATH=%APPVEYOR_BUILD_FOLDER%"
   - "set PATH=%APPVEYOR_BUILD_FOLDER%;%PATH%"
   # Copy WinPcap libraries so scapy can found them
   - "copy C:\\Windows\\System32\\Npcap\\wpcap.dll %APPVEYOR_BUILD_FOLDER%"
   - "copy C:\\Windows\\System32\\Npcap\\packet.dll %APPVEYOR_BUILD_FOLDER%"
-  # Build and run tests
+  # Set the proper build program
+  - if "%ARCH%"=="32" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" x86)
+  - if "%ARCH%"=="64" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" amd64)
+  # Build and install the library
+  - "%PYTHON%\\python.exe setup.py install"
+
+build: off
+
+test_script:
+  # Run tests
   #- "%PYTHON%\\python.exe setup.py test"
   # Build the docs
   - "%PYTHON%\\python.exe setup.py doc"
@@ -38,4 +49,4 @@ after_test:
   - "%PYTHON%\\python.exe setup.py bdist_wheel"
 
 artifacts:
-  - path: dist\*
+  - path: dist\*.whl
