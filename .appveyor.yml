@@ -6,7 +6,7 @@ environment:
   matrix:
     - PYTHON: "C:\\Python27"
       PYTHON_VERSION: "2.7.x"
-      ARCH: "64"
+      ARCH: "32"
       PLAT_NAME: "win32"
 
     - PYTHON: "C:\\Python27-x64"
