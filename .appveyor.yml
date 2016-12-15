@@ -54,7 +54,7 @@ artifacts:
   - path: dist\*.whl
 
 deploy:
-  release: "pysap $(appveyor_repo_tag_name)"
+  release: "pysap $(APPVEYOR_REPO_TAG_NAME)"
   provider: GitHub
   auth_token:
     secure: eoqV4zW9O/Oszrp6hzgBlJKXopstWGolJLeUV9nPC9BH7ME14AG9A7lyvSaALwns
