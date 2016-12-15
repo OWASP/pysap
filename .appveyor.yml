@@ -52,3 +52,15 @@ after_test:
 
 artifacts:
   - path: dist\*.whl
+
+deploy:
+  release: "pysap $(appveyor_repo_tag_name)"
+  provider: GitHub
+  auth_token:
+    secure: eoqV4zW9O/Oszrp6hzgBlJKXopstWGolJLeUV9nPC9BH7ME14AG9A7lyvSaALwns
+  artifact: dist\*.whl
+  draft: true
+  force_update: true
+  on:
+    branch: master
+    appveyor_repo_tag: true
