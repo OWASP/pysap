@@ -1,7 +1,7 @@
 Changelog
 =========
 
-v0.1.12 - XXXX-XX-XX
+v0.1.12 - 2016-12-16
 --------------------
 
 - Using Scapy version 2.3.3.
