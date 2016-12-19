@@ -10,13 +10,13 @@ pysap - Python library for crafting SAP's network protocols packets
 
 Copyright (C) 2012-2016 by Martin Gallo, Core Security
 
-Version 0.1.13.dev0 (XXX 201X)
+Version 0.1.12.1 (December 2016)
 
 
 Overview
 --------
 
-[SAP Netweaver](https://www.sap.com/platform/netweaver/index.epx) is a 
+[SAP Netweaver](https://www.sap.com/platform/netweaver/index.epx) is a
 technology platform for building and integrating SAP business applications.
 Communication between components uses different network protocols. While
 some of them are standard and well-known protocols, others are proprietaries
@@ -53,7 +53,7 @@ Features
 * Client, proxy and server classes implemented for some of the protocols.
 
 * Example scripts to illustrate the use of the different modules and protocols.
-	
+
 
 Installation
 ------------
@@ -89,7 +89,7 @@ Contributions made by:
   * Florian Grunow
   * Scott Walsh ([@invisiblethreat](https://github.com/invisiblethreat))
   * Joris van de Vis ([@jvis](https://twitter.com/jvis))
-  * Victor Portal Gonzalez 
+  * Victor Portal Gonzalez
   * Dmitry Yudin ([@ret5et](https://github.com/ret5et))
   * Hans-Christian Esperer ([@hce](https://github.com/hce))
   * Vahagn Vardanyan ([@vah13](https://github.com/vah13))
@@ -99,5 +99,5 @@ Contact
 -------
 
 Whether you want to report a bug or give some suggestions on this package, drop
-us a few lines at `oss@coresecurity.com` or contact the author email 
+us a few lines at `oss@coresecurity.com` or contact the author email
 `mgallo@coresecurity.com`.
