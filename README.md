@@ -8,9 +8,9 @@ pysap - Python library for crafting SAP's network protocols packets
 [![Latest Version](https://img.shields.io/pypi/v/pysap.svg)](https://pypi.python.org/pypi/pysap/)
 [![Documentation Status](http://readthedocs.org/projects/pysap/badge/?version=latest)](http://pysap.readthedocs.io/en/latest/?badge=latest)
 
-Copyright (C) 2012-2016 by Martin Gallo, Core Security
+Copyright (C) 2012-2017 by Martin Gallo, Core Security
 
-Version 0.1.13.dev0 (XXX 2016)
+Version 0.1.13.dev0 (XXX 2017)
 
 
 Overview
