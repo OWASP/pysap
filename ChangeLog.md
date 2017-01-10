@@ -1,12 +1,29 @@
 Changelog
 =========
 
-v0.1.12 - XXXX-XX-XX
+v0.1.13 - XXXX-XX-XX
 --------------------
 
+
+v0.1.12.1 - 2016-12-19
+----------------------
+
+- Minor release.
+- Source build didn't included header files and thus builds from pip source were failing.
+
+
+v0.1.12 - 2016-12-16
+--------------------
+
+- Using Scapy version 2.3.3.
+- Minor fixes and code arrangements.
+- Building and testing in OSX with Travis and Windows with Appveyor.
+- `pysap/SAPDiagItems.py`: Added default support bits from SAP GUI 7.40 version.
+- `examples/diag_capturer.py`: Added option to display available capture interfaces.
 - `examples/enqueue_dos_exploit.py`: New example script to check for [CVE-2016-4015](https://erpscan.com/advisories/erpscan-16-019-sap-netweaver-enqueue-server-dos-vulnerability/)
   DoS vulnerability on Standalone Enqueue Server and fixed at [SAP Note 2258784](https://launchpad.support.sap.com/#/notes/0002258784)
   ([\#6](https://github.com/CoreSecurity/pysap/pull/6)). Thanks [@vah13](https://github.com/vah13)!
+- `examples/router_fingerprints.json`: Added fingerprints from SAP Router releases 745.
 
 
 v0.1.11 - 2016-10-12
@@ -17,10 +34,10 @@ v0.1.11 - 2016-10-12
 - Improvements over the `pysapcar` tool, general fixes and added handling of multi-block SAP CAR archive files. Thanks
   [Hans-Christian Esperer](https://github.com/hce) for the feedback!
 - `pysap/SAPDiag.py`: Splitted `SBA`/`SFE`/`SLC` fields.
-- `pysap/SAPDiag.py`: Renamed error flag to error number. 
+- `pysap/SAPDiag.py`: Renamed error flag to error number.
 - `examples/diag_capturer.py`: Fix imports for running diag capturer example script in Windows.
 - `examples/diag_login_brute_force.py`: Added SOLMAN [default](https://www.troopers.de/media/filer_public/37/34/3734ebb3-989c-4750-9d48-ea478674991a/an_easy_way_into_your_sap_systems_v30.pdf)
-  [credentials](https://launchpad.support.sap.com/#/notes/2293011) and improved reading credentials file. 
+  [credentials](https://launchpad.support.sap.com/#/notes/2293011) and improved reading credentials file.
 
 
 v0.1.10 - 2016-03-25
@@ -122,7 +139,7 @@ v0.1.4 - 2014-03-25
 - Changelog now in GNU format.
 - Changed setup from distutils to setuptools.
 - Added some unit tests.
-- Arranged most of the code according to PEP8. 
+- Arranged most of the code according to PEP8.
 - `pysap/SAPDiagItems.py`: Fixed some support bits and added new ones found in SAP GUI version 7.30.
 - `pysap/SAPDiagItems.py`: Added new Diag Items: `WindowsSize`.
 - `pysap/SAPEnqueue.py`: New packet classes. Crafting of Enqueue Server packets: Connection Admin and Server Admin.
@@ -134,7 +151,7 @@ v0.1.4 - 2014-03-25
 - `pysapcompress/pysapcompress.cpp`: Splitted exception class in two: `CompressError` and `DecompressError`.
 - `examples/ms_change_param.py`: Added example for retrieving or changing a parameter value using MS Admin `set_param`
   commands.
-- `examples/ms_dump_info.py`: New example script for retrieving information using MS Admin dump commands. 
+- `examples/ms_dump_info.py`: New example script for retrieving information using MS Admin dump commands.
 - `examples/ms_impersonator.py`: New example script for impersonating an application server connected to a Message
   Server service instance.
 - `examples/ms_listener.py`: New example script for connecting to a Message Server and listening for messages coming
@@ -145,7 +162,7 @@ v0.1.4 - 2014-03-25
   connecting to it (`msprot` tool).
 - `examples/router_admin.py`: New example script for performing administrative tasks on a SAP Route. Includes
   undocumented commands.
-- `examples/router_portfw.py`: New example script for routing native connections through SAP Router. 
+- `examples/router_portfw.py`: New example script for routing native connections through SAP Router.
 - `examples/router_scanner.py`: New example script for scanning internal hosts using SAP Router.
 
 
