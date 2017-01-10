@@ -316,7 +316,7 @@ bind_diagitem(SAPDiagSupportBits, "APPL", 0x06, 0x11)
 #
 # SAP EHP 1 for SAP Netweaver 7.0:  ff7ffe2dd8b737d674087e1305971597ebf22f8d03300f000000000000000000
 # SAP EHP 2 for SAP NetWeaver 7.0:  ff7ffe2dd8b737d674087e1305971597ebf23f8d0370ff0f0000000000000000
-#
+# SAP NetWeaver AS ABAP 7.50 SP02:  ff7ffe2dd8b737f674087e9305971597ebf2bf8f4b71ff9f8606000000000000
 
 support_data_sapgui_701_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1593ef73feebdb5501000000000000000000"))
 support_data_sapgui_702_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1593ef73feebdb51ed010000000000000000"))
@@ -327,6 +327,7 @@ support_data_sapgui_702_java5 = SAPDiagSupportBits(unhex("ff7ffe2ddab737d674087e
 support_data_sapgui_740_java8 = SAPDiagSupportBits(unhex("ff7ffe2ddab737f674087e9305971597eff2bf8f4f71ff9f8606000000000000"))
 support_data_sapnw_701 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737d674087e1305971597ebf22f8d03300f000000000000000000"))
 support_data_sapnw_702 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737d674087e1305971597ebf23f8d0370ff0f0000000000000000"))
+support_data_sapnw_750 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737f674087e9305971597ebf2bf8f4b71ff9f8606000000000000"))
 
 support_data = SAPDiagItem(item_type="APPL",
                            item_id="ST_USER",
