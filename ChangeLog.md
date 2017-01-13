@@ -4,6 +4,11 @@ Changelog
 v0.1.13 - XXXX-XX-XX
 --------------------
 
+- Example scripts now accept route strings without requiring remote host option.
+- `pysap/SAPRouter.py`: Fixed route request for more than one SAP Router.
+- `examples/router_niping.py`: New example script that implements a very basic
+  version of the `niping` tool. It works on client or server mode.
+
 
 v0.1.12.1 - 2016-12-19
 ----------------------
