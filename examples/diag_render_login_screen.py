@@ -79,8 +79,8 @@ def parse_options():
 
     (options, _) = parser.parse_args()
 
-    if not options.remote_host:
-        parser.error("Remote host is required")
+    if not (options.remote_host or options.route_string):
+        parser.error("Remote host or route string is required")
 
     return options
 
