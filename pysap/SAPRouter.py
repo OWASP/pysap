@@ -574,7 +574,7 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
                                   route_ni_version=self.router_version,
                                   route_entries=len(route),
                                   route_talk_mode=talk_mode,
-                                  route_rest_nodes=1,
+                                  route_rest_nodes=len(route) - 1,
                                   route_length=sum(router_strings_lens),
                                   route_offset=router_strings_lens[0],
                                   route_string=route)
