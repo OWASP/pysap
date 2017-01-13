@@ -83,6 +83,88 @@ def parse_options():
     return options
 
 
+def client_mode(options):
+    """"Implements the niping client running mode
+
+    :param options: option set from the command line
+    :type options: Values
+    """
+
+    times = []
+    p = Raw("EYECATCHER" + "\x00" * (options.buffer_size - 10))
+
+    try:
+        # Establish the connection
+        conn = SAPRoutedStreamSocket.get_nisocket(options.host,
+                                                  options.port,
+                                                  options.route_string)
+        print("")
+        print(datetime.today().ctime())
+        print("connect to server o.k.")
+
+        # Send the messages
+        for i in range(options.loops):
+
+            # Send the packet and grab the response
+            start_time = datetime.now()
+            r = conn.sr(p)
+            end_time = datetime.now()
+
+            # Check the response
+            if str(r.payload) != str(p):
+                print("[-] Response on message {} differs".format(i))
+
+            # Calculate and record the elapsed time
+            times.append(end_time - start_time)
+
+        # Close the connection properly
+        conn.send(Raw())
+        conn.close()
+
+        print("")
+        print(datetime.today().ctime())
+        print("send and receive {} messages (len {})".format(len(times), options.buffer_size))
+
+    except SocketError:
+        print("[*] Connection error")
+    except KeyboardInterrupt:
+        print("[*] Cancelled by the user")
+
+    if times:
+        # Calculate the stats
+        times = [x.total_seconds() * 1000 for x in times]
+        times_min = min(times)
+        times_max = max(times)
+        times_avg = float(sum(times)) / max(len(times), 1)
+        times_tr = float(options.buffer_size * len(times)) / float(sum(times))
+
+        times2 = [x for x in times if x not in [times_min, times_max]]
+        times2_avg = float(sum(times2)) / max(len(times2), 1)
+        times2_tr = float(options.buffer_size * len(times2)) / float(sum(times2))
+
+        # Print the stats
+        print("")
+        print("------- times -----")
+        print("avg  {:8.3f} ms".format(times_avg))
+        print("max  {:8.3f} ms".format(times_max))
+        print("min  {:8.3f} ms".format(times_min))
+        print("tr   {:8.3f} kB/s".format(times_tr))
+
+        print("excluding max and min:")
+        print("av2  {:8.3f} ms".format(times2_avg))
+        print("tr2  {:8.3f} kB/s".format(times2_tr))
+        print("")
+
+
+def server_mode(options):
+    """"Implements the niping server running mode
+
+    :param options: option set from the command line
+    :type options: Values
+    """
+    pass
+
+
 # Main function
 def main():
     options = parse_options()
@@ -96,71 +178,10 @@ def main():
 
     # Client running mode
     if options.client:
-
-        times = []
-        p = Raw("EYECATCHER" + "\x00" * (options.buffer_size - 10))
-
-        try:
-            # Establish the connection
-            conn = SAPRoutedStreamSocket.get_nisocket(options.host,
-                                                      options.port,
-                                                      options.route_string)
-            print("")
-            print(datetime.today().ctime())
-            print("connect to server o.k.")
-
-            # Send the messages
-            for i in range(options.loops):
-
-                # Send the packet and grab the response
-                start_time = datetime.now()
-                r = conn.sr(p)
-                end_time = datetime.now()
-
-                # Check the response
-                if str(r.payload) != str(p):
-                    print("[-] Response on message {} differs".format(i))
-
-                # Calculate and record the elapsed time
-                times.append(end_time - start_time)
-
-            # Close the connection properly
-            conn.send(Raw())
-            conn.close()
-
-            print("")
-            print(datetime.today().ctime())
-            print("send and receive {} messages (len {})".format(len(times), options.buffer_size))
-
-        except SocketError:
-            print("[*] Connection error")
-        except KeyboardInterrupt:
-            print("[*] Cancelled by the user")
-
-        if times:
-            # Calculate the stats
-            times = [x.total_seconds() * 1000 for x in times]
-            times_min = min(times)
-            times_max = max(times)
-            times_avg = float(sum(times)) / max(len(times), 1)
-            times_tr = float(options.buffer_size * len(times)) / float(sum(times))
-
-            times2 = [x for x in times if x not in [times_min, times_max]]
-            times2_avg = float(sum(times2)) / max(len(times2), 1)
-            times2_tr = float(options.buffer_size * len(times2)) / float(sum(times2))
-
-            # Print the stats
-            print("")
-            print("------- times -----")
-            print("avg  {:8.3f} ms".format(times_avg))
-            print("max  {:8.3f} ms".format(times_max))
-            print("min  {:8.3f} ms".format(times_min))
-            print("tr   {:8.3f} kB/s".format(times_tr))
-
-            print("excluding max and min:")
-            print("av2  {:8.3f} ms".format(times2_avg))
-            print("tr2  {:8.3f} kB/s".format(times2_tr))
-            print("")
+        client_mode(options)
+    # Server running mode
+    elif options.server:
+        server_mode(options)
 
 
 if __name__ == "__main__":
