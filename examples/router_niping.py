@@ -21,13 +21,14 @@
 # Standard imports
 import logging
 from datetime import datetime
-from socket import error as SocketError
 from optparse import OptionParser, OptionGroup
+from socket import socket, SHUT_RDWR, error as SocketError
 # External imports
 from scapy.packet import Raw
 from scapy.config import conf
 # Custom imports
 import pysap
+from pysap.SAPNI import SAPNIStreamSocket
 from pysap.SAPRouter import SAPRoutedStreamSocket
 
 
@@ -162,7 +163,47 @@ def server_mode(options):
     :param options: option set from the command line
     :type options: Values
     """
-    pass
+
+    if not options.host:
+        options.host = "0.0.0.0"
+
+    sock = socket()
+    try:
+        sock.bind((options.host, options.port))
+        sock.listen(0)
+        print("")
+        print(datetime.today().ctime())
+        print("ready for connect from client ...")
+
+        while True:
+            sc, sockname = sock.accept()
+            client = SAPNIStreamSocket(sc)
+
+            print("")
+            print(datetime.today().ctime())
+            print("connect from host '{}', client hdl {} o.k.".format(sockname[0], client.fileno()))
+
+            try:
+                while True:
+                    r = client.recv()
+                    client.send(r.payload)
+
+            except SocketError:
+                pass
+
+            finally:
+                print("")
+                print(datetime.today().ctime())
+                print("client hdl {} disconnected ...".format(client.fileno()))
+
+    except SocketError:
+        print("[*] Connection error")
+    except KeyboardInterrupt:
+        print("[*] Cancelled by the user")
+
+    finally:
+        sock.shutdown(SHUT_RDWR)
+        sock.close()
 
 
 # Main function
