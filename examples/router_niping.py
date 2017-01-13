@@ -77,7 +77,7 @@ def parse_options():
     if not options.server and not options.client:
         parser.error("Running mode is required")
 
-    if options.client and not options.host:
+    if options.client and not (options.host or options.route_string):
         parser.error("Remote host is required for starting a client")
 
     return options
