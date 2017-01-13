@@ -122,16 +122,16 @@ def client_mode(options):
         conn.send(Raw())
         conn.close()
 
-        print("")
-        print(datetime.today().ctime())
-        print("send and receive {} messages (len {})".format(len(times), options.buffer_size))
-
     except SocketError:
         print("[*] Connection error")
     except KeyboardInterrupt:
         print("[*] Cancelled by the user")
 
     if times:
+        print("")
+        print(datetime.today().ctime())
+        print("send and receive {} messages (len {})".format(len(times), options.buffer_size))
+
         # Calculate the stats
         times = [x.total_seconds() * 1000 for x in times]
         times_min = min(times)
