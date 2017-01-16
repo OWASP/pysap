@@ -769,13 +769,13 @@ class SAPMS(Packet):
         StrFixedLenField("eyecatcher", "**MESSAGE**\x00", 12),
         ByteField("version", 0x04),
         ByteEnumKeysField("errorno", 0x00, ms_errorno_values),
-        StrFixedLenField("toname", " " * 40, 40),
+        StrFixedLenField("toname", "-" + " " * 39, 40),
         FlagsField("msgtype", 0, 8, ["DIA", "UPD", "ENQ", "BTC", "SPO", "UP2", "ATP", "ICM"]),
         StrFixedLenField("reserved", "\x00" * 3, 3),
         StrFixedLenField("key", "\x00" * 8, 8),
         ByteEnumKeysField("flag", 0x01, ms_flag_values),
         ByteEnumKeysField("iflag", 0x01, ms_iflag_values),
-        StrFixedLenField("fromname", " " * 40, 40),
+        StrFixedLenField("fromname", "-" + " " * 39, 40),
         ShortField("padd", 0x0000),
 
         # OpCode fields
