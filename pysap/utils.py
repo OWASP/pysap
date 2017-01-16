@@ -376,7 +376,7 @@ class BaseConsole (Cmd, object):
             tabular = tabulate(table, args)
             self._print(tabular)
         else:
-            self._print("\n".join("\t|".join(line) for line in table))
+            self._print("\n".join("\t| ".join([str(col).strip() for col in line]).expandtabs(20) for line in table))
 
     def _print(self, string=""):
         print(str(string))
