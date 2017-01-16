@@ -26,8 +26,8 @@ from optparse import OptionParser, OptionGroup
 from scapy.config import conf
 # Custom imports
 import pysap
-from pysap.SAPMS import SAPMS
 from pysap.SAPRouter import SAPRoutedStreamSocket
+from pysap.SAPMS import SAPMS, ms_domain_values_inv
 
 
 # Set the verbosity to 0
@@ -55,6 +55,8 @@ def parse_options():
                       help="Remote port [%default]")
     target.add_option("--route-string", dest="route_string",
                       help="Route string for connecting through a SAP Router")
+    target.add_option("--domain", dest="domain", default="ABAP",
+                      help="Domain to connect to (ABAP, J2EE or JSTARTUP) [%default]")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
@@ -68,6 +70,8 @@ def parse_options():
 
     if not (options.remote_host or options.route_string):
         parser.error("Remote host or route string is required")
+    if options.domain not in ms_domain_values_inv.keys():
+        parser.error("Invalid domain specified")
 
     return options
 
@@ -78,6 +82,8 @@ def main():
 
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
+
+    domain = ms_domain_values_inv[options.domain]
 
     # Initiate the connection
     conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
@@ -91,7 +97,7 @@ def main():
 
     # Send MS_LOGIN_2 packet
     print("[*] Sending login packet")
-    p = SAPMS(flag=0x00, iflag=0x08, toname=client_string, fromname=client_string)
+    p = SAPMS(flag=0x00, iflag=0x08, domain=domain, toname=client_string, fromname=client_string)
     response = conn.sr(p)[SAPMS]
 
     print("[*] Login performed, server string: %s" % response.fromname)
@@ -99,12 +105,14 @@ def main():
 
     # Send MS_SERVER_CHG packet
     print("[*] Sending server change packet")
-    p = SAPMS(flag=0x02, iflag=0x01, toname=server_string, fromname=client_string, opcode=0x01, opcode_version=4)
+    p = SAPMS(flag=0x02, iflag=0x01, domain=domain, toname=server_string, fromname=client_string, opcode=0x01,
+              opcode_version=4)
     response = conn.sr(p)[SAPMS]
 
     # Send MS_SERVER_LONG_LIST packet
     print("[*] Sending server long list packet")
-    p = SAPMS(flag=0x01, iflag=0x01, toname=server_string, fromname=client_string, opcode=0x40, opcode_charset=0x00)
+    p = SAPMS(flag=0x01, iflag=0x01, domain=domain, toname=server_string, fromname=client_string, opcode=0x40,
+              opcode_charset=0x00)
     conn.send(p)
 
     clients = []
@@ -119,7 +127,8 @@ def main():
 
     # Send MS_SERVER_LST packet
     print("[*] Retrieving list of current clients")
-    p = SAPMS(flag=0x02, iflag=0x01, toname=server_string, fromname=client_string, opcode=0x05, opcode_version=0x68)
+    p = SAPMS(flag=0x02, iflag=0x01, domain=domain, toname=server_string, fromname=client_string, opcode=0x05,
+              opcode_version=0x68)
     response = conn.sr(p)[SAPMS]
     for client in response.clients:
         if client.client != client_string:
