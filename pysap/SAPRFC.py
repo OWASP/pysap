@@ -145,6 +145,12 @@ class SAPRFC(Packet):
 
         # Monitor Command fields (GW_SEND_CMD)
         ConditionalField(ByteEnumKeysField("cmd", 0, rfc_monitor_cmd_values), lambda pkt:pkt.req_type == 0x09),
+
+        # General padding for non implemented request types
+        ConditionalField(StrFixedLenField("padd_v12", "\x00" * 61, length=61), lambda pkt: pkt.version < 3 and pkt.req_type == 0x09),
+        ConditionalField(StrFixedLenField("padd_v12", "\x00" * 62, length=62), lambda pkt: pkt.version < 3 and pkt.req_type not in [0x03, 0x09]),
+        ConditionalField(StrFixedLenField("padd_v3", "\x00" * 133, length=133), lambda pkt: pkt.version == 3 and pkt.req_type == 0x09),
+        ConditionalField(StrFixedLenField("padd_v3", "\x00" * 134, length=134), lambda pkt: pkt.version == 3 and pkt.req_type not in [0x03, 0x09]),
     ]
 
 
