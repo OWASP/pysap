@@ -37,9 +37,13 @@ ms_domain_values = {
     0x01: "J2EE",
     0x02: "JSTARTUP",
 }
-
-
 """Message Server Domain values"""
+
+
+# Inverse dictionary for obtaining the value from a given domain name
+ms_domain_values_inv = {v: k for k, v in ms_domain_values.items()}
+
+
 # Message Server Flag values
 ms_flag_values = {
     0x01: "MS_ONE_WAY",  # One way messages are sent from the client to server and doesn't trigger a response

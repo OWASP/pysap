@@ -30,7 +30,7 @@ from pysap.utils import BaseConsole
 from pysap.SAPMS import (SAPMS, ms_client_status_values, ms_opcode_error_values,
                          ms_dump_command_values, SAPMSCounter, ms_opcode_values,
                          ms_errorno_values, SAPMSProperty, ms_property_id_values,
-                         SAPMSAdmRecord)
+                         SAPMSAdmRecord, ms_domain_values_inv)
 from pysap.SAPRouter import SAPRoutedStreamSocket
 
 
@@ -44,10 +44,6 @@ class SAPMSMonitorConsole(BaseConsole):
     connection = None
     connected = False
     clients = []
-
-    domains = {"ABAP": 0x00,
-               "J2EE": 0x01,
-               "JSTARTUP": 0x02}
 
     def __init__(self, options):
         super(SAPMSMonitorConsole, self).__init__(options)
@@ -65,7 +61,7 @@ class SAPMSMonitorConsole(BaseConsole):
         return SAPMS(flag=flag, iflag=iflag,
                      toname=self.runtimeoptions["server_string"],
                      fromname=self.runtimeoptions["client_string"],
-                     domain=self.domains[self.runtimeoptions["domain"]],
+                     domain=ms_domain_values_inv[self.runtimeoptions["domain"]],
                      **args)
 
     # Helper for sending simple commands and opcodes
@@ -110,7 +106,7 @@ class SAPMSMonitorConsole(BaseConsole):
         self._print("Attached to %s / %d" % (self.options.remote_host, self.options.remote_port))
 
         # Send MS_LOGIN_2 packet
-        p = SAPMS(flag=0x02, iflag=0x08, domain=self.domains[self.runtimeoptions["domain"]],
+        p = SAPMS(flag=0x02, iflag=0x08, domain=ms_domain_values_inv[self.runtimeoptions["domain"]],
                   toname=self.runtimeoptions["client_string"],
                   fromname=self.runtimeoptions["client_string"])
 
@@ -581,7 +577,7 @@ def parse_options():
 
     if not (options.remote_host or options.route_string):
         parser.error("Remote host or route string is required")
-    if options.domain not in SAPMSMonitorConsole.domains.keys():
+    if options.domain not in ms_domain_values_inv.keys():
         parser.error("Invalid domain specified")
 
     return options
