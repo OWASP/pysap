@@ -1,2 +1,2 @@
 tabulate==0.7.7
-netaddr==0.7.18
+netaddr==0.7.19
