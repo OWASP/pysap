@@ -31,6 +31,15 @@ from pysap.utils import (PacketNoPadded, IntToStrField, StrNullFixedLenPaddedFie
                          StrNullFixedLenField)
 
 
+# Message Server Domain values
+ms_domain_values = {
+    0x00: "ABAP",
+    0x01: "J2EE",
+    0x02: "JSTARTUP",
+}
+
+
+"""Message Server Domain values"""
 # Message Server Flag values
 ms_flag_values = {
     0x01: "MS_ONE_WAY",  # One way messages are sent from the client to server and doesn't trigger a response
@@ -771,7 +780,9 @@ class SAPMS(Packet):
         ByteEnumKeysField("errorno", 0x00, ms_errorno_values),
         StrFixedLenField("toname", "-" + " " * 39, 40),
         FlagsField("msgtype", 0, 8, ["DIA", "UPD", "ENQ", "BTC", "SPO", "UP2", "ATP", "ICM"]),
-        StrFixedLenField("reserved", "\x00" * 3, 3),
+        ByteField("reserved", 0x00),
+        ByteEnumKeysField("domain", 0x00, ms_domain_values),
+        ByteField("reserved", 0x00),
         StrFixedLenField("key", "\x00" * 8, 8),
         ByteEnumKeysField("flag", 0x01, ms_flag_values),
         ByteEnumKeysField("iflag", 0x01, ms_iflag_values),
