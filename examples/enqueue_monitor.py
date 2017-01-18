@@ -66,7 +66,8 @@ class SAPEnqueueAdminConsole(BaseConsole):
         # Create the socket connection
         try:
             self.connection = SAPEnqueueStreamSocket.get_nisocket(self.options.remote_host,
-                                                                  self.options.remote_port)
+                                                                  self.options.remote_port,
+                                                                  self.options.route_string)
         except SocketError as e:
             self._error("Error connecting with the Enqueue Server")
             self._error(str(e))
@@ -195,6 +196,8 @@ def parse_options():
                       help="Remote host")
     target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3200,
                       help="Remote port [%default]")
+    target.add_option("--route-string", dest="route_string",
+                      help="Route string for connecting through a SAP Router")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
@@ -211,8 +214,8 @@ def parse_options():
 
     (options, _) = parser.parse_args()
 
-    if not options.remote_host:
-        parser.error("Remote host is required")
+    if not (options.remote_host or options.route_string):
+        parser.error("Remote host or route string is required")
 
     return options
 

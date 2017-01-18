@@ -6,8 +6,10 @@ v0.1.13 - XXXX-XX-XX
 
 - Example scripts now accept route strings without requiring remote host option.
 - `pysap/SAPRouter.py`: Fixed route request for more than one SAP Router.
+- `pysap/SAPEnqueue.py`: `SAPEnqueueStreamSocket` now can connect to an Enqueue server through a SAPRouter.
 - `examples/router_niping.py`: New example script that implements a very basic
   version of the `niping` tool. It works on client or server mode.
+- `examples/enqueue_monitor.py`: The script now accepts route strings for connecting through a SAPRouter.
 
 
 v0.1.12.1 - 2016-12-19
