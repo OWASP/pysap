@@ -157,7 +157,7 @@ class PySAPCompressTest(unittest.TestCase):
         self.assertRaisesRegexp(DecompressError, "stack overflow in decomp", decompress, test_case, 6716)
 
     def test_invalid_read(self):
-        "Test invalid read vulnerability in LZH code (CVE-2015-2278)"
+        """Test invalid read vulnerability in LZH code (CVE-2015-2278)"""
         from pysapcompress import decompress, DecompressError
 
         test_case = read_data_file('invalid_read_testcase.data', False)
@@ -166,7 +166,7 @@ class PySAPCompressTest(unittest.TestCase):
             decompress(test_case, 661)
         except Exception as e:
             self.assertIsInstance(e, DecompressError)
-            self.assertEqual(str(e), "Decompression error (bad hufman tree)")
+            self.assertIn("bad hufman tree", str(e))
 
 
 def test_suite():
