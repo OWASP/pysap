@@ -1,0 +1,8 @@
+# Read the docs configuration file for pysap
+
+
+python:
+    version: 2
+    pip_install: true
+    extra_requirements:
+        - docs
