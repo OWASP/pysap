@@ -96,6 +96,7 @@ setup(name=pysap.__title__,   # Package information
       # Optional requirements for docs and some examples
       extras_require={"docs": ["Sphinx>=1.4",
                                "ipykernel",
-                               "nbsphinx"],
+                               "nbsphinx",
+                               "pandoc"],
                       "examples": open('requirements-optional.txt').read().splitlines()},
       )
