@@ -24,7 +24,7 @@ before_script:
 
 install:
   - pip install .
-  - pip install Sphinx==1.4.5
+  - pip install .[docs]
 
 script:
   - python setup.py test
