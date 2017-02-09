@@ -1,3 +1,4 @@
+six
 Sphinx>=1.4
 ipykernel
 nbconvert
