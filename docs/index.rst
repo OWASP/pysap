@@ -57,6 +57,7 @@ Content
    :maxdepth: 3
 
    user/user
+   protocols/protocols
    examples/examples
    api/api
    dev/dev

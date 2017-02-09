@@ -15,11 +15,26 @@ documentation should contain the start point.
 Documentation
 -------------
 
-Documentation can be build using:
+Documentation can be build using::
 
     $ python setup.py doc
 
 A build is also available at `Read the Docs <https://pysap.readthedocs.io/en/latest/>`_.
+
+
+The build process requires several packages and libraries to be available. The operative system libraries required are:
+
+* `pandoc`
+* A LaTex environment, for example `TexLive` on Linux or `MikTex` on Windows.
+
+For example, installation on a Ubuntu box would require the following commands::
+
+   $ sudo apt install pandoc texlive-full
+
+Python packages can be installed using ::
+
+    $ pip install pysap[docs]
+
 
 
 Code contributions

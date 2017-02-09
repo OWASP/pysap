@@ -4,6 +4,7 @@ Changelog
 v0.1.13 - XXXX-XX-XX
 --------------------
 
+- Documentation now includes graphical representation of the main packets of each protocol.
 - Example scripts now accept route strings without requiring remote host option.
 - `pysap/SAPRouter.py`: Fixed route request for more than one SAP Router.
 - `pysap/SAPEnqueue.py`: `SAPEnqueueStreamSocket` now can connect to an Enqueue server through a SAPRouter.
