@@ -97,6 +97,7 @@ setup(name=pysap.__title__,   # Package information
       extras_require={"docs": ["Sphinx>=1.4",
                                "ipykernel",
                                "nbsphinx",
-                               "nbconvert"],
+                               "nbconvert",
+                               "pyx==0.12.1"],
                       "examples": open('requirements-optional.txt').read().splitlines()},
       )
