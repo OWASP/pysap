@@ -30,5 +30,5 @@ class SAPSNCFrame(Packet):
     """
     name = "SAP SNC Frame"
     fields_desc = [
-        StrFixedLenField("eye_catcher", "SNCFRAME")
+        StrFixedLenField("eye_catcher", "SNCFRAME", 8)
     ]
