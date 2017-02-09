@@ -35,10 +35,6 @@ command::
 
     $ pip install pysap[examples]
 
-`Sphinx <https://sphinx-doc.org/>`_ is also required for building the documentation. For installing it use::
-
-    $ pip install pysap[docs]
-
 
 Manual installation
 ~~~~~~~~~~~~~~~~~~~

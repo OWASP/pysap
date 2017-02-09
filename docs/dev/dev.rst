@@ -22,6 +22,17 @@ Documentation can be build using:
 A build is also available at `Read the Docs <https://pysap.readthedocs.io/en/latest/>`_.
 
 
+The build process requires several packages and libraries to be available. The operative system libraries required are:
+
+* `pandoc`
+* A LaTex environment, for example `TexLive` on Linux or `MikTex` on Windows.
+
+Python packages can be installed using ::
+
+    $ pip install pysap[docs]
+
+
+
 Code contributions
 ------------------
 
