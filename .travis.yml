@@ -19,6 +19,12 @@ matrix:
 
 sudo: false
 
+addons:
+    apt:
+        packages:
+            - pandoc
+            - texlive-full
+
 before_script:
   # Install system requirements for OSX (pylibpcap and libdnet)
   - if [ ${TRAVIS_OS_NAME} == "osx" ]; then brew install --with-python libdnet; fi
