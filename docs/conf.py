@@ -37,6 +37,9 @@ extensions = [
     'sphinx.ext.mathjax',
 ]
 
+# Disable notebook cell execution timeout
+nbsphinx_timeout = -1
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
