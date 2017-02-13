@@ -29,7 +29,7 @@ The build process requires several packages and libraries to be available. The o
 
 For example, installation on a Ubuntu box would require the following commands::
 
-   $ sudo apt install pandoc texlive-full
+   $ sudo apt install pandoc texlive-base
 
 Python packages can be installed using ::
 

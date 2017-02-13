@@ -23,7 +23,7 @@ addons:
     apt:
         packages:
             - pandoc
-            - texlive-full
+            - texlive-base
 
 before_script:
   # Install system requirements for OSX (pylibpcap and libdnet)
