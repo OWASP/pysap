@@ -32,10 +32,15 @@ import pysap
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'autoapi.extension',
     'sphinx.ext.viewcode',
     'nbsphinx',
     'sphinx.ext.mathjax',
 ]
+
+# Document Python Code
+autoapi_type = 'python'
+autoapi_dirs = ['../pysap']
 
 # Disable notebook cell execution timeout
 nbsphinx_timeout = 90
@@ -269,7 +274,3 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
-
-
-# Automatically build API docs
-apidoc_main(["-f", "-e", "-M", "-o", "api/", "../pysap"])
