@@ -38,7 +38,7 @@ extensions = [
 ]
 
 # Disable notebook cell execution timeout
-nbsphinx_timeout = -1
+nbsphinx_timeout = 60
 
 # Allow errors on nbsphinx
 nbsphinx_allow_errors = True
