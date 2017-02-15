@@ -73,7 +73,7 @@ conf.verb = 0
 # Command line options parser
 def parse_options():
 
-    description = "This example script can be used to tests against %I waiting CVE% Denial of Service vulnerability" \
+    description = "This example script can be used to tests against CVE-2017-5997 Denial of Service vulnerability" \
                   "affecting the Message Server. For more details about the vulnerability see Advisory " \
                   "https://erpscan.com/advisories/erpscan-16-038-sap-message-server-http-remote-dos/."
 
@@ -131,7 +131,7 @@ def main():
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    print("[*] Testing Message Server DoS vulnerability on host %s:%d" % (options.remote_host,
+    print("[*] Testing Message Server CVE-2017-5997 DoS vulnerability on host %s:%d" % (options.remote_host,
                                                                                         options.remote_port))
 
     # Crafting the item
