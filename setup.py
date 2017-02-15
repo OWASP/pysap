@@ -61,6 +61,7 @@ class PreExecuteNotebooksCommand(Command):
         """Pre executes notebooks
         """
         system("jupyter nbconvert --inplace --to notebook --execute docs/protocols/*.ipynb")
+        system("jupyter nbconvert --inplace --to notebook --execute docs/fileformats/*.ipynb")
 
 
 sapcompress = Extension('pysapcompress',
