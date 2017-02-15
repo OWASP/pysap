@@ -57,6 +57,7 @@ Content
    :maxdepth: 3
 
    user/user
+   fileformats/fileformats
    protocols/protocols
    examples/examples
    api/api
