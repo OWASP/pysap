@@ -42,6 +42,15 @@ SAP KERNEL 7.45 64-BIT
 SAP KERNEL 7.45 64-BIT UNICODE
 SAP KERNEL 7.49 64-BIT UNICODE
 
+TECHNICAL DESCRIPTION
+The message server doesn’t free properly the resources allocation for handling the clients 
+request in the case where the requests size is between 4k and 65k. In this special case, 
+the server answers with an empty reply as opposed to the case where the request is greater
+than 65k, then the server will reset the connection. The following shows log of the msgserver
+process being killed because of too much memory allocated:
+
+[4721576.189056] Out of memory: Kill process 14223 (ms.sapJ45_SCS01) score 243 or sacrifice child
+[4721576.189058] Killed process 14223 (ms.sapJ45_SCS01) total-vm:3321508kB, anon-rss:2468184kB, file-rss:0kB
 """
 
 # Standard imports
