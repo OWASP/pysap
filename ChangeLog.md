@@ -1,7 +1,7 @@
 Changelog
 =========
 
-v0.1.13 - XXXX-XX-XX
+v0.1.13 - 2017-02-16
 --------------------
 
 - Documentation now includes graphical representation of the main packets of each protocol.

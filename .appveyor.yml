@@ -1,6 +1,6 @@
 # AppVeyor configuration based on https://github.com/guedou/scapy-appveyor/blob/master/appveyor.yml
 
-version: "v0.1.13.dev0-{build}"
+version: "v0.1.13-{build}"
 
 environment:
 
