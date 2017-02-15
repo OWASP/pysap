@@ -52,8 +52,9 @@ coverage.xml
 docs/_build/
 docs/api/modules.rst
 docs/api/pysap.*rst
-docs/protocols/.ipynb_checkpoints/
-docs/protocols/*.tex
+docs/**/.ipynb_checkpoints/
+docs/**/*.tex
+docs/**/*.dvi
 
 # PyBuilder
 target/
