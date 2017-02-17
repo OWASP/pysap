@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2012-2017 by Martin Gallo, Core Security
 #
-# The vulnerability had found by Mathieu Geli
+# Vulnerability found by Mathieu Geli
 # PoC by Vahagn Vardanyan
 #
 # The library was designed and developed by Martin Gallo from the Security
@@ -52,7 +52,7 @@ process being killed because of too much memory allocated:
 [4721576.189056] Out of memory: Kill process 14223 (ms.sapJ45_SCS01) score 243 or sacrifice child
 [4721576.189058] Killed process 14223 (ms.sapJ45_SCS01) total-vm:3321508kB, anon-rss:2468184kB, file-rss:0kB
 
-example 
+example:
 python ms_server_denial_of_service.py -d SAP_SERVER -p 8101 --route-string ROUTE_STRING -v
 """
 
@@ -63,13 +63,8 @@ from socket import error as SocketError
 from optparse import OptionParser, OptionGroup
 # External imports
 from pysap.SAPRouter import SAPRoutedStreamSocket, SAPRouterRouteHop
-from scapy.layers.inet import TCP
-from scapy.packet import Raw
 from scapy.config import conf
-import requests
-# Custom imports
 import pysap
-
 
 # Set the verbosity to 0
 conf.verb = 0
