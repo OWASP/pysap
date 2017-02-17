@@ -613,6 +613,23 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         # mode, we need the NI layer.
         return SAPNIStreamSocket.recv(self)
 
+    def send(self, packet):
+        """Send a packet. If the talk mode in use is native the packet sent is
+        a raw packet. Otherwise, the packet is a NI layer packet in the same way
+        the :class:`SAPNIStreamSocket` works.
+
+        :param packet: packet to send
+        :type packet: Packet
+        """
+        # If we're working on native mode and the route was accepted, we don't
+        # need the NI layer anymore. Just use the plain socket inside the
+        # NIStreamSockets.
+        if self.routed and self.talk_mode == 1:
+            return StreamSocket.send(self, packet)
+        # If the route was not accepted yet or we're working on non-native talk
+        # mode, we need the NI layer.
+        return SAPNIStreamSocket.send(self, packet)
+
     @classmethod
     def get_nisocket(cls, host=None, port=None, route=None, password=None,
                      talk_mode=None, router_version=None, **kwargs):
