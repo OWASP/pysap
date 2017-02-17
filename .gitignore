@@ -50,8 +50,6 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
-docs/api/modules.rst
-docs/api/pysap.*rst
 docs/**/.ipynb_checkpoints/
 docs/**/*.tex
 docs/**/*.dvi
