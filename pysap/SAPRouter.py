@@ -467,7 +467,7 @@ class SAPRouter(Packet):
 
         # Control Message fields
         ConditionalField(IntField("control_text_length", 0), lambda pkt: router_is_control(pkt) and pkt.opcode != 0),
-        ConditionalField(StrField("control_text_value", "*ERR"), lambda pkt: router_is_control(pkt) and pkt.opcode != 0 and pkt.control_text_length > 0),
+        ConditionalField(StrField("control_text_value", "*ERR"), lambda pkt: router_is_control(pkt) and pkt.opcode != 0),
 
         # SNC Frame fields
         ConditionalField(PacketField("snc_frame", None, SAPSNCFrame), lambda pkt: router_is_control(pkt) and pkt.opcode in [70, 71])
@@ -613,10 +613,30 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         # mode, we need the NI layer.
         return SAPNIStreamSocket.recv(self)
 
+    def send(self, packet):
+        """Send a packet. If the talk mode in use is native the packet sent is
+        a raw packet. Otherwise, the packet is a NI layer packet in the same way
+        the :class:`SAPNIStreamSocket` works.
+
+        :param packet: packet to send
+        :type packet: Packet
+        """
+        # If we're working on native mode and the route was accepted, we don't
+        # need the NI layer anymore. Just use the plain socket inside the
+        # NIStreamSockets.
+        if self.routed and self.talk_mode == 1:
+            return StreamSocket.send(self, packet)
+        # If the route was not accepted yet or we're working on non-native talk
+        # mode, we need the NI layer.
+        return SAPNIStreamSocket.send(self, packet)
+
     @classmethod
     def get_nisocket(cls, host=None, port=None, route=None, password=None,
                      talk_mode=None, router_version=None, **kwargs):
-        """Helper function to obtain a :class:`SAPRoutedStreamSocket`.
+        """Helper function to obtain a :class:`SAPRoutedStreamSocket`. If no
+        route is specified, it returns a plain `SAPNIStreamSocket`. If no
+        route is specified and the talk mode is raw, it returns a plain
+        `StreamSocket` as it's assumed that the NI layer is not desired.
 
         :param host: target host to connect to if not specified in the route
         :type host: C{string}
@@ -649,10 +669,17 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         :raise socket.error: if the connection to the target host/port failed
             or the SAP Router returned an error
         """
-        # If no route was provided, use the standard SAPNIStreamSocket
-        # get_nisocket method
+        # If no route was provided, check the talk mode
         if route is None:
-            return SAPNIStreamSocket.get_nisocket(host, port, **kwargs)
+            # If talk mode is raw, create a new StreamSocket and get rid of the
+            # NI layer completely
+            if talk_mode == 1:
+                sock = socket.create_connection((host, port))
+                return StreamSocket(sock, **kwargs)
+
+            # Otherwise use the standard SAPNIStreamSocket get_nisocket method
+            else:
+                return SAPNIStreamSocket.get_nisocket(host, port, **kwargs)
 
         # If the route was provided using a route string, convert it to a
         # list of hops
