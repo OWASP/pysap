@@ -467,7 +467,7 @@ class SAPRouter(Packet):
 
         # Control Message fields
         ConditionalField(IntField("control_text_length", 0), lambda pkt: router_is_control(pkt) and pkt.opcode != 0),
-        ConditionalField(StrField("control_text_value", "*ERR"), lambda pkt: router_is_control(pkt) and pkt.opcode != 0 and pkt.control_text_length > 0),
+        ConditionalField(StrField("control_text_value", "*ERR"), lambda pkt: router_is_control(pkt) and pkt.opcode != 0),
 
         # SNC Frame fields
         ConditionalField(PacketField("snc_frame", None, SAPSNCFrame), lambda pkt: router_is_control(pkt) and pkt.opcode in [70, 71])
