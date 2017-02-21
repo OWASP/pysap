@@ -5,6 +5,18 @@ Changelog
 v0.1.14 - XXXX-XX-XX
 --------------------
 
+- `pysap/SAPRouter.py`: Fixed route request for more than one SAP Router when using the native proxy.
+- `pysap/SAPRouter.py`: Allow route strings to use lowercase separator chars (e.g. "/h/host/s/port").
+- `pysap/SAPRouter.py`: Enhanced the version retrieve routine by not failing when an error is returned by the server
+  ([\#11](https://github.com/CoreSecurity/pysap/issues/11)). Thanks [@gelim](https://github.com/gelim)!.
+- `pysap/SAPRouter.py`: Fixed missing eyecatcher in control messages ([\#10](https://github.com/CoreSecurity/pysap/pull/10)).
+  Thanks [@gelim](https://github.com/gelim)!.
+- `examples/diag_login_screen_info.py`: Script was improved by better printing technical information and
+  outputting login screen text items (language, input fields, login text) ([\#14](https://github.com/CoreSecurity/pysap/pull/14)).
+  Thanks [@gelim](https://github.com/gelim)!.
+- `example/router/admin.py`: Improved client list table display and fixed timestamps ([\#12](https://github.com/CoreSecurity/pysap/issues/12)).
+  Thanks [@gelim](https://github.com/gelim)!.
+
 
 v0.1.13 - 2017-02-16
 --------------------
