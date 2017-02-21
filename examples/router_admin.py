@@ -29,6 +29,7 @@ from scapy.packet import bind_layers
 # Custom imports
 import pysap
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
+from pysap.utils import saptimestamp_to_datetime
 from pysap.SAPRouter import (SAPRouter, router_is_error, get_router_version,
                              SAPRouterInfoClients, SAPRouterInfoServer)
 # Optional imports
@@ -256,7 +257,7 @@ def main():
                               client.address,
                               "%s%s" % (flag, client.partner) if client.flag_routed else "(no partner)",
                               client.service if client.flag_routed else "",
-                              datetime.fromtimestamp(client.connected_on).ctime()]
+                              saptimestamp_to_datetime(client.connected_on).ctime()]
                     clients.append(fields)
 
                 # Decode the second packet as server info
@@ -266,7 +267,7 @@ def main():
                 print("SAP Network Interface Router running on port %d (PID = %d)\n"
                       "Started on: %s\n"
                       "Parent process: PID = %d, port = %d\n" % (raw_response.port, raw_response.pid,
-                                                                 datetime.fromtimestamp(raw_response.started_on).ctime(),
+                                                                 saptimestamp_to_datetime(raw_response.started_on).ctime(),
                                                                  raw_response.ppid, raw_response.pport))
                 print_table(clients)
                 print("(*) Connections being traced")
