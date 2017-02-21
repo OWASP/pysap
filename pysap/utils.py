@@ -20,6 +20,7 @@
 # Standard imports
 import struct
 from cmd import Cmd
+from datetime import datetime
 from threading import Thread, Event
 # External imports
 from scapy.config import conf
@@ -32,6 +33,12 @@ try:
     from tabulate import tabulate
 except ImportError:
     tabulate = None
+
+
+def saptimestamp_to_datetime(timestamp):
+    """Converts a timestamp in "SAP format" to a datetime object. Time zone
+    looks to be fixed at GMT+1."""
+    return datetime.utcfromtimestamp((int(timestamp) & 0xFFFFFFFF) + 1000000000)
 
 
 class PacketNoPadded(Packet):

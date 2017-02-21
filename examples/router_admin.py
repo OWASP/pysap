@@ -29,8 +29,14 @@ from scapy.packet import bind_layers
 # Custom imports
 import pysap
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
+from pysap.utils import saptimestamp_to_datetime
 from pysap.SAPRouter import (SAPRouter, router_is_error, get_router_version,
                              SAPRouterInfoClients, SAPRouterInfoServer)
+# Optional imports
+try:
+    from tabulate import tabulate
+except ImportError:
+    tabulate = None
 
 
 # Bind the SAPRouter layer
@@ -104,6 +110,14 @@ def parse_options():
         parser.error("Remote host is required")
 
     return options
+
+
+def print_table(clients):
+    """Prints the client table"""
+    if tabulate:
+        print(tabulate(clients))
+    else:
+        print("\n".join("\t| ".join([str(col).strip() for col in line]).expandtabs(20) for line in clients))
 
 
 # Main function
@@ -233,9 +247,7 @@ def main():
                 # Decode the first packet as a list of info client
                 raw_response.decode_payload_as(SAPRouterInfoClients)
 
-                clients = []
-                clients.append("\t".join(["ID", "Client", "Partner", "Service", "Connected on"]))
-                clients.append("-" * 60)
+                clients = [["ID", "Client", "Partner", "Service", "Connected on"]]
                 for client in raw_response.clients:
 
                     # If the trace flag is set, add a mark
@@ -245,8 +257,8 @@ def main():
                               client.address,
                               "%s%s" % (flag, client.partner) if client.flag_routed else "(no partner)",
                               client.service if client.flag_routed else "",
-                              datetime.fromtimestamp(client.connected_on).ctime()]
-                    clients.append("\t".join(fields))
+                              saptimestamp_to_datetime(client.connected_on).ctime()]
+                    clients.append(fields)
 
                 # Decode the second packet as server info
                 raw_response = conn.recv()
@@ -255,10 +267,9 @@ def main():
                 print("SAP Network Interface Router running on port %d (PID = %d)\n"
                       "Started on: %s\n"
                       "Parent process: PID = %d, port = %d\n" % (raw_response.port, raw_response.pid,
-                                                                 datetime.fromtimestamp(raw_response.started_on).ctime(),
+                                                                 saptimestamp_to_datetime(raw_response.started_on).ctime(),
                                                                  raw_response.ppid, raw_response.pport))
-
-                print("\n".join(clients))
+                print_table(clients)
                 print("(*) Connections being traced")
 
             # Show the plain packets returned

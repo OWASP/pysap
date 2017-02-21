@@ -137,9 +137,9 @@ class SAPRouterRouteHop(PacketNoPadded):
     ]
 
     regex = re.compile(r"""
-        (/H/(?P<hostname>[\w\.]+)              # Hostname, FQDN or IP addresss
-        (/S/(?P<port>[\w]+))?                  # Optional port/service
-        (/[PW]/(?P<password>[\w.]+))?          # Optional password
+        (/[hH]/(?P<hostname>[\w\.]+)              # Hostname, FQDN or IP addresss
+        (/[sS]/(?P<port>[\w]+))?                  # Optional port/service
+        (/[pwPW]/(?P<password>[\w.]+))?          # Optional password
         )
     """, re.VERBOSE)
     """ :cvar: Regular expression for matching route strings
@@ -388,6 +388,9 @@ class SAPRouter(Packet):
         - 40: Release 7.20/7.21
     """
 
+    # Default router version to use
+    SAPROUTER_DEFAULT_VERSION = 40
+
     # Constants for router types
     SAPROUTER_ROUTE = "NI_ROUTE"
     """ :cvar: Constant for route packets
@@ -424,10 +427,10 @@ class SAPRouter(Packet):
         # General fields present in all SAP Router packets
         StrNullField("type", SAPROUTER_ROUTE),
 
-        ConditionalField(ByteField("version", 0x02), lambda pkt:router_is_known_type(pkt) and not router_is_pong(pkt)),
+        ConditionalField(ByteField("version", 2), lambda pkt:router_is_known_type(pkt) and not router_is_pong(pkt)),
 
         # Route packets
-        ConditionalField(ByteField("route_ni_version", 0x28), router_is_route),
+        ConditionalField(ByteField("route_ni_version", SAPROUTER_DEFAULT_VERSION), router_is_route),
         ConditionalField(ByteField("route_entries", 0), router_is_route),
         ConditionalField(ByteEnumKeysField("route_talk_mode", 0, router_ni_talk_mode_values), router_is_route),
         ConditionalField(ShortField("route_padd", 0), router_is_route),
@@ -477,21 +480,20 @@ class SAPRouter(Packet):
 # Retrieve the version of the remote SAP Router
 def get_router_version(connection):
     """Helper function to retrieve the version of a remote SAP Router. It
-    uses a control packet with the 'version request' operation code.
+    uses a control packet with the 'version request' operation code. The version
+    is obtained either from a valid 'version response' packet or from the error
+    message packet if something happened.
 
     :param connection: connection with the SAP Router
     :type connection: :class:`SAPNIStreamSocket`
 
-    :return: version or None
+    :return: version
     """
     response = connection.sr(SAPRouter(type=SAPRouter.SAPROUTER_CONTROL,
-                                       version=40,
+                                       version=SAPRouter.SAPROUTER_DEFAULT_VERSION,
                                        opcode=1))
     response.decode_payload_as(SAPRouter)
-    if router_is_control(response) and response.opcode == 2:
-        return response.version
-    else:
-        return None
+    return response.version
 
 
 class SAPRouteException(Exception):
@@ -823,7 +825,7 @@ class SAPRouterNativeProxy(SAPNIProxy):
         p = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
                       route_entries=len(router_string),
                       route_talk_mode=self.talk_mode,
-                      route_rest_nodes=1,
+                      route_rest_nodes=len(router_string) - 1,
                       route_length=sum(router_string_lens),
                       route_offset=router_string_lens[0],
                       route_string=router_string)
