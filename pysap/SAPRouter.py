@@ -823,7 +823,7 @@ class SAPRouterNativeProxy(SAPNIProxy):
         p = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
                       route_entries=len(router_string),
                       route_talk_mode=self.talk_mode,
-                      route_rest_nodes=1,
+                      route_rest_nodes=len(router_string) - 1,
                       route_length=sum(router_string_lens),
                       route_offset=router_string_lens[0],
                       route_string=router_string)
