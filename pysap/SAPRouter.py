@@ -477,21 +477,20 @@ class SAPRouter(Packet):
 # Retrieve the version of the remote SAP Router
 def get_router_version(connection):
     """Helper function to retrieve the version of a remote SAP Router. It
-    uses a control packet with the 'version request' operation code.
+    uses a control packet with the 'version request' operation code. The version
+    is obtained either from a valid 'version response' packet or from the error
+    message packet if something happened.
 
     :param connection: connection with the SAP Router
     :type connection: :class:`SAPNIStreamSocket`
 
-    :return: version or None
+    :return: version
     """
     response = connection.sr(SAPRouter(type=SAPRouter.SAPROUTER_CONTROL,
                                        version=40,
                                        opcode=1))
     response.decode_payload_as(SAPRouter)
-    if router_is_control(response) and response.opcode == 2:
-        return response.version
-    else:
-        return None
+    return response.version
 
 
 class SAPRouteException(Exception):
