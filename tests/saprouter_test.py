@@ -38,6 +38,7 @@ class PySAPRouterTest(unittest.TestCase):
         self.assertListEqual(hops, route_hops)
 
         string = SAPRouterRouteHop.from_hops(hops)
+        route_string = route_string.replace("/h/", "/H/").replace("/s/", "/S/").replace("/p/", "/P/").replace("/w/", "/W/")
         self.assertEqual(string, route_string)
 
     def test_saprouter_route_string(self):
@@ -77,6 +78,12 @@ class PySAPRouterTest(unittest.TestCase):
         self.check_route("/H/127.0.0.1/S/3299",
                          [SAPRouterRouteHop(hostname="127.0.0.1",
                                             port="3299")])
+
+        # Lowercase hostname and service
+        self.check_route("/h/127.0.0.1/s/3299/w/Password",
+                         [SAPRouterRouteHop(hostname="127.0.0.1",
+                                            port="3299",
+                                            password="Password")])
 
         # Invalid route strings
         self.assertListEqual(SAPRouterRouteHop.from_string("/S/service"), [])

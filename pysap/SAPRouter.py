@@ -137,9 +137,9 @@ class SAPRouterRouteHop(PacketNoPadded):
     ]
 
     regex = re.compile(r"""
-        (/H/(?P<hostname>[\w\.]+)              # Hostname, FQDN or IP addresss
-        (/S/(?P<port>[\w]+))?                  # Optional port/service
-        (/[PW]/(?P<password>[\w.]+))?          # Optional password
+        (/[hH]/(?P<hostname>[\w\.]+)              # Hostname, FQDN or IP addresss
+        (/[sS]/(?P<port>[\w]+))?                  # Optional port/service
+        (/[pwPW]/(?P<password>[\w.]+))?          # Optional password
         )
     """, re.VERBOSE)
     """ :cvar: Regular expression for matching route strings
