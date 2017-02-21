@@ -388,6 +388,9 @@ class SAPRouter(Packet):
         - 40: Release 7.20/7.21
     """
 
+    # Default router version to use
+    SAPROUTER_DEFAULT_VERSION = 40
+
     # Constants for router types
     SAPROUTER_ROUTE = "NI_ROUTE"
     """ :cvar: Constant for route packets
@@ -427,7 +430,7 @@ class SAPRouter(Packet):
         ConditionalField(ByteField("version", 2), lambda pkt:router_is_known_type(pkt) and not router_is_pong(pkt)),
 
         # Route packets
-        ConditionalField(ByteField("route_ni_version", 40), router_is_route),
+        ConditionalField(ByteField("route_ni_version", SAPROUTER_DEFAULT_VERSION), router_is_route),
         ConditionalField(ByteField("route_entries", 0), router_is_route),
         ConditionalField(ByteEnumKeysField("route_talk_mode", 0, router_ni_talk_mode_values), router_is_route),
         ConditionalField(ShortField("route_padd", 0), router_is_route),
@@ -487,7 +490,7 @@ def get_router_version(connection):
     :return: version
     """
     response = connection.sr(SAPRouter(type=SAPRouter.SAPROUTER_CONTROL,
-                                       version=40,
+                                       version=SAPRouter.SAPROUTER_DEFAULT_VERSION,
                                        opcode=1))
     response.decode_payload_as(SAPRouter)
     return response.version
