@@ -138,13 +138,11 @@ def show_text_info(item):
 
         for it in items:
             var = it.getfieldval('name_text')
-            keys = it.fields.keys()
             value = it.getfieldval("field1_text")
-            if value == None:
+            if value is None:
                 value = it.getfieldval("field2_text")
             key = '%s_%s' % (it.row, it.col)
-            # print key, var, value
-            if not key in dico.keys():
+            if key not in dico.keys():
                 dico[key] = {'var': key, 'value': value}
             if value:
                 dico[key]['value'] = value.strip()
