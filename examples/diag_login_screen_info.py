@@ -24,7 +24,6 @@
 
 # Standard imports
 import logging
-#logging.getLogger("scapy.loading").setLevel(logging.ERROR)
 from re import escape
 from optparse import OptionParser, OptionGroup
 # External imports
@@ -39,7 +38,7 @@ from pysap.SAPDiag import (SAPDiag, SAPDiagDP, diag_appl_ids, diag_appl_sids,
                            diag_item_types)
 # adding for text info rendering # gelim
 from collections import OrderedDict
-from pprint import pprint
+
 
 # Bind the SAPDiag layer
 bind_layers(SAPNI, SAPDiag,)
@@ -103,6 +102,7 @@ serv_info = {'DBNAME': lambda s: s,
 key_len = 20
 val_len = 60
 
+
 def show_all(item):
     """
     Print the information about each item: type, ID, SID and value.
@@ -112,6 +112,8 @@ def show_all(item):
                                                           diag_appl_ids[item.item_id],
                                                           diag_appl_sids[item.item_id][item.item_sid],
                                                           escape(str(item.item_value))))
+
+
 def show_serv_info(item):
     """
     Print server information displayed in login screen
@@ -120,6 +122,7 @@ def show_serv_info(item):
     isid = diag_appl_sids[item.item_id][item.item_sid]
     if isid in serv_info.keys():
         print ("%s" % isid).ljust(key_len) + "\t" + ("%s" % serv_info[isid](item.item_value)).ljust(val_len)
+
 
 def show_text_info(item):
     """
@@ -160,8 +163,10 @@ def show_text_info(item):
             if dico_final[k]:
                 print ("%s" % k).ljust(key_len) + "\t" + ("%s" % dico_final[k]).ljust(val_len)
 
+
 # Set the verbosity to 0
 conf.verb = 0
+
 
 # Command line options parser
 def parse_options():
@@ -194,6 +199,7 @@ def parse_options():
         parser.error("Remote host is required")
 
     return options
+
 
 # Main function
 def main():
