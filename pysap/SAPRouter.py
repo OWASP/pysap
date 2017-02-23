@@ -23,7 +23,7 @@ import logging
 from socket import error as SocketError
 # External imports
 from scapy.layers.inet import TCP
-from scapy.packet import Packet, bind_layers
+from scapy.packet import Packet, bind_layers, Raw
 from scapy.supersocket import socket, StreamSocket
 from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
                           IntField, StrNullField, PacketListField,
@@ -674,9 +674,11 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         # If no route was provided, check the talk mode
         if route is None:
             # If talk mode is raw, create a new StreamSocket and get rid of the
-            # NI layer completely
+            # NI layer completely and force the base class to Raw.
             if talk_mode == 1:
                 sock = socket.create_connection((host, port))
+                if "base_cls" in kwargs:
+                    kwargs["base_cls"] = Raw
                 return StreamSocket(sock, **kwargs)
 
             # Otherwise use the standard SAPNIStreamSocket get_nisocket method
