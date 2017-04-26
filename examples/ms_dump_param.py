@@ -4,6 +4,8 @@
 #
 # Copyright (C) 2012-2017 by Martin Gallo, Core Security
 #
+# Example script by Yvan Geneur.
+#
 # The library was designed and developed by Martin Gallo from the Security
 # Consulting Services team of Core Security.
 #
@@ -24,15 +26,14 @@ from optparse import OptionParser, OptionGroup
 import logging
 # External imports
 from scapy.config import conf
-from scapy.packet import bind_layers
 # Custom imports
 import pysap
-#from pysap.SAPNI import SAPNI, SAPNIStreamSocket
 from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.SAPMS import SAPMS, SAPMSAdmRecord
 
 # Set the verbosity to 0
 conf.verb = 0
+
 
 # Command line options parser
 def parse_options():
@@ -81,7 +82,7 @@ def parse_options():
     return options
 
 
-# main
+# Main
 #------
 def main():
     options = parse_options()
@@ -93,12 +94,12 @@ def main():
     print("[*] Initiate connection to message server %s:%d" % (options.remote_host, options.remote_port))
     try:
         conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
-                                              options.remote_port,
-                                              options.route_string,
-                                              base_cls=SAPMS)
+                                                  options.remote_port,
+                                                  options.route_string,
+                                                  base_cls=SAPMS)
     except Exception as e:
         print(e)
-        print ("Error during MS connection. Is internal ms port %d reachable ?" % (options.remote_port))
+        print ("Error during MS connection. Is internal ms port %d reachable ?" % options.remote_port)
     else:
         print ("[*] Connected. I check parameters...")
         client_string = options.client
@@ -108,31 +109,33 @@ def main():
         response = conn.sr(p)[SAPMS]
         print("[*] Login OK, Server string: %s\n" % response.fromname)
         server_string = response.fromname
-       
-	try:
+
+        try:
             with open(options.file_param) as list_param:
                 for line in list_param.readlines():
                     line = line.strip()
-                    
+
                     # Check for comments or empty lines
                     if len(line) == 0 or line.startswith("#"):
                         continue
-                    
+
                     # Get parameters, check type and expected value
                     # param2c = the SAP parameter to check
                     # check_type = EQUAL, SUP, INF, REGEX, <none>
                     # value2c = the expect value for 'ok' status
                     (param2c, check_type, value2c) = line.split(':')
                     status = '[!]'
-                    
+
                     # create request
                     adm = SAPMSAdmRecord(opcode=0x1, parameter=param2c)
-                    p = SAPMS(toname=server_string, fromname=client_string, version=4, flag=0x04, iflag=0x05, adm_records=[adm])
-                    
+                    p = SAPMS(toname=server_string, fromname=client_string, version=4, flag=0x04, iflag=0x05,
+                              adm_records=[adm])
+
                     # send request
                     respond = conn.sr(p)[SAPMS]
-                    value = respond.adm_records[0].parameter.replace(respond.adm_records[0].parameter.split('=')[0]+'=','')
-                    
+                    value = respond.adm_records[0].parameter.replace(respond.adm_records[0].parameter.split('=')[0] +
+                                                                     '=', '')
+
                     # Verify if value match with expected value
                     if value == '':
                         value = 'NOT_EXIST'
@@ -141,7 +144,7 @@ def main():
                         if value.upper() == str(value2c).upper():
                             status = '[+]'
                     elif check_type == 'REGEX':
-                        if re.match(value2c.upper(),value.upper()) and value2c <> 'NOT_EXIST':
+                        if re.match(value2c.upper(), value.upper()) and value2c != 'NOT_EXIST':
                             status = '[+]'
                     elif check_type == 'SUP':
                         if float(value) >= float(value2c):
@@ -151,7 +154,7 @@ def main():
                             status = '[+]'
                     else:
                             status = '[ ]'
-                    
+
                     # display result
                     print ("%s %s = %s" % (status, param2c, value))
                    
@@ -164,4 +167,4 @@ def main():
 
 
 if __name__ == '__main__':
-	main()
+    main()
