@@ -18,6 +18,8 @@ v0.1.14 - XXXX-XX-XX
   Thanks [@gelim](https://github.com/gelim)!.
 - `example/router/admin.py`: Improved client list table display and fixed timestamps ([\#12](https://github.com/CoreSecurity/pysap/issues/12)).
   Thanks [@gelim](https://github.com/gelim)!.
+- `examples/ms_dump_param.py`: New example script to list Message Server parameters and check them against a list of
+  expected values ([\#15](https://github.com/CoreSecurity/pysap/pull/15)). Thanks [@iggy38](https://github.com/iggy38)!
 - `examples/ms_dos_exploit.py`: New example script to check for [CVE-2017-5997](https://erpscan.com/advisories/erpscan-16-038-sap-message-server-http-remote-dos/)
   DoS vulnerability on Message Server and fixed at [SAP Note 2358972](https://launchpad.support.sap.com/#/notes/2358972)
   ([\#10](https://github.com/CoreSecurity/pysap/pull/10)). Thanks [@vah13](https://github.com/vah13) and [@gelim](https://github.com/gelim)!
