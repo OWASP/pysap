@@ -94,7 +94,7 @@ Contributions made by:
   * Hans-Christian Esperer ([@hce](https://github.com/hce))
   * Vahagn Vardanyan ([@vah13](https://github.com/vah13))
   * Mathieu Geli ([@gelim](https://github.com/gelim))
-  * Yvan Geneur ([@iggy38](https://github.com/iggy38)) 
+  * Yvan Genuer ([@iggy38](https://github.com/iggy38)) 
 
 
 Contact

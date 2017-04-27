@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2012-2017 by Martin Gallo, Core Security
 #
-# Example script by Yvan Geneur.
+# Example script by Yvan Genuer.
 #
 # The library was designed and developed by Martin Gallo from the Security
 # Consulting Services team of Core Security.
