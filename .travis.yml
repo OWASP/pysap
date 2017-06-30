@@ -2,6 +2,9 @@
 
 language: python
 
+dist: trusty
+sudo: false
+
 matrix:
     include:
         - os: linux
@@ -16,8 +19,6 @@ matrix:
 
         - os: osx
           language: generic
-
-sudo: false
 
 addons:
     apt:
