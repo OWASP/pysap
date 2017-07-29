@@ -5,6 +5,8 @@ Changelog
 v0.1.14 - XXXX-XX-XX
 --------------------
 
+- Added initial support for handling SNC frames and some of their fields.
+- `pysap/SAPNC.py`: Added fields for SNCFrames and helper wrapper/unwrapper functions.
 - `pysap/SAPRouter.py`: Fixed route request for more than one SAP Router when using the native proxy.
 - `pysap/SAPRouter.py`: Allow route strings to use lowercase separator chars (e.g. "/h/host/s/port").
 - `pysap/SAPRouter.py`: Allow a `SAPRoutedStreamSocket` to bypass the NI layer if no route was specified but talk mode
