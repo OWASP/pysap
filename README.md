@@ -86,7 +86,7 @@ Consulting Services team of Core Security.
 
 Contributions made by:
 
-  * Florian Grunow
+  * Florian Grunow ([@0x79](https://twitter.com/0x79))
   * Scott Walsh ([@invisiblethreat](https://github.com/invisiblethreat))
   * Joris van de Vis ([@jvis](https://twitter.com/jvis))
   * Victor Portal Gonzalez
@@ -94,7 +94,7 @@ Contributions made by:
   * Hans-Christian Esperer ([@hce](https://github.com/hce))
   * Vahagn Vardanyan ([@vah13](https://github.com/vah13))
   * Mathieu Geli ([@gelim](https://github.com/gelim))
-  * Yvan Genuer ([@iggy38](https://github.com/iggy38)) 
+  * Yvan Genuer ([@iggy38](https://github.com/iggy38))
 
 
 Contact
