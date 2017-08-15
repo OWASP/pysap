@@ -19,6 +19,7 @@
 # ==============
 
 # Standard imports
+from sys import exit
 from os import system
 from setuptools import setup, Extension, Command
 # Custom imports
@@ -41,7 +42,7 @@ class APIDocumentationCommand(Command):
     def run(self):
         """Runs Sphinx
         """
-        system("cd docs && make html")
+        exit(system("cd docs && make html"))
 
 
 class PreExecuteNotebooksCommand(Command):

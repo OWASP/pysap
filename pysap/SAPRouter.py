@@ -23,7 +23,7 @@ import logging
 from socket import error as SocketError
 # External imports
 from scapy.layers.inet import TCP
-from scapy.packet import Packet, bind_layers
+from scapy.packet import Packet, bind_layers, Raw
 from scapy.supersocket import socket, StreamSocket
 from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
                           IntField, StrNullField, PacketListField,
@@ -449,11 +449,11 @@ class SAPRouter(Packet):
 
         # Cancel Route fields
         ConditionalField(FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="H"), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [6]),
-        ConditionalField(FieldListField("adm_client_ids", [0x00], IntField("", 0), count_from=lambda pkt:pkt.adm_client_count), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [6]),
-
         # Trace Connection fields
         ConditionalField(FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="I"), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [12, 13]),
-        ConditionalField(FieldListField("adm_client_ids", [0x00], IntField("", 0), count_from=lambda pkt:pkt.adm_client_count), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [12, 13]),
+
+        # Cancel Route or Trace Connection fields
+        ConditionalField(FieldListField("adm_client_ids", [0x00], IntField("", 0), count_from=lambda pkt:pkt.adm_client_count), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [6, 12, 13]),
 
         # Set/Clear Peer Trace fields  # TODO: Check whether this field should be a IPv6 address or another proper field
         ConditionalField(StrFixedLenField("adm_address_mask", "", 32), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [10, 11]),
@@ -674,9 +674,11 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         # If no route was provided, check the talk mode
         if route is None:
             # If talk mode is raw, create a new StreamSocket and get rid of the
-            # NI layer completely
+            # NI layer completely and force the base class to Raw.
             if talk_mode == 1:
                 sock = socket.create_connection((host, port))
+                if "base_cls" in kwargs:
+                    kwargs["base_cls"] = Raw
                 return StreamSocket(sock, **kwargs)
 
             # Otherwise use the standard SAPNIStreamSocket get_nisocket method

@@ -29,12 +29,24 @@ The build process requires several packages and libraries to be available. The o
 
 For example, installation on a Ubuntu box would require the following commands::
 
-   $ sudo apt install pandoc texlive-base
+    $ sudo apt install pandoc texlive-base
 
 Python packages can be installed using ::
 
     $ pip install pysap[docs]
 
+
+Notebooks
+---------
+
+Documentation include a graphical representation of the most commonly used protocol packets and file formats. This
+graphical representations are built using `Scapy <http://www.secdev.org/projects/scapy/>`_,
+`The Jupyter Notebook <https://ipython.org/notebook.html>`_ , `nbconvert <https://github.com/jupyter/nbconvert>`_ and
+`nbsphinx <https://github.com/spatialaudio/nbsphinx/>`_.
+
+Jupyter notebooks containig the protocol packets' representation can be re-build using the following command::
+
+   $ python setup.py notebooks
 
 
 Code contributions

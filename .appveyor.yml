@@ -26,7 +26,7 @@ install:
   - "%PYTHON%\\python.exe -m pip install Sphinx==1.4.5"
   # Set path
   - "set PYTHONPATH=%APPVEYOR_BUILD_FOLDER%"
-  - "set PATH=%APPVEYOR_BUILD_FOLDER%;%PATH%"
+  - "set PATH=%APPVEYOR_BUILD_FOLDER%;%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   # Copy WinPcap libraries so scapy can found them
   - "copy C:\\Windows\\System32\\Npcap\\wpcap.dll %APPVEYOR_BUILD_FOLDER%"
   - "copy C:\\Windows\\System32\\Npcap\\packet.dll %APPVEYOR_BUILD_FOLDER%"
