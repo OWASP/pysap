@@ -56,10 +56,12 @@ Content
 .. toctree::
    :maxdepth: 3
 
-   user/user
-   examples/examples
-   api/api
-   dev/dev
+   user/index
+   protocols/index
+   fileformats/index
+   examples/index
+   api/index
+   dev/index
 
 .. examples/examples
 

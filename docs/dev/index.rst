@@ -15,11 +15,38 @@ documentation should contain the start point.
 Documentation
 -------------
 
-Documentation can be build using:
+Documentation can be build using::
 
     $ python setup.py doc
 
 A build is also available at `Read the Docs <https://pysap.readthedocs.io/en/latest/>`_.
+
+
+The build process requires several packages and libraries to be available. The operative system libraries required are:
+
+* `pandoc`
+* A LaTex environment, for example `TexLive` on Linux or `MikTex` on Windows.
+
+For example, installation on a Ubuntu box would require the following commands::
+
+    $ sudo apt install pandoc texlive-base
+
+Python packages can be installed using ::
+
+    $ pip install pysap[docs]
+
+
+Notebooks
+---------
+
+Documentation include a graphical representation of the most commonly used protocol packets and file formats. This
+graphical representations are built using `Scapy <http://www.secdev.org/projects/scapy/>`_,
+`The Jupyter Notebook <https://ipython.org/notebook.html>`_ , `nbconvert <https://github.com/jupyter/nbconvert>`_ and
+`nbsphinx <https://github.com/spatialaudio/nbsphinx/>`_.
+
+Jupyter notebooks containig the protocol packets' representation can be re-build using the following command::
+
+   $ python setup.py notebooks
 
 
 Code contributions

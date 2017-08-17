@@ -1,13 +1,42 @@
 Changelog
 =========
 
-v0.1.13 - XXXX-XX-XX
+
+v0.1.14 - XXXX-XX-XX
 --------------------
 
+- Added initial support for handling SNC frames and some of their fields.
+- `pysap/SAPNC.py`: Added fields for SNCFrames and helper wrapper/unwrapper functions.
+- `pysap/SAPRouter.py`: Fixed route request for more than one SAP Router when using the native proxy.
+- `pysap/SAPRouter.py`: Allow route strings to use lowercase separator chars (e.g. "/h/host/s/port").
+- `pysap/SAPRouter.py`: Allow a `SAPRoutedStreamSocket` to bypass the NI layer if no route was specified but talk mode
+  was set to raw ([\#10](https://github.com/CoreSecurity/pysap/pull/10)).
+- `pysap/SAPRouter.py`: Enhanced the version retrieve routine by not failing when an error is returned by the server
+  ([\#11](https://github.com/CoreSecurity/pysap/issues/11)). Thanks [@gelim](https://github.com/gelim)!.
+- `pysap/SAPRouter.py`: Fixed missing eyecatcher in control messages ([\#10](https://github.com/CoreSecurity/pysap/pull/10)).
+  Thanks [@gelim](https://github.com/gelim)!.
+- `examples/diag_login_screen_info.py`: Script was improved by better printing technical information and
+  outputting login screen text items (language, input fields, login text) ([\#14](https://github.com/CoreSecurity/pysap/pull/14)).
+  Thanks [@gelim](https://github.com/gelim)!.
+- `example/router/admin.py`: Improved client list table display and fixed timestamps ([\#12](https://github.com/CoreSecurity/pysap/issues/12)).
+  Thanks [@gelim](https://github.com/gelim)!.
+- `examples/ms_dump_param.py`: New example script to list Message Server parameters and check them against a list of
+  expected values ([\#15](https://github.com/CoreSecurity/pysap/pull/15)). Thanks [@iggy38](https://github.com/iggy38)!
+- `examples/ms_dos_exploit.py`: New example script to check for [CVE-2017-5997](https://erpscan.com/advisories/erpscan-16-038-sap-message-server-http-remote-dos/)
+  DoS vulnerability on Message Server and fixed at [SAP Note 2358972](https://launchpad.support.sap.com/#/notes/2358972)
+  ([\#10](https://github.com/CoreSecurity/pysap/pull/10)). Thanks [@vah13](https://github.com/vah13) and [@gelim](https://github.com/gelim)!
+
+
+v0.1.13 - 2017-02-16
+--------------------
+
+- Documentation now includes graphical representation of the main packets of each protocol.
 - Example scripts now accept route strings without requiring remote host option.
 - `pysap/SAPRouter.py`: Fixed route request for more than one SAP Router.
+- `pysap/SAPEnqueue.py`: `SAPEnqueueStreamSocket` now can connect to an Enqueue server through a SAPRouter.
 - `examples/router_niping.py`: New example script that implements a very basic
   version of the `niping` tool. It works on client or server mode.
+- `examples/enqueue_monitor.py`: The script now accepts route strings for connecting through a SAPRouter.
 
 
 v0.1.12.1 - 2016-12-19

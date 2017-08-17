@@ -28,7 +28,8 @@ from scapy.fields import (IntField, IntEnumField, PacketListField,
                           FieldLenField, LenField, StrNullField,
                           ByteEnumKeysField)
 # Custom imports
-from pysap.SAPNI import SAPNI, SAPNIStreamSocket
+from pysap.SAPNI import SAPNI
+from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.utils import PacketNoPadded, StrNullFixedLenField
 
 
@@ -212,7 +213,7 @@ class SAPEnqueue(PacketNoPadded):
         return pkt + pay
 
 
-class SAPEnqueueStreamSocket(SAPNIStreamSocket):
+class SAPEnqueueStreamSocket(SAPRoutedStreamSocket):
     """Stream socket implementation of the Enqueue Server protocol. It performs
     reassemble of received fragmented packets to ease use in upper layers.
     """
@@ -221,11 +222,11 @@ class SAPEnqueueStreamSocket(SAPNIStreamSocket):
 
     desc = "Enqueue Stream socket"
 
-    def __init__(self, sock, keep_alive=True, base_cls=None):
+    def __init__(self, sock, *args, **kwargs):
         """Initialization defaults to SAPEnqueue as base class"""
-        if base_cls is None:
-            base_cls = SAPEnqueue
-        SAPNIStreamSocket.__init__(self, sock, keep_alive=keep_alive, base_cls=base_cls)
+        if "base_cls" not in kwargs:
+            kwargs["base_cls"] = SAPEnqueue
+        SAPRoutedStreamSocket.__init__(self, sock, *args, **kwargs)
 
     def recv(self):
         """Receive a packet at the Enqueue layer, performing reassemble of
@@ -237,7 +238,7 @@ class SAPEnqueueStreamSocket(SAPNIStreamSocket):
         :raise socket.error: if the connection was close
         """
         # Receive the NI packet
-        packet = SAPNIStreamSocket.recv(self)
+        packet = SAPRoutedStreamSocket.recv(self)
 
         if SAPEnqueue in packet and packet[SAPEnqueue].more_frags:
             log_sapenqueue.debug("Received Enqueue fragmented packet")
@@ -248,7 +249,7 @@ class SAPEnqueueStreamSocket(SAPNIStreamSocket):
             recvd_length = len(packet[SAPEnqueue]) - 20
             log_sapenqueue.debug("Received %d up to %d bytes", recvd_length, total_length)
             while recvd_length < total_length and packet[SAPEnqueue].more_frags == 1:
-                response = SAPNIStreamSocket.recv(self)[SAPEnqueue]
+                response = SAPRoutedStreamSocket.recv(self)[SAPEnqueue]
                 data += str(response)[20:]
                 recvd_length += len(response) - 20
                 log_sapenqueue.debug("Received %d up to %d bytes", recvd_length, total_length)

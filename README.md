@@ -4,13 +4,12 @@ pysap - Python library for crafting SAP's network protocols packets
 [![Build Status](https://travis-ci.org/CoreSecurity/pysap.svg?branch=master)](https://travis-ci.org/CoreSecurity/pysap)
 [![Build status](https://ci.appveyor.com/api/projects/status/189ohb2wsqjwgkbw?svg=true)](https://ci.appveyor.com/project/CoreSecurity/pysap)
 [![Code Health](https://landscape.io/github/CoreSecurity/pysap/master/landscape.svg)](https://landscape.io/github/CoreSecurity/pysap/master)
-[![Code Issues](http://www.quantifiedcode.com/api/v1/project/53b997e2c9054c5ab44782614c572358/badge.svg)](http://www.quantifiedcode.com/app/project/53b997e2c9054c5ab44782614c572358)
 [![Latest Version](https://img.shields.io/pypi/v/pysap.svg)](https://pypi.python.org/pypi/pysap/)
 [![Documentation Status](http://readthedocs.org/projects/pysap/badge/?version=latest)](http://pysap.readthedocs.io/en/latest/?badge=latest)
 
 Copyright (C) 2012-2017 by Martin Gallo, Core Security
 
-Version 0.1.13.dev0 (XXX 2017)
+Version 0.1.14.dev0 (XXX 2017)
 
 
 Overview
@@ -86,13 +85,15 @@ Consulting Services team of Core Security.
 
 Contributions made by:
 
-  * Florian Grunow
+  * Florian Grunow ([@0x79](https://twitter.com/0x79))
   * Scott Walsh ([@invisiblethreat](https://github.com/invisiblethreat))
   * Joris van de Vis ([@jvis](https://twitter.com/jvis))
   * Victor Portal Gonzalez
   * Dmitry Yudin ([@ret5et](https://github.com/ret5et))
   * Hans-Christian Esperer ([@hce](https://github.com/hce))
   * Vahagn Vardanyan ([@vah13](https://github.com/vah13))
+  * Mathieu Geli ([@gelim](https://github.com/gelim))
+  * Yvan Genuer ([@iggy38](https://github.com/iggy38))
 
 
 Contact

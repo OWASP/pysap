@@ -19,6 +19,7 @@
 # ==============
 
 # Standard imports
+from sys import exit
 from os import system
 from setuptools import setup, Extension, Command
 # Custom imports
@@ -26,10 +27,10 @@ import pysap
 
 
 class APIDocumentationCommand(Command):
-    """Custom command for building API documentation with Sphinx.
+    """Custom command for building the documentation with Sphinx.
     """
 
-    description = "Builds the API documentation using Sphinx"
+    description = "Builds the documentation using Sphinx"
     user_options = []
 
     def initialize_options(self):
@@ -41,7 +42,27 @@ class APIDocumentationCommand(Command):
     def run(self):
         """Runs Sphinx
         """
-        system("cd docs && make html")
+        exit(system("cd docs && make html"))
+
+
+class PreExecuteNotebooksCommand(Command):
+    """Custom command for pre-executing Jupyther notebooks included in the documentation.
+    """
+
+    description = "Pre-executes Jupyther notebooks included in the documentation"
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        """Pre executes notebooks
+        """
+        system("jupyter nbconvert --inplace --to notebook --execute docs/protocols/*.ipynb")
+        system("jupyter nbconvert --inplace --to notebook --execute docs/fileformats/*.ipynb")
 
 
 sapcompress = Extension('pysapcompress',
@@ -87,13 +108,14 @@ setup(name=pysap.__title__,   # Package information
       # Tests command
       test_suite='tests.test_suite',
 
-      # API Documentation command
-      cmdclass={'doc': APIDocumentationCommand},
+      # Documentation commands
+      cmdclass={'doc': APIDocumentationCommand,
+                'notebooks': PreExecuteNotebooksCommand},
 
       # Requirements
       install_requires=open('requirements.txt').read().splitlines(),
 
       # Optional requirements for docs and some examples
-      extras_require={"docs": "Sphinx==1.3.5",
+      extras_require={"docs": open('requirements-docs.txt').read().splitlines(),
                       "examples": open('requirements-optional.txt').read().splitlines()},
       )

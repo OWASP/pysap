@@ -18,24 +18,14 @@
 # ==============
 
 # Standard imports
+import sys
 import unittest
-# Custom imports
-from tests import sapni_test
-from tests import sapcar_test
-from tests import sapdiag_test
-from tests import saprouter_test
-from tests import pysapcompress_test
 
 
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTests(sapni_test.test_suite())
-    suite.addTests(sapcar_test.test_suite())
-    suite.addTests(sapdiag_test.test_suite())
-    suite.addTests(saprouter_test.test_suite())
-    suite.addTests(pysapcompress_test.test_suite())
-    return suite
+test_suite = unittest.defaultTestLoader.discover('.', '*_test.py')
 
 
 if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(test_suite())
+    test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
+    result = test_runner.run(test_suite)
+    sys.exit(not result.wasSuccessful())
