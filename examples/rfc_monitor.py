@@ -98,6 +98,18 @@ class SAPRFCMonitorConsole(BaseConsole):
             self.do_disconnect(None)
         return super(SAPRFCMonitorConsole, self).do_exit(args)
 
+    def do_noop(self, args):
+        """ Send a noop command to the Gateway service. """
+
+        if not self.connected:
+            self._error("You need to connect to the server first !")
+            return
+
+        p = SAPRFC(version=int(self.runtimeoptions["version"]), req_type=9,
+                   cmd=1)
+        self._debug("Sending noop packet")
+        response = self.connection.send(p)
+
     def do_client_list(self, args):
         """ Retrieve the list of clients connected to the Gateway service.
         Use the client # value when required to provide a client IDs as
