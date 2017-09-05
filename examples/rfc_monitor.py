@@ -45,6 +45,7 @@ class SAPRFCMonitorConsole(BaseConsole):
     def __init__(self, options):
         super(SAPRFCMonitorConsole, self).__init__(options)
         self.runtimeoptions["client_string"] = self.options.client
+        self.runtimeoptions["version"] = self.options.version
 
     # Initialization
     def preloop(self):
@@ -118,6 +119,8 @@ def parse_options():
                       help="Remote port [%default]")
     target.add_option("--route-string", dest="route_string",
                       help="Route string for connecting through a SAP Router")
+    target.add_option("--version", dest="version", type="int", default=3,
+                      help="Version of the protocol to use [%default]")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
