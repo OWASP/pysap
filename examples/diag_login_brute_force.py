@@ -186,6 +186,7 @@ def is_duplicate_login(response):
                             return True, atom.field2_text
     return False, ""
 
+
 def login(host, port, terminal, route, username, password, client, verbose, results):
     """
     Perform a login try with the username and password.
