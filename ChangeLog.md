@@ -18,6 +18,8 @@ v0.1.14 - XXXX-XX-XX
 - `examples/diag_login_screen_info.py`: Script was improved by better printing technical information and
   outputting login screen text items (language, input fields, login text) ([\#14](https://github.com/CoreSecurity/pysap/pull/14)).
   Thanks [@gelim](https://github.com/gelim)!.
+- `examples/diag_login_brute_force.py`: Script was improved to handle currently logged in users
+  ([\#16](https://github.com/CoreSecurity/pysap/pull/16)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!.
 - `example/router/admin.py`: Improved client list table display and fixed timestamps ([\#12](https://github.com/CoreSecurity/pysap/issues/12)).
   Thanks [@gelim](https://github.com/gelim)!.
 - `examples/ms_dump_param.py`: New example script to list Message Server parameters and check them against a list of

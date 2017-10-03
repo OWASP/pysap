@@ -176,6 +176,17 @@ def get_rand(length):
     return ''.join(choice(letters) for _ in range(length))
 
 
+def is_duplicate_login(response):
+    if response[SAPDiag].get_item("APPL4", "DYNT", "DYNT_ATOM"):
+        for item in response[SAPDiag].get_item("APPL4", "DYNT", "DYNT_ATOM"):
+            if item.item_value:
+                for atom in item.item_value.items:
+                    if atom.dlg_flag_1 is 0 and atom.dlg_flag_2 is 0 and atom.field2_text:
+                        if "is already logged on in" in atom.field2_text:
+                            return True, atom.field2_text
+    return False, ""
+
+
 def login(host, port, terminal, route, username, password, client, verbose, results):
     """
     Perform a login try with the username and password.
@@ -201,6 +212,10 @@ def login(host, port, terminal, route, username, password, client, verbose, resu
         elif status == "E: Log on with a dialog user":
             success = True
             status = "No Dialog user (log on with RFC)"
+    # Check if the user is already logged in
+    elif is_duplicate_login(response)[0]:
+        status = is_duplicate_login(response)[1]
+        success = True
     # If the ST_USER USERNAME item is set to the username, the login was successful
     elif response[SAPDiag].get_item("APPL", "ST_USER", "USERNAME"):
         st_username = response[SAPDiag].get_item("APPL", "ST_USER", "USERNAME")[0].item_value
@@ -215,6 +230,7 @@ def login(host, port, terminal, route, username, password, client, verbose, resu
     # Otherwise, we are dealing with an unknown response
     else:
         status = "Unknown error"
+
 
     # Close the connection
     connection.close()

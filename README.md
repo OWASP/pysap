@@ -94,6 +94,7 @@ Contributions made by:
   * Vahagn Vardanyan ([@vah13](https://github.com/vah13))
   * Mathieu Geli ([@gelim](https://github.com/gelim))
   * Yvan Genuer ([@iggy38](https://github.com/iggy38))
+  * Malte Heinzelmann ([@hnzlmnn](https://github.com/hnzlmnn))
 
 
 Contact
