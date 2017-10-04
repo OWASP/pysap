@@ -61,7 +61,7 @@ Features
 __title__ = 'pysap'
 """The title of the library"""
 
-__version__ = '0.1.14'
+__version__ = '0.1.15.dev0'
 """The version of pysap"""
 
 __url__ = "https://www.coresecurity.com/corelabs-research/open-source-tools/pysap"
