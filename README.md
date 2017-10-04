@@ -78,8 +78,7 @@ more details.
 Authors
 -------
 
-The library was designed and developed by Martin Gallo from the Security
-Consulting Services team of Core Security.
+The library was designed and developed by Martin Gallo from Core Security's CoreLabs.
 
 ### Contributors ###
 
