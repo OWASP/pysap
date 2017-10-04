@@ -3,6 +3,7 @@ include ChangeLog.md
 include COPYING
 include README.md
 include requirements.txt
+include requirements-docs.txt
 include requirements-optional.txt
 
 # Include header files
