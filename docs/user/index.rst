@@ -73,6 +73,10 @@ Additional information about the protocols and the research can be found at diff
 
 * `Deep-dive into SAP archive file formats <https://www.coresecurity.com/corelabs-research/publications/deep-dive-sap-archive-file-formats>`_
 
+* `Intercepting SAP SNC-protected traffic <https://www.coresecurity.com/publication/intercepting-sap-snc-protected-traffic>`_
+
+* `SAPCAR Heap Buffer Overflow: From crash to exploit <https://www.coresecurity.com/blog/sapcar-heap-buffer-overflow-crash-exploit>`_
+
 And advisories:
 
 * `SAP Netweaver Dispatcher Multiple Vulnerabilities <https://www.coresecurity.com/content/sap-netweaver-dispatcher-multiple-vulnerabilities>`_
@@ -84,6 +88,12 @@ And advisories:
 * `SAP Netweaver Enqueue Server Trace Pattern Denial of Service Vulnerability <https://www.coresecurity.com/advisories/sap-netweaver-enqueue-server-trace-pattern-denial-service-vulnerability>`_
 
 * `SAP LZC LZH Compression Multiple Vulnerabilities <https://www.coresecurity.com/advisories/sap-lzc-lzh-compression-multiple-vulnerabilities>`_
+
+* `SAP Download Manager Password Weak Encryption <https://www.coresecurity.com/advisories/sap-download-manager-password-weak-encryption>`_
+
+* `SAP CAR Multiple Vulnerabilities <https://www.coresecurity.com/advisories/sap-car-multiple-vulnerabilities>`_
+
+* `SAP SAPCAR Heap Based Buffer Overflow Vulnerability <https://www.coresecurity.com/advisories/sap-sapcar-heap-based-buffer-overflow-vulnerability>`_
 
 Initial research about the SAP CAR file format was performed by Martin Gallo and published in `Deep-dive into SAP archive file formats <https://www.coresecurity.com/corelabs-research/publications/deep-dive-sap-archive-file-formats>`_
 at the `Troopers 2016 Security Conference <https://www.troopers.de/troopers16/agenda/>`_. Additional research was

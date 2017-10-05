@@ -2,7 +2,12 @@ Changelog
 =========
 
 
-v0.1.14 - XXXX-XX-XX
+v0.1.15 - 2017-XX-XX
+--------------------
+
+
+
+v0.1.14 - 2017-10-04
 --------------------
 
 - Added initial support for handling SNC frames and some of their fields.
