@@ -199,6 +199,7 @@ class PySAPCAR(object):
                 filename_in_archive = args.pop()
 
             sapcar.add_file(filename, archive_filename=filename_in_archive)
+            self.logger.info("d %s", filename)
 
         sapcar.write()
 
