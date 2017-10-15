@@ -26,7 +26,7 @@ from scapy.config import conf
 # Custom imports
 import pysap
 from pysap.SAPRouter import SAPRoutedStreamSocket
-from pysap.SAPMS import SAPMS, ms_dump_command_values, ms_opcode_error_values
+from pysap.SAPMS import SAPMS, ms_dump_command_values, ms_opcode_error_values, ms_domain_values_inv
 
 
 # Set the verbosity to 0
@@ -55,6 +55,8 @@ def parse_options():
                       help="Remote port [%default]")
     target.add_option("--route-string", dest="route_string",
                       help="Route string for connecting through a SAP Router")
+    target.add_option("--domain", dest="domain", default="ABAP",
+                      help="Domain to connect to (ABAP, J2EE or JSTARTUP) [%default]")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
@@ -68,6 +70,8 @@ def parse_options():
 
     if not (options.remote_host or options.route_string):
         parser.error("Remote host or route string is required")
+    if options.domain not in ms_domain_values_inv.keys():
+        parser.error("Invalid domain specified")
 
     return options
 
@@ -79,6 +83,8 @@ def main():
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
+    domain = ms_domain_values_inv[options.domain]
+
     # Initiate the connection
     conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
                                               options.remote_port,
@@ -89,7 +95,7 @@ def main():
     client_string = options.client
 
     # Send MS_LOGIN_2 packet
-    p = SAPMS(flag=0x00, iflag=0x08, toname=client_string, fromname=client_string)
+    p = SAPMS(flag=0x00, iflag=0x08, domain=domain, toname=client_string, fromname=client_string)
 
     print("[*] Sending login packet:")
     response = conn.sr(p)[SAPMS]
@@ -105,14 +111,14 @@ def main():
         if i in [1, 12]:
             continue
 
-        p = SAPMS(flag=0x02, iflag=0x01, toname=server_string,
+        p = SAPMS(flag=0x02, iflag=0x01, domain=domain, toname=server_string,
                   fromname=client_string, opcode=0x1e, dump_dest=0x02,
                   dump_command=i)
 
         print("[*] Sending dump info", ms_dump_command_values[i])
         response = conn.sr(p)[SAPMS]
 
-        if (response.opcode_error != 0):
+        if response.opcode_error != 0:
             print("Error:", ms_opcode_error_values[response.opcode_error])
         print(response.opcode_value)
 

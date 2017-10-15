@@ -25,8 +25,8 @@ from optparse import OptionParser, OptionGroup
 from scapy.config import conf
 # Custom imports
 import pysap
-from pysap.SAPMS import SAPMS, SAPMSAdmRecord
 from pysap.SAPRouter import SAPRoutedStreamSocket
+from pysap.SAPMS import SAPMS, SAPMSAdmRecord, ms_domain_values_inv
 
 
 # Set the verbosity to 0
@@ -58,6 +58,8 @@ def parse_options():
                       help="Remote port [%default]")
     target.add_option("--route-string", dest="route_string",
                       help="Route string for connecting through a SAP Router")
+    target.add_option("--domain", dest="domain", default="ABAP",
+                      help="Domain to connect to (ABAP, J2EE or JSTARTUP) [%default]")
     parser.add_option_group(target)
 
     param = OptionGroup(parser, "Parameter")
@@ -80,6 +82,8 @@ def parse_options():
         parser.error("Remote host or route string is required")
     if not options.param_name:
         parser.error("Parameter name is required")
+    if options.domain not in ms_domain_values_inv.keys():
+        parser.error("Invalid domain specified")
 
     return options
 
@@ -91,6 +95,8 @@ def main():
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
+    domain = ms_domain_values_inv[options.domain]
+
     # Initiate the connection
     conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
                                               options.remote_port,
@@ -101,7 +107,7 @@ def main():
     client_string = options.client
 
     # Build MS_LOGIN_2 packet
-    p = SAPMS(flag=0x00, iflag=0x08, toname=client_string, fromname=client_string)
+    p = SAPMS(flag=0x00, iflag=0x08, domain=domain, toname=client_string, fromname=client_string)
 
     # Send MS_LOGIN_2 packet
     print("[*] Sending login packet")
@@ -115,7 +121,7 @@ def main():
     # Send ADM AD_PROFILE request
     adm = SAPMSAdmRecord(opcode=0x1, parameter=options.param_name)
     p = SAPMS(toname=server_string, fromname=client_string, version=4,
-              flag=0x04, iflag=0x05, adm_records=[adm])
+              flag=0x04, iflag=0x05, domain=domain, adm_records=[adm])
 
     print("[*] Sending packet")
     response = conn.sr(p)[SAPMS]
@@ -137,7 +143,7 @@ def main():
                              parameter="%s=%s" % (options.param_name,
                                                   options.param_value))
         p = SAPMS(toname=server_string, fromname=client_string, version=4,
-                  iflag=5, flag=4, adm_records=[adm])
+                  iflag=5, flag=4, domain=domain, adm_records=[adm])
 
         # Send the packet
         print("[*] Sending packet")
