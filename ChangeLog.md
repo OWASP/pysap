@@ -2,7 +2,13 @@ Changelog
 =========
 
 
-v0.1.14 - XXXX-XX-XX
+v0.1.15 - 2017-XX-XX
+--------------------
+
+- `bin/pysapcar`: Added options for creating a new archive and appending files to an existing one.
+
+
+v0.1.14 - 2017-10-04
 --------------------
 
 - Added initial support for handling SNC frames and some of their fields.
