@@ -39,6 +39,9 @@ except ImportError:
 
 pysapcar_usage = """Usage:
 
+create archive with specified files:
+pysapcar -c[v][f archive] [file1 file2 [-n filename] ...]
+
 list the contents of an archive:
 pysapcar -t[v][f archive] [file1 file2 ...]
 
@@ -74,6 +77,7 @@ class PySAPCAR(object):
         parser = OptionParser(usage=pysapcar_usage, description=description, epilog=epilog)
 
         # Commands
+        parser.add_option("-c", dest="create", action="store_true", help="Create archive with specified files")
         parser.add_option("-x", dest="extract", action="store_true", help="Extract files from an archive")
         parser.add_option("-t", dest="list", action="store_true", help="List the contents of an archive")
         parser.add_option("-a", dest="append", action="store_true", help="Append files to an archive")
@@ -115,7 +119,9 @@ class PySAPCAR(object):
         # Check the mode the archive file should be opened
         if options.list or options.extract:
             self.mode = "r"
-        if options.append:
+        elif options.create:
+            self.mode = "w"
+        elif options.append:
             self.mode = "r+"
         else:  # default to read mode
             self.mode = "r"
@@ -134,12 +140,12 @@ class PySAPCAR(object):
 
         # Execute the action
         try:
-            if options.list:
+            if options.create or options.append:
+                self.append(options, args)
+            elif options.list:
                 self.list(options, args)
             elif options.extract:
                 self.extract(options, args)
-            elif options.append:
-                self.append(options, args)
         finally:
             self.archive_fd.close()
 
