@@ -43,7 +43,10 @@ list the contents of an archive:
 pysapcar -t[v][f archive] [file1 file2 ...]
 
 extract files from an archive:
-pysapcar -x[v][f archive] [file1 file2....]
+pysapcar -x[v][f archive] [file1 file2 ...]
+
+append files to an archive:
+pysapcar -a[v][f archive] [file1 file2 [-n filename] ...]
 
 """
 
@@ -73,6 +76,7 @@ class PySAPCAR(object):
         # Commands
         parser.add_option("-x", dest="extract", action="store_true", help="Extract files from an archive")
         parser.add_option("-t", dest="list", action="store_true", help="List the contents of an archive")
+        parser.add_option("-a", dest="append", action="store_true", help="Append files to an archive")
         parser.add_option("-f", dest="filename", help="Archive filename", metavar="FILE")
 
         misc = OptionGroup(parser, "Misc options")
@@ -111,6 +115,8 @@ class PySAPCAR(object):
         # Check the mode the archive file should be opened
         if options.list or options.extract:
             self.mode = "r"
+        if options.append:
+            self.mode = "r+"
         else:  # default to read mode
             self.mode = "r"
 
@@ -132,6 +138,8 @@ class PySAPCAR(object):
                 self.list(options, args)
             elif options.extract:
                 self.extract(options, args)
+            elif options.append:
+                self.append(options, args)
         finally:
             self.archive_fd.close()
 
@@ -163,6 +171,30 @@ class PySAPCAR(object):
 
         for filename in files:
             yield filename
+
+    def append(self, options, args):
+        """Appends a file to the archive file.
+        """
+
+        if len(args) < 1:
+            self.logger.error("pysapcar: no files specified for appending")
+            return
+
+        # Open the archive file
+        sapcar = self.open_archive()
+        if not sapcar:
+            return
+
+        while len(args):
+            filename = filename_in_archive = args.pop()
+
+            if len(args) >= 2 and args[0] == "-n":
+                args.pop()
+                filename_in_archive = args.pop()
+
+            sapcar.add_file(filename, archive_filename=filename_in_archive)
+
+        sapcar.write()
 
     def list(self, options, args):
         """List files inside the archive file and print their
