@@ -40,7 +40,7 @@ except ImportError:
 pysapcar_usage = """Usage:
 
 create archive with specified files:
-pysapcar -c[v][f archive] [file1 file2 [-n filename] ...]
+pysapcar -c[v][f archive] [file1 file2 [/n filename] ...]
 
 list the contents of an archive:
 pysapcar -t[v][f archive] [file1 file2 ...]
@@ -49,7 +49,7 @@ extract files from an archive:
 pysapcar -x[v][f archive] [file1 file2 ...]
 
 append files to an archive:
-pysapcar -a[v][f archive] [file1 file2 [-n filename] ...]
+pysapcar -a[v][f archive] [file1 file2 [/n filename] ...]
 
 """
 
@@ -192,14 +192,18 @@ class PySAPCAR(object):
             return
 
         while len(args):
-            filename = filename_in_archive = args.pop()
+            filename = filename_in_archive = args.pop(0)
 
-            if len(args) >= 2 and args[0] == "-n":
-                args.pop()
-                filename_in_archive = args.pop()
+            print args
+            if len(args) >= 2 and args[0] == "/n":
+                args.pop(0)
+                filename_in_archive = args.pop(0)
 
             sapcar.add_file(filename, archive_filename=filename_in_archive)
-            self.logger.info("d %s", filename)
+            if filename != filename_in_archive:
+                self.logger.info("d %s (original name %s)", filename_in_archive, filename)
+            else:
+                self.logger.info("d %s", filename)
 
         sapcar.write()
 
