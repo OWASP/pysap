@@ -31,6 +31,19 @@ from pysap.utils import (PacketNoPadded, IntToStrField, StrNullFixedLenPaddedFie
                          StrNullFixedLenField)
 
 
+# Message Server Domain values
+ms_domain_values = {
+    0x00: "ABAP",
+    0x01: "J2EE",
+    0x02: "JSTARTUP",
+}
+"""Message Server Domain values"""
+
+
+# Inverse dictionary for obtaining the value from a given domain name
+ms_domain_values_inv = {v: k for k, v in ms_domain_values.items()}
+
+
 # Message Server Flag values
 ms_flag_values = {
     0x01: "MS_ONE_WAY",  # One way messages are sent from the client to server and doesn't trigger a response
@@ -695,6 +708,70 @@ class SAPMSProperty(PacketNoPadded):
     ]
 
 
+class SAPMSJ2EECluster(Packet):
+    """SAP Message Server J2EE Cluster packet
+
+    This packet is used for the Message Server protocol for J2EE cluster nodes.
+    """
+    name = "SAP Message Server J2EE Cluster"
+    cluster_no = 68199
+    node_no = 5
+    cluster_no_id = cluster_no + 100 + 50 + node_no
+    icm_port = 5020
+
+    fields_desc = [
+        IntField("cluster_id", cluster_no_id),
+        IntField("group_id", cluster_no),
+        IntField("join_port", icm_port),
+        StrFixedLenField("name", "J2EE{}".format(cluster_no_id), 32),
+        StrFixedLenField("host", "localhost", 32),
+        IPField("hostaddrv4", "127.0.0.1"),
+        ByteField("type", 0x02),
+        ByteField("state", 0x00),
+        StrFixedLenField("service_mask", 32 * "\xff", 32),
+        ByteField("version", 0x02),
+        ByteField("modifiers", 0x02),
+        StrFixedLenField("reserved", 4 * "\x00", 4),
+        IP6Field("hostaddrv6", "::1")
+    ]
+
+
+class SAPMSJ2EEHeader(Packet):
+    """SAP Message Server J2EE Header packet
+
+    This packet is used for the Message Server protocol for J2EE nodes.
+    """
+    name = "SAP Message Server J2EE Header"
+    cluster_no = 68199
+
+    fields_desc = [
+        IntField("sender_cluster_id", cluster_no),
+        IntField("cluster_id", cluster_no),
+        IntField("service_id", 9),
+        IntField("group_id", 0),
+        ByteField("node_type", 0x02),
+        IntField("total_length", 0),
+        IntField("current_length", 0),
+        IntField("current_offset", 0),
+        ByteField("total_blocks", 0),
+        ByteField("current_block", 0),
+        IntField("message_type", 0)
+    ]
+
+
+class SAPMSJ2EEService(PacketNoPadded):
+    """SAP Message Server J2EE Service packet
+
+    This packet is used to describe a J2EE service.
+    """
+    name = "SAP Message Server J2EE Service"
+    fields_desc = [
+        ByteField("service_id", 0x00),
+        ByteField("attached_nodes", 0x00),
+        StrFixedLenField("name", "\x00", 50),
+    ]
+
+
 class SAPMS(Packet):
     """SAP Message Server packet
 
@@ -705,13 +782,15 @@ class SAPMS(Packet):
         StrFixedLenField("eyecatcher", "**MESSAGE**\x00", 12),
         ByteField("version", 0x04),
         ByteEnumKeysField("errorno", 0x00, ms_errorno_values),
-        StrFixedLenField("toname", " " * 40, 40),
+        StrFixedLenField("toname", "-" + " " * 39, 40),
         FlagsField("msgtype", 0, 8, ["DIA", "UPD", "ENQ", "BTC", "SPO", "UP2", "ATP", "ICM"]),
-        StrFixedLenField("reserved", "\x00" * 3, 3),
+        ByteField("reserved", 0x00),
+        ByteEnumKeysField("domain", 0x00, ms_domain_values),
+        ByteField("reserved", 0x00),
         StrFixedLenField("key", "\x00" * 8, 8),
         ByteEnumKeysField("flag", 0x01, ms_flag_values),
         ByteEnumKeysField("iflag", 0x01, ms_iflag_values),
-        StrFixedLenField("fromname", " " * 40, 40),
+        StrFixedLenField("fromname", "-" + " " * 39, 40),
         ShortField("padd", 0x0000),
 
         # OpCode fields

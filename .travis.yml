@@ -2,6 +2,9 @@
 
 language: python
 
+dist: trusty
+sudo: false
+
 matrix:
     include:
         - os: linux
@@ -17,8 +20,6 @@ matrix:
         - os: osx
           language: generic
 
-sudo: false
-
 addons:
     apt:
         packages:
@@ -26,9 +27,12 @@ addons:
             - texlive-base
 
 before_script:
-  # Install system requirements for OSX (pylibpcap and libdnet)
-  - if [ ${TRAVIS_OS_NAME} == "osx" ]; then brew install --with-python libdnet; fi
-  - if [ ${TRAVIS_OS_NAME} == "osx" ]; then brew install https://raw.githubusercontent.com/secdev/scapy/master/.travis/pylibpcap.rb; fi
+  # Install system requirements for OSX (pylibpcap, libdnet and pandoc)
+  - if [ ${TRAVIS_OS_NAME} == "osx" ]; then
+      brew install --with-python libdnet;
+      brew install https://raw.githubusercontent.com/secdev/scapy/master/.travis/pylibpcap.rb;
+      brew install pandoc;
+    fi
 
 install:
   - pip install .

@@ -26,8 +26,8 @@ from optparse import OptionParser, OptionGroup
 from scapy.config import conf
 # Custom imports
 import pysap
-from pysap.SAPMS import SAPMS
 from pysap.SAPRouter import SAPRoutedStreamSocket
+from pysap.SAPMS import SAPMS, ms_domain_values_inv
 
 
 # Set the verbosity to 0
@@ -55,6 +55,8 @@ def parse_options():
                       help="Remote port [%default]")
     target.add_option("--route-string", dest="route_string",
                       help="Route string for connecting through a SAP Router")
+    target.add_option("--domain", dest="domain", default="ABAP",
+                      help="Domain to connect to (ABAP, J2EE or JSTARTUP) [%default]")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
@@ -68,6 +70,8 @@ def parse_options():
 
     if not (options.remote_host or options.route_string):
         parser.error("Remote host or route string is required")
+    if options.domain not in ms_domain_values_inv.keys():
+        parser.error("Invalid domain specified")
 
     return options
 
@@ -79,6 +83,8 @@ def main():
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
+    domain = ms_domain_values_inv[options.domain]
+
     # Initiate the connection
     conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
                                               options.remote_port,
@@ -89,7 +95,7 @@ def main():
     client_string = options.client
 
     # Send MS_LOGIN_2 packet
-    p = SAPMS(flag=0x00, iflag=0x08, toname=client_string, fromname=client_string)
+    p = SAPMS(flag=0x00, iflag=0x08, domain=domain, toname=client_string, fromname=client_string)
 
     print("[*] Sending login packet")
     response = conn.sr(p)[SAPMS]
