@@ -179,6 +179,7 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
     name = "SAP CAR Archive File 2.00"
 
     version = SAPCAR_VERSION_200
+    is_filename_null_terminated = False
 
     fields_desc = [
         StrFixedLenField("type", SAPCAR_TYPE_FILE, 2),
@@ -189,7 +190,8 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
         LEIntField("code_page", 0),
         FieldLenField("user_info_length", None, length_of="user_info", fmt="<H"),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
-        StrFixedLenField("filename", None, length_from=lambda x: x.filename_length),
+        StrNullFixedLenField("filename", None, length_from=lambda x: x.filename_length,
+                             null_terminated=lambda x: x.is_filename_null_terminated),
         StrFixedLenField("user_info", None, length_from=lambda x: x.user_info_length),
         ConditionalField(PacketListStopField("blocks", None, SAPCARCompressedBlockFormat, stop=sapcar_is_last_block),
                          lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
@@ -258,7 +260,7 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
         return checksum
 
 
-class SAPCARArchiveFilev201Format(PacketNoPadded):
+class SAPCARArchiveFilev201Format(SAPCARArchiveFilev200Format):
     """SAP CAR file information format
 
     This is used to parse files inside a SAP CAR archive.
@@ -266,74 +268,7 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
     name = "SAP CAR Archive File 2.01"
 
     version = SAPCAR_VERSION_201
-
-    fields_desc = [
-        StrFixedLenField("type", SAPCAR_TYPE_FILE, 2),
-        LEIntField("perm_mode", 0),
-        LELongField("file_length_low", 0),
-        LEIntField("file_length_high", 0),
-        LELongField("timestamp", 0),
-        LEIntField("code_page", 0),
-        FieldLenField("user_info_length", None, length_of="user_info", fmt="<H"),
-        FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
-        StrNullFixedLenField("filename", None, length_from=lambda x: x.filename_length - 1),
-        StrFixedLenField("user_info", None, length_from=lambda x: x.user_info_length),
-        ConditionalField(PacketListStopField("blocks", None, SAPCARCompressedBlockFormat, stop=sapcar_is_last_block),
-                         lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
-    ]
-
-    @property
-    def file_length(self):
-        return (self.file_length_high * SIZE_FOUR_GB) + self.file_length_low
-
-    @file_length.setter
-    def file_length(self, file_length):
-        self.file_length_low = file_length & 0xffffffff
-        self.file_length_high = file_length >> 32
-
-    def extract(self, fd):
-        """Extracts the archive file and writes the extracted file to the provided file object. Returns the checksum
-        obtained from the archive. If blocks are uncompressed, the file is directly extracted. If the blocks are
-        compressed, each block is decompressed independently. Checksum is obtained from the last block.
-
-        :param fd: file-like object to write the extracted file to
-        :type fd: file
-
-        :return: checksum
-        :rtype: int
-
-        :raise DecompressError: If there's a decompression error
-        :raise SAPCARInvalidFileException: If the file is invalid
-        """
-        if self.file_length == 0:
-            return 0
-
-        checksum = 0
-
-        remaining_length = self.file_length
-        for block in self.blocks:
-            # Process uncompressed block types
-            if block.type in [SAPCAR_BLOCK_TYPE_UNCOMPRESSED, SAPCAR_BLOCK_TYPE_UNCOMPRESSED_LAST]:
-                fd.write(block.compressed)
-                remaining_length -= len(block.compressed)
-            # Process compressed block types
-            elif block.type in [SAPCAR_BLOCK_TYPE_COMPRESSED, SAPCAR_BLOCK_TYPE_COMPRESSED_LAST]:
-                compressed = block.compressed
-                exp_block_length = compressed.uncompress_length
-                (_, block_length, block_buffer) = decompress(str(compressed)[4:], exp_block_length)
-                if block_length != exp_block_length or not block_buffer:
-                    raise DecompressError("Error decompressing block")
-                fd.write(block_buffer)
-                remaining_length -= block_length
-            else:
-                raise SAPCARInvalidFileException("Invalid block type found")
-
-            # Check last block
-            if sapcar_is_last_block(block):
-                checksum = block.checksum
-                break
-
-        return checksum
+    is_filename_null_terminated = True
 
 
 SAPCAR_HEADER_MAGIC_STRING_STANDARD = "CAR\x20"
