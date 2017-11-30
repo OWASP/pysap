@@ -30,7 +30,7 @@ from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
                           PacketField, StrFixedLenField, PacketListField,
                           ConditionalField, LESignedIntField, StrField)
 # Custom imports
-from pysap.utils import (PacketNoPadded, StrNullFixedLenField, PacketListStopField)
+from pysap.utils import (PacketNoPadded, StrNullFixedLenField, PacketListStopField, LELongField)
 from pysapcompress import (decompress, compress, ALG_LZH, CompressError,
                            DecompressError)
 
@@ -62,6 +62,9 @@ _filemode_table = (
      (stat.S_ISVTX,         "T"),
      (stat.S_IXOTH,         "x"))
 )
+
+
+SIZE_FOUR_GB = 0xffffffff + 1
 
 
 def filemode(mode):
@@ -105,13 +108,13 @@ class SAPCARCompressedBlobFormat(PacketNoPadded):
 
 
 SAPCAR_BLOCK_TYPE_COMPRESSED_LAST = "ED"
-"""SAP CAR compressed last block"""
+"""SAP CAR compressed end of data"""
 
 SAPCAR_BLOCK_TYPE_COMPRESSED = "DA"
 """SAP CAR compressed block"""
 
 SAPCAR_BLOCK_TYPE_UNCOMPRESSED_LAST = "UE"
-"""SAP CAR uncompressed last block"""
+"""SAP CAR uncompressed end of data"""
 
 SAPCAR_BLOCK_TYPE_UNCOMPRESSED = "UD"
 """SAP CAR uncompressed block"""
@@ -149,7 +152,16 @@ SAPCAR_TYPE_FILE = "RG"
 """SAP CAR regular file string"""
 
 SAPCAR_TYPE_DIR = "DR"
-"""SAP CAR directory file string"""
+"""SAP CAR directory string"""
+
+SAPCAR_TYPE_SHORTCUT = "SC"
+"""SAP CAR Windows short cut string"""
+
+SAPCAR_TYPE_LINK = "LK"
+"""SAP CAR Unix soft link string"""
+
+SAPCAR_TYPE_AS400 = "SV"
+"""SAP CAR AS400 save file string"""
 
 
 SAPCAR_VERSION_200 = "2.00"
@@ -171,16 +183,26 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
     fields_desc = [
         StrFixedLenField("type", SAPCAR_TYPE_FILE, 2),
         LEIntField("perm_mode", 0),
-        LEIntField("file_length", 0),
-        LEIntField("unknown1", 0),
-        LEIntField("unknown2", 0),
-        LEIntField("timestamp", 0),
-        StrFixedLenField("unknown3", None, 10),
+        LELongField("file_length_low", 0),
+        LEIntField("file_length_high", 0),
+        LELongField("timestamp", 0),
+        LEIntField("code_page", 0),
+        FieldLenField("user_info_length", None, length_of="user_info", fmt="<H"),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrFixedLenField("filename", None, length_from=lambda x: x.filename_length),
+        StrFixedLenField("user_info", None, length_from=lambda x: x.user_info_length),
         ConditionalField(PacketListStopField("blocks", None, SAPCARCompressedBlockFormat, stop=sapcar_is_last_block),
                          lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
     ]
+
+    @property
+    def file_length(self):
+        return (self.file_length_high * SIZE_FOUR_GB) + self.file_length_low
+
+    @file_length.setter
+    def file_length(self, file_length):
+        self.file_length_low = file_length & 0xffffffff
+        self.file_length_high = file_length >> 32
 
     def extract(self, fd):
         """Extracts the archive file and writes the extracted file to the provided file object. Returns the checksum
@@ -248,16 +270,26 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
     fields_desc = [
         StrFixedLenField("type", SAPCAR_TYPE_FILE, 2),
         LEIntField("perm_mode", 0),
-        LEIntField("file_length", 0),
-        LEIntField("unknown1", 0),
-        LEIntField("unknown2", 0),
-        LEIntField("timestamp", 0),
-        StrFixedLenField("unknown3", None, 10),
+        LELongField("file_length_low", 0),
+        LEIntField("file_length_high", 0),
+        LELongField("timestamp", 0),
+        LEIntField("code_page", 0),
+        FieldLenField("user_info_length", None, length_of="user_info", fmt="<H"),
         FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
         StrNullFixedLenField("filename", None, length_from=lambda x: x.filename_length - 1),
+        StrFixedLenField("user_info", None, length_from=lambda x: x.user_info_length),
         ConditionalField(PacketListStopField("blocks", None, SAPCARCompressedBlockFormat, stop=sapcar_is_last_block),
                          lambda x: x.type == SAPCAR_TYPE_FILE and x.file_length > 0),
     ]
+
+    @property
+    def file_length(self):
+        return (self.file_length_high * SIZE_FOUR_GB) + self.file_length_low
+
+    @file_length.setter
+    def file_length(self, file_length):
+        self.file_length_low = file_length & 0xffffffff
+        self.file_length_high = file_length >> 32
 
     def extract(self, fd):
         """Extracts the archive file and writes the extracted file to the provided file object. Returns the checksum
@@ -304,6 +336,13 @@ class SAPCARArchiveFilev201Format(PacketNoPadded):
         return checksum
 
 
+SAPCAR_HEADER_MAGIC_STRING_STANDARD = "CAR\x20"
+"""SAP CAR archive header magic string standard"""
+
+SAPCAR_HEADER_MAGIC_STRING_BACKUP = "CAR\x00"
+"""SAP CAR archive header magic string backup file"""
+
+
 sapcar_archive_file_versions = {
     SAPCAR_VERSION_200: SAPCARArchiveFilev200Format,
     SAPCAR_VERSION_201: SAPCARArchiveFilev201Format,
@@ -319,7 +358,7 @@ class SAPCARArchiveFormat(Packet):
     name = "SAP CAR Archive"
 
     fields_desc = [
-        StrFixedLenField("eyecatcher", "CAR ", 4),
+        StrFixedLenField("magic_string", SAPCAR_HEADER_MAGIC_STRING_STANDARD, 4),
         StrFixedLenField("version", SAPCAR_VERSION_201, 4),
         ConditionalField(PacketListField("files0", None, SAPCARArchiveFilev200Format),
                          lambda x: x.version == SAPCAR_VERSION_200),
@@ -765,8 +804,8 @@ class SAPCARArchive(object):
         """
         self.fd.seek(0)
         self._sapcar = SAPCARArchiveFormat(self.fd.read())
-        if self._sapcar.eyecatcher != "CAR ":
-            raise Exception("Invalid or unsupported eyecatcher in file")
+        if self._sapcar.magic_string not in [SAPCAR_HEADER_MAGIC_STRING_STANDARD, SAPCAR_HEADER_MAGIC_STRING_BACKUP]:
+            raise Exception("Invalid or unsupported magic string in file")
         if self._sapcar.version not in sapcar_archive_file_versions:
             raise Exception("Invalid or unsupported version in file")
 
