@@ -108,13 +108,13 @@ class SAPCARCompressedBlobFormat(PacketNoPadded):
 
 
 SAPCAR_BLOCK_TYPE_COMPRESSED_LAST = "ED"
-"""SAP CAR compressed end of data"""
+"""SAP CAR compressed end of data block"""
 
 SAPCAR_BLOCK_TYPE_COMPRESSED = "DA"
 """SAP CAR compressed block"""
 
 SAPCAR_BLOCK_TYPE_UNCOMPRESSED_LAST = "UE"
-"""SAP CAR uncompressed end of data"""
+"""SAP CAR uncompressed end of data block"""
 
 SAPCAR_BLOCK_TYPE_UNCOMPRESSED = "UD"
 """SAP CAR uncompressed block"""
@@ -137,12 +137,12 @@ class SAPCARCompressedBlockFormat(PacketNoPadded):
 
 
 def sapcar_is_last_block(packet):
-    """Helper function that evaluates if a block packet is the last one or not.
+    """Helper function that evaluates if a block packet is the end of data one or not.
 
     :param packet: packet to check
     :type packet: Packet
 
-    :return: if the block packet is the last one
+    :return: if the block packet is the end of data one
     :rtype: bool
     """
     return packet.type in [SAPCAR_BLOCK_TYPE_COMPRESSED_LAST, SAPCAR_BLOCK_TYPE_UNCOMPRESSED_LAST]
@@ -216,8 +216,8 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
         """Extracts the archive file and writes the extracted file to the provided file object. Returns the checksum
         obtained from the archive. If blocks are uncompressed, the file is directly extracted. If the blocks are
         compressed, each block is added to a buffer, skipping the length field, and decompression is performed after
-        the block marked as last. Expected length and compression header is obtained from the first block and checksum
-        from the last block.
+        the block marked as end of data. Expected length and compression header is obtained from the first block and
+        checksum from the end of data block.
 
         :param fd: file-like object to write the extracted file to
         :type fd: file
@@ -252,7 +252,7 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
             else:
                 raise SAPCARInvalidFileException("Invalid block type found")
 
-            # Check last block, performing decompression if needed
+            # Check end of data block, performing decompression if needed
             if sapcar_is_last_block(block):
                 checksum = block.checksum
                 # If there was at least one compressed block that set the expected length, decompress it
@@ -459,14 +459,14 @@ class SAPCARArchiveFile(object):
         :return: checksum
         :rtype: int
 
-        :raise SAPCARInvalidFileException: if the file is invalid and contains more than one last block
+        :raise SAPCARInvalidFileException: if the file is invalid and contains more than one end of data block
         """
         checksum = None
         if self._file_format.blocks:
             for block in self._file_format.blocks:
                 if block.type == SAPCAR_BLOCK_TYPE_COMPRESSED_LAST:
                     if checksum is not None:
-                        raise SAPCARInvalidFileException("More than one last block found for the file")
+                        raise SAPCARInvalidFileException("More than one end of data block found for the file")
                     checksum = block.checksum
         return checksum
 
@@ -477,17 +477,17 @@ class SAPCARArchiveFile(object):
         :param checksum: checksum to set
         :rtype checksum: int
 
-        :raise SAPCARInvalidFileException: if the file is invalid and contains more than one last block
+        :raise SAPCARInvalidFileException: if the file is invalid and contains more than one end of data block
         """
         checksum_set = False
         for block in self._file_format.blocks:
             if block.type == SAPCAR_BLOCK_TYPE_COMPRESSED_LAST:
                 if checksum_set:
-                    raise SAPCARInvalidFileException("More than one last block found for the file")
+                    raise SAPCARInvalidFileException("More than one end of data block found for the file")
                 block.checksum = checksum
                 checksum_set = True
         if not checksum_set:
-            raise SAPCARInvalidFileException("No last block found for the file")
+            raise SAPCARInvalidFileException("No end of data block found for the file")
 
     @staticmethod
     def calculate_checksum(data):
@@ -549,7 +549,7 @@ class SAPCARArchiveFile(object):
         archive_file._file_format.filename_length = len(archive_filename)
         if archive_file._file_format.version == SAPCAR_VERSION_201:
             archive_file._file_format.filename_length += 1
-        # Put the compressed blob inside a last block and add it to the object
+        # Put the compressed blob inside a end of data block and add it to the object
         block = SAPCARCompressedBlockFormat()
         block.type = SAPCAR_BLOCK_TYPE_COMPRESSED_LAST
         block.compressed = SAPCARCompressedBlobFormat(out_buffer)
