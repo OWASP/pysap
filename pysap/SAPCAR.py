@@ -199,10 +199,16 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
 
     @property
     def file_length(self):
+        """Getter for the file length fields. It converts the two length fields (low and high) as provided in the
+        archive file into a long long integer.
+        """
         return (self.file_length_high * SIZE_FOUR_GB) + self.file_length_low
 
     @file_length.setter
     def file_length(self, file_length):
+        """Setter for the file length fields. It splits the long long integer int othe two length fields (low and
+        high) as required by the archive file.
+        """
         self.file_length_low = file_length & 0xffffffff
         self.file_length_high = file_length >> 32
 
