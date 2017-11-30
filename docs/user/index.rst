@@ -99,3 +99,7 @@ Initial research about the SAP CAR file format was performed by Martin Gallo and
 at the `Troopers 2016 Security Conference <https://www.troopers.de/troopers16/agenda/>`_. Additional research was
 performed by `Hans-Christian Esperer <https://github.com/hce>`_ and published in the
 `Hascar <https://github.com/VirtualForgeGmbH/hascar>`_ tool.
+
+Documentation on the SAP CAR file protocol is available in SAP's `Virus Scan Interface (NW-VSI) <ftp://ftp.sap.com/pub/icc/nw-vsi>`_
+`specification document <ftp://ftp.sap.com/pub/icc/nw-vsi/VSA-Specification.pdf>`_. An example implementation can be
+also found in the `Virus Scan Adapter SDK <ftp://ftp.sap.com/pub/icc/nw-vsi/VSA-SDK-2.0.zip>`_.
