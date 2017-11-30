@@ -26,7 +26,7 @@ from threading import Thread, Event
 from scapy.config import conf
 from scapy.packet import Packet
 from scapy.volatile import (RandNum, RandTermString, RandBin)
-from scapy.fields import (MultiEnumField, StrLenField, Field, StrFixedLenField,
+from scapy.fields import (MultiEnumField, StrLenField, LongField, Field, StrFixedLenField,
                           StrField, PacketListField)
 # Optional imports
 try:
@@ -426,3 +426,9 @@ class BaseConsole (Cmd, object):
 
     def emptyline(self):
         pass
+
+
+class LELongField(LongField):
+    def __init__(self, name, default):
+        Field.__init__(self, name, default, "<Q")
+
