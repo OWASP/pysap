@@ -21,6 +21,7 @@
 # Standard imports
 from sys import exit
 from os import system
+from glob import glob
 from setuptools import setup, Extension, Command
 # Custom imports
 import pysap
@@ -50,19 +51,27 @@ class PreExecuteNotebooksCommand(Command):
     """
 
     description = "Pre-executes Jupyther notebooks included in the documentation"
-    user_options = []
+    user_options = [
+        ('notebooks=', 'n', "patterns to match (i.e. 'protocols/SAPDiag*')"),
+    ]
 
     def initialize_options(self):
-        pass
+        """Initialize options with default values."""
+        self.notebooks = None
 
     def finalize_options(self):
-        pass
+        """Check and expand provided values."""
+        base_path = "docs/"
+        if self.notebooks:
+            self.notebooks = glob(base_path + self.notebooks)
+        else:
+            self.notebooks = glob(base_path + "protocols/*.ipynb")
+            self.notebooks.extend(glob(base_path + "fileformats/*.ipynb"))
 
     def run(self):
-        """Pre executes notebooks
-        """
-        system("jupyter nbconvert --inplace --to notebook --execute docs/protocols/*.ipynb")
-        system("jupyter nbconvert --inplace --to notebook --execute docs/fileformats/*.ipynb")
+        """Pre executes notebooks."""
+        for notebook in self.notebooks:
+            system("jupyter nbconvert --inplace --to notebook --execute {}".format(notebook))
 
 
 sapcompress = Extension('pysapcompress',
