@@ -5,6 +5,10 @@ Changelog
 v0.1.15 - 2017-XX-XX
 --------------------
 
+- `bin/pysapcar`: Added options for creating a new archive and appending files to an existing one.
+- `pysap/SAPMS.py`: Added Message Server Domain field, MS J2EE Cluster/Header/Service packets. Thanks Albert Zedlitz!
+- `examples/rfc_monitor.py`: Added `noop` command in the monitor and version command line option.
+- `examples/ms_*.py`: Added command line option to specify Message Server Domain.
 
 
 v0.1.14 - 2017-10-04

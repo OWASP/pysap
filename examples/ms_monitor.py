@@ -30,7 +30,7 @@ from pysap.utils import BaseConsole
 from pysap.SAPMS import (SAPMS, ms_client_status_values, ms_opcode_error_values,
                          ms_dump_command_values, SAPMSCounter, ms_opcode_values,
                          ms_errorno_values, SAPMSProperty, ms_property_id_values,
-                         SAPMSAdmRecord)
+                         SAPMSAdmRecord, ms_domain_values_inv)
 from pysap.SAPRouter import SAPRoutedStreamSocket
 
 
@@ -48,6 +48,7 @@ class SAPMSMonitorConsole(BaseConsole):
     def __init__(self, options):
         super(SAPMSMonitorConsole, self).__init__(options)
         self.runtimeoptions["client_string"] = self.options.client
+        self.runtimeoptions["domain"] = self.options.domain
 
     # Initialization
     def preloop(self):
@@ -60,6 +61,7 @@ class SAPMSMonitorConsole(BaseConsole):
         return SAPMS(flag=flag, iflag=iflag,
                      toname=self.runtimeoptions["server_string"],
                      fromname=self.runtimeoptions["client_string"],
+                     domain=ms_domain_values_inv[self.runtimeoptions["domain"]],
                      **args)
 
     # Helper for sending simple commands and opcodes
@@ -104,14 +106,15 @@ class SAPMSMonitorConsole(BaseConsole):
         self._print("Attached to %s / %d" % (self.options.remote_host, self.options.remote_port))
 
         # Send MS_LOGIN_2 packet
-        p = SAPMS(flag=0x00, iflag=0x08, toname=self.runtimeoptions["client_string"],
+        p = SAPMS(flag=0x02, iflag=0x08, domain=ms_domain_values_inv[self.runtimeoptions["domain"]],
+                  toname=self.runtimeoptions["client_string"],
                   fromname=self.runtimeoptions["client_string"])
 
         self._debug("Sending login packet")
         response = self.connection.sr(p)[SAPMS]
 
         if response.errorno == 0:
-            self.runtimeoptions["server_string"] = response.fromname
+            self.runtimeoptions["server_string"] = response.fromname.strip() + "\x00"
             self._debug("Login performed, server string: %s" % response.fromname)
             self._print("pysap's Message Server monitor, connected to %s / %d" % (self.options.remote_host,
                                                                                   self.options.remote_port))
@@ -131,6 +134,7 @@ class SAPMSMonitorConsole(BaseConsole):
 
         # Send MS_LOGOUT packet
         p = self._build(0x00, 0x04)
+        p.toname = self.runtimeoptions["client_string"]
         self._debug("Sending logout packet")
         self.connection.send(p)
 
@@ -552,6 +556,8 @@ def parse_options():
                       help="Remote port [%default]")
     target.add_option("--route-string", dest="route_string",
                       help="Route string for connecting through a SAP Router")
+    target.add_option("--domain", dest="domain", default="ABAP",
+                      help="Domain to connect to (ABAP, J2EE or JSTARTUP) [%default]")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
@@ -571,6 +577,8 @@ def parse_options():
 
     if not (options.remote_host or options.route_string):
         parser.error("Remote host or route string is required")
+    if options.domain not in ms_domain_values_inv.keys():
+        parser.error("Invalid domain specified")
 
     return options
 

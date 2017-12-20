@@ -44,7 +44,8 @@ class SAPRFCMonitorConsole(BaseConsole):
 
     def __init__(self, options):
         super(SAPRFCMonitorConsole, self).__init__(options)
-        self.runtimeoptions["client_string"] = self.options.client
+        self.runtimeoptions["client"] = self.options.client
+        self.runtimeoptions["version"] = self.options.version
 
     # Initialization
     def preloop(self):
@@ -71,6 +72,16 @@ class SAPRFCMonitorConsole(BaseConsole):
 
         self._print("Attached to %s / %d" % (self.options.remote_host, self.options.remote_port))
 
+        p = SAPRFC(version=int(self.runtimeoptions["version"]), req_type=1)
+
+        self._debug("Sending check gateway packet")
+        try:
+            response = self.connection.send(p)
+        except SocketError:
+            self._error("Error connecting to the gateway monitor service")
+        else:
+            self.connected = True
+
     def do_disconnect(self, args):
         """ Disconnects from the Gateway service. """
 
@@ -86,6 +97,18 @@ class SAPRFCMonitorConsole(BaseConsole):
         if self.connected:
             self.do_disconnect(None)
         return super(SAPRFCMonitorConsole, self).do_exit(args)
+
+    def do_noop(self, args):
+        """ Send a noop command to the Gateway service. """
+
+        if not self.connected:
+            self._error("You need to connect to the server first !")
+            return
+
+        p = SAPRFC(version=int(self.runtimeoptions["version"]), req_type=9,
+                   cmd=1)
+        self._debug("Sending noop packet")
+        response = self.connection.send(p)
 
     def do_client_list(self, args):
         """ Retrieve the list of clients connected to the Gateway service.
@@ -118,6 +141,8 @@ def parse_options():
                       help="Remote port [%default]")
     target.add_option("--route-string", dest="route_string",
                       help="Route string for connecting through a SAP Router")
+    target.add_option("--version", dest="version", type="int", default=3,
+                      help="Version of the protocol to use [%default]")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
