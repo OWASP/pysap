@@ -27,8 +27,8 @@ from scapy.config import conf
 from scapy.packet import bind_layers
 # Custom imports
 import pysap
-from pysap.utils import BaseConsole
 from pysap.SAPNI import SAPNI
+from pysap.utils.console import BaseConsole
 from pysap.SAPEnqueue import (SAPEnqueue, SAPEnqueueParam, enqueue_param_values,
                               SAPEnqueueStreamSocket, SAPEnqueueTracePattern)
 

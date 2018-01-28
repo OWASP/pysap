@@ -18,11 +18,10 @@
 # ==============
 
 # External imports
-from scapy.packet import Packet
 from scapy.fields import (ByteField, ShortField, IntField, StrFixedLenField, FieldLenField, StrLenField,
                           ConditionalField, ByteEnumKeysField, ShortEnumKeysField)
 # Custom imports
-from pysap.utils import (PacketNoPadded)
+from pysap.utils.fields import (PacketNoPadded)
 
 
 # SNC Frame Types

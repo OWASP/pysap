@@ -26,7 +26,7 @@ from optparse import OptionParser, OptionGroup
 from scapy.config import conf
 # Custom imports
 import pysap
-from pysap.utils import BaseConsole
+from pysap.utils.console import BaseConsole
 from pysap.SAPMS import (SAPMS, ms_client_status_values, ms_opcode_error_values,
                          ms_dump_command_values, SAPMSCounter, ms_opcode_values,
                          ms_errorno_values, SAPMSProperty, ms_property_id_values,

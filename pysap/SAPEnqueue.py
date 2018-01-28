@@ -30,7 +30,7 @@ from scapy.fields import (IntField, IntEnumField, PacketListField,
 # Custom imports
 from pysap.SAPNI import SAPNI
 from pysap.SAPRouter import SAPRoutedStreamSocket
-from pysap.utils import PacketNoPadded, StrNullFixedLenField
+from pysap.utils.fields import PacketNoPadded, StrNullFixedLenField
 
 
 # Create a logger for the SAEnqueue layer

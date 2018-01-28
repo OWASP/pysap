@@ -26,8 +26,8 @@ from optparse import OptionParser, OptionGroup
 from scapy.config import conf
 # Custom imports
 import pysap
-from pysap.utils import BaseConsole
 from pysap.SAPRFC import SAPRFC
+from pysap.utils.console import BaseConsole
 from pysap.SAPRouter import SAPRoutedStreamSocket
 
 

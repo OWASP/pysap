@@ -23,10 +23,11 @@ from scapy.packet import Packet, bind_layers
 from scapy.fields import (ByteField, ConditionalField, IPField, IntField,
                           StrFixedLenField, SignedShortField,
                           ByteEnumKeysField)
+# External imports
+from scapy.layers.inet6 import IP6Field
 # Custom imports
 from pysap.SAPNI import SAPNI
-from pysap.utils import StrFixedLenPaddedField
-from scapy.layers.inet6 import IP6Field
+from pysap.utils.fields import StrFixedLenPaddedField
 
 
 # RFC Request Type values

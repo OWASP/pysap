@@ -21,7 +21,6 @@
 # Standard imports
 import logging
 from socket import error
-from datetime import datetime
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
@@ -29,7 +28,7 @@ from scapy.packet import bind_layers
 # Custom imports
 import pysap
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
-from pysap.utils import saptimestamp_to_datetime
+from pysap.utils.fields import saptimestamp_to_datetime
 from pysap.SAPRouter import (SAPRouter, router_is_error, get_router_version,
                              SAPRouterInfoClients, SAPRouterInfoServer)
 # Optional imports

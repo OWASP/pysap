@@ -32,9 +32,8 @@ from scapy.fields import (ByteEnumField, IntField, ByteField, LenField,
 import pysapcompress
 from pysap.SAPNI import SAPNI
 from pysap.SAPSNC import SAPSNCFrame
-from pysap.utils import (PacketNoPadded, ByteMultiEnumKeysField,
-                         MutablePacketField, StrNullFixedLenField,
-                         StrEncodedPaddedField)
+from pysap.utils.fields import (PacketNoPadded, ByteMultiEnumKeysField, MutablePacketField,
+                                StrNullFixedLenField, StrEncodedPaddedField)
 from pysapcompress import DecompressError, CompressError
 
 

@@ -34,7 +34,7 @@ from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
 from pysap.SAPSNC import SAPSNCFrame
 from pysap.SAPNI import (SAPNI, SAPNIStreamSocket, SAPNIProxy,
                          SAPNIProxyHandler)
-from pysap.utils import (PacketNoPadded, StrNullFixedLenField)
+from pysap.utils.fields import (PacketNoPadded, StrNullFixedLenField)
 
 
 # Create a logger for the SAPRouter layer

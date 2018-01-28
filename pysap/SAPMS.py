@@ -27,8 +27,8 @@ from scapy.fields import (ByteField, ConditionalField, StrFixedLenField, FlagsFi
 from scapy.layers.inet6 import IP6Field
 # Custom imports
 from pysap.SAPNI import SAPNI
-from pysap.utils import (PacketNoPadded, IntToStrField, StrNullFixedLenPaddedField,
-                         StrNullFixedLenField)
+from pysap.utils.fields import (PacketNoPadded, IntToStrField, StrNullFixedLenPaddedField,
+                                StrNullFixedLenField)
 
 
 # Message Server Domain values

@@ -28,7 +28,7 @@ from scapy.fields import (IntField, BitField, ShortField, ByteField,
                           FieldListField, ByteEnumKeysField,
                           ShortEnumKeysField)
 # Custom imports
-from pysap.utils import PacketNoPadded
+from pysap.utils.fields import PacketNoPadded
 from pysap.SAPDiag import bind_diagitem, SAPDiagItem
 
 
@@ -58,7 +58,7 @@ user_connect_uncompressed = \
     SAPDiagItem(item_type="APPL",
                 item_id="ST_USER",
                 item_sid=0x02,
-                item_value=SAPDiagUserConnect(protocol_version=000200))
+                item_value=SAPDiagUserConnect(protocol_version=200))
 
 
 # Diag Dialog step item

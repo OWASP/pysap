@@ -30,7 +30,7 @@ from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
                           PacketField, StrFixedLenField, PacketListField,
                           ConditionalField, LESignedIntField, StrField)
 # Custom imports
-from pysap.utils import (PacketNoPadded, StrNullFixedLenField, PacketListStopField)
+from pysap.utils.fields import (PacketNoPadded, StrNullFixedLenField, PacketListStopField)
 from pysapcompress import (decompress, compress, ALG_LZH, CompressError,
                            DecompressError)
 
