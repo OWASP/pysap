@@ -2,11 +2,13 @@ Changelog
 =========
 
 
-v0.1.15 - 2017-XX-XX
+v0.1.15 - 2018-XX-XX
 --------------------
 
 - `bin/pysapcar`: Added options for creating a new archive and appending files to an existing one.
 - `pysap/SAPMS.py`: Added Message Server Domain field, MS J2EE Cluster/Header/Service packets. Thanks Albert Zedlitz!
+- `pysap/utils.py`: Moved utils classes into a package.
+- `examples/dlmanager_decrypt.py`: Replaced use of PyCrypto with Cryptography library.
 - `examples/rfc_monitor.py`: Added `noop` command in the monitor and version command line option.
 - `examples/ms_*.py`: Added command line option to specify Message Server Domain.
 
