@@ -25,11 +25,12 @@ from optparse import OptionParser
 from subprocess import check_output
 # Custom imports
 import pysap
-# pyCrypto import
+# Optional import
 try:
-    from Crypto.Cipher import AES
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 except ImportError:
-    AES = None
+    Cipher = None
 
 
 # Java serialization decoding. Taken from http://stackoverflow.com/a/16470856
@@ -195,8 +196,9 @@ def build_key(serial_number):
 
 
 def decrypt(cipher_text, key):
-    aes = AES.new(key, AES.MODE_CBC, "\x00" * 16)       # Build the cipher using an empty IV
-    plain_text = aes.decrypt(cipher_text)               # Decrypt
+    iv = "\x00" * 16
+    decryptor = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend()).decryptor()
+    plain_text = decryptor.update(cipher_text) + decryptor.finalize()
     plain_text = plain_text[0:-ord(plain_text[-1])]     # Unpad the plain text
     return plain_text
 
@@ -278,8 +280,8 @@ def main():
         options.encrypted = True
         print("[*] Retrieved serial number: %s" % options.serial_number)
 
-    if options.encrypted and AES is None:
-        parser.error("[-] pyCrypto library required to decrypt not found !")
+    if options.encrypted and Cipher is None:
+        parser.error("[-] Cryptography library required to decrypt not found !")
 
     parse_config_file(options.filename, options.encrypted, options.serial_number)
 
