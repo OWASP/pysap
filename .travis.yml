@@ -31,7 +31,6 @@ before_script:
   - if [ ${TRAVIS_OS_NAME} == "osx" ]; then
       mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages;
       echo 'import site; site.addsitedir("/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth;
-      alias pip=pip2;
       brew update;
       brew install --with-python libdnet;
       brew install https://raw.githubusercontent.com/secdev/scapy/master/.travis/pylibpcap.rb;
@@ -39,9 +38,9 @@ before_script:
     fi
 
 install:
-  - pip install .
-  - pip install six
-  - pip install -r requirements-docs.txt
+  - pip2 install .
+  - pip2 install six
+  - pip2 install -r requirements-docs.txt
 
 script:
   - python setup.py test
