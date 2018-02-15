@@ -212,6 +212,9 @@ def login(host, port, terminal, route, username, password, client, verbose, resu
         elif status == "E: Log on with a dialog user":
             success = True
             status = "No Dialog user (log on with RFC)"
+        elif status[:10] == "E: Client ":
+            success = False
+            status = "Client does not exist"
     # Check if the user is already logged in
     elif is_duplicate_login(response)[0]:
         status = is_duplicate_login(response)[1]
