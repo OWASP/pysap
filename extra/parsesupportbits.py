@@ -80,17 +80,20 @@ def main():
         data[bit] = name, unknown
 
     pysap = wireshark_define = wireshark_hf = wireshark_parse = wireshark_module = ''
+    bitfields = []
+    currentbyte = []
     for bit in list(data.keys()):
         name, unknown = data[bit]
         notice = " (Unknown support bit)" if unknown else ''
 
         if (bit % 8) == 0 and bit != 0:
-            pysap += '\n'
+            bitfields.extend(reversed(currentbyte))
+            currentbyte = []
             wireshark_define += '\n'
             wireshark_parse += 'offset+=1;\n'
             wireshark_module += '\n'
 
-        pysap += '        BitField("%s", 0, 1),  # %d%s\n' % (name, bit, notice)
+        currentbyte.append((name, bit, notice))
 
         bitt = 1 << bit % 8
         wireshark_define += '#define SAPDIAG_SUPPORT_BIT_%s\t0x%02x  /* %d%s */\n' % (name, bitt, bit, notice)
@@ -102,6 +105,10 @@ def main():
         wireshark_module += '{ &hf_SAPDIAG_SUPPORT_BIT_%s,\n\t{ "Support Bit %s", ' \
                             '"sapdiag.diag.supportbits.%s", FT_BOOLEAN, 8, NULL, ' \
                             'SAPDIAG_SUPPORT_BIT_%s, "SAP Diag Support Bit %s",\n\tHFILL }},\n' % (name, name, name, name, name)
+    for bit, bitfield in enumerate(bitfields):
+        if (bit % 8) == 0 and bit != 0:
+            pysap += '\n'
+        pysap += '        BitField("%s", 0, 1),  # %d%s\n' % bitfield
 
     print("[*] pysap SAPDiagItems definition:")
     print(pysap)
