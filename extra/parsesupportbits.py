@@ -89,7 +89,6 @@ def main():
         if (bit % 8) == 0 and bit != 0:
             bitfields.extend(reversed(currentbyte))
             currentbyte = []
-            pysap += '\n'
             wireshark_define += '\n'
             wireshark_parse += 'offset+=1;\n'
             wireshark_module += '\n'
