@@ -6,8 +6,8 @@
 #
 # Example script by Yvan Genuer.
 #
-# The library was designed and developed by Martin Gallo from the Security
-# Consulting Services team of Core Security.
+# The library was designed and developed by Martin Gallo from
+# Core Security's CoreLabs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
