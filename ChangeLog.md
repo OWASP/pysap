@@ -94,6 +94,7 @@ v0.1.11 - 2016-10-12
 v0.1.10 - 2016-03-25
 --------------------
 
+- Version released at Troopers'16
 - Added support for handling SAP SAR file formats.
 - `pysap/SAPCAR.py`: New module for handling SAP SAR file formats.
 - `extra/dlmanager_decrypt.py`: Example PoC for [decrypting](https://www.coresecurity.com/advisories/sap-download-manager-password-weak-encryption)
