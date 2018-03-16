@@ -8,10 +8,16 @@ v0.1.15 - 2018-XX-XX
 - Version released at Troopers'18
 - Added initial support for handling IGS (Internet Graphic Server) packets along with example scripts to play with them ([\#19](https://github.com/CoreSecurity/pysap/pull/19)) Thanks [@iggy38](https://github.com/iggy38)!
 - Added initial support for handling PSE and SSO Credential format files.
+- `bin/pysapgenpse`: New binary tool for working with PSE and SSO credential files.
 - `bin/pysapcar`: Added options for creating a new archive and appending files to an existing one.
+- `pysap/SAPCredv2.py`: New module for SSO Credential files definitions and decryption logic.
+- `pysap/SAPIGS.py`: New module for IGS packets layer ([\#19](https://github.com/CoreSecurity/pysap/pull/19)).
+- `pysap/SAPLPS.py`: New module for LPS definitions and INT/DP API decryption logic.
 - `pysap/SAPMS.py`: Added Message Server Domain field, MS J2EE Cluster/Header/Service packets. Thanks Albert Zedlitz!
+- `pysap/SAPPSE.py`: New module for PSE files definitions and decryption logic.
 - `pysap/utils.py`: Moved utils classes into a package.
 - `examples/dlmanager_decrypt.py`: Replaced use of PyCrypto with Cryptography library.
+- `examples/igs_*.py`: New example scripts to interact with IGS services ([\#19](https://github.com/CoreSecurity/pysap/pull/19)).
 - `examples/rfc_monitor.py`: Added `noop` command in the monitor and version command line option.
 - `examples/ms_*.py`: Added command line option to specify Message Server Domain.
 
