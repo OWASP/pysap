@@ -15,17 +15,19 @@ Version 0.1.15.dev0 (XXX 2017)
 Overview
 --------
 
-[SAP Netweaver](https://www.sap.com/platform/netweaver/index.epx) is a
-technology platform for building and integrating SAP business applications.
-Communication between components uses different network protocols. While
-some of them are standard and well-known protocols, others are proprietaries
-and public information is not available.
+[SAP Netweaver](https://www.sap.com/platform/netweaver/index.epx) and
+[SAP HANA](https://www.sap.com/products/hana.html) are technology platforms for
+building and integrating SAP business applications. Communication between components
+uses different network protocols and some services and tools make use of custom file
+formats as well. While some of them are standard and well-known protocols, others
+are proprietaries and public information is not available.
 
 [pysap](https://www.coresecurity.com/corelabs-research/open-source-tools/pysap)
-is a Python library that provides modules for crafting and sending packets
-using SAP's NI, Message Server, Router, RFC, SNC, Enqueue and Diag protocols.
-The modules are build on top of [Scapy](http://www.secdev.org/projects/scapy/)
-and are based on information acquired at researching the different protocols
+is an open source Python library that provides modules for crafting and sending packets
+using SAP's NI, Diag, Enqueue, Router, Message Server, SNC and IGS protocols. In addition,
+support for creating and parsing different proprietary file formats is included. The
+modules are built on top of [Scapy](http://www.secdev.org/projects/scapy/) and are
+based on information acquired at researching the different protocols, file formats
 and services.
 
 

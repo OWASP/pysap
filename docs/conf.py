@@ -58,7 +58,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pysap'
-copyright = u'2012-2017, Martin Gallo, Core Security'
+copyright = u'2012-2018, Martin Gallo, Core Security'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
