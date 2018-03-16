@@ -20,13 +20,17 @@
 # ==============
 
 # External imports
-from requests import Request
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
 from scapy.fields import ByteField, StrFixedLenField
 # Custom imports
 from pysap.SAPNI import SAPNI
 from pysap.utils.fields import StrFixedLenPaddedField
+# Optional imports
+try:
+    from requests import Request
+except ImportError:
+    Request = None
 
 
 # IGS Request Interpreter
@@ -187,7 +191,12 @@ class SAPIGS(Packet):
 
         :return: the HTTP request to send as raw
         :rtype: ``string``
+
+        :raise ImportError: if the requests library can't be imported
         """
+        if Request is None:
+            raise ImportError("requests library not available")
+
         protocol = 'https' if tls else 'http'
         url = "%s://%s:%d/%s" % (protocol, host, port, interpreter)  # forge url
         # using PreparedRequest to retrieve the raw http request
