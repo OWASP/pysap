@@ -27,8 +27,8 @@ from optparse import OptionParser, OptionGroup
 from scapy.config import conf
 # Custom imports
 import pysap
-from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.SAPIGS import SAPIGS
+from pysap.SAPRouter import SAPRoutedStreamSocket
 
 # Set the verbosity to 0
 conf.verb = 0
@@ -88,12 +88,11 @@ def main():
                                                            options.remote_port))
     # open input file
     try:
-       f=open(options.file_input, 'rb')
-       file_input_content=f.read()
-       f.close
+        with open(options.file_input, 'rb') as f:
+            file_input_content = f.read()
     except IOError:
-       print("[!] Error reading %s file." % (options.file_input))
-       exit(2)
+        print("[!] Error reading %s file." % options.file_input)
+        exit(2)
 
     # Initiate the connection
     conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
@@ -113,7 +112,7 @@ def main():
     p = SAPIGS.http(options.remote_host, options.remote_port, 'ZIPPER', files)
 
     # Send/Receive request
-    print("[*] Send %s to ZIPPER interpreter..." % (options.file_input))
+    print("[*] Send %s to ZIPPER interpreter..." % options.file_input)
     conn.send(p)
     print("[*] Response :")
     response = conn.recv(1024)

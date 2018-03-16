@@ -27,8 +27,9 @@ from optparse import OptionParser, OptionGroup
 from scapy.config import conf
 # Custom imports
 import pysap
-from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.SAPIGS import SAPIGS
+from pysap.SAPRouter import SAPRoutedStreamSocket
+
 
 # Set the verbosity to 0
 conf.verb = 0

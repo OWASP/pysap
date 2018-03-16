@@ -27,8 +27,9 @@ from optparse import OptionParser, OptionGroup
 from scapy.config import conf
 # Custom imports
 import pysap
-from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.SAPIGS import SAPIGS, SAPIGSTable
+from pysap.SAPRouter import SAPRoutedStreamSocket
+
 
 # Set the verbosity to 0
 conf.verb = 0
@@ -38,7 +39,7 @@ conf.verb = 0
 def parse_options():
 
     description = "This example script send provided file to IGS ZIPPER interpreter " \
-                  "using RFC Listener " \
+                  "using RFC Listener "
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,
@@ -59,9 +60,9 @@ def parse_options():
 
     param = OptionGroup(parser, "Parameters")
     param.add_option("-i", dest="file_input", default='poc.txt', metavar="FILE",
-                    help="File to zip [%default]")
+                     help="File to zip [%default]")
     param.add_option("-a", dest="file_path", default='',
-                    help="Path in zip file [%default]")
+                     help="Path in zip file [%default]")
     parser.add_option_group(param)
 
     misc = OptionGroup(parser, "Misc options")
@@ -88,12 +89,11 @@ def main():
                                                            options.remote_port))
     # open input file
     try:
-       f=open(options.file_input, 'rb')
-       file_input_content=f.read()
-       f.close
+        with open(options.file_input, 'rb') as f:
+            file_input_content=f.read()
     except IOError:
-       print("[!] Error reading %s file." % (options.file_input))
-       exit(2)
+        print("[!] Error reading %s file." % options.file_input)
+        exit(2)
 
     # Initiate the connection
     conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
@@ -103,20 +103,20 @@ def main():
 
     # the xml request for zipper interpreter 
     xml = '<?xml version="1.0"?><REQUEST><COMPRESS type="zip"><FILES>'
-    xml += '<FILE name="%s" ' % (options.file_input)
-    xml += 'path="%s" ' % (options.file_path)
-    xml += 'size="%s"/>' % (len(file_input_content))
-    xml += '</FILES></COMPRESS></REQEST>'
+    xml += '<FILE name="{}" '.format(options.file_input)
+    xml += 'path="{}" '.format(options.file_path)
+    xml += 'size="{}"/>'.format(len(file_input_content))
+    xml += '</FILES></COMPRESS></REQUEST>'
 
     # create tables descriptions
     # table with xml content
     table_xml = SAPIGSTable.add_entry('XMLDESC', 1, len(xml), 1,
                                       'XMLDESC', len(xml)
-                                     ) 
+                                      )
     # table with file content
     table_file = SAPIGSTable.add_entry('FILE1', 1, len(file_input_content), 1,
                                        'FILE1', len(file_input_content)
-                                      ) 
+                                       )
 
     # get the futur offset where table entries begin
     offset = (len(table_xml) + len(table_file))
@@ -126,19 +126,20 @@ def main():
     content_file = file_input_content
 
     # total size of packet
-    # totalsize need to be a multiple of 1024
-    totalsize = offset + 244 # 244 IGS header size
-    totalsize = totalsize + 1023
-    totalsize = totalsize - (totalsize % 1024)
+    # total_size need to be a multiple of 1024
+    total_size = offset + 244 # 244 IGS header size
+    total_size += 1023
+    total_size -= (total_size % 1024)
 
     # Put all together
-    p = SAPIGS(function='ZIPPER', listener='L', offset_content=str(offset), packet_size=str(totalsize))
+    p = SAPIGS(function='ZIPPER', listener='L', offset_content=str(offset), packet_size=str(total_size))
     p = p / table_xml / table_file / content_xml / content_file
 
     # Send the IGS packet
-    print("[*] Send %s to ZIPPER interpreter..." % (options.file_input))
+    print("[*] Send %s to ZIPPER interpreter..." % options.file_input)
     conn.send(p)
     print("[*] File sent.")
+
 
 if __name__ == "__main__":
     main()

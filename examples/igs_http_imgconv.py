@@ -122,9 +122,9 @@ def main():
     print("[*] Generated file(s) :")
     for url in str(response).split('href='):
         if "output" in url:
-            print(("http://%s:%d%s" % (options.remote_host,
-                                       options.remote_port,
-                                       url.split('"')[1]))
+            print("http://%s:%d%s" % (options.remote_host,
+                                      options.remote_port,
+                                      url.split('"')[1]))
 
 
 if __name__ == "__main__":

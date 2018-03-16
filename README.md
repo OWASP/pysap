@@ -39,8 +39,8 @@ Features
     * SAP Enqueue
     * SAP Router
     * SAP Message Server (MS)
-    * SAP SNC
-    * SAP IGS
+    * SAP Secure Network Connection (SNC)
+    * SAP Internet Graphic Server (IGS)
 
 * Client interfaces for handling the following file formats:
 
