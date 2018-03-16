@@ -40,6 +40,7 @@ Features
     * SAP Router
     * SAP Message Server (MS)
     * SAP SNC
+    * SAP IGS
 
 * Client interfaces for handling the following file formats:
 
