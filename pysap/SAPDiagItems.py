@@ -73,230 +73,230 @@ bind_diagitem(SAPDiagStep, "APPL", 0x04, 0x26)
 class SAPDiagSupportBits(Packet):
     name = "SAP Diag Support Bits"
     fields_desc = [
-        BitField("PROGRESS_INDICATOR", 0, 1),  # 0
-        BitField("SAPGUI_LABELS", 0, 1),  # 1
-        BitField("SAPGUI_DIAGVERSION", 0, 1),  # 2
-        BitField("SAPGUI_SELECT_RECT", 0, 1),  # 3
-        BitField("SAPGUI_SYMBOL_RIGHT", 0, 1),  # 4
-        BitField("SAPGUI_FONT_METRIC", 0, 1),  # 5
-        BitField("SAPGUI_COMPR_ENHANCED", 0, 1),  # 6
         BitField("SAPGUI_IMODE", 0, 1),  # 7
+        BitField("SAPGUI_COMPR_ENHANCED", 0, 1),  # 6
+        BitField("SAPGUI_FONT_METRIC", 0, 1),  # 5
+        BitField("SAPGUI_SYMBOL_RIGHT", 0, 1),  # 4
+        BitField("SAPGUI_SELECT_RECT", 0, 1),  # 3
+        BitField("SAPGUI_DIAGVERSION", 0, 1),  # 2
+        BitField("SAPGUI_LABELS", 0, 1),  # 1
+        BitField("PROGRESS_INDICATOR", 0, 1),  # 0
 
-        BitField("SAPGUI_LONG_MESSAGE", 0, 1),  # 8
-        BitField("SAPGUI_TABLE", 0, 1),  # 9
-        BitField("SAPGUI_FOCUS_1", 0, 1),  # 10
-        BitField("SAPGUI_PUSHBUTTON_1", 0, 1),  # 11
-        BitField("UPPERCASE", 0, 1),  # 12
-        BitField("SAPGUI_TABPROPERTY", 0, 1),  # 13
-        BitField("INPUT_UPPERCASE", 0, 1),  # 14
         BitField("RFC_DIALOG", 0, 1),  # 15
+        BitField("INPUT_UPPERCASE", 0, 1),  # 14
+        BitField("SAPGUI_TABPROPERTY", 0, 1),  # 13
+        BitField("UPPERCASE", 0, 1),  # 12
+        BitField("SAPGUI_PUSHBUTTON_1", 0, 1),  # 11
+        BitField("SAPGUI_FOCUS_1", 0, 1),  # 10
+        BitField("SAPGUI_TABLE", 0, 1),  # 9
+        BitField("SAPGUI_LONG_MESSAGE", 0, 1),  # 8
 
-        BitField("LIST_HOTSPOT", 0, 1),  # 16
-        BitField("FKEY_TABLE", 0, 1),  # 17
-        BitField("MENU_SHORTCUT", 0, 1),  # 18
-        BitField("STOP_TRANS", 0, 1),  # 19
-        BitField("FULL_MENU", 0, 1),  # 20
-        BitField("OBJECT_NAMES", 0, 1),  # 21
-        BitField("CONTAINER_TYPE", 0, 1),  # 22
         BitField("DLGH_FLAGS", 0, 1),  # 23
+        BitField("CONTAINER_TYPE", 0, 1),  # 22
+        BitField("OBJECT_NAMES", 0, 1),  # 21
+        BitField("FULL_MENU", 0, 1),  # 20
+        BitField("STOP_TRANS", 0, 1),  # 19
+        BitField("MENU_SHORTCUT", 0, 1),  # 18
+        BitField("FKEY_TABLE", 0, 1),  # 17
+        BitField("LIST_HOTSPOT", 0, 1),  # 16
 
-        BitField("APPL_MNU", 0, 1),  # 24
-        BitField("MESSAGE_INFO", 0, 1),  # 25
-        BitField("MESDUM_FLAG1", 0, 1),  # 26
-        BitField("TABSEL_ATTRIB", 0, 1),  # 27
-        BitField("GUIAPI", 0, 1),  # 28
-        BitField("NOGRAPH", 0, 1),  # 29
-        BitField("NOMESSAGES", 0, 1),  # 30
         BitField("NORABAX", 0, 1),  # 31
+        BitField("NOMESSAGES", 0, 1),  # 30
+        BitField("NOGRAPH", 0, 1),  # 29
+        BitField("GUIAPI", 0, 1),  # 28
+        BitField("TABSEL_ATTRIB", 0, 1),  # 27
+        BitField("MESDUM_FLAG1", 0, 1),  # 26
+        BitField("MESSAGE_INFO", 0, 1),  # 25
+        BitField("APPL_MNU", 0, 1),  # 24
 
-        BitField("NOSYSMSG", 0, 1),  # 32
-        BitField("NOSAPSCRIPT", 0, 1),  # 33
-        BitField("NORFC", 0, 1),  # 34
-        BitField("NEW_BSD_JUSTRIGHT", 0, 1),  # 35
-        BitField("MESSAGE_VARS", 0, 1),  # 36
-        BitField("OCX_SUPPORT", 0, 1),  # 37
-        BitField("SCROLL_INFOS", 0, 1),  # 38
         BitField("TABLE_SIZE_OK", 0, 1),  # 39
+        BitField("SCROLL_INFOS", 0, 1),  # 38
+        BitField("OCX_SUPPORT", 0, 1),  # 37
+        BitField("MESSAGE_VARS", 0, 1),  # 36
+        BitField("NEW_BSD_JUSTRIGHT", 0, 1),  # 35
+        BitField("NORFC", 0, 1),  # 34
+        BitField("NOSAPSCRIPT", 0, 1),  # 33
+        BitField("NOSYSMSG", 0, 1),  # 32
 
-        BitField("MESSAGE_INFO2", 0, 1),  # 40
-        BitField("VARINFO_OKCODE", 0, 1),  # 41
-        BitField("CURR_TCODE", 0, 1),  # 42
-        BitField("CONN_WSIZE", 0, 1),  # 43
-        BitField("PUSHBUTTON_2", 0, 1),  # 44
-        BitField("TABSTRIP", 0, 1),  # 45
-        BitField("UNKNOWN_1", 0, 1),  # 46 (Unknown support bit)
         BitField("TABSCROLL_INFOS", 0, 1),  # 47
+        BitField("UNKNOWN_1", 0, 1),  # 46 (Unknown support bit)
+        BitField("TABSTRIP", 0, 1),  # 45
+        BitField("PUSHBUTTON_2", 0, 1),  # 44
+        BitField("CONN_WSIZE", 0, 1),  # 43
+        BitField("CURR_TCODE", 0, 1),  # 42
+        BitField("VARINFO_OKCODE", 0, 1),  # 41
+        BitField("MESSAGE_INFO2", 0, 1),  # 40
 
-        BitField("TABLE_FIELD_NAMES", 0, 1),  # 48
-        BitField("NEW_MODE_REQUEST", 0, 1),  # 49
-        BitField("RFCBLOB_DIAG_PARSER", 0, 1),  # 50
-        BitField("MULTI_LOGIN_USER", 0, 1),  # 51
-        BitField("CONTROL_CONTAINER", 0, 1),  # 52
-        BitField("APPTOOLBAR_FIXED", 0, 1),  # 53
-        BitField("R3INFO_USER_CHECKED", 0, 1),  # 54
         BitField("NEED_STDDYNPRO", 0, 1),  # 55
+        BitField("R3INFO_USER_CHECKED", 0, 1),  # 54
+        BitField("APPTOOLBAR_FIXED", 0, 1),  # 53
+        BitField("CONTROL_CONTAINER", 0, 1),  # 52
+        BitField("MULTI_LOGIN_USER", 0, 1),  # 51
+        BitField("RFCBLOB_DIAG_PARSER", 0, 1),  # 50
+        BitField("NEW_MODE_REQUEST", 0, 1),  # 49
+        BitField("TABLE_FIELD_NAMES", 0, 1),  # 48
 
-        BitField("TYPE_SERVER", 0, 1),  # 56
-        BitField("COMBOBOX", 0, 1),  # 57
-        BitField("INPUT_REQUIRED", 0, 1),  # 58
-        BitField("ISO_LANGUAGE", 0, 1),  # 59
-        BitField("COMBOBOX_TABLE", 0, 1),  # 60
-        BitField("R3INFO_FLAGS", 0, 1),  # 61
-        BitField("CHECKRADIO_EVENTS", 0, 1),  # 62
         BitField("R3INFO_USERID", 0, 1),  # 63
+        BitField("CHECKRADIO_EVENTS", 0, 1),  # 62
+        BitField("R3INFO_FLAGS", 0, 1),  # 61
+        BitField("COMBOBOX_TABLE", 0, 1),  # 60
+        BitField("ISO_LANGUAGE", 0, 1),  # 59
+        BitField("INPUT_REQUIRED", 0, 1),  # 58
+        BitField("COMBOBOX", 0, 1),  # 57
+        BitField("TYPE_SERVER", 0, 1),  # 56
 
-        BitField("R3INFO_ROLLCOUNT", 0, 1),  # 64
-        BitField("USER_TURNTIME2", 0, 1),  # 65
-        BitField("NUM_FIELD", 0, 1),  # 66
-        BitField("WIN16", 0, 1),  # 67
-        BitField("CONTEXT_MENU", 0, 1),  # 68
-        BitField("SCROLLABLE_TABSTRIP_PAGE", 0, 1),  # 69
-        BitField("EVENT_DESCRIPTION", 0, 1),  # 70
         BitField("LABEL_OWNER", 0, 1),  # 71
+        BitField("EVENT_DESCRIPTION", 0, 1),  # 70
+        BitField("SCROLLABLE_TABSTRIP_PAGE", 0, 1),  # 69
+        BitField("CONTEXT_MENU", 0, 1),  # 68
+        BitField("WIN16", 0, 1),  # 67
+        BitField("NUM_FIELD", 0, 1),  # 66
+        BitField("USER_TURNTIME2", 0, 1),  # 65
+        BitField("R3INFO_ROLLCOUNT", 0, 1),  # 64
 
-        BitField("CLICKABLE_FIELD", 0, 1),  # 72
-        BitField("PROPERTY_BAG", 0, 1),  # 73
-        BitField("UNUSED_1", 0, 1),  # 74
-        BitField("TABLE_ROW_REFERENCES_2", 0, 1),  # 75
-        BitField("PROPFONT_VALID", 0, 1),  # 76
-        BitField("VARINFO_CONTAINER", 0, 1),  # 77
-        BitField("R3INFO_IMODEUUID", 0, 1),  # 78
         BitField("NOTGUI", 0, 1),  # 79
+        BitField("R3INFO_IMODEUUID", 0, 1),  # 78
+        BitField("VARINFO_CONTAINER", 0, 1),  # 77
+        BitField("PROPFONT_VALID", 0, 1),  # 76
+        BitField("TABLE_ROW_REFERENCES_2", 0, 1),  # 75
+        BitField("UNUSED_1", 0, 1),  # 74
+        BitField("PROPERTY_BAG", 0, 1),  # 73
+        BitField("CLICKABLE_FIELD", 0, 1),  # 72
 
-        BitField("WAN", 0, 1),  # 80
-        BitField("XML_BLOBS", 0, 1),  # 81
-        BitField("RFC_QUEUE", 0, 1),  # 82
-        BitField("RFC_COMPRESS", 0, 1),  # 83
-        BitField("JAVA_BEANS", 0, 1),  # 84
-        BitField("DPLOADONDEMAND", 0, 1),  # 85
-        BitField("CTL_PROPCACHE", 0, 1),  # 86
         BitField("ENJOY_IMODEUUID", 0, 1),  # 87
+        BitField("CTL_PROPCACHE", 0, 1),  # 86
+        BitField("DPLOADONDEMAND", 0, 1),  # 85
+        BitField("JAVA_BEANS", 0, 1),  # 84
+        BitField("RFC_COMPRESS", 0, 1),  # 83
+        BitField("RFC_QUEUE", 0, 1),  # 82
+        BitField("XML_BLOBS", 0, 1),  # 81
+        BitField("WAN", 0, 1),  # 80
 
-        BitField("RFC_ASYNC_BLOB", 0, 1),  # 88
-        BitField("KEEP_SCROLLPOS", 0, 1),  # 89
-        BitField("UNUSED_2", 0, 1),  # 90
-        BitField("UNUSED_3", 0, 1),  # 91
-        BitField("XML_PROPERTIES", 0, 1),  # 92
-        BitField("UNUSED_4", 0, 1),  # 93
-        BitField("HEX_FIELD", 0, 1),  # 94
         BitField("HAS_CACHE", 0, 1),  # 95
+        BitField("HEX_FIELD", 0, 1),  # 94
+        BitField("UNUSED_4", 0, 1),  # 93
+        BitField("XML_PROPERTIES", 0, 1),  # 92
+        BitField("UNUSED_3", 0, 1),  # 91
+        BitField("UNUSED_2", 0, 1),  # 90
+        BitField("KEEP_SCROLLPOS", 0, 1),  # 89
+        BitField("RFC_ASYNC_BLOB", 0, 1),  # 88
 
-        BitField("XML_PROP_TABLE", 0, 1),  # 96
-        BitField("UNUSED_5", 0, 1),  # 97
-        BitField("ENJOY_IMODEUUID2", 0, 1),  # 98
-        BitField("ITS", 0, 1),  # 99
-        BitField("NO_EASYACCESS", 0, 1),  # 100
-        BitField("PROPERTYPUMP", 0, 1),  # 101
-        BitField("COOKIE", 0, 1),  # 102
         BitField("UNUSED_6", 0, 1),  # 103
+        BitField("COOKIE", 0, 1),  # 102
+        BitField("PROPERTYPUMP", 0, 1),  # 101
+        BitField("NO_EASYACCESS", 0, 1),  # 100
+        BitField("ITS", 0, 1),  # 99
+        BitField("ENJOY_IMODEUUID2", 0, 1),  # 98
+        BitField("UNUSED_5", 0, 1),  # 97
+        BitField("XML_PROP_TABLE", 0, 1),  # 96
 
-        BitField("SUPPBIT_AREA_SIZE", 0, 1),  # 104
-        BitField("DPLOADONDEMAND_WRITE", 0, 1),  # 105
-        BitField("CONTROL_FOCUS", 0, 1),  # 106
-        BitField("ENTRY_HISTORY", 0, 1),  # 107
-        BitField("AUTO_CODEPAGE", 0, 1),  # 108
-        BitField("CACHED_VSETS", 0, 1),  # 109
-        BitField("EMERGENCY_REPAIR", 0, 1),  # 110
         BitField("AREA2FRONT", 0, 1),  # 111
+        BitField("EMERGENCY_REPAIR", 0, 1),  # 110
+        BitField("CACHED_VSETS", 0, 1),  # 109
+        BitField("AUTO_CODEPAGE", 0, 1),  # 108
+        BitField("ENTRY_HISTORY", 0, 1),  # 107
+        BitField("CONTROL_FOCUS", 0, 1),  # 106
+        BitField("DPLOADONDEMAND_WRITE", 0, 1),  # 105
+        BitField("SUPPBIT_AREA_SIZE", 0, 1),  # 104
 
-        BitField("SCROLLBAR_WIDTH", 0, 1),  # 112
-        BitField("AUTORESIZE", 0, 1),  # 113
-        BitField("EDIT_VARLEN", 0, 1),  # 114
-        BitField("WORKPLACE", 0, 1),  # 115
-        BitField("PRINTDATA", 0, 1),  # 116
-        BitField("UNKNOWN_2", 0, 1),  # 117 (Unknown support bit)
-        BitField("SINGLE_SESSION", 0, 1),  # 118
         BitField("NOTIFY_NEWMODE", 0, 1),  # 119
+        BitField("SINGLE_SESSION", 0, 1),  # 118
+        BitField("UNKNOWN_2", 0, 1),  # 117 (Unknown support bit)
+        BitField("PRINTDATA", 0, 1),  # 116
+        BitField("WORKPLACE", 0, 1),  # 115
+        BitField("EDIT_VARLEN", 0, 1),  # 114
+        BitField("AUTORESIZE", 0, 1),  # 113
+        BitField("SCROLLBAR_WIDTH", 0, 1),  # 112
 
-        BitField("TOOLBAR_HEIGHT", 0, 1),  # 120
-        BitField("XMLPROP_CONTAINER", 0, 1),  # 121
-        BitField("XMLPROP_DYNPRO", 0, 1),  # 122
-        BitField("DP_HTTP_PUT", 0, 1),  # 123
-        BitField("DYNAMIC_PASSPORT", 0, 1),  # 124
-        BitField("WEBGUI", 0, 1),  # 125
-        BitField("WEBGUI_HELPMODE", 0, 1),  # 126
         BitField("CONTROL_FOCUS_ON_LIST", 0, 1),  # 127
+        BitField("WEBGUI_HELPMODE", 0, 1),  # 126
+        BitField("WEBGUI", 0, 1),  # 125
+        BitField("DYNAMIC_PASSPORT", 0, 1),  # 124
+        BitField("DP_HTTP_PUT", 0, 1),  # 123
+        BitField("XMLPROP_DYNPRO", 0, 1),  # 122
+        BitField("XMLPROP_CONTAINER", 0, 1),  # 121
+        BitField("TOOLBAR_HEIGHT", 0, 1),  # 120
 
-        BitField("CBU_RBUDUMMY_2", 0, 1),  # 128
-        BitField("EOKDUMMY_1", 0, 1),  # 129
-        BitField("GUI_USER_SCRIPTING", 0, 1),  # 130
-        BitField("SLC", 0, 1),  # 131
-        BitField("ACCESSIBILITY", 0, 1),  # 132
-        BitField("ECATT", 0, 1),  # 133
-        BitField("ENJOY_IMODEUUID3", 0, 1),  # 134
         BitField("ENABLE_UTF8", 0, 1),  # 135
+        BitField("ENJOY_IMODEUUID3", 0, 1),  # 134
+        BitField("ECATT", 0, 1),  # 133
+        BitField("ACCESSIBILITY", 0, 1),  # 132
+        BitField("SLC", 0, 1),  # 131
+        BitField("GUI_USER_SCRIPTING", 0, 1),  # 130
+        BitField("EOKDUMMY_1", 0, 1),  # 129
+        BitField("CBU_RBUDUMMY_2", 0, 1),  # 128
 
-        BitField("R3INFO_AUTOLOGOUT_TIME", 0, 1),  # 136
-        BitField("VARINFO_ICON_TITLE_LIST", 0, 1),  # 137
-        BitField("ENABLE_UTF16BE", 0, 1),  # 138
-        BitField("ENABLE_UTF16LE", 0, 1),  # 139
-        BitField("R3INFO_CODEPAGE_APP", 0, 1),  # 140
-        BitField("ENABLE_APPL4", 0, 1),  # 141
-        BitField("GUIPATCHLEVEL", 0, 1),  # 142
         BitField("CBURBU_NEW_STATE", 0, 1),  # 143
+        BitField("GUIPATCHLEVEL", 0, 1),  # 142
+        BitField("ENABLE_APPL4", 0, 1),  # 141
+        BitField("R3INFO_CODEPAGE_APP", 0, 1),  # 140
+        BitField("ENABLE_UTF16LE", 0, 1),  # 139
+        BitField("ENABLE_UTF16BE", 0, 1),  # 138
+        BitField("VARINFO_ICON_TITLE_LIST", 0, 1),  # 137
+        BitField("R3INFO_AUTOLOGOUT_TIME", 0, 1),  # 136
 
-        BitField("BINARY_EVENTID", 0, 1),  # 144
-        BitField("GUI_THEME", 0, 1),  # 145
-        BitField("TOP_WINDOW", 0, 1),  # 146
-        BitField("EVENT_DESCRIPTION_1", 0, 1),  # 147
-        BitField("SPLITTER", 0, 1),  # 148
-        BitField("VALUE_4_HISTORY", 0, 1),  # 149
-        BitField("ACC_LIST", 0, 1),  # 150
         BitField("GUI_USER_SCRIPTING_INFO", 0, 1),  # 151
+        BitField("ACC_LIST", 0, 1),  # 150
+        BitField("VALUE_4_HISTORY", 0, 1),  # 149
+        BitField("SPLITTER", 0, 1),  # 148
+        BitField("EVENT_DESCRIPTION_1", 0, 1),  # 147
+        BitField("TOP_WINDOW", 0, 1),  # 146
+        BitField("GUI_THEME", 0, 1),  # 145
+        BitField("BINARY_EVENTID", 0, 1),  # 144
 
-        BitField("TEXTEDIT_STREAM", 0, 1),  # 152
-        BitField("DYNT_NOFOCUS", 0, 1),  # 153
-        BitField("R3INFO_CODEPAGE_APP_1", 0, 1),  # 154
-        BitField("FRAME_1", 0, 1),  # 155
-        BitField("TICKET4GUI", 0, 1),  # 156
-        BitField("ACC_LIST_PROPS", 0, 1),  # 157
-        BitField("TABSEL_ATTRIB_INPUT", 0, 1),  # 158
         BitField("DEFAULT_TOOLTIP", 0, 1),  # 159
+        BitField("TABSEL_ATTRIB_INPUT", 0, 1),  # 158
+        BitField("ACC_LIST_PROPS", 0, 1),  # 157
+        BitField("TICKET4GUI", 0, 1),  # 156
+        BitField("FRAME_1", 0, 1),  # 155
+        BitField("R3INFO_CODEPAGE_APP_1", 0, 1),  # 154
+        BitField("DYNT_NOFOCUS", 0, 1),  # 153
+        BitField("TEXTEDIT_STREAM", 0, 1),  # 152
 
-        BitField("XML_PROP_TABLE_2", 0, 1),  # 160
-        BitField("CBU_RBUDUMMY_3", 0, 1),  # 161
-        BitField("CELLINFO", 0, 1),  # 162
-        BitField("CONTROL_FOCUS_ON_LIST_2", 0, 1),  # 163
-        BitField("TABLE_COLUMNWIDTH_INPUT", 0, 1),  # 164
-        BitField("ITS_PLUGIN", 0, 1),  # 165
-        BitField("OBJECT_NAMES_4_LOGIN_PROCESS", 0, 1),  # 166
         BitField("RFC_SERVER_4_GUI", 0, 1),  # 167
+        BitField("OBJECT_NAMES_4_LOGIN_PROCESS", 0, 1),  # 166
+        BitField("ITS_PLUGIN", 0, 1),  # 165
+        BitField("TABLE_COLUMNWIDTH_INPUT", 0, 1),  # 164
+        BitField("CONTROL_FOCUS_ON_LIST_2", 0, 1),  # 163
+        BitField("CELLINFO", 0, 1),  # 162
+        BitField("CBU_RBUDUMMY_3", 0, 1),  # 161
+        BitField("XML_PROP_TABLE_2", 0, 1),  # 160
 
-        BitField("R3INFO_FLAGS_2", 0, 1),  # 168
-        BitField("RCUI", 0, 1),  # 169
-        BitField("MENUENTRY_WITH_FCODE", 0, 1),  # 170
-        BitField("WEBSAPCONSOLE", 0, 1),  # 171
-        BitField("R3INFO_KERNEL_VERSION", 0, 1),  # 172
-        BitField("VARINFO_CONTAINER_LOOP", 0, 1),  # 173
-        BitField("EOKDUMMY_2", 0, 1),  # 174
         BitField("MESSAGE_INFO3", 0, 1),  # 175
+        BitField("EOKDUMMY_2", 0, 1),  # 174
+        BitField("VARINFO_CONTAINER_LOOP", 0, 1),  # 173
+        BitField("R3INFO_KERNEL_VERSION", 0, 1),  # 172
+        BitField("WEBSAPCONSOLE", 0, 1),  # 171
+        BitField("MENUENTRY_WITH_FCODE", 0, 1),  # 170
+        BitField("RCUI", 0, 1),  # 169
+        BitField("R3INFO_FLAGS_2", 0, 1),  # 168
 
-        BitField("SBA2", 0, 1),  # 176
-        BitField("MAINAREA_SIZE", 0, 1),  # 177
-        BitField("GUIPATCHLEVEL_2", 0, 1),  # 178
-        BitField("DISPLAY_SIZE", 0, 1),  # 179
-        BitField("GUI_PACKET", 0, 1),  # 180
-        BitField("DIALOG_STEP_NUMBER", 0, 1),  # 181
-        BitField("TC_KEEP_SCROLL_POSITION", 0, 1),  # 182
         BitField("MESSAGE_SERVICE_REQUEST", 0, 1),  # 183
+        BitField("TC_KEEP_SCROLL_POSITION", 0, 1),  # 182
+        BitField("DIALOG_STEP_NUMBER", 0, 1),  # 181
+        BitField("GUI_PACKET", 0, 1),  # 180
+        BitField("DISPLAY_SIZE", 0, 1),  # 179
+        BitField("GUIPATCHLEVEL_2", 0, 1),  # 178
+        BitField("MAINAREA_SIZE", 0, 1),  # 177
+        BitField("SBA2", 0, 1),  # 176
 
-        BitField("DYNT_FOCUS_FRAME", 0, 1),  # 184
-        BitField("MAX_STRING_LEN", 0, 1),  # 185
-        BitField("VARINFO_CONTAINER_1", 0, 1),  # 186
-        BitField("STD_TOOLBAR_ITEMS", 0, 1),  # 187
-        BitField("XMLPROP_LIST_DYNPRO", 0, 1),  # 188
-        BitField("TRACE_GUI_CONNECT", 0, 1),  # 189
-        BitField("LIST_FULLWIDTH", 0, 1),  # 190
         BitField("ALLWAYS_SEND_CLIENT", 0, 1),  # 191
+        BitField("LIST_FULLWIDTH", 0, 1),  # 190
+        BitField("TRACE_GUI_CONNECT", 0, 1),  # 189
+        BitField("XMLPROP_LIST_DYNPRO", 0, 1),  # 188
+        BitField("STD_TOOLBAR_ITEMS", 0, 1),  # 187
+        BitField("VARINFO_CONTAINER_1", 0, 1),  # 186
+        BitField("MAX_STRING_LEN", 0, 1),  # 185
+        BitField("DYNT_FOCUS_FRAME", 0, 1),  # 184
 
-        BitField("UNKNOWN_3", 0, 1),  # 192 (Unknown support bit)
-        BitField("GUI_SIGNATURE_COLOR", 0, 1),  # 193
-        BitField("MAX_WSIZE", 0, 1),  # 194
-        BitField("SAP_PERSONAS", 0, 1),  # 195
-        BitField("IDA_ALV", 0, 1),  # 196
-        BitField("IDA_ALV_FRAGMENTS", 0, 1),  # 197
-        BitField("AMC", 0, 1),  # 198
         BitField("EXTMODE_FONT_METRIC", 0, 1),  # 199
+        BitField("AMC", 0, 1),  # 198
+        BitField("IDA_ALV_FRAGMENTS", 0, 1),  # 197
+        BitField("IDA_ALV", 0, 1),  # 196
+        BitField("SAP_PERSONAS", 0, 1),  # 195
+        BitField("MAX_WSIZE", 0, 1),  # 194
+        BitField("GUI_SIGNATURE_COLOR", 0, 1),  # 193
+        BitField("UNKNOWN_3", 0, 1),  # 192 (Unknown support bit)
 
         BitField("padding_bits", 0, 56), ]
 
