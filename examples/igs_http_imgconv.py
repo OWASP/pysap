@@ -27,8 +27,8 @@ from optparse import OptionParser, OptionGroup
 from scapy.config import conf
 # Custom imports
 import pysap
+from pysap.SAPIGS import SAPIGS
 from pysap.SAPRouter import SAPRoutedStreamSocket
-from pysap.SAPIGS import SAPIGS 
 
 # Set the verbosity to 0
 conf.verb = 0
@@ -81,9 +81,8 @@ def main():
 
     # Open image to convert
     try:
-        f = open(options.input_image, "rb")
-        image = f.read()
-        f.close
+        with open(options.input_image, "rb") as f:
+            image = f.read()
     except IOError:
         print("Error reading image file !")
         exit(0)
