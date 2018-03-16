@@ -45,6 +45,8 @@ Features
 * Client interfaces for handling the following file formats:
 
     * SAP SAR archive files
+    * SAP PSE (Personal Security Environment) files
+    * SAP SSO Credential (Credv2) files
 
 * Library implementing SAP's LZH and LZC compression algorithms.
 

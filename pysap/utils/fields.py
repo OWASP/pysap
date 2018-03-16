@@ -24,9 +24,9 @@ from datetime import datetime
 # External imports
 from scapy.config import conf
 from scapy.packet import Packet
+from scapy.asn1fields import (ASN1F_CHOICE, ASN1F_field, ASN1_Error, ASN1F_badsequence, BER_Decoding_Error)
 from scapy.volatile import (RandNum, RandTermString, RandBin)
-from scapy.fields import (MultiEnumField, StrLenField, Field, StrFixedLenField,
-                          StrField, PacketListField)
+from scapy.fields import (MultiEnumField, StrLenField, Field, StrFixedLenField, StrField, PacketListField)
 
 
 def saptimestamp_to_datetime(timestamp):
@@ -277,3 +277,36 @@ class PacketListStopField(PacketListField):
             if self.stop and self.stop(p):
                 break
         return remain + ret, lst
+
+
+class ASN1F_CHOICE_SAFE(ASN1F_CHOICE):
+    def __init__(self, name, default, *args, **kwargs):
+        if "implicit_tag" in kwargs:
+            err_msg = "ASN1F_CHOICE has been called with an implicit_tag"
+            raise ASN1_Error(err_msg)
+        self.implicit_tag = None
+        for kwarg in ["context", "explicit_tag"]:
+            if kwarg in kwargs:
+                setattr(self, kwarg, kwargs[kwarg])
+            else:
+                setattr(self, kwarg, None)
+        ASN1F_field.__init__(self, name, None, context=self.context,
+                             explicit_tag=self.explicit_tag)
+        self.default = default
+        self.current_choice = None
+        self.choices = args
+
+    def m2i(self, pkt, s):
+        """Try to safely extract an ASN1_Packet from the choices list.
+
+        :raise ASN1_Error: if unable to parse the packet using any of the given choices
+        """
+        if len(s) == 0:
+            raise ASN1_Error("ASN1F_CHOICE: got empty string")
+
+        for choice in self.choices:
+            try:
+                return self.extract_packet(choice, s)
+            except (ASN1_Error, ASN1F_badsequence, BER_Decoding_Error):
+                pass
+        raise ASN1_Error

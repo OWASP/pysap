@@ -78,6 +78,8 @@ Additional information about the protocols and the research can be found at diff
 
 * `SAPCAR Heap Buffer Overflow: From crash to exploit <https://www.coresecurity.com/blog/sapcar-heap-buffer-overflow-crash-exploit>`_
 
+* `Hunting crypto secrets in SAP systems <https://www.coresecurity.com/publication/hunting-crypto-secrets-sap-systems>`_
+
 And advisories:
 
 * `SAP Netweaver Dispatcher Multiple Vulnerabilities <https://www.coresecurity.com/content/sap-netweaver-dispatcher-multiple-vulnerabilities>`_

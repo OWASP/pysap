@@ -112,7 +112,7 @@ setup(name=pysap.__title__,   # Package information
       ext_modules=[sapcompress],
 
       # Script files
-      scripts=['bin/pysapcar'],
+      scripts=['bin/pysapcar', 'bin/pysapgenpse'],
 
       # Tests command
       test_suite='tests.test_suite',
