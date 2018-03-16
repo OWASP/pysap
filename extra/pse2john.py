@@ -19,14 +19,36 @@
 # ==============
 
 # Standard imports
-import sys
+from sys import stdout
 from binascii import hexlify
+from optparse import OptionParser
 # Custom imports
 import pysap
 from pysap.SAPPSE import (SAPPSEFile, PKCS12_ALGORITHM_PBE1_SHA_3DES_CBC)
 
 
+# Command line options parser
+def parse_options():
+
+    description = "This script can be used to parse PSE files and extract encrypted material and data in a format that" \
+                  "John the Ripper or other cracking tools can use to look for the decryption PIN."
+
+    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
+                                                         "url": pysap.__url__,
+                                                         "repo": pysap.__repo__}
+
+    usage = "Usage: %prog <input_file>"
+
+    parser = OptionParser(usage=usage, description=description, epilog=epilog)
+    parser.add_option("-o", "--output", help="Filename to write the output to [stdout]")
+
+    options, args = parser.parse_args()
+
+    return options, args
+
+
 def parse_pse(filename):
+    """Parses a PSE file and produces """
     with open(filename, "rb") as f:
         data = f.read()
 
@@ -45,16 +67,25 @@ def parse_pse(filename):
     encrypted_pin = hexlify(pse_file.enc_cont.encrypted_pin.val)
     encrypted_pin_length = len(pse_file.enc_cont.encrypted_pin.val)
 
-    line = "{}:$pse${}${}${}${}${}${}${}${}:::::\n".format(
+    return "{}:$pse${}${}${}${}${}${}${}${}:::::\n".format(
         filename, pbe_algo, iterations, salt_size, salt, iv_size, iv, encrypted_pin_length, encrypted_pin,
     )
 
-    sys.stdout.write(line)
-
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        sys.stderr.write("Usage: %s <.pse file(s)>\n" % sys.argv[0])
+    options, args = parse_options()
 
-    for i in range(1, len(sys.argv)):
-        parse_pse(sys.argv[1])
+    # Select the output file to write
+    if options.output:
+        f = open(options.output, "w")
+    else:
+        f = stdout
+
+    # Parse all the files and write output
+    for i in range(0, len(args)):
+        line = parse_pse(args[i])
+        f.write(line)
+
+    # Close the file descriptor
+    if options.output:
+        f.close()

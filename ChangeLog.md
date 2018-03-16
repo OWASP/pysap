@@ -20,6 +20,7 @@ v0.1.15 - 2018-XX-XX
 - `examples/igs_*.py`: New example scripts to interact with IGS services ([\#19](https://github.com/CoreSecurity/pysap/pull/19)).
 - `examples/rfc_monitor.py`: Added `noop` command in the monitor and version command line option.
 - `examples/ms_*.py`: Added command line option to specify Message Server Domain.
+- `extra/pse2john.py`: New extra script to extract crypto material in John the Ripper format.
 
 
 v0.1.14 - 2017-10-04
