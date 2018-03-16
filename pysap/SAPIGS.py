@@ -24,56 +24,56 @@ from requests import Request
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
 from scapy.fields import ByteField, StrFixedLenField
-
 # Custom imports
 from pysap.SAPNI import SAPNI
-from pysap.utils import StrFixedLenPaddedField
-from scapy.layers.inet6 import IP6Field
+from pysap.utils.fields import StrFixedLenPaddedField
 
 
 # IGS Request Interpreter
 # Not used yet, but it list interpreters
 igs_req_interpreter = {
-    1: "ZIPPER", # ZIP provide file(s)
-    2: "IMGCONV", # Image converter
-    3: "RSPOCONNECTOR", # Remote Spool Connector
-    4: "XMLCHART", # Chart generator throught xml input
-    5: "CHART", # Chart generator throught ABAP Table input
-    6: "BWGIS", # BW Geographic Information System
-    7: "SAPGISXML", # old SAP GIS throught xml input
+    1: "ZIPPER",           # ZIP provide file(s)
+    2: "IMGCONV",          # Image converter
+    3: "RSPOCONNECTOR",    # Remote Spool Connector
+    4: "XMLCHART",         # Chart generator through XML input
+    5: "CHART",            # Chart generator through ABAP Table input
+    6: "BWGIS",            # BW Geographic Information System
+    7: "SAPGISXML",        # old SAP GIS through XML input
 }
 """ IGS Request Interpreter """
+
 
 # IGS Request Administrator function
 # Not used yet, but it list admin functions
 igs_req_adm = {
-    1: "ADM:REGPW", # Register a PortWatcher
-    2: "ADM:UNREGPW", # Unregsiter a PortWatcher
-    3: "ADM:REGIP", # Register an Interpreter
-    4: "ADM:UNREGIP", # Unregsiter an Interpreter
-    5: "ADM:FREEIP", # Inform than Interpreter is free
-    6: "ADM:ILLBEBACK", # Call back function
-    7: "ADM:ABORT", # Abort Interpreter work
-    8: "ADM:PING", # Ping receive
-    9: "ADM:PONG", # Ping send
-    10: "ADM:SHUTDOWNIGS", # Shutdown IGS
-    11: "ADM:SHUTDOWNPW", # Shutdown PortWatcher
-    12: "ADM:CHECKCONSUMER", # Check Portwatcher status
-    13: "ADM:FREECONSUMER", # Inform than portwather is free
-    14: "ADM:GETLOGFILE", # Display log file
-    15: "ADM:GETCONFIGFILE", # Display configfile
-    16: "ADM:GETDUMP", # Display dump file
-    17: "ADM:DELETEDUMP", # Delete dump file
-    18: "ADM:INSTALL", # Upload shapefiles for GIS
-    19: "ADM:SWITCH", # Switch trace log level
-    20: "ADM:GETVERSION", # Get IGS Version
-    21: "ADM:STATUS", # Display IGS Status
-    22: "ADM:STATISTIC", # old Display IGS Statistic
-    23: "ADM:STATISTICNEW", # Display IGS Statistic
-    24: "ADM:GETSTATCHART", # Get IGS Statistic chart
-    25: "ADM:SIM", # Simulation function
+    1: "ADM:REGPW",              # Register a PortWatcher
+    2: "ADM:UNREGPW",            # Unregister a PortWatcher
+    3: "ADM:REGIP",              # Register an Interpreter
+    4: "ADM:UNREGIP",            # Unregister an Interpreter
+    5: "ADM:FREEIP",             # Inform than Interpreter is free
+    6: "ADM:ILLBEBACK",          # Call back function
+    7: "ADM:ABORT",              # Abort Interpreter work
+    8: "ADM:PING",               # Ping receive
+    9: "ADM:PONG",               # Ping send
+    10: "ADM:SHUTDOWNIGS",       # Shutdown IGS
+    11: "ADM:SHUTDOWNPW",        # Shutdown PortWatcher
+    12: "ADM:CHECKCONSUMER",     # Check Portwatcher status
+    13: "ADM:FREECONSUMER",      # Inform than Portwatcher is free
+    14: "ADM:GETLOGFILE",        # Display log file
+    15: "ADM:GETCONFIGFILE",     # Display configfile
+    16: "ADM:GETDUMP",           # Display dump file
+    17: "ADM:DELETEDUMP",        # Delete dump file
+    18: "ADM:INSTALL",           # Upload shape files for GIS
+    19: "ADM:SWITCH",            # Switch trace log level
+    20: "ADM:GETVERSION",        # Get IGS Version
+    21: "ADM:STATUS",            # Display IGS Status
+    22: "ADM:STATISTIC",         # old Display IGS Statistic
+    23: "ADM:STATISTICNEW",      # Display IGS Statistic
+    24: "ADM:GETSTATCHART",      # Get IGS Statistic chart
+    25: "ADM:SIM",               # Simulation function
 }
 """IGS Request Administrator function"""
+
 
 class SAPIGSTable(Packet):
     """SAP IGS table description
@@ -189,8 +189,8 @@ class SAPIGS(Packet):
         :rtype: ``string``
         """
         protocol = 'https' if tls else 'http'
-        url = "%s://%s:%d/%s" % (protocol, host, port, interpreter) # forge url
-        # using PreparedRequest to retreive the raw http request
+        url = "%s://%s:%d/%s" % (protocol, host, port, interpreter)  # forge url
+        # using PreparedRequest to retrieve the raw http request
         req = Request(method, url, files=files).prepare()
         # update User-Agent header
         req.headers['User-Agent'] = 'pysap'
