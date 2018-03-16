@@ -6,8 +6,7 @@ v0.1.15 - 2018-XX-XX
 --------------------
 
 - Version released at Troopers'18
-- Added initial support for handling IGS (Internet Graphic Server) packets along with example scripts to play with them
-([\#19](https://github.com/CoreSecurity/pysap/pull/19)) Thanks [@iggy38](https://github.com/iggy38)!
+- Added initial support for handling IGS (Internet Graphic Server) packets along with example scripts to play with them ([\#19](https://github.com/CoreSecurity/pysap/pull/19)) Thanks [@iggy38](https://github.com/iggy38)!
 - Added initial support for handling PSE and SSO Credential format files.
 - `bin/pysapcar`: Added options for creating a new archive and appending files to an existing one.
 - `pysap/SAPMS.py`: Added Message Server Domain field, MS J2EE Cluster/Header/Service packets. Thanks Albert Zedlitz!
