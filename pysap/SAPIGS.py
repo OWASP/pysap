@@ -131,12 +131,12 @@ class SAPIGSTable(Packet):
         :return: SAP IGS Table
         :rtype: :class:`SAPIGSTable`
         """
-        NewEntry = SAPIGSTable(table_name = format(t_name, ">43"),
-                               table_line = format(t_line, ">43"),
-                               table_width = format(t_width, ">43"),
-                               table_column = format(t_column, ">43"),
-                               column_name = format(c_name, ">43"),
-                               column_width = format(c_width, ">43")
+        NewEntry = SAPIGSTable(table_name=format(t_name, ">43"),
+                               table_line=format(t_line, ">43"),
+                               table_width=format(t_width, ">43"),
+                               table_column=format(t_column, ">43"),
+                               column_name=format(c_name, ">43"),
+                               column_width=format(c_width, ">43")
                               )
         return NewEntry
 
@@ -153,9 +153,9 @@ class SAPIGS(Packet):
         StrFixedLenPaddedField("hostname", "pysap", padd="\x00", length=81),
         StrFixedLenPaddedField("id", "1234", padd="\x00", length=4),
         StrFixedLenPaddedField("padd1", "\x00" * 15, length=15),
-        ByteField("todo1", 0x01), # need to work on it
+        ByteField("todo1", 0x01),  # TODO: need to work on it
         StrFixedLenPaddedField("padd2", "\x00" * 20, length=20),
-        ByteField("todo2", 0x08), # need to work on it
+        ByteField("todo2", 0x08),  # TODO: need to work on it
         StrFixedLenPaddedField("padd3", "\x00" * 6, length=6),
         StrFixedLenField("eye_catch", "TransMagic", length=10),
         StrFixedLenPaddedField("padd4", "\x00" * 2, length=2),
