@@ -26,7 +26,7 @@ install:
   # see http://help.appveyor.com/discussions/problems/2280-winpcap-installation-issue
   - cinst nmap
   - refreshenv
-  - "python.exe -m pip install Sphinx==1.4.5"
+  - "python.exe -m pip install Sphinx==1.6.5"
   # Copy WinPcap libraries so scapy can found them
   - "copy C:\\Windows\\System32\\Npcap\\wpcap.dll %APPVEYOR_BUILD_FOLDER%"
   - "copy C:\\Windows\\System32\\Npcap\\packet.dll %APPVEYOR_BUILD_FOLDER%"
@@ -36,8 +36,8 @@ install:
   # Build and install the library
   - "python.exe setup.py install"
   # Install optional requirements
-  - "pip -r requirements-docs.txt"
-  - "pip -r requirements-optional.txt"
+  - "pip install -r requirements-docs.txt"
+  - "pip install -r requirements-optional.txt"
 
 build: off
 
