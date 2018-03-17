@@ -38,9 +38,9 @@ before_script:
     fi
 
 install:
-  - pip install .
-  - pip install six
-  - pip install -r requirements-docs.txt
+  - pip2 install .
+  - pip2 install six
+  - pip2 install -r requirements-docs.txt
 
 script:
   - python setup.py test

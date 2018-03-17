@@ -35,6 +35,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'nbsphinx',
     'sphinx.ext.mathjax',
+    'm2r',
 ]
 
 # Disable notebook cell execution timeout
@@ -47,7 +48,7 @@ nbsphinx_allow_errors = True
 templates_path = ['_templates']
 
 # The suffix of source filenames.
-source_suffix = '.rst'
+source_suffix = ['.rst', '.md']
 
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'
@@ -57,7 +58,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pysap'
-copyright = u'2012-2017, Martin Gallo, Core Security'
+copyright = u'2012-2018, Martin Gallo, Core Security'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

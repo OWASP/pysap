@@ -1,10 +1,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2017 by Martin Gallo, Core Security
+# Copyright (C) 2012-2018 by Martin Gallo, Core Security
 #
-# The library was designed and developed by Martin Gallo from the Security
-# Consulting Services team of Core Security.
+# The library was designed and developed by Martin Gallo from
+# Core Security's CoreLabs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -30,7 +30,7 @@ from scapy.fields import (IntField, IntEnumField, PacketListField,
 # Custom imports
 from pysap.SAPNI import SAPNI
 from pysap.SAPRouter import SAPRoutedStreamSocket
-from pysap.utils import PacketNoPadded, StrNullFixedLenField
+from pysap.utils.fields import PacketNoPadded, StrNullFixedLenField
 
 
 # Create a logger for the SAEnqueue layer
