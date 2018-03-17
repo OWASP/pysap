@@ -1,4 +1,4 @@
-Sphinx>=1.4
+Sphinx==1.6.5
 ipykernel
 nbconvert
 nbsphinx
