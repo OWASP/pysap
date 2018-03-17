@@ -28,11 +28,6 @@ from scapy.asn1fields import (ASN1F_CHOICE, ASN1F_field, ASN1_Error, ASN1F_badse
 from scapy.volatile import (RandNum, RandTermString, RandBin)
 from scapy.fields import (MultiEnumField, StrLenField, LongField, Field, StrFixedLenField,
                           StrField, PacketListField)
-# Optional imports
-try:
-    from tabulate import tabulate
-except ImportError:
-    tabulate = None
 
 
 def saptimestamp_to_datetime(timestamp):
@@ -328,9 +323,6 @@ class ASN1F_CHOICE_SAFE(ASN1F_CHOICE):
             except (ASN1_Error, ASN1F_badsequence, BER_Decoding_Error):
                 pass
         raise ASN1_Error
-
-    def emptyline(self):
-        pass
 
 
 class LELongField(LongField):
