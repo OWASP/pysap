@@ -23,7 +23,7 @@ install:
   - "set PATH=%APPVEYOR_BUILD_FOLDER%;%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
   # Install whell for building
-  - "python.exe -m pip install wheel"
+  - "pip install wheel"
 
   # Installing Npcap
   - ps: iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/secdev/scapy/master/.appveyor/InstallNpcap.ps1'))
