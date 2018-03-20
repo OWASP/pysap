@@ -21,20 +21,21 @@ install:
   # Set path
   - "set PYTHONPATH=%APPVEYOR_BUILD_FOLDER%"
   - "set PATH=%APPVEYOR_BUILD_FOLDER%;%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+
+  # Install whell for building
   - "python.exe -m pip install wheel"
-  # Installing WinPcap directly does not work,
-  # see http://help.appveyor.com/discussions/problems/2280-winpcap-installation-issue
-  - cinst nmap
+
+  # Installing Npcap
+  - ps: iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/secdev/scapy/master/.appveyor/InstallNpcap.ps1'))
   - refreshenv
-  - "python.exe -m pip install Sphinx==1.6.5"
-  # Copy WinPcap libraries so scapy can found them
-  - "copy C:\\Windows\\System32\\Npcap\\wpcap.dll %APPVEYOR_BUILD_FOLDER%"
-  - "copy C:\\Windows\\System32\\Npcap\\packet.dll %APPVEYOR_BUILD_FOLDER%"
+
   # Set the proper build program
   - if "%ARCH%"=="32" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" x86)
   - if "%ARCH%"=="64" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" amd64)
+
   # Build and install the library
   - "python.exe setup.py install"
+
   # Install optional requirements
   - "pip install -r requirements-docs.txt"
   - "pip install -r requirements-optional.txt"
