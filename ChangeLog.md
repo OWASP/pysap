@@ -17,7 +17,7 @@ v0.1.15 - 2018-XX-XX
 - `pysap/SAPMS.py`: Added Message Server Domain field, MS J2EE Cluster/Header/Service packets. Thanks Albert Zedlitz!
 - `pysap/SAPPSE.py`: New module for PSE files definitions and decryption logic.
 - `pysap/utils.py`: Moved utils classes into a package.
-- `examples/diag_login_brute_force.py`: Detect invalid clients while logins ([\#19](https://github.com/CoreSecurity/pysap/pull/17)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
+- `examples/diag_login_brute_force.py`: Detect invalid clients while logins ([\#17](https://github.com/CoreSecurity/pysap/pull/17)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
 - `examples/dlmanager_decrypt.py`: Replaced use of PyCrypto with Cryptography library.
 - `examples/igs_*.py`: New example scripts to interact with IGS services ([\#19](https://github.com/CoreSecurity/pysap/pull/19)).
 - `examples/rfc_monitor.py`: Added `noop` command in the monitor and version command line option.
