@@ -1,6 +1,6 @@
 # AppVeyor configuration based on https://github.com/guedou/scapy-appveyor/blob/master/appveyor.yml
 
-version: "v0.1.15.dev0-{build}"
+version: "v0.1.16.dev0-{build}"
 
 environment:
 
@@ -18,37 +18,41 @@ environment:
 
 # Install requirements
 install:
-  - "%PYTHON%\\python.exe -m pip install wheel"
-  # Installing WinPcap directly does not work,
-  # see http://help.appveyor.com/discussions/problems/2280-winpcap-installation-issue
-  - cinst nmap
-  - refreshenv
-  - "%PYTHON%\\python.exe -m pip install Sphinx==1.4.5"
   # Set path
   - "set PYTHONPATH=%APPVEYOR_BUILD_FOLDER%"
   - "set PATH=%APPVEYOR_BUILD_FOLDER%;%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  # Copy WinPcap libraries so scapy can found them
-  - "copy C:\\Windows\\System32\\Npcap\\wpcap.dll %APPVEYOR_BUILD_FOLDER%"
-  - "copy C:\\Windows\\System32\\Npcap\\packet.dll %APPVEYOR_BUILD_FOLDER%"
+
+  # Install whell for building
+  - "pip install wheel"
+
+  # Installing Npcap
+  - ps: iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/secdev/scapy/master/.appveyor/InstallNpcap.ps1'))
+  - refreshenv
+
   # Set the proper build program
   - if "%ARCH%"=="32" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" x86)
   - if "%ARCH%"=="64" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" amd64)
+
   # Build and install the library
-  - "%PYTHON%\\python.exe setup.py install"
+  - "python.exe setup.py install"
+
+  # Install optional requirements
+  - "pip install -r requirements-docs.txt"
+  - "pip install -r requirements-optional.txt"
 
 build: off
 
 test_script:
   # Run tests
-  #- "%PYTHON%\\python.exe setup.py test"
+  #- "python.exe setup.py test"
   # Build the docs
-  - "%PYTHON%\\python.exe setup.py doc"
+  - "python.exe setup.py doc"
 
 after_test:
   # Build a source artifact
-  - "%PYTHON%\\python.exe setup.py sdist"
+  - "python.exe setup.py sdist"
   # Build a wheel artifact
-  - "%PYTHON%\\python.exe setup.py bdist_wheel"
+  - "python.exe setup.py bdist_wheel"
 
 artifacts:
   - path: dist\*.whl
