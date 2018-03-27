@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-v0.1.15 - 2018-XX-XX
+v0.1.15 - 2018-03-27
 --------------------
 
 - Version released at Troopers'18
