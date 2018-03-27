@@ -2,13 +2,33 @@ Changelog
 =========
 
 
-v0.1.15 - 2017-XX-XX
+v0.1.16 - 2018-XX-XX
 --------------------
 
+- Using Scapy version 2.4.0.
+
+
+v0.1.15 - 2018-03-27
+--------------------
+
+- Version released at Troopers'18
+- Added initial support for handling IGS (Internet Graphic Server) packets along with example scripts to play with them ([\#19](https://github.com/CoreSecurity/pysap/pull/19)) Thanks [@iggy38](https://github.com/iggy38)!
+- Added initial support for handling PSE and SSO Credential format files.
+- `bin/pysapgenpse`: New binary tool for working with PSE and SSO credential files.
 - `bin/pysapcar`: Added options for creating a new archive and appending files to an existing one.
+- `pysap/SAPCredv2.py`: New module for SSO Credential files definitions and decryption logic.
+- `pysap/SAPDiagItems.py`, `extra/parsesupportbits.py`: Corrected order of support data bit fields ([\#19](https://github.com/CoreSecurity/pysap/pull/18)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
+- `pysap/SAPIGS.py`: New module for IGS packets layer ([\#19](https://github.com/CoreSecurity/pysap/pull/19)).
+- `pysap/SAPLPS.py`: New module for LPS definitions and INT/DP API decryption logic.
 - `pysap/SAPMS.py`: Added Message Server Domain field, MS J2EE Cluster/Header/Service packets. Thanks Albert Zedlitz!
+- `pysap/SAPPSE.py`: New module for PSE files definitions and decryption logic.
+- `pysap/utils.py`: Moved utils classes into a package.
+- `examples/diag_login_brute_force.py`: Detect invalid clients while logins ([\#17](https://github.com/CoreSecurity/pysap/pull/17)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
+- `examples/dlmanager_decrypt.py`: Replaced use of PyCrypto with Cryptography library.
+- `examples/igs_*.py`: New example scripts to interact with IGS services ([\#19](https://github.com/CoreSecurity/pysap/pull/19)).
 - `examples/rfc_monitor.py`: Added `noop` command in the monitor and version command line option.
 - `examples/ms_*.py`: Added command line option to specify Message Server Domain.
+- `extra/pse2john.py`: New extra script to extract crypto material in John the Ripper format.
 
 
 v0.1.14 - 2017-10-04
@@ -21,14 +41,14 @@ v0.1.14 - 2017-10-04
 - `pysap/SAPRouter.py`: Allow a `SAPRoutedStreamSocket` to bypass the NI layer if no route was specified but talk mode
   was set to raw ([\#10](https://github.com/CoreSecurity/pysap/pull/10)).
 - `pysap/SAPRouter.py`: Enhanced the version retrieve routine by not failing when an error is returned by the server
-  ([\#11](https://github.com/CoreSecurity/pysap/issues/11)). Thanks [@gelim](https://github.com/gelim)!.
+  ([\#11](https://github.com/CoreSecurity/pysap/issues/11)). Thanks [@gelim](https://github.com/gelim)!
 - `pysap/SAPRouter.py`: Fixed missing eyecatcher in control messages ([\#10](https://github.com/CoreSecurity/pysap/pull/10)).
   Thanks [@gelim](https://github.com/gelim)!.
 - `examples/diag_login_screen_info.py`: Script was improved by better printing technical information and
   outputting login screen text items (language, input fields, login text) ([\#14](https://github.com/CoreSecurity/pysap/pull/14)).
   Thanks [@gelim](https://github.com/gelim)!.
 - `examples/diag_login_brute_force.py`: Script was improved to handle currently logged in users
-  ([\#16](https://github.com/CoreSecurity/pysap/pull/16)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!.
+  ([\#16](https://github.com/CoreSecurity/pysap/pull/16)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
 - `example/router/admin.py`: Improved client list table display and fixed timestamps ([\#12](https://github.com/CoreSecurity/pysap/issues/12)).
   Thanks [@gelim](https://github.com/gelim)!.
 - `examples/ms_dump_param.py`: New example script to list Message Server parameters and check them against a list of
@@ -88,6 +108,7 @@ v0.1.11 - 2016-10-12
 v0.1.10 - 2016-03-25
 --------------------
 
+- Version released at Troopers'16
 - Added support for handling SAP SAR file formats.
 - `pysap/SAPCAR.py`: New module for handling SAP SAR file formats.
 - `extra/dlmanager_decrypt.py`: Example PoC for [decrypting](https://www.coresecurity.com/advisories/sap-download-manager-password-weak-encryption)

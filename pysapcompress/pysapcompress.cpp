@@ -2,7 +2,7 @@
 # ===========
 # pysapcompress - SAP Compression library wrapper for Python
 #
-# Copyright (C) 2012-2017 by Martin Gallo, Core Security
+# Copyright (C) 2012-2018 by Martin Gallo, Core Security
 #
 # The library was designed and developed by Martin Gallo of Core Security
 # Technologies - Security Consulting Services

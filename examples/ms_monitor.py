@@ -2,10 +2,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2017 by Martin Gallo, Core Security
+# Copyright (C) 2012-2018 by Martin Gallo, Core Security
 #
-# The library was designed and developed by Martin Gallo from the Security
-# Consulting Services team of Core Security.
+# The library was designed and developed by Martin Gallo from
+# Core Security's CoreLabs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -26,7 +26,7 @@ from optparse import OptionParser, OptionGroup
 from scapy.config import conf
 # Custom imports
 import pysap
-from pysap.utils import BaseConsole
+from pysap.utils.console import BaseConsole
 from pysap.SAPMS import (SAPMS, ms_client_status_values, ms_opcode_error_values,
                          ms_dump_command_values, SAPMSCounter, ms_opcode_values,
                          ms_errorno_values, SAPMSProperty, ms_property_id_values,

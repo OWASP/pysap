@@ -1,7 +1,8 @@
-Sphinx>=1.4
+Sphinx==1.6.5
 sphinx-autoapi
 ipykernel
 nbconvert
 nbsphinx
 pyx==0.12.1
 ipython<6.0
+m2r==0.1.13

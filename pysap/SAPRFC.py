@@ -1,10 +1,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2017 by Martin Gallo, Core Security
+# Copyright (C) 2012-2018 by Martin Gallo, Core Security
 #
-# The library was designed and developed by Martin Gallo from the Security
-# Consulting Services team of Core Security.
+# The library was designed and developed by Martin Gallo from
+# Core Security's CoreLabs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -23,10 +23,11 @@ from scapy.packet import Packet, bind_layers
 from scapy.fields import (ByteField, ConditionalField, IPField, IntField,
                           StrFixedLenField, SignedShortField,
                           ByteEnumKeysField)
+# External imports
+from scapy.layers.inet6 import IP6Field
 # Custom imports
 from pysap.SAPNI import SAPNI
-from pysap.utils import StrFixedLenPaddedField
-from scapy.layers.inet6 import IP6Field
+from pysap.utils.fields import StrFixedLenPaddedField
 
 
 # RFC Request Type values

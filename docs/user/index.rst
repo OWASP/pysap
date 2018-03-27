@@ -27,6 +27,7 @@ Some example scripts has additional required libraries:
 
 - ``tabulate``
 - ``netaddr``
+- ``requests``
 - `wxPython <https://www.wxpython.org/>`_
 - `fau_timer <https://github.com/seecurity/mona-timing-lib>`_
 
@@ -77,6 +78,8 @@ Additional information about the protocols and the research can be found at diff
 
 * `SAPCAR Heap Buffer Overflow: From crash to exploit <https://www.coresecurity.com/blog/sapcar-heap-buffer-overflow-crash-exploit>`_
 
+* `Hunting crypto secrets in SAP systems <https://www.coresecurity.com/publication/hunting-crypto-secrets-sap-systems>`_
+
 And advisories:
 
 * `SAP Netweaver Dispatcher Multiple Vulnerabilities <https://www.coresecurity.com/content/sap-netweaver-dispatcher-multiple-vulnerabilities>`_
@@ -99,3 +102,5 @@ Initial research about the SAP CAR file format was performed by Martin Gallo and
 at the `Troopers 2016 Security Conference <https://www.troopers.de/troopers16/agenda/>`_. Additional research was
 performed by `Hans-Christian Esperer <https://github.com/hce>`_ and published in the
 `Hascar <https://github.com/VirtualForgeGmbH/hascar>`_ tool.
+
+Initial research about the IGS protocol was performed by Yvan Genuer and published in ``_.
