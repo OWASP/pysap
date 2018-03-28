@@ -17,6 +17,31 @@ matrix:
           env:
             - CXX=g++ CC=gcc
 
+        - os: linux
+          python: 3.3
+          env:
+            - CXX=clang++ CC=clang
+
+        - os: linux
+          python: 3.4
+          env:
+            - CXX=clang++ CC=clang
+
+        - os: linux
+          python: 3.5
+          env:
+            - CXX=clang++ CC=clang
+
+        - os: linux
+          python: 3.6
+          env:
+            - CXX=clang++ CC=clang
+
+        - os: linux
+          python: 3.6
+          env:
+            - CXX=g++ CC=gcc
+
         - os: osx
           language: generic
 
@@ -36,12 +61,14 @@ before_script:
       brew install https://raw.githubusercontent.com/secdev/scapy/master/.travis/pylibpcap.rb;
       brew install pandoc;
     fi
+  # Determine the pip vesion to use
+  - PIP=`which pip || (python --version 2>&1 | grep -q 'Python 2' && which pip2) || (python --version 2>&1 | grep -q 'Python 3' && which pip3)`
 
 install:
-  - pip2 install .
-  - pip2 install six
-  - pip2 install -r requirements-docs.txt
-  - pip2 install -r requirements-optional.txt
+  - $PIP install .
+  - $PIP install six
+  - $PIP install -r requirements-docs.txt
+  - $PIP install -r requirements-optional.txt
 
 script:
   - python setup.py test
