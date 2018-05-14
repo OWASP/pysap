@@ -206,7 +206,7 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
 
     @file_length.setter
     def file_length(self, file_length):
-        """Setter for the file length fields. It splits the long long integer int othe two length fields (low and
+        """Setter for the file length fields. It splits the long long integer int on the two length fields (low and
         high) as required by the archive file.
         """
         self.file_length_low = file_length & 0xffffffff
