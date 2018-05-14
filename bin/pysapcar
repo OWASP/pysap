@@ -37,7 +37,7 @@ except ImportError:
     chmod = fchmod = None
 
 
-pysapcar_usage = """Usage:
+pysapcar_usage = """
 
 create archive with specified files:
 pysapcar -c[v][f archive] [file1 file2 [/n filename] ...]
