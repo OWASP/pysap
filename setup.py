@@ -105,7 +105,7 @@ setup(name=pysap.__title__,   # Package information
                    'Programming Language :: C++',
                    'Topic :: Security'],
       # Packages list
-      packages=['pysap'],
+      packages=['pysap', 'pysap.utils'],
       provides=['pysapcompress', 'pysap'],
 
       # Extension module compilation
