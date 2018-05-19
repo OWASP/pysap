@@ -29,7 +29,7 @@ from pysap.SAPPSE import SAPPSEFile
 from pysap.SAPCredv2 import SAPCredv2, cipher_algorithms
 
 
-pysapgenpse_usage = """Usage:
+pysapgenpse_usage = """
 
 seclogin command:
 ----------------
