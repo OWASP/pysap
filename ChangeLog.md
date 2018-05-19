@@ -6,6 +6,8 @@ v0.1.16 - 2018-XX-XX
 --------------------
 
 - Using Scapy version 2.4.0.
+- Added missing `pysap.utils` package in source/binary packages.
+- `pysap/SAPCAR.py`: Improved SAPCAR files parsing, adding proper structure names based on VSI documentation.
 
 
 v0.1.15 - 2018-03-27
