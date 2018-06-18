@@ -8,20 +8,20 @@ environment:
   matrix:
     - PYTHON: "C:\\Python27"
       PYTHON_VERSION: "2.7.x"
-      ARCH: "32"
+      PYTHON_ARCH: "32"
       PLAT_NAME: "win32"
 
     - PYTHON: "C:\\Python27-x64"
       PYTHON_VERSION: "2.7.x"
-      ARCH: "64"
+      PYTHON_ARCH: "64"
       PLAT_NAME: "win-amd64"
 
 # Install requirements
 install:
   # Set path
-  - "set PYTHONPATH=%APPVEYOR_BUILD_FOLDER%"
-  - "set PATH=%APPVEYOR_BUILD_FOLDER%;%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-
+  - "SET PATH=%APPVEYOR_BUILD_FOLDER%;%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "SET PYTHONPATH=%APPVEYOR_BUILD_FOLDER%;%PYTHON%\\Lib\\site-packages;%PYTHONPATH%"
+  
   # Install whell for building
   - "%PYTHON%\\python.exe -m pip install wheel"
 
@@ -30,8 +30,8 @@ install:
   - refreshenv
 
   # Set the proper build program
-  - if "%ARCH%"=="32" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" x86)
-  - if "%ARCH%"=="64" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" amd64)
+  - if "%PYTHON_ARCH%"=="32" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" x86)
+  - if "%PYTHON_ARCH%"=="64" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" amd64)
 
   # Build and install the library
   - "%PYTHON%\\python.exe setup.py install"
@@ -43,6 +43,8 @@ install:
 build: off
 
 test_script:
+  - cmd: echo %PATH%
+  - cmd: echo %PYTHONPATH%
   # Run tests
   #- "python.exe setup.py test"
   # Build the docs
