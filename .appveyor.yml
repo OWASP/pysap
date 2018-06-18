@@ -46,7 +46,7 @@ test_script:
   # Run tests
   #- "python.exe setup.py test"
   # Build the docs
-  - "%PYTHON%\\python.exe python.exe setup.py doc"
+  - "%PYTHON%\\python.exe setup.py doc"
 
 after_test:
   # Build a source artifact
