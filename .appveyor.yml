@@ -43,6 +43,7 @@ install:
 build: off
 
 test_script:
+  - "SET PATH=%APPVEYOR_BUILD_FOLDER%;%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - cmd: echo %PATH%
   - cmd: echo %PYTHONPATH%
   # Run tests
