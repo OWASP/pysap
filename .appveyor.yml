@@ -23,7 +23,7 @@ install:
   - "set PATH=%APPVEYOR_BUILD_FOLDER%;%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
   # Install whell for building
-  - "%PYTHON%\python.exe -m pip install wheel"
+  - "%PYTHON%\\python.exe -m pip install wheel"
 
   # Installing Npcap
   - ps: iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/secdev/scapy/master/.appveyor/InstallNpcap.ps1'))
@@ -34,11 +34,11 @@ install:
   - if "%ARCH%"=="64" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" amd64)
 
   # Build and install the library
-  - "%PYTHON%\python.exe setup.py install"
+  - "%PYTHON%\\python.exe setup.py install"
 
   # Install optional requirements
-  - "%PYTHON%\python.exe -m pip install -r requirements-docs.txt"
-  - "%PYTHON%\python.exe -m pip install -r requirements-optional.txt"
+  - "%PYTHON%\\python.exe -m pip install -r requirements-docs.txt"
+  - "%PYTHON%\\python.exe -m pip install -r requirements-optional.txt"
 
 build: off
 
@@ -46,13 +46,13 @@ test_script:
   # Run tests
   #- "python.exe setup.py test"
   # Build the docs
-  - "%PYTHON%\python.exe python.exe setup.py doc"
+  - "%PYTHON%\\python.exe python.exe setup.py doc"
 
 after_test:
   # Build a source artifact
-  - "%PYTHON%\python.exe setup.py sdist"
+  - "%PYTHON%\\python.exe setup.py sdist"
   # Build a wheel artifact
-  - "%PYTHON%\python.exe setup.py bdist_wheel"
+  - "%PYTHON%\\python.exe setup.py bdist_wheel"
 
 artifacts:
   - path: dist\*.whl
