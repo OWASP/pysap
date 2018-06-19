@@ -1,5 +1,4 @@
-Sphinx==1.6.5
-docutils<0.13.1
+Sphinx==1.5.1
 ipykernel
 nbconvert
 nbsphinx
