@@ -27,6 +27,7 @@ Some example scripts has additional required libraries:
 
 - ``tabulate``
 - ``netaddr``
+- ``cryptography``
 - ``requests``
 - `wxPython <https://www.wxpython.org/>`_
 - `fau_timer <https://github.com/seecurity/mona-timing-lib>`_
@@ -108,4 +109,3 @@ Documentation on the SAP CAR file protocol is available in SAP's `Virus Scan Int
 also found in the `Virus Scan Adapter SDK <ftp://ftp.sap.com/pub/icc/nw-vsi/VSA-SDK-2.0.zip>`_.
 
 Initial research about the IGS protocol was performed by Yvan Genuer and published in `SAP IGS : The 'vulnerable' forgotten component <https://www.troopers.de/troopers18/agenda/3r38lr/>`_.
-
