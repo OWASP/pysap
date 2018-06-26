@@ -28,9 +28,9 @@ from cStringIO import StringIO
 from scapy.packet import Packet
 from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
                           PacketField, StrFixedLenField, PacketListField,
-                          ConditionalField, LESignedIntField, StrField)
+                          ConditionalField, LESignedIntField, StrField, LELongField)
 # Custom imports
-from pysap.utils.fields import (PacketNoPadded, StrNullFixedLenField, PacketListStopField, LELongField)
+from pysap.utils.fields import (PacketNoPadded, StrNullFixedLenField, PacketListStopField)
 from pysapcompress import (decompress, compress, ALG_LZH, CompressError,
                            DecompressError)
 
