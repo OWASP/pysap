@@ -105,33 +105,45 @@ class MutablePacketField(StrLenField):
 
 
 class StrNullFixedLenField(StrFixedLenField):
-    """Packet field that has a fixed length and is null-terminated.
+    """Packet field that has a fixed length and is conditionally null-terminated.
     """
-    __slots__ = ["length_from", "max_length"]
+    __slots__ = ["length_from", "max_length", "null_terminated"]
 
-    def __init__(self, name, default, length=None, length_from=None, max_length=None):
+    def __init__(self, name, default, length=None, length_from=None, max_length=None, null_terminated=None):
+        if null_terminated:
+            self.null_terminated = null_terminated
+        else:
+            self.null_terminated = lambda pkt: True
         self.max_length = max_length or 200
         StrFixedLenField.__init__(self, name, default, length=length, length_from=length_from)
 
     def i2repr(self, pkt, v):
-        if type(v) is str:
-            v = v.rstrip("\0")
-        return repr(v)
+        if self.null_terminated(pkt):
+            if type(v) is str:
+                v = v.rstrip("\0")
+            return repr(v)
+        return StrFixedLenField.i2repr(self, pkt, v)
 
     def getfield(self, pkt, s):
-        l = self.length_from(pkt)
-        return s[l + 1:], self.m2i(pkt, s[:l])
+        if self.null_terminated(pkt):
+            l = self.length_from(pkt) - 1
+            return s[l + 1:], self.m2i(pkt, s[:l])
+        return StrFixedLenField.getfield(self, pkt, s)
 
     def addfield(self, pkt, s, val):
-        l = self.length_from(pkt)
-        return s + struct.pack("%is" % l, self.i2m(pkt, val)) + "\x00"
+        if self.null_terminated(pkt):
+            l = self.length_from(pkt) - 1
+            return s + struct.pack("%is" % l, self.i2m(pkt, val)) + "\x00"
+        return StrFixedLenField.addfield(self, pkt, s, val)
 
     def randval(self):
-        try:
-            l = self.length_from(None)
-        except:
-            l = RandTermString(RandNum(0, self.max_length), "\x00")
-        return RandBin(l)
+        if self.null_terminated:
+            try:
+                l = self.length_from(None) - 1
+            except:
+                l = RandTermString(RandNum(0, self.max_length), "\x00")
+            return RandBin(l)
+        return StrFixedLenField.randval(self)
 
 
 class StrFixedLenPaddedField(StrFixedLenField):

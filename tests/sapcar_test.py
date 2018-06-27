@@ -24,8 +24,8 @@ from os.path import basename, exists
 # External imports
 # Custom imports
 from tests.utils import data_filename
-from pysap.SAPCAR import (SAPCARArchive, SAPCARArchiveFile,
-                          SAPCAR_VERSION_200, SAPCAR_VERSION_201)
+from pysap.SAPCAR import (SAPCARArchive, SAPCARArchiveFile, SAPCARArchiveFilev200Format, SAPCARArchiveFilev201Format,
+                          SAPCAR_VERSION_200, SAPCAR_VERSION_201, SIZE_FOUR_GB)
 
 
 class PySAPCARTest(unittest.TestCase):
@@ -218,6 +218,45 @@ class PySAPCARTest(unittest.TestCase):
             af = ff200.open()
             self.assertEqual(self.test_string, af.read())
             af.close()
+
+    def test_sapcar_archive_file_length(self):
+
+        for cls in [SAPCARArchiveFilev200Format, SAPCARArchiveFilev201Format]:
+            ff = cls()
+
+            # Test several get file length combinations
+            ff.file_length_low = 0
+            ff.file_length_high = 0
+            self.assertEqual(ff.file_length, 0)
+
+            ff.file_length_low = 99999
+            ff.file_length_high = 0
+            self.assertEqual(ff.file_length, 99999)
+
+            ff.file_length_low = 0
+            ff.file_length_high = 99999
+            self.assertEqual(ff.file_length, SIZE_FOUR_GB * 99999)
+
+            ff.file_length_low = 99999
+            ff.file_length_high = 99999
+            self.assertEqual(ff.file_length, (SIZE_FOUR_GB * 99999) + 99999)
+
+            # Test several set file length combinations
+            ff.file_length = 0
+            self.assertEqual(ff.file_length_low, 0)
+            self.assertEqual(ff.file_length_high, 0)
+
+            ff.file_length = 99999
+            self.assertEqual(ff.file_length_low, 99999)
+            self.assertEqual(ff.file_length_high, 0)
+
+            ff.file_length = SIZE_FOUR_GB * 99999
+            self.assertEqual(ff.file_length_low, 0)
+            self.assertEqual(ff.file_length_high, 99999)
+
+            ff.file_length = (SIZE_FOUR_GB * 99999) + 99999
+            self.assertEqual(ff.file_length_low, 99999)
+            self.assertEqual(ff.file_length_high, 99999)
 
 
 def test_suite():

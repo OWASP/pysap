@@ -2,10 +2,18 @@ Changelog
 =========
 
 
-v0.1.16 - 2018-XX-XX
+v0.1.17 - 2018-XX-XX
+--------------------
+
+
+v0.1.16 - 2018-06-19
 --------------------
 
 - Using Scapy version 2.4.0.
+- Using Sphinx 1.7.4 for documentation.
+- Added missing `pysap.utils` package in source/binary packages.
+- Use flake8 to find syntax errors and undefined names in Travis ([\#20](https://github.com/CoreSecurity/pysap/pull/20)) Thanks [@cclauss](https://github.com/cclauss)!
+- `pysap/SAPCAR.py`: Improved SAPCAR files parsing, adding proper structure names based on VSI documentation.
 
 
 v0.1.15 - 2018-03-27

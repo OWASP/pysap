@@ -27,6 +27,7 @@ Some example scripts has additional required libraries:
 
 - ``tabulate``
 - ``netaddr``
+- ``cryptography``
 - ``requests``
 - `wxPython <https://www.wxpython.org/>`_
 - `fau_timer <https://github.com/seecurity/mona-timing-lib>`_
@@ -103,4 +104,8 @@ at the `Troopers 2016 Security Conference <https://www.troopers.de/troopers16/ag
 performed by `Hans-Christian Esperer <https://github.com/hce>`_ and published in the
 `Hascar <https://github.com/VirtualForgeGmbH/hascar>`_ tool.
 
-Initial research about the IGS protocol was performed by Yvan Genuer and published in ``_.
+Documentation on the SAP CAR file protocol is available in SAP's `Virus Scan Interface (NW-VSI) <ftp://ftp.sap.com/pub/icc/nw-vsi>`_
+`specification document <ftp://ftp.sap.com/pub/icc/nw-vsi/VSA-Specification.pdf>`_. An example implementation can be
+also found in the `Virus Scan Adapter SDK <ftp://ftp.sap.com/pub/icc/nw-vsi/VSA-SDK-2.0.zip>`_.
+
+Initial research about the IGS protocol was performed by Yvan Genuer and published in `SAP IGS : The 'vulnerable' forgotten component <https://www.troopers.de/troopers18/agenda/3r38lr/>`_.
