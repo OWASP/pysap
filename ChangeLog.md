@@ -5,6 +5,8 @@ Changelog
 v0.1.17 - 2018-XX-XX
 --------------------
 
+- `pysap/SAPCAR.py`; Fixed crafting of archive files by defaulting length fields to zero ([\#22](https://github.com/CoreSecurity/pysap/issues/22)) Thanks [@okuuva](https://github.com/okuuva)!
+
 
 v0.1.16 - 2018-06-19
 --------------------
@@ -25,7 +27,7 @@ v0.1.15 - 2018-03-27
 - `bin/pysapgenpse`: New binary tool for working with PSE and SSO credential files.
 - `bin/pysapcar`: Added options for creating a new archive and appending files to an existing one.
 - `pysap/SAPCredv2.py`: New module for SSO Credential files definitions and decryption logic.
-- `pysap/SAPDiagItems.py`, `extra/parsesupportbits.py`: Corrected order of support data bit fields ([\#19](https://github.com/CoreSecurity/pysap/pull/18)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
+- `pysap/SAPDiagItems.py`, `extra/parsesupportbits.py`: Corrected order of support data bit fields ([\#18](https://github.com/CoreSecurity/pysap/pull/18)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
 - `pysap/SAPIGS.py`: New module for IGS packets layer ([\#19](https://github.com/CoreSecurity/pysap/pull/19)).
 - `pysap/SAPLPS.py`: New module for LPS definitions and INT/DP API decryption logic.
 - `pysap/SAPMS.py`: Added Message Server Domain field, MS J2EE Cluster/Header/Service packets. Thanks Albert Zedlitz!
