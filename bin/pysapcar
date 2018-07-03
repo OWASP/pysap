@@ -22,6 +22,7 @@
 import logging
 from sys import stdin
 from os import mkdir, utime, path
+from os import sep as dir_separator
 from argparse import ArgumentParser
 # Custom imports
 import pysap
@@ -45,7 +46,7 @@ list the contents of an archive:
 pysapcar -t[v][f archive] [file1 file2 ...]
 
 extract files from an archive:
-pysapcar -x[v][f archive] [file1 file2 ...]
+pysapcar -x[v][f archive] [-o outdir] [file1 file2 ...]
 
 append files to an archive:
 pysapcar -a[v][f archive] [file1 file2 [/n filename] ...]
@@ -82,6 +83,7 @@ class PySAPCAR(object):
         parser.add_argument("-t", dest="list", action="store_true", help="List the contents of an archive")
         parser.add_argument("-a", dest="append", action="store_true", help="Append files to an archive")
         parser.add_argument("-f", dest="filename", help="Archive filename", metavar="FILE")
+        parser.add_argument("-o", dest="outdir", help="Path to directory where to extract files")
 
         misc = parser.add_argument_group("Misc options")
         misc.add_argument("-v", dest="verbose", action="count", help="Verbose output")
@@ -241,6 +243,10 @@ class PySAPCAR(object):
             flag = CONTINUE
             fil = sapcar.files[filename]
             filename = path.normpath(filename.replace("\x00", ""))  # Take out null bytes if found
+            if options.outdir:
+                # Have to strip directory separator from the beginning of the file name, because path.join disregards
+                # all previous components if any of the following components is an absolute path
+                filename = path.join(path.normpath(options.outdir), filename.lstrip(dir_separator))
 
             if fil.is_directory():
                 # If the directory doesn't exist, create it and set permissions and timestamp
