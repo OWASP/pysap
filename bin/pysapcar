@@ -63,7 +63,8 @@ class PySAPCAR(object):
     log_level = None
     archive_fd = None
 
-    def parse_options(self):
+    @staticmethod
+    def parse_options():
         """Parses command-line options.
         """
 
@@ -131,8 +132,7 @@ class PySAPCAR(object):
             try:
                 self.archive_fd = open(options.filename, self.mode)
             except IOError as e:
-                self.logger.error("pysapcar: error opening '%s' (%s)" % (options.filename,
-                                                                         e.strerror))
+                self.logger.error("pysapcar: error opening '%s' (%s)" % (options.filename, e.strerror))
                 return
         else:
             self.archive_fd = stdin
@@ -160,7 +160,8 @@ class PySAPCAR(object):
             return None
         return sapcar
 
-    def target_files(self, filenames, target_filenames=None):
+    @staticmethod
+    def target_files(filenames, target_filenames=None):
         """Generates the list of files to work on. It calculates
         the intersection between the file names selected in
         command-line and the ones in the archive to work on.
@@ -193,7 +194,7 @@ class PySAPCAR(object):
         while len(args):
             filename = filename_in_archive = args.pop(0)
 
-            print args
+            self.logger.debug(args)
             if len(args) >= 2 and args[0] == "/n":
                 args.pop(0)
                 filename_in_archive = args.pop(0)
@@ -255,7 +256,7 @@ class PySAPCAR(object):
             elif fil.is_file():
                 # If the file references a directory that is not there, create it first
                 file_dirname = path.dirname(filename)
-                if file_dirname and file_dirname != "" and not path.exists(file_dirname):
+                if file_dirname and not path.exists(file_dirname):
                     mkdir(file_dirname)
                     self.logger.info("d %s", file_dirname)
 
@@ -268,7 +269,7 @@ class PySAPCAR(object):
                         flag = STOP
                     else:
                         flag = SKIP
-                except SAPCARInvalidChecksumException as e:
+                except SAPCARInvalidChecksumException:
                     self.logger.error("pysapcar: Invalid checksum found for file '%s'", fil.filename)
                     if options.enforce_checksum:
                         flag = STOP
