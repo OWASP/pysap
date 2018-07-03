@@ -21,7 +21,7 @@
 # Standard imports
 import logging
 from sys import stdin
-from os import mkdir, utime, path
+from os import makedirs, utime, path
 from os import sep as dir_separator
 from argparse import ArgumentParser
 # Custom imports
@@ -251,7 +251,7 @@ class PySAPCAR(object):
             if fil.is_directory():
                 # If the directory doesn't exist, create it and set permissions and timestamp
                 if not path.exists(filename):
-                    mkdir(filename)
+                    makedirs(filename)
                     if chmod:
                         chmod(filename, fil.perm_mode)
                     utime(filename, (fil.timestamp_raw, fil.timestamp_raw))
@@ -262,7 +262,9 @@ class PySAPCAR(object):
                 # If the file references a directory that is not there, create it first
                 file_dirname = path.dirname(filename)
                 if file_dirname and not path.exists(file_dirname):
-                    mkdir(file_dirname)
+                    # mkdir barfs if archive contains /foo/bar/bash but not /foo/bar directory.
+                    # makedirs creates intermediate directories as well
+                    makedirs(file_dirname)
                     self.logger.info("d %s", file_dirname)
 
                 # Try to extract the file and handle potential errors
