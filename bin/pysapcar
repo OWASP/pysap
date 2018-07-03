@@ -21,9 +21,9 @@
 # Standard imports
 import logging
 from sys import stdin
-from os import mkdir, utime
-from os.path import dirname, exists, normpath
-from optparse import OptionParser, OptionGroup
+from os import makedirs, utime, path
+from os import sep as dir_separator
+from argparse import ArgumentParser
 # Custom imports
 import pysap
 from pysapcompress import DecompressError
@@ -46,7 +46,7 @@ list the contents of an archive:
 pysapcar -t[v][f archive] [file1 file2 ...]
 
 extract files from an archive:
-pysapcar -x[v][f archive] [file1 file2 ...]
+pysapcar -x[v][f archive] [-o outdir] [file1 file2 ...]
 
 append files to an archive:
 pysapcar -a[v][f archive] [file1 file2 [/n filename] ...]
@@ -64,7 +64,8 @@ class PySAPCAR(object):
     log_level = None
     archive_fd = None
 
-    def parse_options(self):
+    @staticmethod
+    def parse_options():
         """Parses command-line options.
         """
 
@@ -74,25 +75,25 @@ class PySAPCAR(object):
                                                              "url": pysap.__url__,
                                                              "repo": pysap.__repo__}
 
-        parser = OptionParser(usage=pysapcar_usage, description=description, epilog=epilog)
+        parser = ArgumentParser(usage=pysapcar_usage, description=description, epilog=epilog)
 
         # Commands
-        parser.add_option("-c", dest="create", action="store_true", help="Create archive with specified files")
-        parser.add_option("-x", dest="extract", action="store_true", help="Extract files from an archive")
-        parser.add_option("-t", dest="list", action="store_true", help="List the contents of an archive")
-        parser.add_option("-a", dest="append", action="store_true", help="Append files to an archive")
-        parser.add_option("-f", dest="filename", help="Archive filename", metavar="FILE")
+        parser.add_argument("-c", dest="create", action="store_true", help="Create archive with specified files")
+        parser.add_argument("-x", dest="extract", action="store_true", help="Extract files from an archive")
+        parser.add_argument("-t", dest="list", action="store_true", help="List the contents of an archive")
+        parser.add_argument("-a", dest="append", action="store_true", help="Append files to an archive")
+        parser.add_argument("-f", dest="filename", help="Archive filename", metavar="FILE")
+        parser.add_argument("-o", dest="outdir", help="Path to directory where to extract files")
 
-        misc = OptionGroup(parser, "Misc options")
-        misc.add_option("-v", dest="verbose", action="count", help="Verbose output")
-        misc.add_option("-e", "--enforce-checksum", dest="enforce_checksum", action="store_true",
-                        help="Whether the checksum validation is enforced. A file with an invalid checksum won't be "
-                             "extracted. When not set, only a warning would be thrown if checksum is invalid.")
-        misc.add_option("-b", "--break-on-error", dest="break_on_error", action="store_true",
-                        help="Whether the extraction would continue if an error is identified.")
-        parser.add_option_group(misc)
+        misc = parser.add_argument_group("Misc options")
+        misc.add_argument("-v", dest="verbose", action="count", help="Verbose output")
+        misc.add_argument("-e", "--enforce-checksum", dest="enforce_checksum", action="store_true",
+                          help="Whether the checksum validation is enforced. A file with an invalid checksum won't be "
+                               "extracted. When not set, only a warning would be thrown if checksum is invalid.")
+        misc.add_argument("-b", "--break-on-error", dest="break_on_error", action="store_true",
+                          help="Whether the extraction would continue if an error is identified.")
 
-        (options, args) = parser.parse_args()
+        (options, args) = parser.parse_known_args()
 
         return options, args
 
@@ -132,8 +133,7 @@ class PySAPCAR(object):
             try:
                 self.archive_fd = open(options.filename, self.mode)
             except IOError as e:
-                self.logger.error("pysapcar: error opening '%s' (%s)" % (options.filename,
-                                                                         e.strerror))
+                self.logger.error("pysapcar: error opening '%s' (%s)" % (options.filename, e.strerror))
                 return
         else:
             self.archive_fd = stdin
@@ -161,7 +161,8 @@ class PySAPCAR(object):
             return None
         return sapcar
 
-    def target_files(self, filenames, target_filenames=None):
+    @staticmethod
+    def target_files(filenames, target_filenames=None):
         """Generates the list of files to work on. It calculates
         the intersection between the file names selected in
         command-line and the ones in the archive to work on.
@@ -194,7 +195,7 @@ class PySAPCAR(object):
         while len(args):
             filename = filename_in_archive = args.pop(0)
 
-            print args
+            self.logger.debug(args)
             if len(args) >= 2 and args[0] == "/n":
                 args.pop(0)
                 filename_in_archive = args.pop(0)
@@ -241,12 +242,16 @@ class PySAPCAR(object):
         for filename in self.target_files(sapcar.files_names, args):
             flag = CONTINUE
             fil = sapcar.files[filename]
-            filename = normpath(filename.replace("\x00", ""))  # Take out null bytes if found
+            filename = path.normpath(filename.replace("\x00", ""))  # Take out null bytes if found
+            if options.outdir:
+                # Have to strip directory separator from the beginning of the file name, because path.join disregards
+                # all previous components if any of the following components is an absolute path
+                filename = path.join(path.normpath(options.outdir), filename.lstrip(dir_separator))
 
             if fil.is_directory():
                 # If the directory doesn't exist, create it and set permissions and timestamp
-                if not exists(filename):
-                    mkdir(filename)
+                if not path.exists(filename):
+                    makedirs(filename)
                     if chmod:
                         chmod(filename, fil.perm_mode)
                     utime(filename, (fil.timestamp_raw, fil.timestamp_raw))
@@ -255,9 +260,11 @@ class PySAPCAR(object):
 
             elif fil.is_file():
                 # If the file references a directory that is not there, create it first
-                file_dirname = dirname(filename)
-                if file_dirname and file_dirname != "" and not exists(file_dirname):
-                    mkdir(file_dirname)
+                file_dirname = path.dirname(filename)
+                if file_dirname and not path.exists(file_dirname):
+                    # mkdir barfs if archive contains /foo/bar/bash but not /foo/bar directory.
+                    # makedirs creates intermediate directories as well
+                    makedirs(file_dirname)
                     self.logger.info("d %s", file_dirname)
 
                 # Try to extract the file and handle potential errors
@@ -269,7 +276,7 @@ class PySAPCAR(object):
                         flag = STOP
                     else:
                         flag = SKIP
-                except SAPCARInvalidChecksumException as e:
+                except SAPCARInvalidChecksumException:
                     self.logger.error("pysapcar: Invalid checksum found for file '%s'", fil.filename)
                     if options.enforce_checksum:
                         flag = STOP
@@ -283,10 +290,15 @@ class PySAPCAR(object):
                     break
 
                 # Write the new file and set permissions
-                with open(filename, "wb") as new_file:
-                    new_file.write(data)
-                    if fchmod:
-                        fchmod(new_file.fileno(), fil.perm_mode)
+                try:
+                    with open(filename, "wb") as new_file:
+                        new_file.write(data)
+                        if fchmod:
+                            fchmod(new_file.fileno(), fil.perm_mode)
+                except IOError as e:
+                    self.logger.error("pysapcar: Failed to extract file '%s', reason: %s", filename, e.strerror)
+                    if options.break_on_error:
+                        break
 
                 # Set the timestamp
                 utime(filename, (fil.timestamp_raw, fil.timestamp_raw))
