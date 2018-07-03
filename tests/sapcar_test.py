@@ -127,6 +127,9 @@ class PySAPCARTest(unittest.TestCase):
             self.assertEqual(self.test_string, af.read())
             af.close()
 
+        ar.write()
+        ar.close()
+
     def test_sapcar_archive_file_from_file(self):
         """Test SAP CAR archive file object construction from file using the original name
         and a different one"""
