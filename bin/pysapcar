@@ -290,10 +290,15 @@ class PySAPCAR(object):
                     break
 
                 # Write the new file and set permissions
-                with open(filename, "wb") as new_file:
-                    new_file.write(data)
-                    if fchmod:
-                        fchmod(new_file.fileno(), fil.perm_mode)
+                try:
+                    with open(filename, "wb") as new_file:
+                        new_file.write(data)
+                        if fchmod:
+                            fchmod(new_file.fileno(), fil.perm_mode)
+                except IOError as e:
+                    self.logger.error("pysapcar: Failed to extract file '%s', reason: %s", filename, e.strerror)
+                    if options.break_on_error:
+                        break
 
                 # Set the timestamp
                 utime(filename, (fil.timestamp_raw, fil.timestamp_raw))
