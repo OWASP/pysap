@@ -19,19 +19,19 @@
 
 # Standard imports
 from binascii import unhexlify
-from os.path import join as join, dirname
+from os import path
 
 
 def data_filename(filename):
-    return join(dirname(__file__), 'data', filename)
+    return path.join(path.dirname(__file__), 'data', filename)
 
 
 def read_data_file(filename, unhex=True):
     filename = data_filename(filename)
-    with open(filename, 'r') as f:
+    with open(filename, 'rb') as f:
         data = f.read()
 
-    data = data.replace('\n', ' ').replace(' ', '')
+    data = data.replace(b'\n', b' ').replace(b' ', b'')
     if unhex:
         data = unhexlify(data)
 

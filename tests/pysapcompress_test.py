@@ -18,6 +18,7 @@
 # ==============
 
 # Standard imports
+from __future__ import unicode_literals
 import unittest
 # Custom imports
 from tests.utils import read_data_file
@@ -25,29 +26,29 @@ from tests.utils import read_data_file
 
 class PySAPCompressTest(unittest.TestCase):
 
-    test_string_plain = "TEST" * 70
-    test_string_compr_lzc = '\x18\x01\x00\x00\x11\x1f\x9d\x8dT\x8aL\xa1\x12p`A\x82\x02\x11\x1aLx\xb0!\xc3\x87\x0b#*\x9c\xe8PbE\x8a\x101Z\xccx\xb1#\xc7\x8f\x1bCj\x1c\xe9QdI\x92 Q\x9aLy\xf2 '
-    test_string_compr_lzh = '\x18\x01\x00\x00\x12\x1f\x9d\x02]\x88kpH\xc8(\xc6\xc0\x00\x00'
+    test_string_plain = b"TEST" * 70
+    test_string_compr_lzc = b'\x18\x01\x00\x00\x11\x1f\x9d\x8dT\x8aL\xa1\x12p`A\x82\x02\x11\x1aLx\xb0!\xc3\x87\x0b#*\x9c\xe8PbE\x8a\x101Z\xccx\xb1#\xc7\x8f\x1bCj\x1c\xe9QdI\x92 Q\x9aLy\xf2 '
+    test_string_compr_lzh = b'\x18\x01\x00\x00\x12\x1f\x9d\x02]\x88kpH\xc8(\xc6\xc0\x00\x00'
 
     def test_import(self):
         """Test import of the pysapcompress library"""
         try:
             import pysapcompress  # @UnusedImport
         except ImportError as e:
-            self.Fail(str(e))
+            self.fail(str(e))
 
     def test_compress_input(self):
         """Test compress function input"""
         from pysapcompress import compress, CompressError
-        self.assertRaisesRegexp(CompressError, "invalid input length", compress, "")
-        self.assertRaisesRegexp(CompressError, "unknown algorithm", compress, "TestString", algorithm=999)
+        self.assertRaisesRegexp(CompressError, "invalid input length", compress, b"")
+        self.assertRaisesRegexp(CompressError, "unknown algorithm", compress, b"TestString", algorithm=999)
 
     def test_decompress_input(self):
         """Test decompress function input"""
         from pysapcompress import decompress, DecompressError
-        self.assertRaisesRegexp(DecompressError, "invalid input length", decompress, "", 1)
-        self.assertRaisesRegexp(DecompressError, "input not compressed", decompress, "AAAAAAAA", 1)
-        self.assertRaisesRegexp(DecompressError, "unknown algorithm", decompress, "\x0f\x00\x00\x00\xff\x1f\x9d\x00\x00\x00\x00", 1)
+        self.assertRaisesRegexp(DecompressError, "invalid input length", decompress, b"", 1)
+        self.assertRaisesRegexp(DecompressError, "input not compressed", decompress, b"AAAAAAAA", 1)
+        self.assertRaisesRegexp(DecompressError, "unknown algorithm", decompress, b"\x0f\x00\x00\x00\xff\x1f\x9d\x00\x00\x00\x00", 1)
 
     def test_lzc(self):
         """Test compression and decompression using LZC algorithm"""
