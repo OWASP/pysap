@@ -62,7 +62,7 @@ install:
   - PIP=`which pip || (python --version 2>&1 | grep -q 'Python 2' && which pip2) || (python --version 2>&1 | grep -q 'Python 3' && which pip3)`
   - ${PIP} --version
   - ${PIP} install .
-  - ${PIP} install flake8 six
+  - ${PIP} install flake8
   - ${PIP} install -r requirements-docs.txt
   - ${PIP} install -r requirements-optional.txt
   # stop the build if there are Python syntax errors or undefined names
