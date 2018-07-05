@@ -18,11 +18,6 @@ matrix:
             - CXX=g++ CC=gcc
 
         - os: linux
-          python: 3.3
-          env:
-            - CXX=clang++ CC=clang
-
-        - os: linux
           python: 3.4
           env:
             - CXX=clang++ CC=clang
@@ -61,14 +56,15 @@ before_script:
       brew install https://raw.githubusercontent.com/secdev/scapy/master/.travis/pylibpcap.rb;
       brew install openssl pandoc;
     fi
-  # Determine the pip vesion to use
-  - PIP=`which pip || (python --version 2>&1 | grep -q 'Python 2' && which pip2) || (python --version 2>&1 | grep -q 'Python 3' && which pip3)`
 
 install:
-  - $PIP install .
-  - $PIP install flake8 six
-  - $PIP install -r requirements-docs.txt
-  - $PIP install -r requirements-optional.txt
+  # Determine the pip vesion to use
+  - PIP=`which pip || (python --version 2>&1 | grep -q 'Python 2' && which pip2) || (python --version 2>&1 | grep -q 'Python 3' && which pip3)`
+  - ${PIP} --version
+  - ${PIP} install .
+  - ${PIP} install flake8 six
+  - ${PIP} install -r requirements-docs.txt
+  - ${PIP} install -r requirements-optional.txt
   # stop the build if there are Python syntax errors or undefined names
   - flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
   # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
