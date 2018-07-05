@@ -19,6 +19,7 @@
 
 # Standard imports
 from __future__ import unicode_literals
+import six
 import unittest
 # Custom imports
 from tests.utils import read_data_file
@@ -35,20 +36,20 @@ class PySAPCompressTest(unittest.TestCase):
         try:
             import pysapcompress  # @UnusedImport
         except ImportError as e:
-            self.fail(str(e))
+            self.fail(six.text_type(e))
 
     def test_compress_input(self):
         """Test compress function input"""
         from pysapcompress import compress, CompressError
-        self.assertRaisesRegexp(CompressError, "invalid input length", compress, b"")
-        self.assertRaisesRegexp(CompressError, "unknown algorithm", compress, b"TestString", algorithm=999)
+        six.assertRaisesRegex(self, CompressError, "invalid input length", compress, b"")
+        six.assertRaisesRegex(self, CompressError, "unknown algorithm", compress, b"TestString", algorithm=999)
 
     def test_decompress_input(self):
         """Test decompress function input"""
         from pysapcompress import decompress, DecompressError
-        self.assertRaisesRegexp(DecompressError, "invalid input length", decompress, b"", 1)
-        self.assertRaisesRegexp(DecompressError, "input not compressed", decompress, b"AAAAAAAA", 1)
-        self.assertRaisesRegexp(DecompressError, "unknown algorithm", decompress, b"\x0f\x00\x00\x00\xff\x1f\x9d\x00\x00\x00\x00", 1)
+        six.assertRaisesRegex(self, DecompressError, "invalid input length", decompress, b"", 1)
+        six.assertRaisesRegex(self, DecompressError, "input not compressed", decompress, b"AAAAAAAA", 1)
+        six.assertRaisesRegex(self, DecompressError, "unknown algorithm", decompress, b"\x0f\x00\x00\x00\xff\x1f\x9d\x00\x00\x00\x00", 1)
 
     def test_lzc(self):
         """Test compression and decompression using LZC algorithm"""
@@ -155,7 +156,7 @@ class PySAPCompressTest(unittest.TestCase):
 
         test_case = read_data_file('invalid_write_testcase.data', False)
 
-        self.assertRaisesRegexp(DecompressError, "stack overflow in decomp", decompress, test_case, 6716)
+        six.assertRaisesRegex(self, DecompressError, "stack overflow in decomp", decompress, test_case, 6716)
 
     def test_invalid_read(self):
         """Test invalid read vulnerability in LZH code (CVE-2015-2278)"""
