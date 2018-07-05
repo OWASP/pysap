@@ -366,7 +366,7 @@ static char pysapcompress_compress_doc[] = "Compress a buffer using SAP's compre
                                            ":param str in: input buffer to compress\n\n"
                                            ":param int algorithm: algorithm to use\n\n"
                                            ":return: tuple with return code, output length and output buffer\n"
-                                           ":rtype: tuple of int, int, string\n\n"
+                                           ":rtype: tuple of int, int, bytes\n\n"
                                            ":raises CompressError: if an error occurred during compression\n";
 
 static PyObject *
@@ -409,7 +409,7 @@ static char pysapcompress_decompress_doc[] = "Decompress a buffer using SAP's co
                                              ":param str in: input buffer to decompress\n"
                                              ":param int out_length: length of the output to decompress\n"
                                              ":return: tuple of return code, output length and output buffer\n"
-                                             ":rtype: tuple of int, int, string\n\n"
+                                             ":rtype: tuple of int, int, bytes\n\n"
                                              ":raises DecompressError: if an error occurred during decompression\n";
 
 static PyObject *
@@ -452,12 +452,31 @@ static PyMethodDef pysapcompressMethods[] = {
 static char pysapcompress_module_doc[] = "Library implementing SAP's LZH and LZC compression algorithms.";
 
 /* Module initialization */
-PyMODINIT_FUNC
-initpysapcompress(void)
+/* Python 2 and 3 compatiblitily shenanigans, from http://python3porting.com/cextensions.html */
+#if PY_MAJOR_VERSION >= 3
+  #define MOD_ERROR_VAL NULL
+  #define MOD_SUCCESS_VAL(val) val
+  #define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
+  #define MOD_DEF(ob, name, doc, methods) \
+          static struct PyModuleDef moduledef = { \
+            PyModuleDef_HEAD_INIT, name, doc, -1, methods, }; \
+          ob = PyModule_Create(&moduledef);
+#else
+  #define MOD_ERROR_VAL
+  #define MOD_SUCCESS_VAL(val)
+  #define MOD_INIT(name) PyMODINIT_FUNC init##name(void)
+  #define MOD_DEF(ob, name, doc, methods) \
+          ob = Py_InitModule3(name, methods, doc);
+#endif
+
+MOD_INIT(pysapcompress)
 {
     PyObject *module = NULL;
     /* Create the module and define the methods */
-    module = Py_InitModule3("pysapcompress", pysapcompressMethods, pysapcompress_module_doc);
+    MOD_DEF(module, "pysapcompress", pysapcompress_module_doc, pysapcompressMethods)
+
+    if (module == NULL)
+        return MOD_ERROR_VAL;
 
     /* Add the algorithm constants */
     PyModule_AddIntConstant(module, "ALG_LZC", ALG_LZC);
@@ -470,4 +489,5 @@ initpysapcompress(void)
     decompression_exception = PyErr_NewException(decompression_exception_name, NULL, NULL);
     PyModule_AddObject(module, decompression_exception_short, decompression_exception);
 
+    return MOD_SUCCESS_VAL(module);
 }
