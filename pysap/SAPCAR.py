@@ -18,6 +18,7 @@
 # ==============
 
 # Standard imports
+import six
 import stat
 from zlib import crc32
 from struct import pack
@@ -31,53 +32,54 @@ from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
                           ConditionalField, LESignedIntField, StrField, LELongField)
 # Custom imports
 from pysap.utils.fields import (PacketNoPadded, StrNullFixedLenField, PacketListStopField)
-from pysapcompress import (decompress, compress, ALG_LZH, CompressError,
-                           DecompressError)
+from pysapcompress import (decompress, compress, ALG_LZH, CompressError, DecompressError)
 
 
-# Filemode code obtained from Python 3 stat.py
-_filemode_table = (
-    ((stat.S_IFLNK,         "l"),
-     (stat.S_IFREG,         "-"),
-     (stat.S_IFBLK,         "b"),
-     (stat.S_IFDIR,         "d"),
-     (stat.S_IFCHR,         "c"),
-     (stat.S_IFIFO,         "p")),
+if six.PY2:
+    # Filemode code obtained from Python 3 stat.py
+    _filemode_table = (
+        ((stat.S_IFLNK,         "l"),
+         (stat.S_IFREG,         "-"),
+         (stat.S_IFBLK,         "b"),
+         (stat.S_IFDIR,         "d"),
+         (stat.S_IFCHR,         "c"),
+         (stat.S_IFIFO,         "p")),
 
-    ((stat.S_IRUSR,         "r"),),
-    ((stat.S_IWUSR,         "w"),),
-    ((stat.S_IXUSR|stat.S_ISUID, "s"),
-     (stat.S_ISUID,         "S"),
-     (stat.S_IXUSR,         "x")),
+        ((stat.S_IRUSR,         "r"),),
+        ((stat.S_IWUSR,         "w"),),
+        ((stat.S_IXUSR|stat.S_ISUID, "s"),
+         (stat.S_ISUID,         "S"),
+         (stat.S_IXUSR,         "x")),
 
-    ((stat.S_IRGRP,         "r"),),
-    ((stat.S_IWGRP,         "w"),),
-    ((stat.S_IXGRP|stat.S_ISGID, "s"),
-     (stat.S_ISGID,         "S"),
-     (stat.S_IXGRP,         "x")),
+        ((stat.S_IRGRP,         "r"),),
+        ((stat.S_IWGRP,         "w"),),
+        ((stat.S_IXGRP|stat.S_ISGID, "s"),
+         (stat.S_ISGID,         "S"),
+         (stat.S_IXGRP,         "x")),
 
-    ((stat.S_IROTH,         "r"),),
-    ((stat.S_IWOTH,         "w"),),
-    ((stat.S_IXOTH|stat.S_ISVTX, "t"),
-     (stat.S_ISVTX,         "T"),
-     (stat.S_IXOTH,         "x"))
-)
+        ((stat.S_IROTH,         "r"),),
+        ((stat.S_IWOTH,         "w"),),
+        ((stat.S_IXOTH|stat.S_ISVTX, "t"),
+         (stat.S_ISVTX,         "T"),
+         (stat.S_IXOTH,         "x"))
+    )
 
+    def filemode(mode):
+        """Convert a file's mode to a string of the form '-rwxrwxrwx'."""
+        perm = []
+        for table in _filemode_table:
+            for bit, char in table:
+                if mode & bit == bit:
+                    perm.append(char)
+                    break
+            else:
+                perm.append("-")
+        return "".join(perm)
+
+else:
+    from stat import filemode
 
 SIZE_FOUR_GB = 0xffffffff + 1
-
-
-def filemode(mode):
-    """Convert a file's mode to a string of the form '-rwxrwxrwx'."""
-    perm = []
-    for table in _filemode_table:
-        for bit, char in table:
-            if mode & bit == bit:
-                perm.append(char)
-                break
-        else:
-            perm.append("-")
-    return "".join(perm)
 
 
 class SAPCARInvalidFileException(Exception):
