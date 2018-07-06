@@ -19,6 +19,7 @@
 
 # Standard imports
 from __future__ import unicode_literals
+import six
 import unittest
 from os import unlink, path
 # External imports
@@ -58,7 +59,10 @@ class PySAPCARTest(unittest.TestCase):
             self.assertEqual(1, len(sapcar_archive.files))
             self.assertEqual(1, len(sapcar_archive.files_names))
             self.assertListEqual([self.test_filename], sapcar_archive.files_names)
-            self.assertListEqual([self.test_filename], sapcar_archive.files.keys())
+            if six.PY2:
+                self.assertListEqual([self.test_filename], sapcar_archive.files.keys())
+            else:
+                self.assertListEqual([self.test_filename], list(sapcar_archive.files.keys()))
 
             af = sapcar_archive.open(self.test_filename)
             self.assertEqual(self.test_string, af.read())
@@ -109,7 +113,10 @@ class PySAPCARTest(unittest.TestCase):
         self.assertEqual(2, len(ar.files))
         self.assertEqual(2, len(ar.files_names))
         self.assertListEqual([self.test_filename, self.test_filename+"two"], ar.files_names)
-        self.assertListEqual([self.test_filename, self.test_filename+"two"], ar.files.keys())
+        if six.PY2:
+            self.assertListEqual([self.test_filename, self.test_filename+"two"], ar.files.keys())
+        else:
+            self.assertListEqual([self.test_filename, self.test_filename+"two"], list(ar.files.keys()))
 
         for filename in [self.test_filename, self.test_filename+"two"]:
             af = ar.open(filename)

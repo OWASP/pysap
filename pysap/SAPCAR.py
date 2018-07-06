@@ -710,7 +710,10 @@ class SAPCARArchive(object):
         :return: list of file names
         :rtype: list(six.text_type)
         """
-        return self.files.keys()
+        if six.PY2:
+            return self.files.keys()
+        # In Python 3, dict.keys() returns fancy new dict_keys object that needs type conversion
+        return list(self.files.keys())
 
     @property
     def version(self):
