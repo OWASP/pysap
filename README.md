@@ -100,6 +100,8 @@ Contributions made by:
   * Yvan Genuer ([@iggy38](https://github.com/iggy38))
   * Malte Heinzelmann ([@hnzlmnn](https://github.com/hnzlmnn))
   * Albert Zedlitz
+  * [@cclauss](https://github.com/cclauss)
+  * [@okuuva](https://github.com/okuuva)
 
 
 Contact
