@@ -524,7 +524,7 @@ class SAPCARArchiveFile(object):
         """
 
         # Read the file properties and its content
-        stat = os_stat(filename)
+        fil_stat = os_stat(filename)
         with open(filename, "rb") as fd:
             data = fd.read()
 
@@ -547,9 +547,9 @@ class SAPCARArchiveFile(object):
         # Build the object and fill the fields
         archive_file = cls()
         archive_file._file_format = ff()
-        archive_file._file_format.perm_mode = stat.st_mode
-        archive_file._file_format.timestamp = stat.st_atime
-        archive_file._file_format.file_length = stat.st_size
+        archive_file._file_format.perm_mode = fil_stat.st_mode
+        archive_file._file_format.timestamp = fil_stat.st_atime
+        archive_file._file_format.file_length = fil_stat.st_size
         archive_file._file_format.filename = archive_filename
         archive_file._file_format.filename_length = len(archive_filename)
         if archive_file._file_format.version == SAPCAR_VERSION_201:
