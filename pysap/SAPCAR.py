@@ -25,7 +25,7 @@ from zlib import crc32
 from struct import pack
 from datetime import datetime
 from os import stat as os_stat
-from cStringIO import StringIO
+from io import BytesIO
 # External imports
 from scapy.packet import Packet
 from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
@@ -618,7 +618,7 @@ class SAPCARArchiveFile(object):
             raise Exception("Invalid file type")
 
         # Extract the file to a file-like object
-        out_file = StringIO()
+        out_file = BytesIO()
         checksum = self._file_format.extract(out_file)
         out_file.seek(0)
 
