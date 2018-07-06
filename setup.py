@@ -96,6 +96,7 @@ setup(name=pysap.__title__,   # Package information
       url=pysap.__url__,
       download_url=pysap.__url__,
       license=pysap.__license__,
+      python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4',
       classifiers=['Development Status :: 3 - Alpha',
                    'Intended Audience :: Developers',
                    'Intended Audience :: Information Technology',
