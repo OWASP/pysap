@@ -18,6 +18,7 @@
 # ==============
 
 # Standard imports
+from __future__ import unicode_literals
 import unittest
 from os import unlink, path
 # External imports
@@ -35,7 +36,7 @@ class PySAPCARTest(unittest.TestCase):
     test_timestamp = "01 Dec 2015 22:48"
     test_perm_mode = 33204
     test_permissions = "-rw-rw-r--"
-    test_string = "The quick brown fox jumps over the lazy dog"
+    test_string = b"The quick brown fox jumps over the lazy dog"
 
     def setUp(self):
         with open(self.test_filename, "wb") as fd:
