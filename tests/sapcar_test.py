@@ -19,8 +19,7 @@
 
 # Standard imports
 import unittest
-from os import unlink
-from os.path import basename, exists
+from os import unlink, path
 # External imports
 # Custom imports
 from tests.utils import data_filename
@@ -44,7 +43,7 @@ class PySAPCARTest(unittest.TestCase):
 
     def tearDown(self):
         for filename in [self.test_filename, self.test_archive_file]:
-            if exists(filename):
+            if path.exists(filename):
                 unlink(filename)
 
     def check_sapcar_archive(self, filename, version):
@@ -53,7 +52,7 @@ class PySAPCARTest(unittest.TestCase):
         with open(data_filename(filename), "rb") as fd:
             sapcar_archive = SAPCARArchive(fd, mode="r")
 
-            self.assertEqual(filename, basename(sapcar_archive.filename))
+            self.assertEqual(filename, path.basename(sapcar_archive.filename))
             self.assertEqual(version, sapcar_archive.version)
             self.assertEqual(1, len(sapcar_archive.files))
             self.assertEqual(1, len(sapcar_archive.files_names))
