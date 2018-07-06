@@ -111,17 +111,17 @@ class SAPCARCompressedBlobFormat(PacketNoPadded):
     ]
 
 
+# SAP CAR compressed end of data block
 SAPCAR_BLOCK_TYPE_COMPRESSED_LAST = b"ED"
-"""SAP CAR compressed end of data block"""
 
+# SAP CAR compressed block
 SAPCAR_BLOCK_TYPE_COMPRESSED = b"DA"
-"""SAP CAR compressed block"""
 
+# SAP CAR uncompressed end of data block
 SAPCAR_BLOCK_TYPE_UNCOMPRESSED_LAST = b"UE"
-"""SAP CAR uncompressed end of data block"""
 
+# SAP CAR uncompressed block
 SAPCAR_BLOCK_TYPE_UNCOMPRESSED = b"UD"
-"""SAP CAR uncompressed block"""
 
 
 class SAPCARCompressedBlockFormat(PacketNoPadded):
@@ -152,27 +152,27 @@ def sapcar_is_last_block(packet):
     return packet.type in [SAPCAR_BLOCK_TYPE_COMPRESSED_LAST, SAPCAR_BLOCK_TYPE_UNCOMPRESSED_LAST]
 
 
+# SAP CAR regular file string
 SAPCAR_TYPE_FILE = b"RG"
-"""SAP CAR regular file string"""
 
+# SAP CAR directory string
 SAPCAR_TYPE_DIR = b"DR"
-"""SAP CAR directory string"""
 
+# SAP CAR Windows short cut string
 SAPCAR_TYPE_SHORTCUT = b"SC"
-"""SAP CAR Windows short cut string"""
 
+# SAP CAR Unix soft link string
 SAPCAR_TYPE_LINK = b"LK"
-"""SAP CAR Unix soft link string"""
 
+# SAP CAR AS400 save file string
 SAPCAR_TYPE_AS400 = b"SV"
-"""SAP CAR AS400 save file string"""
 
 # Version strings are unicode instead of byte strings in order to avoid constant .decode() and .encode() calls
+# SAP CAR file format version 2.00 string
 SAPCAR_VERSION_200 = "2.00"
-"""SAP CAR file format version 2.00 string"""
 
+# SAP CAR file format version 2.01 string
 SAPCAR_VERSION_201 = "2.01"
-"""SAP CAR file format version 2.01 string"""
 
 
 class SAPCARArchiveFilev200Format(PacketNoPadded):
@@ -281,18 +281,17 @@ class SAPCARArchiveFilev201Format(SAPCARArchiveFilev200Format):
     is_filename_null_terminated = True
 
 
+# SAP CAR archive header magic string standard
 SAPCAR_HEADER_MAGIC_STRING_STANDARD = b"CAR\x20"
-"""SAP CAR archive header magic string standard"""
 
+# SAP CAR archive header magic string backup file
 SAPCAR_HEADER_MAGIC_STRING_BACKUP = b"CAR\x00"
-"""SAP CAR archive header magic string backup file"""
 
-
+# SAP CAR file format versions
 sapcar_archive_file_versions = {
     SAPCAR_VERSION_200: SAPCARArchiveFilev200Format,
     SAPCAR_VERSION_201: SAPCARArchiveFilev201Format,
 }
-"""SAP CAR file format versions"""
 
 
 class SAPCARArchiveFormat(Packet):
