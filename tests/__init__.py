@@ -22,7 +22,7 @@ import sys
 import unittest
 
 
-test_suite = unittest.defaultTestLoader.discover('.', '*_test.py')
+test_suite = unittest.defaultTestLoader.discover('.')
 
 
 if __name__ == '__main__':
