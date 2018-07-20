@@ -56,13 +56,14 @@ pysapcar -a[v][f archive] [file1 file2 [/n filename] ...]
 
 class PySAPCAR(object):
 
-    # Private attributes
-    _logger = None
+    def __init__(self):
+        # Private attributes
+        self._logger = None
 
-    # Instance attributes
-    mode = None
-    log_level = None
-    archive_fd = None
+        # Instance attributes
+        self.mode = None
+        self.log_level = None
+        self.archive_fd = None
 
     @staticmethod
     def parse_options():
