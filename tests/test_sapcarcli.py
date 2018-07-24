@@ -60,6 +60,14 @@ class PySAPCARCLITest(unittest.TestCase):
     def test_open_archive_succeeds(self):
         self.assertIsInstance(self.cli.open_archive(), SAPCARArchive)
 
+    def test_target_files_no_kwargs(self):
+        names = sorted(["list", "of", "test", "names"])
+        self.assertEqual(names, [n for n in self.cli.target_files(names)])
+
+    def test_target_files_with_kwargs(self):
+        names = sorted(["list", "of", "test", "names"])
+        targets = sorted(["list", "names", "blah"])
+        self.assertEqual(["list", "names"], [n for n in self.cli.target_files(names, targets)])
 
 def test_suite():
     loader = unittest.TestLoader()
