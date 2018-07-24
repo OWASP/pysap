@@ -62,7 +62,7 @@ class PySAPCAR(object):
 
         # Instance attributes
         self.mode = None
-        self.log_level = None
+        self.log_level = 0
         self.archive_fd = None
 
     @staticmethod
