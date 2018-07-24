@@ -179,7 +179,7 @@ class PySAPCAR(object):
         if target_filenames:
             files = files.intersection(set(target_filenames))
 
-        for filename in files:
+        for filename in sorted(files):  # Ensure iteration order
             yield filename
 
     def append(self, options, args):
