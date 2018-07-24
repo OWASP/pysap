@@ -222,7 +222,7 @@ class PySAPCAR(object):
         # Print the info of each file
         for filename in self.target_files(sapcar.files_names, args):
             fil = sapcar.files[filename]
-            self.logger.info("{}  {:>10}    {} {}".format(fil.permissions, fil.size, fil.timestamp, fil.filename))
+            self.logger.info("%s  %10d    %s %s", fil.permissions, fil.size, fil.timestamp, fil.filename)
 
     def extract(self, options, args):
         """Extract files from the archive file.
