@@ -129,7 +129,6 @@ class PySAPCAR(object):
             self.mode = "r"
 
         # Opens the input/output file
-        self.archive_fd = None
         if options.filename:
             try:
                 self.archive_fd = open(options.filename, self.mode)
@@ -154,12 +153,15 @@ class PySAPCAR(object):
         """Opens the archive file to work with it and returns
         the SAP Car Archive object.
         """
+        if not self.archive_fd:
+            self.logger.critical("pysapcar: Trying to open archive file before setting it, should not happen")
+            return
         try:
             sapcar = SAPCARArchive(self.archive_fd, mode=self.mode)
             self.logger.info("pysapcar: Processing archive '%s' (version %s)", self.archive_fd.name, sapcar.version)
         except Exception as e:
             self.logger.error("pysapcar: Error processing archive '%s' (%s)", self.archive_fd.name, e.message)
-            return None
+            return
         return sapcar
 
     @staticmethod
