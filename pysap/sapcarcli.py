@@ -160,7 +160,7 @@ class PySAPCAR(object):
             sapcar = SAPCARArchive(self.archive_fd, mode=self.mode)
             self.logger.info("pysapcar: Processing archive '%s' (version %s)", self.archive_fd.name, sapcar.version)
         except Exception as e:
-            self.logger.error("pysapcar: Error processing archive '%s' (%s)", self.archive_fd.name, e.message)
+            self.logger.error("pysapcar: Error processing archive '%s' (%s)", self.archive_fd.name, e)
             return
         return sapcar
 
@@ -274,7 +274,7 @@ class PySAPCAR(object):
                 try:
                     data = fil.open(enforce_checksum=options.enforce_checksum).read()
                 except (SAPCARInvalidFileException, DecompressError) as e:
-                    self.logger.error("pysapcar: Invalid SAP CAR file '%s' (%s)", self.archive_fd.name, e.message)
+                    self.logger.error("pysapcar: Invalid SAP CAR file '%s' (%s)", self.archive_fd.name, e)
                     if options.break_on_error:
                         flag = STOP
                     else:
