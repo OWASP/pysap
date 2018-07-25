@@ -102,6 +102,53 @@ class PySAPCARCLITest(unittest.TestCase):
             logs = (("pysapcar", "INFO", message) for message in messages)
             self.log.check_present(*logs, order_matters=False)
 
+    def test_append_no_args(self):
+        self.cli.append(None, [])
+        self.log.check_present(("pysapcar", "ERROR", "pysapcar: no files specified for appending"))
+
+    def test_append_open_fails(self):
+        with mock.patch.object(self.cli, "open_archive", return_value=None):
+            self.assertIsNone(self.cli.append(None, ["blah"]))
+            self.log.check()  # Check that there's no log messages
+
+    def test_append_no_renaming(self):
+        names = ["list", "of", "test", "names"]
+        mock_sar = mock.Mock(spec=SAPCARArchive)
+        # Because of pass by reference and lazy string formatting in logging, we can't actually check that args are
+        # being printed correctly. Or we could if we logged a copy of args or str(args) in production code, but it would
+        # beat the point of pass by reference and lazy string formatting, so let's not. Left the generator here because
+        # it's pretty in it's obscurity. And because someone (probably future me) will probably bang one's head
+        # against the same wall I just did before coming to the same realization I just did, so here's a little
+        # something for the next poor soul. May it make your head-against-the-wall session shorter than mine was.
+        # debugs = (("pysapcar", "DEBUG", str(names[i + 1:])) for i in range(len(names)))
+        infos = (("pysapcar", "INFO", "d {}".format(name)) for name in names)
+        calls = [mock.call.add_file(name, archive_filename=name) for name in names]
+        calls.append(mock.call.write())
+        with mock.patch.object(self.cli, "open_archive", return_value=mock_sar):
+            # Pass copy of names so generator works correctly
+            self.cli.append(None, names[:])
+            # self.log.check_present(*debugs)
+            self.log.check_present(*infos)
+            # For some reason mock_sar.assert_has_calls(calls) fails, even though this passes...
+            self.assertEqual(calls, mock_sar.mock_calls)
+
+    def test_append_with_renaming(self):
+        names = ["test", "/n", "blah", "test", "test", "/n", "blah2"]
+        archive_names = [("test", "blah"), ("test", "blah2")]
+        # List instead of generator, as we need to insert one line
+        infos = [("pysapcar", "INFO", "d {} (original name {})".format(archive_name, name))
+                 for name, archive_name in archive_names]
+        infos.insert(1, ("pysapcar", "INFO", "d {}".format("test")))
+        mock_sar = mock.Mock(spec=SAPCARArchive)
+        calls = [mock.call.add_file(name, archive_filename=archive_name) for name, archive_name in archive_names]
+        calls.insert(1, mock.call.add_file("test", archive_filename="test"))
+        calls.append(mock.call.write())
+        with mock.patch.object(self.cli, "open_archive", return_value=mock_sar):
+            self.cli.append(None, names[:])
+            self.log.check_present(*infos)
+            # For some reason mock_sar.assert_has_calls(calls) fails, even though this passes...
+            self.assertEqual(calls, mock_sar.mock_calls)
+
 def test_suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
