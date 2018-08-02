@@ -320,13 +320,15 @@ class PySAPCAR(object):
                         new_file.write(data)
                         if fchmod:
                             fchmod(new_file.fileno(), fil.perm_mode)
+                        # Set the timestamp
+                        utime(filename, (fil.timestamp_raw, fil.timestamp_raw))
                 except (IOError, OSError) as e:
-                    self.logger.error("pysapcar: Failed to extract file '%s', reason: %s", filename, e.strerror)
+                    self.logger.error("pysapcar: Failed to extract file '%s', (%s)", filename, e.strerror)
                     if options.break_on_error:
+                        self.logger.info("pysapcar: Stopping extraction")
                         break
-
-                # Set the timestamp
-                utime(filename, (fil.timestamp_raw, fil.timestamp_raw))
+                    self.logger.info("pysapcar: Skipping extraction of file '%s'", fil.filename)
+                    continue
 
                 self.logger.info("d %s", filename)
                 no += 1
