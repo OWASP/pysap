@@ -300,9 +300,11 @@ class PySAPCAR(object):
                     else:
                         flag = SKIP
                 except SAPCARInvalidChecksumException:
-                    self.logger.error("pysapcar: Invalid checksum found for file '%s'", fil.filename)
                     if options.enforce_checksum:
+                        self.logger.error("pysapcar: Invalid checksum found for file '%s'", fil.filename)
                         flag = STOP
+                    else:
+                        self.logger.warning("pysapcar: checksum error in '%s' !", filename)
 
                 # Check the result before starting to write the file
                 if flag == SKIP:
@@ -325,11 +327,6 @@ class PySAPCAR(object):
 
                 # Set the timestamp
                 utime(filename, (fil.timestamp_raw, fil.timestamp_raw))
-
-                # If this path is reached and checksum is not valid, means checksum is not enforced, so we should warn
-                # only.
-                if not fil.check_checksum():
-                    self.logger.warning("pysapcar: checksum error in '%s' !", filename)
 
                 self.logger.info("d %s", filename)
                 no += 1
