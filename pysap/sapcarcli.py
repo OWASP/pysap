@@ -252,9 +252,19 @@ class PySAPCAR(object):
                 filename = path.join(path.normpath(options.outdir), filename.lstrip(dir_separator))
 
             if fil.is_directory():
-                # If the directory doesn't exist, create it and set permissions and timestamp
-                if not path.exists(filename):
+                try:
                     makedirs(filename)
+                except OSError as e:
+                    # errno 17 == File exists
+                    if e.errno != 17:
+                        self.logger.error("pysapcar: Could not create directory '%s' (%s)", filename, e)
+                        if options.break_on_error:
+                            self.logger.info("pysapcar: Stopping extraction")
+                            break
+                        self.logger.info("pysapcar: Skipping extraction of directory '%s'", filename)
+                        continue
+                else:
+                    # No need to check for errors on chmod and utime: makedirs would've already raised
                     if chmod:
                         chmod(filename, fil.perm_mode)
                     utime(filename, (fil.timestamp_raw, fil.timestamp_raw))
@@ -264,11 +274,21 @@ class PySAPCAR(object):
             elif fil.is_file():
                 # If the file references a directory that is not there, create it first
                 file_dirname = path.dirname(filename)
-                if file_dirname and not path.exists(file_dirname):
+                if file_dirname:
                     # mkdir barfs if archive contains /foo/bar/bash but not /foo/bar directory.
                     # makedirs creates intermediate directories as well
-                    makedirs(file_dirname)
-                    self.logger.info("d %s", file_dirname)
+                    try:
+                        makedirs(file_dirname)
+                        self.logger.info("d %s", file_dirname)
+                    except OSError as e:
+                        # errno 17 == File exists
+                        if e.errno != 17:
+                            self.logger.error("pysapcar: Could not create intermediate directory '%s' for '%s' (%s)",
+                                              file_dirname, filename, e.strerror)
+                            if options.break_on_error:
+                                flag = STOP
+                            else:
+                                flag = SKIP
 
                 # Try to extract the file and handle potential errors
                 try:
