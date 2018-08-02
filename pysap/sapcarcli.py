@@ -132,7 +132,7 @@ class PySAPCAR(object):
         if options.filename:
             try:
                 self.archive_fd = open(options.filename, self.mode)
-            except IOError as e:
+            except (OSError, IOError) as e:
                 self.logger.error("pysapcar: error opening '%s' (%s)" % (options.filename, e.strerror))
                 return
         else:
@@ -254,7 +254,7 @@ class PySAPCAR(object):
             if fil.is_directory():
                 try:
                     makedirs(filename)
-                except OSError as e:
+                except (IOError, OSError) as e:
                     # errno 17 == File exists
                     if e.errno != 17:
                         self.logger.error("pysapcar: Could not create directory '%s' (%s)", filename, e)
@@ -280,7 +280,7 @@ class PySAPCAR(object):
                     try:
                         makedirs(file_dirname)
                         self.logger.info("d %s", file_dirname)
-                    except OSError as e:
+                    except (IOError, OSError) as e:
                         # errno 17 == File exists
                         if e.errno != 17:
                             self.logger.error("pysapcar: Could not create intermediate directory '%s' for '%s' (%s)",
@@ -318,7 +318,7 @@ class PySAPCAR(object):
                         new_file.write(data)
                         if fchmod:
                             fchmod(new_file.fileno(), fil.perm_mode)
-                except IOError as e:
+                except (IOError, OSError) as e:
                     self.logger.error("pysapcar: Failed to extract file '%s', reason: %s", filename, e.strerror)
                     if options.break_on_error:
                         break
