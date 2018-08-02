@@ -26,13 +26,39 @@ try:
 except ImportError:
     import mock
 
+from os import path
+
 from testfixtures import LogCapture
 from tests.utils import data_filename
 from pysap.sapcarcli import PySAPCAR
-from pysap.SAPCAR import SAPCARArchive
+from pysap.SAPCAR import SAPCARArchive, SAPCARArchiveFile, SAPCARInvalidFileException, SAPCARInvalidChecksumException
+
 
 class PySAPCARCLITest(unittest.TestCase):
     def setUp(self):
+        self.mock_file = mock.Mock(
+            spec=SAPCARArchiveFile,
+            filename=path.join("test", "bl\x00ah"),
+            is_directory=lambda: False,
+            is_file=lambda: True,
+            perm_mode="-rw-rw-r--",
+            timestamp_raw=7
+        )
+        self.mock_dir = mock.Mock(
+            spec=SAPCARArchiveFile,
+            filename=path.basename(self.mock_file.filename),
+            is_directory=lambda: True,
+            is_file=lambda: False,
+            perm_mode="-rwxrw-r--",
+            timestamp_raw=8
+        )
+        self.mock_archive = mock.Mock(
+            spec=SAPCARArchive,
+            files={
+                self.mock_file.filename: self.mock_file,
+                self.mock_dir.filename: self.mock_dir
+            }
+        )
         self.cli = PySAPCAR()
         self.cli.mode = "r"
         self.cli.archive_fd = open(data_filename("car201_test_string.sar"), "rb")
@@ -148,6 +174,194 @@ class PySAPCARCLITest(unittest.TestCase):
             self.log.check_present(*infos)
             # For some reason mock_sar.assert_has_calls(calls) fails, even though this passes...
             self.assertEqual(calls, mock_sar.mock_calls)
+
+    def test_extract_open_fails(self):
+        with mock.patch.object(self.cli, "open_archive", return_value=None):
+            self.assertIsNone(self.cli.extract(None, None))
+            self.log.check()  # Check that there's no log messages
+
+    def test_extract_empty_archive(self):
+        with mock.patch.object(self.cli, "open_archive", return_value=self.mock_archive):
+            with mock.patch.object(self.cli, "target_files", return_value=[]):
+                self.cli.extract(None, None)
+                self.log.check(("pysapcar", "INFO", "pysapcar: 0 file(s) processed"))
+
+    def test_extract_invalid_file_type(self):
+        key = self.mock_file.filename
+        self.mock_file.is_file = lambda: False
+        self.mock_file.is_directory = lambda: False
+        with mock.patch.object(self.cli, "open_archive", return_value=self.mock_archive):
+            with mock.patch.object(self.cli, "target_files", return_value=[key]):
+                key = key.replace("\x00", "")
+                self.cli.extract(mock.MagicMock(outdir=False), None)
+                self.log.check(
+                    ("pysapcar", "WARNING", "pysapcar: Invalid file type '{}'".format(key)),
+                    ("pysapcar", "INFO", "pysapcar: 0 file(s) processed")
+                )
+
+    @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, chmod=mock.DEFAULT,
+                         makedirs=mock.DEFAULT)
+    def test_extract_dir_exists(self, makedirs, chmod, utime):
+        makedirs.side_effect = OSError(17, "Unit test error")
+        key = self.mock_dir.filename
+        with mock.patch.object(self.cli, "open_archive", return_value=self.mock_archive):
+            with mock.patch.object(self.cli, "target_files", return_value=[key]):
+                key = key.replace("\x00", "")
+                self.cli.extract(mock.MagicMock(outdir=False), None)
+                makedirs.assert_called_once_with(key)
+                chmod.assert_not_called()
+                utime.assert_not_called()
+                self.log.check(
+                    ("pysapcar", "INFO", "d {}".format(key)),
+                    ("pysapcar", "INFO", "pysapcar: 1 file(s) processed")
+                )
+
+    @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, chmod=mock.DEFAULT,
+                         makedirs=mock.DEFAULT)
+    def test_extract_dir_creation_fails(self, makedirs, chmod, utime):
+        makedirs.side_effect = OSError(13, "Unit test error")
+        key = self.mock_dir.filename
+        with mock.patch.object(self.cli, "open_archive", return_value=self.mock_archive):
+            with mock.patch.object(self.cli, "target_files", return_value=[key]):
+                key = key.replace("\x00", "")
+                self.cli.extract(mock.MagicMock(outdir=False), None)
+                makedirs.assert_called_once_with(key)
+                chmod.assert_not_called()
+                utime.assert_not_called()
+                self.log.check(
+                    ("pysapcar", "ERROR", "pysapcar: Could not create directory '{}' ([Errno 13] Unit test error)"
+                     .format(key)),
+                    ("pysapcar", "INFO", "pysapcar: Stopping extraction"),
+                    ("pysapcar", "INFO", "pysapcar: 0 file(s) processed")
+                )
+
+    @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, chmod=mock.DEFAULT,
+                         makedirs=mock.DEFAULT)
+    def test_extract_dir_passes(self, makedirs, chmod, utime):
+        key = self.mock_dir.filename
+        with mock.patch.object(self.cli, "open_archive", return_value=self.mock_archive):
+            with mock.patch.object(self.cli, "target_files", return_value=[key]):
+                key = key.replace("\x00", "")
+                self.cli.extract(mock.MagicMock(outdir=False), None)
+                makedirs.assert_called_once_with(key)
+                chmod.assert_called_once_with(key, self.mock_dir.perm_mode)
+                utime.assert_called_once_with(key, (self.mock_dir.timestamp_raw, self.mock_dir.timestamp_raw))
+                self.log.check(
+                    ("pysapcar", "INFO", "d {}".format(key)),
+                    ("pysapcar", "INFO", "pysapcar: 1 file(s) processed")
+                )
+
+    @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, fchmod=mock.DEFAULT,
+                         makedirs=mock.DEFAULT)
+    def test_extract_file_intermediate_dir_exists(self, makedirs, fchmod, utime):
+        makedirs.side_effect = OSError(17, "Unit test error")
+        key = path.join("test", "bl\x00ah")
+        mock_file = mock.Mock(spec=SAPCARArchiveFile, is_directory=lambda: False, perm_mode="-rw-rw-r--",
+                              timestamp_raw=7)
+        mock_arch = mock.Mock(spec=SAPCARArchive, files={key: mock_file})
+        with mock.patch.object(self.cli, "open_archive", return_value=mock_arch):
+            with mock.patch.object(self.cli, "target_files", return_value=[key]):
+                key = key.replace("\x00", "")
+                with mock.patch("pysap.sapcarcli.open", mock.mock_open()) as mock_open:
+                    mock_open.return_value.fileno.return_value = 1337  # yo dawg...
+                    self.cli.extract(mock.MagicMock(outdir=False), None)
+                    dirname = path.dirname(key)
+                    makedirs.assert_called_once_with(dirname)
+                    fchmod.assert_called_once_with(1337, "-rw-rw-r--")
+                    utime.assert_called_once_with(key, (7, 7))
+                    self.log.check(
+                        ("pysapcar", "INFO", "d {}".format(key)),
+                        ("pysapcar", "INFO", "pysapcar: 1 file(s) processed")
+                    )
+
+    @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, fchmod=mock.DEFAULT,
+                         makedirs=mock.DEFAULT)
+    def test_extract_file_intermediate_dir_creation_fails(self, makedirs, fchmod, utime):
+        key = self.mock_file.filename
+        makedirs.side_effect = OSError(13, "Unit test error")
+        with mock.patch.object(self.cli, "open_archive", return_value=self.mock_archive):
+            with mock.patch.object(self.cli, "target_files", return_value=[key]):
+                key = key.replace("\x00", "")
+                self.cli.extract(mock.MagicMock(outdir=False), None)
+                dirname = path.dirname(key)
+                makedirs.assert_called_once_with(dirname)
+                fchmod.assert_not_called()
+                utime.assert_not_called()
+                self.log.check(
+                    ("pysapcar", "ERROR", "pysapcar: Could not create intermediate directory '{}' for '{}' "
+                                          "(Unit test error)".format(dirname, key)),
+                    ("pysapcar", "INFO", "pysapcar: Stopping extraction"),
+                    ("pysapcar", "INFO", "pysapcar: 0 file(s) processed")
+                )
+
+    @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, fchmod=mock.DEFAULT,
+                         makedirs=mock.DEFAULT)
+    def test_extract_file_passes(self, makedirs, fchmod, utime):
+        key = self.mock_file.filename
+        with mock.patch.object(self.cli, "open_archive", return_value=self.mock_archive):
+            with mock.patch.object(self.cli, "target_files", return_value=[key]):
+                key = key.replace("\x00", "")
+                with mock.patch("pysap.sapcarcli.open", mock.mock_open()) as mock_open:
+                    mock_open.return_value.fileno.return_value = 1337  # yo dawg...
+                    self.cli.extract(mock.MagicMock(outdir=False), None)
+                    dirname = path.dirname(key)
+                    makedirs.assert_called_once_with(dirname)
+                    fchmod.assert_called_once_with(1337, "-rw-rw-r--")
+                    utime.assert_called_once_with(key, (7, 7))
+                    self.log.check(
+                        ("pysapcar", "INFO", "d {}".format(dirname)),
+                        ("pysapcar", "INFO", "d {}".format(key)),
+                        ("pysapcar", "INFO", "pysapcar: 1 file(s) processed")
+                    )
+
+    @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, fchmod=mock.DEFAULT)
+    def test_extract_file_invalid_file(self, fchmod, utime):
+        key = self.mock_file.filename
+        self.mock_file.open.side_effect = SAPCARInvalidFileException("Unit test error")
+        with mock.patch.object(self.cli, "open_archive", return_value=self.mock_archive):
+            with mock.patch.object(self.cli, "target_files", return_value=[key]):
+                self.cli.extract(mock.MagicMock(outdir=False, break_on_error=False), None)
+                fchmod.assert_not_called()
+                utime.assert_not_called()
+                self.log.check(
+                    ("pysapcar", "ERROR", "pysapcar: Invalid SAP CAR file '{}' (Unit test error)"
+                     .format(self.cli.archive_fd.name)),
+                    ("pysapcar", "INFO", "pysapcar: Skipping extraction of file '{}'".format(key)),
+                    ("pysapcar", "INFO", "pysapcar: 0 file(s) processed")
+                )
+
+    @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, fchmod=mock.DEFAULT)
+    def test_extract_file_invalid_checksum(self, fchmod, utime):
+        key = self.mock_file.filename
+        self.mock_file.open.side_effect = SAPCARInvalidChecksumException("Unit test error")
+        with mock.patch.object(self.cli, "open_archive", return_value=self.mock_archive):
+            with mock.patch.object(self.cli, "target_files", return_value=[key]):
+                self.cli.extract(mock.MagicMock(outdir=False, break_on_error=False), None)
+                fchmod.assert_not_called()
+                utime.assert_not_called()
+                self.log.check(
+                    ("pysapcar", "ERROR", "pysapcar: Invalid checksum found for file '{}'"
+                     .format(key)),
+                    ("pysapcar", "INFO", "pysapcar: Stopping extraction"),
+                    ("pysapcar", "INFO", "pysapcar: 0 file(s) processed")
+                )
+
+    @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, fchmod=mock.DEFAULT)
+    def test_extract_file_extraction_fails(self, fchmod, utime):
+        key = self.mock_file.filename
+        with mock.patch.object(self.cli, "open_archive", return_value=self.mock_archive):
+            with mock.patch.object(self.cli, "target_files", return_value=[key]):
+                key = key.replace("\x00", "")
+                with mock.patch("pysap.sapcarcli.open", mock.mock_open()) as mock_open:
+                    mock_open.side_effect = OSError(13, "Unit test error")
+                    self.cli.extract(mock.MagicMock(outdir=False), None)
+                    fchmod.assert_not_called()
+                    utime.assert_not_called()
+                    self.log.check(
+                        ("pysapcar", "ERROR", "pysapcar: Failed to extract file '{}', (Unit test error)".format(key)),
+                        ("pysapcar", "INFO", "pysapcar: Stopping extraction"),
+                        ("pysapcar", "INFO", "pysapcar: 0 file(s) processed")
+                    )
 
 def test_suite():
     loader = unittest.TestLoader()
