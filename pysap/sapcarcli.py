@@ -286,7 +286,7 @@ class PySAPCAR(object):
 
                 # Check the result before starting to write the file
                 if flag == SKIP:
-                    self.logger.info("pysapcar: Skipping execution of file '%s'", fil.filename)
+                    self.logger.info("pysapcar: Skipping extraction of file '%s'", fil.filename)
                     continue
                 elif flag == STOP:
                     self.logger.info("pysapcar: Stopping extraction")
