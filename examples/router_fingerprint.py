@@ -303,8 +303,8 @@ def main():
             print("[-] Request: %s" % target)
 
         print("\n[-] Some error values where not found in the fingerprint database. "
-              "If you want to contribute submit a issue to https://github.com/CoreSecurity/pysap "
-              "or write an email to mgallo@coresecurity.com with the following information along "
+              "If you want to contribute submit a issue to https://github.com/SecureAuthCorp/pysap "
+              "or write an email to mgallo@secureauth.com with the following information along "
               "with the SAP Router file information and how it was configured.\n")
         options.new_entries = True
 
