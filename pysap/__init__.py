@@ -1,10 +1,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, Core Security
+# Copyright (C) 2012-2018 by Martin Gallo, SecureAuth Corporation
 #
 # The library was designed and developed by Martin Gallo from
-# Core Security's CoreLabs team.
+# SecureAuth Corporation's Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -21,11 +21,11 @@
 pysap
 =====
 
-[pysap](https://www.coresecurity.com/corelabs-research/open-source-tools/pysap)
+[pysap](https://www.secureauth.com/labs/open-source-tools/pysap)
 is an open source Python library that provides modules for crafting and sending packets
 using SAP's NI, Diag, Enqueue, Router, Message Server, SNC and IGS protocols. In addition,
 support for creating and parsing different proprietary file formats is included. The
-modules are built on top of [Scapy](http://www.secdev.org/projects/scapy/) and are
+modules are built on top of [Scapy](https://scapy.net/) and are
 based on information acquired at researching the different protocols, file formats
 and services.
 
@@ -58,20 +58,20 @@ Features
 * Example scripts to illustrate the use of the different modules and protocols.
 
 
-:copyright: (c) 2012-2018 by Martin Gallo, Core Security.
+:copyright: (c) 2012-2018 by Martin Gallo, SecureAuth Corporation.
 :license: GNU General Public License v2 or later (GPLv2+).
 """
 
 __title__ = 'pysap'
 """The title of the library"""
 
-__version__ = '0.1.16.dev0'
+__version__ = '0.1.17.dev0'
 """The version of pysap"""
 
-__url__ = "https://www.coresecurity.com/corelabs-research/open-source-tools/pysap"
+__url__ = "https://www.secureauth.com/labs/open-source-tools/pysap"
 """The URL for pysap's homepage"""
 
-__repo__ = "https://github.com/CoreSecurity/pysap"
+__repo__ = "https://github.com/SecureAuthCorp/pysap"
 """The URL for pysap's repository"""
 
 __license__ = "GNU General Public License v2 or later (GPLv2+)"

@@ -2,12 +2,12 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, Core Security
+# Copyright (C) 2012-2018 by Martin Gallo, SecureAuth Corporation
+#
+# The library was designed and developed by Martin Gallo from
+# SecureAuth Corporation's Labs team.
 #
 # Example script by Yvan Genuer
-#
-# The library was designed and developed by Martin Gallo from the Security
-# Consulting Services team of Core Security.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -100,7 +100,7 @@ def main():
                                               options.route_string,
                                               talk_mode=1)
 
-    # the xml request for zipper interpreter 
+    # the xml request for zipper interpreter
     xml = '<?xml version="1.0"?><REQUEST><COMPRESS type="zip"><FILES>'
     xml += '<FILE name="%s" ' % (options.file_input)
     xml += 'path="%s" ' % (options.file_path)
@@ -117,7 +117,7 @@ def main():
     print("[*] Response :")
     response = conn.recv(1024)
     response.show()
-   
+
     # Extract zip from response
     print("[*] Generated file(s) :")
     for url in str(response).split('href='):

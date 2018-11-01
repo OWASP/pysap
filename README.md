@@ -1,15 +1,15 @@
 pysap - Python library for crafting SAP's network protocols packets
 ===================================================================
 
-[![Build Status](https://travis-ci.org/CoreSecurity/pysap.svg?branch=master)](https://travis-ci.org/CoreSecurity/pysap)
+[![Build Status](https://travis-ci.org/SecureAuthCorp/pysap.svg?branch=master)](https://travis-ci.org/SecureAuthCorp/pysap)
 [![Build status](https://ci.appveyor.com/api/projects/status/189ohb2wsqjwgkbw?svg=true)](https://ci.appveyor.com/project/CoreSecurity/pysap)
-[![Code Health](https://landscape.io/github/CoreSecurity/pysap/master/landscape.svg)](https://landscape.io/github/CoreSecurity/pysap/master)
+[![Code Health](https://landscape.io/github/SecureAuthCorp/pysap/master/landscape.svg)](https://landscape.io/github/SecureAuthCorp/pysap/master)
 [![Latest Version](https://img.shields.io/pypi/v/pysap.svg)](https://pypi.python.org/pypi/pysap/)
 [![Documentation Status](http://readthedocs.org/projects/pysap/badge/?version=latest)](http://pysap.readthedocs.io/en/latest/?badge=latest)
 
-Copyright (C) 2012-2018 by Martin Gallo, Core Security
+Copyright (C) 2012-2018 by Martin Gallo, SecureAuth Corporation
 
-Version 0.1.16.dev0 (XXX 2018)
+Version 0.1.17.dev0 (XXX 2018)
 
 
 Overview
@@ -22,11 +22,11 @@ uses different network protocols and some services and tools make use of custom 
 formats as well. While some of them are standard and well-known protocols, others
 are proprietaries and public information is not available.
 
-[pysap](https://www.coresecurity.com/corelabs-research/open-source-tools/pysap)
+[pysap](https://www.secureauth.com/labs/open-source-tools/pysap)
 is an open source Python library that provides modules for crafting and sending packets
 using SAP's NI, Diag, Enqueue, Router, Message Server, SNC and IGS protocols. In addition,
 support for creating and parsing different proprietary file formats is included. The
-modules are built on top of [Scapy](http://www.secdev.org/projects/scapy/) and are
+modules are built on top of [Scapy](https://scapy.net/) and are
 based on information acquired at researching the different protocols, file formats
 and services.
 
@@ -83,7 +83,8 @@ more details.
 Authors
 -------
 
-The library was designed and developed by Martin Gallo from Core Security's CoreLabs.
+The library was designed and developed by Martin Gallo from SecureAuth
+Corporation's Labs team.
 
 ### Contributors ###
 
@@ -100,11 +101,13 @@ Contributions made by:
   * Yvan Genuer ([@iggy38](https://github.com/iggy38))
   * Malte Heinzelmann ([@hnzlmnn](https://github.com/hnzlmnn))
   * Albert Zedlitz
+  * [@cclauss](https://github.com/cclauss)
+  * [@okuuva](https://github.com/okuuva)
 
 
 Contact
 -------
 
 Whether you want to report a bug or give some suggestions on this package, drop
-us a few lines at `oss@coresecurity.com` or contact the author email
-`mgallo@coresecurity.com`.
+us a few lines at `oss@secureauth.com` or contact the author email
+`mgallo@secureauth.com`.

@@ -2,10 +2,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, Core Security
+# Copyright (C) 2012-2018 by Martin Gallo, SecureAuth Corporation
 #
 # The library was designed and developed by Martin Gallo from
-# Core Security's CoreLabs team Technologies.
+# SecureAuth Corporation's Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -303,8 +303,8 @@ def main():
             print("[-] Request: %s" % target)
 
         print("\n[-] Some error values where not found in the fingerprint database. "
-              "If you want to contribute submit a issue to https://github.com/CoreSecurity/pysap "
-              "or write an email to mgallo@coresecurity.com with the following information along "
+              "If you want to contribute submit a issue to https://github.com/SecureAuthCorp/pysap "
+              "or write an email to mgallo@secureauth.com with the following information along "
               "with the SAP Router file information and how it was configured.\n")
         options.new_entries = True
 

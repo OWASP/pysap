@@ -1,10 +1,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, Core Security
+# Copyright (C) 2012-2018 by Martin Gallo, SecureAuth Corporation
 #
 # The library was designed and developed by Martin Gallo from
-# Core Security's CoreLabs team.
+# SecureAuth Corporation's Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@ from os.path import basename, exists
 # External imports
 # Custom imports
 from tests.utils import data_filename
-from pysap.SAPCAR import (SAPCARArchive, SAPCARArchiveFile,
-                          SAPCAR_VERSION_200, SAPCAR_VERSION_201)
+from pysap.SAPCAR import (SAPCARArchive, SAPCARArchiveFile, SAPCARArchiveFilev200Format, SAPCARArchiveFilev201Format,
+                          SAPCAR_VERSION_200, SAPCAR_VERSION_201, SIZE_FOUR_GB)
 
 
 class PySAPCARTest(unittest.TestCase):
@@ -127,6 +127,9 @@ class PySAPCARTest(unittest.TestCase):
             self.assertEqual(self.test_string, af.read())
             af.close()
 
+        ar.write()
+        ar.close()
+
     def test_sapcar_archive_file_from_file(self):
         """Test SAP CAR archive file object construction from file using the original name
         and a different one"""
@@ -218,6 +221,45 @@ class PySAPCARTest(unittest.TestCase):
             af = ff200.open()
             self.assertEqual(self.test_string, af.read())
             af.close()
+
+    def test_sapcar_archive_file_length(self):
+
+        for cls in [SAPCARArchiveFilev200Format, SAPCARArchiveFilev201Format]:
+            ff = cls()
+
+            # Test several get file length combinations
+            ff.file_length_low = 0
+            ff.file_length_high = 0
+            self.assertEqual(ff.file_length, 0)
+
+            ff.file_length_low = 99999
+            ff.file_length_high = 0
+            self.assertEqual(ff.file_length, 99999)
+
+            ff.file_length_low = 0
+            ff.file_length_high = 99999
+            self.assertEqual(ff.file_length, SIZE_FOUR_GB * 99999)
+
+            ff.file_length_low = 99999
+            ff.file_length_high = 99999
+            self.assertEqual(ff.file_length, (SIZE_FOUR_GB * 99999) + 99999)
+
+            # Test several set file length combinations
+            ff.file_length = 0
+            self.assertEqual(ff.file_length_low, 0)
+            self.assertEqual(ff.file_length_high, 0)
+
+            ff.file_length = 99999
+            self.assertEqual(ff.file_length_low, 99999)
+            self.assertEqual(ff.file_length_high, 0)
+
+            ff.file_length = SIZE_FOUR_GB * 99999
+            self.assertEqual(ff.file_length_low, 0)
+            self.assertEqual(ff.file_length_high, 99999)
+
+            ff.file_length = (SIZE_FOUR_GB * 99999) + 99999
+            self.assertEqual(ff.file_length_low, 99999)
+            self.assertEqual(ff.file_length_high, 99999)
 
 
 def test_suite():
