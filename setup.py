@@ -96,6 +96,7 @@ setup(name=pysap.__title__,   # Package information
       url=pysap.__url__,
       download_url=pysap.__url__,
       license=pysap.__license__,
+      python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4',
       classifiers=['Development Status :: 3 - Alpha',
                    'Intended Audience :: Developers',
                    'Intended Audience :: Information Technology',
@@ -115,7 +116,7 @@ setup(name=pysap.__title__,   # Package information
       scripts=['bin/pysapcar', 'bin/pysapgenpse'],
 
       # Tests command
-      test_suite='tests.test_suite',
+      test_suite='tests',
 
       # Documentation commands
       cmdclass={'doc': APIDocumentationCommand,
@@ -123,6 +124,8 @@ setup(name=pysap.__title__,   # Package information
 
       # Requirements
       install_requires=open('requirements.txt').read().splitlines(),
+
+      tests_require=open('requirements-tests.txt').read().splitlines(),
 
       # Optional requirements for docs and some examples
       extras_require={"docs": open('requirements-docs.txt').read().splitlines(),

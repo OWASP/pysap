@@ -34,6 +34,13 @@
 #include "hpa107cslzh.h"
 #include "hpa105CsObjInt.h"
 
+/* compress and decompress take and return bytes on Py3, unfortunately there's no way to enforce it on Py2 */
+#if PY_MAJOR_VERSION >= 3
+    #define BYTES_FORMAT "y#"
+#else
+    #define BYTES_FORMAT "s#"
+#endif
+
 
 /* Memory allocation factor constant */
 #define MEMORY_ALLOC_FACTOR 10
@@ -366,7 +373,7 @@ static char pysapcompress_compress_doc[] = "Compress a buffer using SAP's compre
                                            ":param str in: input buffer to compress\n\n"
                                            ":param int algorithm: algorithm to use\n\n"
                                            ":return: tuple with return code, output length and output buffer\n"
-                                           ":rtype: tuple of int, int, string\n\n"
+                                           ":rtype: tuple of int, int, bytes\n\n"
                                            ":raises CompressError: if an error occurred during compression\n";
 
 static PyObject *
@@ -382,7 +389,7 @@ pysapcompress_compress(PyObject *self, PyObject *args, PyObject *keywds)
     static char* kwlist[] = {kwin, kwalgorithm, NULL};
 
     /* Parse the parameters. We are also interested in the length of the input buffer. */
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "s#|i", kwlist, &in, &in_length, &algorithm))
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, BYTES_FORMAT"|i", kwlist, &in, &in_length, &algorithm))
         return (NULL);
 
     /* Call the compression function */
@@ -400,7 +407,7 @@ pysapcompress_compress(PyObject *self, PyObject *args, PyObject *keywds)
     }
 
     /* It no error was raised, return the compressed buffer and the length */
-	return (Py_BuildValue("iis#", status, out_length, out, out_length));
+	return (Py_BuildValue("ii"BYTES_FORMAT, status, out_length, out, out_length));
 }
 
 
@@ -409,7 +416,7 @@ static char pysapcompress_decompress_doc[] = "Decompress a buffer using SAP's co
                                              ":param str in: input buffer to decompress\n"
                                              ":param int out_length: length of the output to decompress\n"
                                              ":return: tuple of return code, output length and output buffer\n"
-                                             ":rtype: tuple of int, int, string\n\n"
+                                             ":rtype: tuple of int, int, bytes\n\n"
                                              ":raises DecompressError: if an error occurred during decompression\n";
 
 static PyObject *
@@ -420,7 +427,7 @@ pysapcompress_decompress(PyObject *self, PyObject *args)
     int status = 0, in_length = 0, out_length = 0;
 
     /* Parse the parameters. We are also interested in the length of the input buffer. */
-    if (!PyArg_ParseTuple(args, "s#i", &in, &in_length, &out_length))
+    if (!PyArg_ParseTuple(args, BYTES_FORMAT"i", &in, &in_length, &out_length))
         return (NULL);
 
     /* Call the compression function */
@@ -436,7 +443,7 @@ pysapcompress_decompress(PyObject *self, PyObject *args)
     		return (PyErr_Format(decompression_exception, "Decompression error (%s)", error_string(status)));
     }
     /* It no error was raised, return the uncompressed buffer and the length */
-    return (Py_BuildValue("iis#", status, out_length, out, out_length));
+    return (Py_BuildValue("ii"BYTES_FORMAT, status, out_length, out, out_length));
 }
 
 
@@ -452,12 +459,31 @@ static PyMethodDef pysapcompressMethods[] = {
 static char pysapcompress_module_doc[] = "Library implementing SAP's LZH and LZC compression algorithms.";
 
 /* Module initialization */
-PyMODINIT_FUNC
-initpysapcompress(void)
+/* Python 2 and 3 compatiblitily shenanigans, from http://python3porting.com/cextensions.html */
+#if PY_MAJOR_VERSION >= 3
+  #define MOD_ERROR_VAL NULL
+  #define MOD_SUCCESS_VAL(val) val
+  #define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
+  #define MOD_DEF(ob, name, doc, methods) \
+          static struct PyModuleDef moduledef = { \
+            PyModuleDef_HEAD_INIT, name, doc, -1, methods, }; \
+          ob = PyModule_Create(&moduledef);
+#else
+  #define MOD_ERROR_VAL
+  #define MOD_SUCCESS_VAL(val)
+  #define MOD_INIT(name) PyMODINIT_FUNC init##name(void)
+  #define MOD_DEF(ob, name, doc, methods) \
+          ob = Py_InitModule3(name, methods, doc);
+#endif
+
+MOD_INIT(pysapcompress)
 {
     PyObject *module = NULL;
     /* Create the module and define the methods */
-    module = Py_InitModule3("pysapcompress", pysapcompressMethods, pysapcompress_module_doc);
+    MOD_DEF(module, "pysapcompress", pysapcompress_module_doc, pysapcompressMethods)
+
+    if (module == NULL)
+        return MOD_ERROR_VAL;
 
     /* Add the algorithm constants */
     PyModule_AddIntConstant(module, "ALG_LZC", ALG_LZC);
@@ -470,4 +496,5 @@ initpysapcompress(void)
     decompression_exception = PyErr_NewException(decompression_exception_name, NULL, NULL);
     PyModule_AddObject(module, decompression_exception_short, decompression_exception);
 
+    return MOD_SUCCESS_VAL(module);
 }

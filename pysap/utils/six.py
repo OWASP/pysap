@@ -1,10 +1,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, SecureAuth Corporation
+# Copyright (C) 2012-2018 by Martin Gallo, Core Security
 #
 # The library was designed and developed by Martin Gallo from
-# SecureAuth Corporation's Labs team.
+# Core Security's CoreLabs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,22 +17,23 @@
 # GNU General Public License for more details.
 # ==============
 
-# Standard imports
-from binascii import unhexlify
-from os import path
+# All custom general purpose Python 2/3 compatibility should go here
+
+from __future__ import absolute_import
+
+import six
 
 
-def data_filename(filename):
-    return path.join(path.dirname(__file__), 'data', filename)
-
-
-def read_data_file(filename, unhex=True):
-    filename = data_filename(filename)
-    with open(filename, 'rb') as f:
-        data = f.read()
-
-    data = data.replace(b'\n', b' ').replace(b' ', b'')
-    if unhex:
-        data = unhexlify(data)
-
-    return data
+def unicode(string):
+    """
+    Convert given string to unicode string
+    :param string: String to convert
+    :type string: bytes | str | unicode
+    :return: six.text_type
+    """
+    string_type = type(string)
+    if string_type == six.binary_type:
+        return string.decode()
+    elif string_type == six.text_type:
+        return string
+    raise ValueError("Expected bytes or str, got {}".format(string_type))

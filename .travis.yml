@@ -18,11 +18,6 @@ matrix:
             - CXX=g++ CC=gcc
 
         - os: linux
-          python: 3.3
-          env:
-            - CXX=clang++ CC=clang
-
-        - os: linux
           python: 3.4
           env:
             - CXX=clang++ CC=clang
