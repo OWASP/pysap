@@ -2,12 +2,12 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, Core Security
-#
-# Example script by Yvan Genuer.
+# Copyright (C) 2012-2018 by Martin Gallo, SecureAuth Corporation
 #
 # The library was designed and developed by Martin Gallo from
-# Core Security's CoreLabs team.
+# SecureAuth Corporation's Labs team.
+#
+# Example script by Yvan Genuer.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -86,10 +86,10 @@ def parse_options():
 #------
 def main():
     options = parse_options()
-    
+
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
-    
+
     # initiate the connection :
     print("[*] Initiate connection to message server %s:%d" % (options.remote_host, options.remote_port))
     try:
@@ -157,7 +157,7 @@ def main():
 
                     # display result
                     print ("%s %s = %s" % (status, param2c, value))
-                   
+
         except IOError:
             print("Error reading parameters file !")
             exit(0)

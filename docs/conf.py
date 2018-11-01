@@ -22,8 +22,8 @@ import pysap
 
 
 project = u'pysap'
-copyright = u'2012-2018, Martin Gallo, Core Security'
-author = u'Martin Gallo, Core Security'
+copyright = u'2012-2018, Martin Gallo, SecureAuth Corporation'
+author = u'Martin Gallo, SecureAuth Corporation'
 
 # The short X.Y version
 version = pysap.__version__

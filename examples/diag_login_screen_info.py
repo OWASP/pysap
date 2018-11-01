@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # ===========
 #
-# Modifications for screen text elements parsing + tech info
-# Copyright (C) 2016-2017 by Mathieu Geli, ERPScan
-#
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, Core Security
+# Copyright (C) 2012-2018 by Martin Gallo, SecureAuth Corporation
 #
 # The library was designed and developed by Martin Gallo from
-# Core Security's CoreLabs team.
+# SecureAuth Corporation's Labs team.
+#
+# Modifications for screen text elements parsing + tech info
+# Copyright (C) 2016-2017 by Mathieu Geli, ERPScan
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

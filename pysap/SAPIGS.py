@@ -1,12 +1,12 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, Core Security
+# Copyright (C) 2012-2018 by Martin Gallo, SecureAuth Corporation
+#
+# The library was designed and developed by Martin Gallo from
+# SecureAuth Corporation's Labs team.
 #
 # Layer added by Yvan Genuer.
-#
-# The library was designed and developed by Martin Gallo from the Security
-# Consulting Services team of Core Security.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -81,7 +81,7 @@ igs_req_adm = {
 
 class SAPIGSTable(Packet):
     """SAP IGS table description
-    
+
     Mandatory for RFC call type.
     This describes table name/width/length where content will be stored.
     """
@@ -102,7 +102,7 @@ class SAPIGSTable(Packet):
         StrFixedLenPaddedField("column_width_label", "CLWD", length=4),
         StrFixedLenPaddedField("column_width", "", length=44),
     ]
-    
+
     @staticmethod
     def add_entry(t_name, t_line, t_width, t_column, c_name, c_width, **kwargs):
         """Add an entry into Table description
