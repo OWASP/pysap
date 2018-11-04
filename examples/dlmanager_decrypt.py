@@ -2,10 +2,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, Core Security
+# Copyright (C) 2012-2018 by Martin Gallo, SecureAuth Corporation
 #
 # The library was designed and developed by Martin Gallo from
-# Core Security's CoreLabs team.
+# SecureAuth Corporation's Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -250,7 +250,7 @@ def main():
                   "and 2.1.142, the script should be able to decrypt the password given possible to obtain the "     \
                   "machine serial number. For more details on the encryption mechanism see CVE-2016-3685, "          \
                   "CVE-2016-3684 documented at " \
-                  "https://www.coresecurity.com/advisories/sap-download-manager-password-weak-encryption."
+                  "https://www.secureauth.com/labs/advisories/sap-download-manager-password-weak-encryption."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
                                                          "url": pysap.__url__,
