@@ -27,7 +27,7 @@ from setuptools import setup, Extension, Command
 import pysap
 
 
-class APIDocumentationCommand(Command):
+class DocumentationCommand(Command):
     """Custom command for building the documentation with Sphinx.
     """
 
@@ -118,7 +118,7 @@ setup(name=pysap.__title__,   # Package information
       test_suite='tests.test_suite',
 
       # Documentation commands
-      cmdclass={'doc': APIDocumentationCommand,
+      cmdclass={'doc': DocumentationCommand,
                 'notebooks': PreExecuteNotebooksCommand},
 
       # Requirements
