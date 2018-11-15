@@ -67,9 +67,9 @@ def parse_options():
     target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3299,
                       help="Remote port [%default]")
     target.add_option("-t", "--target-hosts", dest="target_hosts",
-                      help="Target hosts to scan")
+                      help="Target hosts to scan (comma separated or CIDR if netaddr is installed)")
     target.add_option("-r", "--target-ports", dest="target_ports",
-                      help="Target ports to scan")
+                      help="Target ports to scan (comma separated or range)")
     target.add_option("--router-version", dest="router_version", type="int",
                       help="SAP Router version to use [retrieve from the remote SAP Router]")
     target.add_option("--talk-mode", dest="talk_mode", default="raw",
@@ -96,8 +96,13 @@ def parse_options():
     return options
 
 
+def parse_target_ports(target_ports):
+    ranges = (x.split("-") for x in target_ports.split(","))
+    return [i for r in ranges for i in range(int(r[0]), int(r[-1]) + 1)]
+
+
 def parse_target_hosts(target_hosts, target_ports):
-    for port in target_ports.split(','):
+    for port in parse_target_ports(target_ports):
         for host in target_hosts.split(','):
             if netaddr:
                 if netaddr.valid_nmap_range(host):
