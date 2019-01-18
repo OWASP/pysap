@@ -1,10 +1,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, SecureAuth Corporation
+# SECUREAUTH LABS. Copyright (C) 2019 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
-# SecureAuth Corporation's Labs team.
+# the SecureAuth Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -58,7 +58,7 @@ Features
 * Example scripts to illustrate the use of the different modules and protocols.
 
 
-:copyright: (c) 2012-2018 by Martin Gallo, SecureAuth Corporation.
+:copyright: SECUREAUTH LABS. Copyright (C) 2019 SecureAuth Corporation. All rights reserved.
 :license: GNU General Public License v2 or later (GPLv2+).
 """
 
