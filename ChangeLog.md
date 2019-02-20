@@ -2,10 +2,11 @@ Changelog
 =========
 
 
-v0.1.17 - 2018-XX-XX
+v0.1.17 - 2019-XX-XX
 --------------------
 
 - `pysap/SAPCAR.py`; Fixed crafting of archive files by defaulting length fields to zero ([\#22](https://github.com/SecureAuthCorp/pysap/issues/22)) Thanks [@okuuva](https://github.com/okuuva)!
+- `examples/router_scanner.py`: Add capability to provide a comma separated list of targets/ports to scan.
 
 
 v0.1.16 - 2018-06-19

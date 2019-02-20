@@ -22,7 +22,7 @@ import pysap
 
 
 project = u'pysap'
-copyright = u'2012-2018, Martin Gallo, SecureAuth Corporation'
+copyright = u'SECUREAUTH LABS. Copyright (C) 2019 SecureAuth Corporation. All rights reserved.'
 author = u'Martin Gallo, SecureAuth Corporation'
 
 # The short X.Y version
