@@ -40,11 +40,11 @@ Notebooks
 ---------
 
 Documentation include a graphical representation of the most commonly used protocol packets and file formats. This
-graphical representations are built using `Scapy <http://www.secdev.org/projects/scapy/>`_,
+graphical representations are built using `Scapy <https://scapy.net/>`_,
 `The Jupyter Notebook <https://ipython.org/notebook.html>`_ , `nbconvert <https://github.com/jupyter/nbconvert>`_ and
 `nbsphinx <https://github.com/spatialaudio/nbsphinx/>`_.
 
-Jupyter notebooks containig the protocol packets' representation can be re-build using the following command::
+Jupyter notebooks containing the protocol packets' representation can be re-build using the following command::
 
    $ python setup.py notebooks
 
@@ -54,7 +54,7 @@ Code contributions
 
 When contributing code, follow this checklists:
 
-1. Fork the repository on `GitHub <https://github.com/CoreSecurity/pysap/>`_.
+1. Fork the repository on `GitHub <https://github.com/SecureAuthCorp/pysap/>`_.
 2. Run the tests to check that all current tests pass on the system. If they don't,
    some investigation might be required to determine why they fail. Note that current
    tests are limited and only covers some of the protocols and client interfaces.
@@ -76,7 +76,7 @@ library's core components and example scripts.
 
 When submitting bugs, follow this checklist:
 
-1. Check current `GitHub issues <https://github.com/CoreSecurity/pysap/issues>`_ for
+1. Check current `GitHub issues <https://github.com/SecureAuthCorp/pysap/issues>`_ for
    potential duplicates.
 2. Create a new issue detailing as much information as possible. Packet captures are
    always helpful when dealing with specific packets missing or client interface errors.

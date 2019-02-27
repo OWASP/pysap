@@ -1,10 +1,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, Core Security
+# SECUREAUTH LABS. Copyright (C) 2019 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
-# Core Security's CoreLabs team.
+# the SecureAuth Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -28,9 +28,9 @@ from cStringIO import StringIO
 from scapy.packet import Packet
 from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
                           PacketField, StrFixedLenField, PacketListField,
-                          ConditionalField, LESignedIntField, StrField)
+                          ConditionalField, LESignedIntField, StrField, LELongField)
 # Custom imports
-from pysap.utils.fields import (PacketNoPadded, StrNullFixedLenField, PacketListStopField, LELongField)
+from pysap.utils.fields import (PacketNoPadded, StrNullFixedLenField, PacketListStopField)
 from pysapcompress import (decompress, compress, ALG_LZH, CompressError,
                            DecompressError)
 
@@ -188,8 +188,8 @@ class SAPCARArchiveFilev200Format(PacketNoPadded):
         LEIntField("file_length_high", 0),
         LELongField("timestamp", 0),
         LEIntField("code_page", 0),
-        FieldLenField("user_info_length", None, length_of="user_info", fmt="<H"),
-        FieldLenField("filename_length", None, length_of="filename", fmt="<H"),
+        FieldLenField("user_info_length", 0, length_of="user_info", fmt="<H"),
+        FieldLenField("filename_length", 0, length_of="filename", fmt="<H"),
         StrNullFixedLenField("filename", None, length_from=lambda x: x.filename_length,
                              null_terminated=lambda x: x.is_filename_null_terminated),
         StrFixedLenField("user_info", None, length_from=lambda x: x.user_info_length),

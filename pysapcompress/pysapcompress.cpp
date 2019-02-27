@@ -2,10 +2,10 @@
 # ===========
 # pysapcompress - SAP Compression library wrapper for Python
 #
-# Copyright (C) 2012-2018 by Martin Gallo, Core Security
+# SECUREAUTH LABS. Copyright (C) 2019 SecureAuth Corporation. All rights reserved.
 #
-# The library was designed and developed by Martin Gallo of Core Security
-# Technologies - Security Consulting Services
+# The library was designed and developed by Martin Gallo from
+# the SecureAuth Labs team.
 #
 # Based on the work performed by Dennis Yurichev <dennis@conus.info>
 #

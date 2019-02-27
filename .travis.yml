@@ -2,7 +2,7 @@
 
 language: python
 
-dist: trusty
+dist: xenial
 sudo: false
 
 matrix:
@@ -25,27 +25,30 @@ addons:
         packages:
             - pandoc
             - texlive-base
-
-before_script:
-  # Install system requirements for OSX (pylibpcap, libdnet and pandoc)
-  - if [ ${TRAVIS_OS_NAME} == "osx" ]; then
-      mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages;
-      echo 'import site; site.addsitedir("/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth;
-      brew update;
-      brew install --with-python libdnet;
-      brew install https://raw.githubusercontent.com/secdev/scapy/master/.travis/pylibpcap.rb;
-      brew install openssl pandoc;
-    fi
-  # stop the build if there are Python syntax errors or undefined names
-  - flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
-  # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
-  - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    homebrew:
+        packages:
+            - openssl
+            - pandoc
 
 install:
   - pip2 install .
   - pip2 install flake8 six
   - pip2 install -r requirements-docs.txt
   - pip2 install -r requirements-optional.txt
+
+before_script:
+  # Install system requirements for OSX (pylibpcap and libdnet)
+  - if [ ${TRAVIS_OS_NAME} == "osx" ]; then
+      mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages;
+      echo 'import site; site.addsitedir("/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth;
+      brew update;
+      brew install --with-python libdnet;
+      brew install https://raw.githubusercontent.com/secdev/scapy/master/.travis/pylibpcap.rb;
+    fi
+  # stop the build if there are Python syntax errors or undefined names
+  - flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
+  # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
+  - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
 script:
   - python setup.py test
@@ -67,4 +70,4 @@ deploy:
     skip_cleanup: true
     on:
         tags: true
-        repo: CoreSecurity/pysap
+        repo: SecureAuthCorp/pysap

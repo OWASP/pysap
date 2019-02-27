@@ -1,10 +1,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, Core Security
+# SECUREAUTH LABS. Copyright (C) 2019 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
-# Core Security's CoreLabs team.
+# the SecureAuth Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -26,8 +26,7 @@ from scapy.config import conf
 from scapy.packet import Packet
 from scapy.asn1fields import (ASN1F_CHOICE, ASN1F_field, ASN1_Error, ASN1F_badsequence, BER_Decoding_Error)
 from scapy.volatile import (RandNum, RandTermString, RandBin)
-from scapy.fields import (MultiEnumField, StrLenField, LongField, Field, StrFixedLenField,
-                          StrField, PacketListField)
+from scapy.fields import (MultiEnumField, StrLenField, Field, StrFixedLenField, StrField, PacketListField)
 
 
 def saptimestamp_to_datetime(timestamp):
@@ -323,8 +322,3 @@ class ASN1F_CHOICE_SAFE(ASN1F_CHOICE):
             except (ASN1_Error, ASN1F_badsequence, BER_Decoding_Error):
                 pass
         raise ASN1_Error
-
-
-class LELongField(LongField):
-    def __init__(self, name, default):
-        Field.__init__(self, name, default, "<Q")

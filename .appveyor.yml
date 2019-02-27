@@ -1,6 +1,6 @@
 # AppVeyor configuration based on https://github.com/guedou/scapy-appveyor/blob/master/appveyor.yml
 
-version: "v0.1.16.dev0-{build}"
+version: "v0.1.17.dev0-{build}"
 
 environment:
 
@@ -8,51 +8,54 @@ environment:
   matrix:
     - PYTHON: "C:\\Python27"
       PYTHON_VERSION: "2.7.x"
-      ARCH: "32"
+      PYTHON_ARCH: "32"
       PLAT_NAME: "win32"
 
     - PYTHON: "C:\\Python27-x64"
       PYTHON_VERSION: "2.7.x"
-      ARCH: "64"
+      PYTHON_ARCH: "64"
       PLAT_NAME: "win-amd64"
 
 # Install requirements
 install:
   # Set path
-  - "set PYTHONPATH=%APPVEYOR_BUILD_FOLDER%"
-  - "set PATH=%APPVEYOR_BUILD_FOLDER%;%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "SET PATH=%APPVEYOR_BUILD_FOLDER%;%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "SET PYTHONPATH=%APPVEYOR_BUILD_FOLDER%;%PYTHON%\\Lib\\site-packages;%PYTHONPATH%"
 
   # Install whell for building
-  - "pip install wheel"
+  - "%PYTHON%\\python.exe -m pip install wheel"
 
   # Installing Npcap
   - ps: iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/secdev/scapy/master/.appveyor/InstallNpcap.ps1'))
   - refreshenv
 
   # Set the proper build program
-  - if "%ARCH%"=="32" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" x86)
-  - if "%ARCH%"=="64" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" amd64)
+  - if "%PYTHON_ARCH%"=="32" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" x86)
+  - if "%PYTHON_ARCH%"=="64" (call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat" amd64)
 
   # Build and install the library
-  - "python.exe setup.py install"
+  - "%PYTHON%\\python.exe setup.py install"
 
   # Install optional requirements
-  - "pip install -r requirements-docs.txt"
-  - "pip install -r requirements-optional.txt"
+  - "%PYTHON%\\python.exe -m pip install -r requirements-docs.txt"
+  - "%PYTHON%\\python.exe -m pip install -r requirements-optional.txt"
 
 build: off
 
 test_script:
+  - "SET PATH=%APPVEYOR_BUILD_FOLDER%;%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - cmd: echo %PATH%
+  - cmd: echo %PYTHONPATH%
   # Run tests
   #- "python.exe setup.py test"
   # Build the docs
-  - "python.exe setup.py doc"
+  - "%PYTHON%\\python.exe setup.py doc"
 
 after_test:
   # Build a source artifact
-  - "python.exe setup.py sdist"
+  - "%PYTHON%\\python.exe setup.py sdist"
   # Build a wheel artifact
-  - "python.exe setup.py bdist_wheel"
+  - "%PYTHON%\\python.exe setup.py bdist_wheel"
 
 artifacts:
   - path: dist\*.whl

@@ -2,10 +2,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, Core Security
+# SECUREAUTH LABS. Copyright (C) 2019 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
-# Core Security's CoreLabs team.
+# the SecureAuth Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -51,8 +51,8 @@ def parse_options():
                   "provided password. It then records the time the remote service takes to respond to the request. " \
                   "Further analysis of the time records could be performed in order to identify whether the server " \
                   "is vulnerable to a timing attack on the password check (CVE-2014-0984). More details about the  " \
-                  "vulnerability in https://www.coresecurity.com/advisories/sap-router-password-timing-attack. The  " \
-                  "script make use of the fau_timer library for measuring the timing of server's responses. " \
+                  "vulnerability in https://www.secureauth.com/labs/advisories/sap-router-password-timing-attack.  " \
+                  "The script make use of the fau_timer library for measuring the timing of server's responses. " \
                   "Install the library from https://github.com/seecurity/mona-timing-lib."
 
     epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,

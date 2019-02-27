@@ -2,10 +2,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, Core Security
+# SECUREAUTH LABS. Copyright (C) 2019 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
-# Core Security's CoreLabs team.
+# the SecureAuth Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -27,7 +27,7 @@ from setuptools import setup, Extension, Command
 import pysap
 
 
-class APIDocumentationCommand(Command):
+class DocumentationCommand(Command):
     """Custom command for building the documentation with Sphinx.
     """
 
@@ -90,7 +90,7 @@ sapcompress = Extension('pysapcompress',
 setup(name=pysap.__title__,   # Package information
       version=pysap.__version__,
       author='Martin Gallo',
-      author_email='mgallo@coresecurity.com',
+      author_email='mgallo@secureauth.com',
       description='Python library for crafting SAP\'s network protocols packets',
       long_description=pysap.__doc__,  # @UndefinedVariable
       url=pysap.__url__,
@@ -118,7 +118,7 @@ setup(name=pysap.__title__,   # Package information
       test_suite='tests.test_suite',
 
       # Documentation commands
-      cmdclass={'doc': APIDocumentationCommand,
+      cmdclass={'doc': DocumentationCommand,
                 'notebooks': PreExecuteNotebooksCommand},
 
       # Requirements
