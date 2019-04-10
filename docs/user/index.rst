@@ -67,39 +67,41 @@ References
 
 Additional information about the protocols and the research can be found at different publications:
 
-* `Uncovering SAP vulnerabilities: reversing and breaking the Diag protocol <https://www.secureauth.com/labs/publications/uncovering-sap-vulnerabilities-reversing-and-breaking-diag-protocol>`_
+* `Uncovering SAP vulnerabilities: reversing and breaking the Diag protocol <https://www.coresecurity.com/corelabs-research/publications/uncovering-sap-vulnerabilities-reversing-and-breaking-diag-protocol>`_
 
-* `SAP’s Network Protocols Revisited <https://www.secureauth.com/labs/publications/sap-network-protocols-revisited>`_
+* `SAP’s Network Protocols Revisited <https://www.coresecurity.com/corelabs-research/publications/sap-network-protocols-revisited>`_
 
-* `HoneySAP: Who really wants your money <https://www.secureauth.com/labs/publications/honeysap-who-really-wants-your-money>`_
+* `HoneySAP: Who really wants your money <https://www.coresecurity.com/corelabs-research/publications/honeysap-who-really-wants-your-money>`_
 
-* `Deep-dive into SAP archive file formats <https://www.secureauth.com/labs/publications/deep-dive-sap-archive-file-formats>`_
+* `Deep-dive into SAP archive file formats <https://www.coresecurity.com/corelabs-research/publications/deep-dive-sap-archive-file-formats>`_
 
-* `Intercepting SAP SNC-protected traffic <https://www.secureauth.com/publication/intercepting-sap-snc-protected-traffic>`_
+* `Intercepting SAP SNC-protected traffic <https://www.coresecurity.com/publication/intercepting-sap-snc-protected-traffic>`_
 
-* `SAPCAR Heap Buffer Overflow: From crash to exploit <https://www.secureauth.com/blog/sapcar-heap-buffer-overflow-crash-exploit>`_
+* `SAPCAR Heap Buffer Overflow: From crash to exploit <https://www.coresecurity.com/blog/sapcar-heap-buffer-overflow-crash-exploit>`_
 
-* `Hunting crypto secrets in SAP systems <https://www.secureauth.com/publication/hunting-crypto-secrets-sap-systems>`_
+* `Hunting crypto secrets in SAP systems <https://www.coresecurity.com/publication/hunting-crypto-secrets-sap-systems>`_
 
 And advisories:
 
-* `SAP Netweaver Dispatcher Multiple Vulnerabilities <https://www.secureauth.com/labs/advisories/sap-netweaver-dispatcher-multiple-vulnerabilities>`_
+* `SAP Netweaver Dispatcher Multiple Vulnerabilities <https://www.coresecurity.com/content/sap-netweaver-dispatcher-multiple-vulnerabilities>`_
 
-* `SAP Netweaver Message Server Multiple Vulnerabilities <https://www.secureauth.com/labs/advisories/SAP-netweaver-msg-srv-multiple-vulnerabilities>`_
+* `SAP Netweaver Message Server Multiple Vulnerabilities <https://www.coresecurity.com/content/SAP-netweaver-msg-srv-multiple-vulnerabilities>`_
 
-* `SAP Router Password Timing Attack <https://www.secureauth.com/labs/advisories/sap-router-password-timing-attack>`_
+* `SAP Router Password Timing Attack <https://www.coresecurity.com/advisories/sap-router-password-timing-attack>`_
 
-* `SAP Netweaver Enqueue Server Trace Pattern Denial of Service Vulnerability <https://www.secureauth.com/labs/advisories/sap-netweaver-enqueue-server-trace-pattern-denial-service-vulnerability>`_
+* `SAP Netweaver Enqueue Server Trace Pattern Denial of Service Vulnerability <https://www.coresecurity.com/advisories/sap-netweaver-enqueue-server-trace-pattern-denial-service-vulnerability>`_
 
-* `SAP LZC LZH Compression Multiple Vulnerabilities <https://www.secureauth.com/labs/advisories/sap-lzc-lzh-compression-multiple-vulnerabilities>`_
+* `SAP LZC LZH Compression Multiple Vulnerabilities <https://www.coresecurity.com/advisories/sap-lzc-lzh-compression-multiple-vulnerabilities>`_
 
-* `SAP Download Manager Password Weak Encryption <https://www.secureauth.com/labs/advisories/sap-download-manager-password-weak-encryption>`_
+* `SAP Download Manager Password Weak Encryption <https://www.coresecurity.com/advisories/sap-download-manager-password-weak-encryption>`_
 
-* `SAP CAR Multiple Vulnerabilities <https://www.secureauth.com/labs/advisories/sap-car-multiple-vulnerabilities>`_
+* `SAP CAR Multiple Vulnerabilities <https://www.coresecurity.com/advisories/sap-car-multiple-vulnerabilities>`_
 
-* `SAP SAPCAR Heap Based Buffer Overflow Vulnerability <https://www.secureauth.com/labs/advisories/sap-sapcar-heap-based-buffer-overflow-vulnerability>`_
+* `SAP SAPCAR Heap Based Buffer Overflow Vulnerability <https://www.coresecurity.com/advisories/sap-sapcar-heap-based-buffer-overflow-vulnerability>`_
 
-Initial research about the SAP CAR file format was performed by Martin Gallo and published in `Deep-dive into SAP archive file formats <https://www.secureauth.com/labs/publications/deep-dive-sap-archive-file-formats>`_
+* `SAP Note Assistant Insecure Handling of SAP Notes Signature Vulnerability <https://www.coresecurity.com/advisories/sap-note-assistant-insecure-handling-sap-notes-signature-vulnerability>`_
+
+Initial research about the SAP CAR file format was performed by Martin Gallo and published in `Deep-dive into SAP archive file formats <https://www.coresecurity.com/corelabs-research/publications/deep-dive-sap-archive-file-formats>`_
 at the `Troopers 2016 Security Conference <https://www.troopers.de/troopers16/agenda/>`_. Additional research was
 performed by `Hans-Christian Esperer <https://github.com/hce>`_ and published in the
 `Hascar <https://github.com/VirtualForgeGmbH/hascar>`_ tool.
