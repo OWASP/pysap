@@ -18,13 +18,13 @@
 # ==============
 
 # External imports
-from scapy.layers.inet import TCP, Raw
+from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
 from scapy.fields import (ByteField, ConditionalField, StrFixedLenField, FlagsField,
                           IPField, ShortField, IntField, StrField, PacketListField,
                           FieldLenField, PacketField, StrLenField, IntEnumField,
-                          StrNullField, ByteEnumKeysField, ShortEnumKeysField,
-                          Field, PacketLenField, XByteField)
+                          ByteEnumKeysField, ShortEnumKeysField, Field,
+                          PacketLenField, XByteField)
 from scapy.layers.inet6 import IP6Field
 # Custom imports
 from pysap.SAPNI import SAPNI
@@ -194,13 +194,13 @@ ms_adm_opcode_values = {
     0x48: "AD_LOAD_INFO",
     0x49: "AD_TEST",
     0x4a: "AD_HANDLE_ACL",
-    0x4b: "AD_PROFILE2", # from here, extracted from bin analysis
+    0x4b: "AD_PROFILE2",  # from here, extracted from bin analysis
     0x4c: "AD_RSCP_ASYNC",
     0x4d: "AD_BATCH_INFO",
     0x4e: "AD_SOFT_CANCEL",
     0x55: "AD_SYNC_LOAD_FMT",
     0x56: "AD_GET_NILIST_PORT",
-    0x5a: "AD_UNKNOWN", # added for avoiding error on dict access in some cases
+    0x5a: "AD_UNKNOWN",  # added for avoiding error on dict access in some cases
 }
 """Message Server Administration messages opcode values"""
 
@@ -473,11 +473,14 @@ ms_client_status_values = {
 }
 """Message Server Client status values"""
 
+
 dp_prio_values = {
     0: "LOW",
     1: "MEDIUM",
     2: "HIGH",
 }
+"""Message Server Dispatcher Info Priority values"""
+
 
 dp_type_values = {
     0: "INVALID",
@@ -486,6 +489,8 @@ dp_type_values = {
     3: "BY_TYPE",
     4: "MSG_SRV",
 }
+"""Message Server Dispatcher Info Type values"""
+
 
 dp_agent_type_values = {
     0: "INVALID",
@@ -500,6 +505,8 @@ dp_agent_type_values = {
     9: "DPMON",
     10: "ICMON",
 }
+"""Message Server Dispatcher Info Agent Type values"""
+
 
 dp_worker_type_values = {
     0: "NOWP",
@@ -510,6 +517,8 @@ dp_worker_type_values = {
     5: "SPO",
     6: "UP2",
 }
+"""Message Server Dispatcher Info Worker Type values"""
+
 
 dp_req_handler_values = {
     2: "REQ_HANDLER_GUI",
@@ -532,6 +541,8 @@ dp_req_handler_values = {
     130: "REQ_HANDLER_SUSPEND_SERVER",
     132: "REQ_HANDLER_RESUME_SERVER",
 }
+"""Message Server Dispatcher Info Request Handler values"""
+
 
 class SAPMSAdmRecord(PacketNoPadded):
     """SAP Message Server Administration Record packet
@@ -744,8 +755,9 @@ class SAPMSLogon(PacketNoPadded):
         StrLenField("misc", "", length_from=lambda pkt:pkt.misc_length),
         FieldLenField("address6_length", 16, length_of="address6", fmt="!H"),  # == 16 bytes
         ConditionalField(IP6Field("address6", "::"), lambda pkt:pkt.address6_length != 0xffff),
-        ConditionalField(ShortField("end", 0xffff ), lambda pkt:pkt.address6_length != 0xffff),
+        ConditionalField(ShortField("end", 0xffff), lambda pkt:pkt.address6_length != 0xffff),
     ]
+
 
 class SAPMSProperty(Packet):
     """SAP Message Server Property packet.
@@ -786,6 +798,7 @@ class SAPMSProperty(Packet):
         ConditionalField(IntField("supplvl", 0), lambda pkt:pkt.id in [0x07]),
         ConditionalField(IntField("platform", 0), lambda pkt:pkt.id in [0x07]),
     ]
+
 
 class SAPMSJ2EECluster(Packet):
     """SAP Message Server J2EE Cluster packet
@@ -857,9 +870,8 @@ class SAPDPInfo1(Packet):
     This packet is encapsulated inside SAPMS packet
     and before the MS ADM payload. Kernel 745
     """
-
     name = "SAP Dispatcher Info V1"
-    fields_desc= [
+    fields_desc = [
         ByteEnumKeysField("dp_req_prio", 0x1, dp_prio_values),
         IntField("dp_user_trace", 0x0),
         IntField("dp_req_len", 0x0),
@@ -938,15 +950,15 @@ class SAPDPInfo1(Packet):
         StrFixedLenField("dp_blob_yy", "", 8),
     ]
 
+
 class SAPDPInfo2(Packet):
     """SAP Dispatcher Info packet
 
     This packet is encapsulated inside SAPMS packet
     and before the MS ADM payload. Kernel 720.
     """
-
     name = "SAP Dispatcher Info v2"
-    fields_desc= [
+    fields_desc = [
         ByteEnumKeysField("dp_req_prio", 0x1, dp_prio_values),
         XByteField("dp_blob_00", 0x2),
         XByteField("dp_blob_01", 0x80),
@@ -985,15 +997,15 @@ class SAPDPInfo2(Packet):
         Field("dp_blob_21", 0x0, '<L'),
     ]
 
+
 class SAPDPInfo3(Packet):
     """SAP Dispatcher Info packet
 
     This packet is encapsulated inside SAPMS packet
     and before the MS ADM payload. Kernel 749.
     """
-
     name = "SAP Dispatcher Info v3"
-    fields_desc= [
+    fields_desc = [
         IntField("dp_padd1", 185),
 
         ByteEnumKeysField("dp_req_prio", 0x1, dp_prio_values),
@@ -1011,7 +1023,6 @@ class SAPDPInfo3(Packet):
         ByteEnumKeysField("dp_agent_type_from", 0x6, dp_agent_type_values),
         ShortField("dp_padd9", 0x0),
         ByteField("dp_padd10", 0x0),
-
 
         ByteField("dp_padd12", 0xff),
         ShortField("dp_padd13", 0x0),
@@ -1068,12 +1079,12 @@ class SAPDPInfo3(Packet):
         StrFixedLenField("dp_padd32", "\x00"*5, 5),
     ]
 
+
 class SAPMS(Packet):
     """SAP Message Server packet
 
     This packet is used for the Message Server protocol.
     """
-
     name = "SAP Message Server"
     fields_desc = [
         StrFixedLenField("eyecatcher", "**MESSAGE**\x00", 12),
@@ -1088,17 +1099,16 @@ class SAPMS(Packet):
         ByteEnumKeysField("flag", 0x01, ms_flag_values),
         ByteEnumKeysField("iflag", 0x01, ms_iflag_values),
         StrFixedLenField("fromname", "-" + " " * 39, 40),
-        ConditionalField(ShortField("diag_port", 3200), lambda pkt:pkt.iflag == 0x08 and pkt.flag == 0x02), # for MS_REQUEST+MS_LOGIN_2 it's the diag port
+        ConditionalField(ShortField("diag_port", 3200), lambda pkt:pkt.iflag == 0x08 and pkt.flag == 0x02),  # for MS_REQUEST+MS_LOGIN_2 it's the diag port
         ConditionalField(ShortField("padd", 0x0000), lambda pkt:pkt.iflag != 0x08 or pkt.flag != 0x02),
 
         # OpCode fields
-        ConditionalField(ByteEnumKeysField("opcode", 0x01, ms_opcode_values), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]), # extending all those fields with MS_SEND_TYPE and MS_SEND_TYPE_ONCE packets
+        ConditionalField(ByteEnumKeysField("opcode", 0x01, ms_opcode_values), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),  # extending all those fields with MS_SEND_TYPE and MS_SEND_TYPE_ONCE packets
         ConditionalField(ByteEnumKeysField("opcode_error", 0x00, ms_opcode_error_values), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x7]),
         ConditionalField(ByteField("opcode_version", 0x01), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),
         ConditionalField(ByteField("opcode_charset", 0x03), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),
         ConditionalField(StrField("opcode_value", ""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2f, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a]),
         ConditionalField(StrField("opcode_trailer", ""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x1e, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2f, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a]),
-
 
         # Dispatcher info
         ConditionalField(ByteField("dp_version", 0x0), lambda pkt:pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)),
