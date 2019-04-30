@@ -19,17 +19,17 @@
 
 # External imports
 from scapy.layers.inet import TCP
-from scapy.packet import Packet, bind_layers
+from scapy.packet import bind_layers
 from scapy.fields import (ByteField, ConditionalField, IPField, IntField,
                           StrFixedLenField, SignedShortField, ShortField,
                           ByteEnumKeysField, IntEnumKeysField, SignedIntField,
-                          FieldLenField, StrLenField, FlagsField, PacketField, StrField, PacketLenField, PacketListField)
+                          FieldLenField, StrLenField, FlagsField, PacketField,
+                          StrField, PacketListField)
 # External imports
 from scapy.layers.inet6 import IP6Field
-from scapy.all import raw
 # Custom imports
 from pysap.SAPNI import SAPNI
-from pysap.utils.fields import StrFixedLenPaddedField, IntToStrField, PacketNoPadded
+from pysap.utils.fields import StrFixedLenPaddedField, PacketNoPadded
 
 
 # RFC Request Type values
@@ -54,6 +54,7 @@ rfc_req_type_values = {
     0x11: "GW_FROM_REMOTE_GATEWAY",
     0x12: "GW_CONTAINER_RECEIVED",
 }
+
 
 rfc_func_type_values = {
     0: "F_NO_REQUEST",
@@ -91,6 +92,7 @@ rfc_func_type_values = {
     0xd8: "F_SAP_CONT_STREAMING",
 }
 """RFC Request Type values"""
+
 
 # RFC Monitor Command values
 rfc_monitor_cmd_values = {
@@ -146,9 +148,12 @@ rfc_monitor_cmd_values = {
 }
 """RFC Monitor Command values"""
 
+
 appc_protocol_values = {
     0x3: "CPIC",
 }
+"""RFC APPC Protocol values"""
+
 
 appc_rc_values = {
     0x0: "CM_OK",
@@ -206,6 +211,8 @@ appc_rc_values = {
     0x2711: "CM_SAP_TIMEOUT_RETRY",
     0x2712: "CM_CANCEL_REQUEST",
 }
+"""RFC APPC Return Code values"""
+
 
 cpic_ctypes = {
     0x43: "R_2",
@@ -213,6 +220,8 @@ cpic_ctypes = {
     0x45: "STARTED_PRG",
     0x52: "REGISTRED_PRG",
 }
+"""RFC CPIC CType values"""
+
 
 rfc_rfc_types = {
     0x32: "R_2_CONN",
@@ -223,11 +232,14 @@ rfc_rfc_types = {
     0x53: "SNA_CPIC_CONN",
     0x54: "TCP_CONN",
     0x58: "ABAP_DRIVER_CONN",
-
 }
+"""RFC Type values"""
+
 
 sap_rc_values = {
 }
+"""RFC Return Code values"""
+
 
 rfc_start_type = {
     0x0: 'DEFAULT',
@@ -236,6 +248,8 @@ rfc_start_type = {
     0x3: 'DISABLED',
     0x4: 'SECURE_SHELL',
 }
+"""RFC Start Type values"""
+
 
 # APPC Header versions length:
 # 1: 4Ch
@@ -277,6 +291,7 @@ cpic_padd = {
     "cpic_suff_padd": "\x03\x02\x01\x04",
     "cpic_end_padd": "\x01\x04\xff\xff",
 }
+"""RFC CPIC Padding values"""
 
 
 cpic_suff_padd = {
@@ -296,13 +311,14 @@ cpic_suff_padd = {
     "suff_padd13": "\x10\x04\x21",
     "suff_padd14": "\x10\x04\x24",
     "suff_padd15": "\x10\x04\x24",
-
-
 }
+"""RFC CPIC Stuff Padding values"""
 
 
 class SAPRFCEXTEND(PacketNoPadded):
-    name = "SAP EXTEND INFO"
+    """SAP RFC EXTEND INFO structure
+    """
+    name = "SAP EXTEND INFO structure"
     fields_desc = [
         StrFixedLenPaddedField("short_dest_name", "", length=8),
         StrFixedLenPaddedField("ncpic_lu", "", length=8),
@@ -318,7 +334,7 @@ class SAPRFCEXTEND(PacketNoPadded):
 class SAPRFCDTStruct(PacketNoPadded):
     """SAP RFC DT structure.
 
-    This STRUCT is used to setup started program.
+    This structure is used to setup started program.
     """
     name = "SAP RFC DT structure"
     fields_desc = [
@@ -347,7 +363,7 @@ class SAPRFCDTStruct(PacketNoPadded):
 
 
 class SAPCPICSUFFIX(PacketNoPadded):
-    """SAP CPIC SUFFIX
+    """SAP CPIC SUFFIX structure
     """
     name = "SAP CPIC SUFFIX"
     fields_desc = [
@@ -405,26 +421,31 @@ class SAPCPICSUFFIX(PacketNoPadded):
         StrLenField("suff_unk15", "", length_from=lambda pkt: pkt.suff_unk15_len),  # ip here
     ]
 
+
 class SAPCPICPARAM(PacketNoPadded):
-    name = "CPIC Prams1" # ??? may be not params :)
+    """SAP CPIC PARAM Structure
+    """
+    name = "CPIC Params1"  # ??? may be not params :)
     fields_desc = [
-        StrFixedLenField("pref","\x01\x00\x0c\x29", length=4),
-        StrFixedLenField("param1","", length=4),
-        StrFixedLenField("param2","", length=11),
-        StrFixedLenField("param_sess_1","", length=2),
-        StrFixedLenField("param_sess_2","", length=4),
-        IPField("mask",""),
-        IPField("ip",""),
-        IntField("flag",1),
+        StrFixedLenField("pref", "\x01\x00\x0c\x29", length=4),
+        StrFixedLenField("param1", "", length=4),
+        StrFixedLenField("param2", "", length=11),
+        StrFixedLenField("param_sess_1", "", length=2),
+        StrFixedLenField("param_sess_2", "", length=4),
+        IPField("mask", ""),
+        IPField("ip", ""),
+        IntField("flag", 1),
     ]
 
 
 class SAPCPICPARAM2(PacketNoPadded):
-    name = "CPIC Prams2" # ??? may be not params :)
+    """SAP CPIC PARAM Structure
+    """
+    name = "CPIC Prams2"  # ??? may be not params :)
     fields_desc = [
-        StrFixedLenField("param1","", length=8),
-        IPField("mask",""),
-        IPField("ip",""),
+        StrFixedLenField("param1", "", length=8),
+        IPField("mask", ""),
+        IPField("ip", ""),
     ]
 
 
@@ -449,6 +470,7 @@ class SAPRFCTHStruct(PacketNoPadded):
         StrFixedLenField("th_unused_comm2", "\x00\x00\x00\xe2", length=4),
         StrFixedLenField("th_eyec2", "*TH*", length=4),
     ]
+
 
 class SAPRFXPG(PacketNoPadded):
     """SAP Started program packets.
@@ -544,8 +566,10 @@ class SAPRFXPG(PacketNoPadded):
         StrLenField("xpg_unk1", "", length_from=lambda pkt: pkt.xpg_unk1_len),
     ]
 
-class DEF_FIELDS(PacketNoPadded):
 
+class DEF_FIELDS(PacketNoPadded):
+    """SAP RFC Def Fields structure
+    """
     fields_desc = [
         StrFixedLenField("start_padd", "", length=4),
         FieldLenField("start_field1_len", None, length_of="start_field1", fmt="!H"),
@@ -586,7 +610,6 @@ class SAPRFXPG_END(PacketNoPadded):
         StrFixedLenField("xpg_end_padd005", "\x03\x30\x03\x02", length=4),
         FieldLenField("xpg_end_unk2_len", None, length_of="xpg_end_unk2", fmt="!H"),
         StrLenField("xpg_end_unk2", "\x00\x00\x00\x80\x00\x00\x00\x00", length_from=lambda pkt: pkt.xpg_end_unk2_len),
-
     ]
 
 
@@ -615,7 +638,7 @@ class SAPCPIC2(PacketNoPadded):
         ConditionalField(FieldLenField("cpic_unk4_len", None, length_of="cpic_unk4", fmt="!H"), lambda pkt: pkt.cpic_padd019 == cpic_padd["cpic_unk4_padd"]),
         ConditionalField(StrLenField("cpic_unk4", "", length_from=lambda pkt: pkt.cpic_unk4_len), lambda pkt: pkt.cpic_padd019 == cpic_padd["cpic_unk4_padd"]),
 
-        # StrFixedLenField("cpic_padd020", "", length=4), #TODO: we send this field in originak request
+        # StrFixedLenField("cpic_padd020", "", length=4), #TODO: we send this field in original request
         # ConditionalField(FieldLenField("cpic_th_struct_len", None, length_of="cpic_th_struct", fmt="!H"), lambda pkt: pkt.cpic_padd020 == cpic_padd["cpic_th_struct_padd"]),
         # ConditionalField(PacketListField("cpic_th_struct", None, SAPRFCTHStruct, length_from=lambda pkt: pkt.cpic_th_struct_len), lambda pkt: pkt.cpic_padd020 == cpic_padd["cpic_th_struct_padd"]),
 
@@ -639,7 +662,6 @@ class SAPCPIC2(PacketNoPadded):
         # Started PRG RFC_PING
         ConditionalField(PacketField("rfc_ping", None, SAPRFCPING), lambda pkt: pkt.cpic_RFC_f in ['RFC_PING']),
 
-
         StrFixedLenField("cpic_padd024", "", length=4),
         ConditionalField(FieldLenField("cpic_suff_len", None, length_of="cpic_suff", fmt="!H"), lambda pkt: pkt.cpic_padd024 == cpic_padd["cpic_suff_padd"]),
         ConditionalField(PacketListField("cpic_suff", None, SAPCPICSUFFIX, length_from=lambda pkt: pkt.cpic_suff_len), lambda pkt: pkt.cpic_padd024 == cpic_padd["cpic_suff_padd"]),
@@ -651,18 +673,18 @@ class SAPCPIC2(PacketNoPadded):
         StrFixedLenField("cpic_end_sig", "\x00\x00\xff\xff", length=4),
     ]
 
+
 class SAPCPIC(PacketNoPadded):
     """SAP CPIC Packet
     """
     name = "SAP CPIC Packet"
     fields_desc = [
-        StrFixedLenField("cpic_start_padd","", length=4),
-        ConditionalField( ShortField("cpic_cpic_length", None), lambda pkt: pkt.cpic_start_padd== cpic_padd["cpic_start_padd"]), # don't no what it is
+        StrFixedLenField("cpic_start_padd", "", length=4),
+        ConditionalField( ShortField("cpic_cpic_length", None), lambda pkt: pkt.cpic_start_padd == cpic_padd["cpic_start_padd"]),  # don't no what it is
 
         StrFixedLenField("cpic_padd0003", "", length=4),
         ConditionalField(FieldLenField("cpic_unk02_len", None, length_of="cpic_unk02", fmt="!H"), lambda pkt: pkt.cpic_padd0003 == cpic_padd["cpic_unk02_padd"]),
         ConditionalField(StrLenField("cpic_unk02", "", length_from=lambda pkt: pkt.cpic_unk02_len), lambda pkt: pkt.cpic_padd0003 == cpic_padd["cpic_unk02_padd"]),
-
 
         StrFixedLenField("cpic_padd0002", "", length=4),
         ConditionalField(FieldLenField("cpic_unk01_len", None, length_of="cpic_unk01", fmt="!H"), lambda pkt: pkt.cpic_padd0002 == cpic_padd["cpic_unk01_padd"]),
@@ -783,13 +805,14 @@ class SAPCPIC(PacketNoPadded):
         StrFixedLenField("cpic_end_sig", "\x00\x00\xff\xff", length=4),
     ]
 
+
 class SAPCPIC_CUT(PacketNoPadded):
-    """SAP RFC TH structure.
+    """SAP CUT structure.
     """
     name = "SAP CUT"
     fields_desc = [
         # StrLenField("keke1", ""),
-        StrFixedLenField("keke1", "",475),
+        StrFixedLenField("keke1", "", 475),
     ]
 
 
@@ -798,6 +821,7 @@ class SAPRFC(PacketNoPadded):
 
     This packet is used for the Remote Function Call (RFC) protocol.
     """
+    name = "SAP Remote Function Call"
     fields_desc = [
         ByteField("version", 3),  # If the version is 3, the packet has a size > 88h, versions 1 and 2 are 40h
         ConditionalField(ByteEnumKeysField("req_type", 0, rfc_req_type_values), lambda pkt: pkt.version != 0x06),
@@ -813,7 +837,6 @@ class SAPRFC(PacketNoPadded):
         ConditionalField(StrFixedLenPaddedField("tp", "", length=8), lambda pkt: pkt.req_type == 0x03),
         ConditionalField(StrFixedLenPaddedField("conversation_id", "", length=8), lambda pkt: pkt.req_type == 0x03),
         ConditionalField(ByteField("appc_header_version", 6), lambda pkt: pkt.req_type == 0x03),
-        # ConditionalField(ByteField("accept_info", 0xcb), lambda pkt:pkt.req_type == 0x03),
         ConditionalField(FlagsField("accept_info", 0xcb, 8,
                                     ["EINFO", "PING", "SNC", "CONN_EINFO", "CODE_PAGE", "NIPING", "EXTINITOPT",
                                      "GW_ACCEPT_DIST_TRACE"]), lambda pkt: pkt.req_type == 0x03),  # chipik
@@ -843,13 +866,11 @@ class SAPRFC(PacketNoPadded):
         ConditionalField(ShortField("uid", 0x13), lambda pkt: pkt.version == 0x6),
         ConditionalField(ShortField("gw_id", 0x0), lambda pkt: pkt.version == 0x6),
         ConditionalField(ShortField("err_len", 0x0), lambda pkt: pkt.version == 0x6),
-        # ConditionalField(ByteField("info2", 0x1), lambda pkt:pkt.version == 0x6), # bitfield
         ConditionalField(FlagsField("info2", 0, 8,
                                     ["WITH_LONG_LU_NAME", "GW_IMMEDIATE", "GW_SNC_ACTIVE", "GW_WAIT_LOOK_UP",
                                      "SNC_INIT_PHASE", "GW_STATELESS"]), lambda pkt: pkt.version == 0x6),  # chipik
         ConditionalField(ByteField("trace_level", 0x1), lambda pkt: pkt.version == 0x6),
         ConditionalField(IntField("time", 0x0), lambda pkt: pkt.version == 0x6),
-        # ConditionalField(ByteField("info3", 0x0), lambda pkt:pkt.version == 0x6), # bitfield
         ConditionalField(FlagsField("info3", 0, 8,
                                     ["GW_WITH_CODE_PAGE", "GW_ASYNC_RFC", "GW_CANCEL_HARD", "GW_CANCEL_SOFT",
                                      "GW_WITH_GUI_TIMEOUT", "GW_TERMIO_ERROR", "GW_EXTENDED_INIT_OPTIONS",
@@ -871,36 +892,31 @@ class SAPRFC(PacketNoPadded):
         ConditionalField(IntEnumKeysField("sap_rc", 0x0, sap_rc_values), lambda pkt: pkt.version == 0x6),
         ConditionalField(StrFixedLenField("conv_id", 0, 8), lambda pkt: pkt.version == 0x6),
         ConditionalField(PacketField("sap_ext_header", None, SAPRFCEXTEND), lambda pkt: pkt.version == 0x6 and 'GW_EXTENDED_INIT_OPTIONS' in str(pkt.info3)),  # chipik
-        ConditionalField(StrFixedLenField("cm_ok_padd", 0, 32),lambda pkt: pkt.version == 0x6 and  "SYNC_CPIC_FUNCTION" in str(pkt.info) and  "GW_WITH_CODE_PAGE" not in str(pkt.info3)),  # chipik
-        ConditionalField(IntField("codepage_size1", 0,),lambda pkt: pkt.version == 0x6 and  "GW_WITH_CODE_PAGE" in str(pkt.info3)),  # chipik
-        ConditionalField(StrFixedLenField("codepage_padd1", 0, 4),lambda pkt: pkt.version == 0x6 and  "GW_WITH_CODE_PAGE" in str(pkt.info3)),  # chipik
-        ConditionalField(IntField("codepage_size2", 0,),lambda pkt: pkt.version == 0x6 and  "GW_WITH_CODE_PAGE" in str(pkt.info3)),  # chipik
-        ConditionalField(StrFixedLenField("codepage_padd2", 0, 4),lambda pkt: pkt.version == 0x6 and  "GW_WITH_CODE_PAGE" in str(pkt.info3)),  # chipik
-        ConditionalField(StrFixedLenField("codepage_padd3", 0, 4),lambda pkt: pkt.version == 0x6 and  "GW_WITH_CODE_PAGE" in str(pkt.info3)),  # chipik
-        ConditionalField(StrFixedLenField("codepage", 0, 5),lambda pkt: pkt.version == 0x6 and  "GW_WITH_CODE_PAGE" in str(pkt.info3)),  # chipik
-        ConditionalField(StrFixedLenField("codepage_padd2", 0, 7),lambda pkt: pkt.version == 0x6 and  "GW_WITH_CODE_PAGE" in str(pkt.info3)),  # chipik
+        ConditionalField(StrFixedLenField("cm_ok_padd", 0, 32), lambda pkt: pkt.version == 0x6 and "SYNC_CPIC_FUNCTION" in str(pkt.info) and "GW_WITH_CODE_PAGE" not in str(pkt.info3)),  # chipik
+        ConditionalField(IntField("codepage_size1", 0,), lambda pkt: pkt.version == 0x6 and "GW_WITH_CODE_PAGE" in str(pkt.info3)),  # chipik
+        ConditionalField(StrFixedLenField("codepage_padd1", 0, 4), lambda pkt: pkt.version == 0x6 and "GW_WITH_CODE_PAGE" in str(pkt.info3)),  # chipik
+        ConditionalField(IntField("codepage_size2", 0,), lambda pkt: pkt.version == 0x6 and "GW_WITH_CODE_PAGE" in str(pkt.info3)),  # chipik
+        ConditionalField(StrFixedLenField("codepage_padd2", 0, 4), lambda pkt: pkt.version == 0x6 and "GW_WITH_CODE_PAGE" in str(pkt.info3)),  # chipik
+        ConditionalField(StrFixedLenField("codepage_padd3", 0, 4), lambda pkt: pkt.version == 0x6 and "GW_WITH_CODE_PAGE" in str(pkt.info3)),  # chipik
+        ConditionalField(StrFixedLenField("codepage", 0, 5), lambda pkt: pkt.version == 0x6 and "GW_WITH_CODE_PAGE" in str(pkt.info3)),  # chipik
+        ConditionalField(StrFixedLenField("codepage_padd2", 0, 7), lambda pkt: pkt.version == 0x6 and "GW_WITH_CODE_PAGE" in str(pkt.info3)),  # chipik
 
         ConditionalField(PacketField("sap_param", None, SAPRFCDTStruct), lambda pkt: pkt.version == 0x6 and 'GW_DIST_TRACE' in str(pkt.info3)),  # chipik
 
         # error message
-        ConditionalField(StrField("error_msg", ""),lambda pkt: pkt.version == 0x6 and 'WITH_ERR_INFO' in str(pkt.info)),
+        ConditionalField(StrField("error_msg", ""), lambda pkt: pkt.version == 0x6 and 'WITH_ERR_INFO' in str(pkt.info)),
 
         # F_V_SEND_DATA
-        ConditionalField(PacketField("sap_cpic", None, SAPCPIC),lambda pkt: pkt.version == 0x6 and 'F_V_SEND_DATA' in str(pkt.vector) and not pkt.codepage_size2),  # chipik
-        ConditionalField(PacketField("sap_cpic_cut", None, SAPCPIC2),lambda pkt: pkt.version == 0x6 and 'F_V_SEND_DATA' in str(pkt.vector) and not pkt.codepage_size2 and not pkt.sap_cpic),  # chipik
+        ConditionalField(PacketField("sap_cpic", None, SAPCPIC), lambda pkt: pkt.version == 0x6 and 'F_V_SEND_DATA' in str(pkt.vector) and not pkt.codepage_size2),  # chipik
+        ConditionalField(PacketField("sap_cpic_cut", None, SAPCPIC2), lambda pkt: pkt.version == 0x6 and 'F_V_SEND_DATA' in str(pkt.vector) and not pkt.codepage_size2 and not pkt.sap_cpic),  # chipik
 
         # answer from Anon GW
-        ConditionalField(StrFixedLenField("anon_repl_sign",'\x05\x00\x00\x00', 4),lambda pkt: pkt.version == 0x6 and 'F_V_RECEIVE' == str(pkt.vector)),
-        ConditionalField(PacketListField("repl", None, DEF_FIELDS, length_from=lambda pkt: pkt.codepage_size2),lambda pkt: pkt.version == 0x6 and 'F_V_RECEIVE' in str(pkt.vector) and pkt.codepage_size2>0),
+        ConditionalField(StrFixedLenField("anon_repl_sign", '\x05\x00\x00\x00', 4), lambda pkt: pkt.version == 0x6 and 'F_V_RECEIVE' == str(pkt.vector)),
+        ConditionalField(PacketListField("repl", None, DEF_FIELDS, length_from=lambda pkt: pkt.codepage_size2), lambda pkt: pkt.version == 0x6 and 'F_V_RECEIVE' in str(pkt.vector) and pkt.codepage_size2 > 0),
 
-
-        ConditionalField(ShortField("cpic_packet_size", 0x0),lambda pkt: pkt.version == 0x6 and 'F_V_SEND_DATA' in str(pkt.vector)),  # chipik
-        ConditionalField(IntField("rfc_packet_size", 0x0),lambda pkt: pkt.version == 0x6 and 'F_V_SEND_DATA' in str(pkt.vector)),  # chipik
-
-
-
+        ConditionalField(ShortField("cpic_packet_size", 0x0), lambda pkt: pkt.version == 0x6 and 'F_V_SEND_DATA' in str(pkt.vector)),  # chipik
+        ConditionalField(IntField("rfc_packet_size", 0x0), lambda pkt: pkt.version == 0x6 and 'F_V_SEND_DATA' in str(pkt.vector)),  # chipik
     ]
-    name = "SAP Remote Function Call"
 
 
 # Bind SAP NI with the RFC port
