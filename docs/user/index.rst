@@ -106,8 +106,10 @@ at the `Troopers 2016 Security Conference <https://www.troopers.de/troopers16/ag
 performed by `Hans-Christian Esperer <https://github.com/hce>`_ and published in the
 `Hascar <https://github.com/VirtualForgeGmbH/hascar>`_ tool.
 
-Documentation on the SAP CAR file protocol is available in SAP's `Virus Scan Interface (NW-VSI) <ftp://ftp.sap.com/pub/icc/nw-vsi>`_
+Documentation on the SAP ``SAR`` archive file protocol is available in SAP's `Virus Scan Interface (NW-VSI) <ftp://ftp.sap.com/pub/icc/nw-vsi>`_
 `specification document <ftp://ftp.sap.com/pub/icc/nw-vsi/VSA-Specification.pdf>`_. An example implementation can be
 also found in the `Virus Scan Adapter SDK <ftp://ftp.sap.com/pub/icc/nw-vsi/VSA-SDK-2.0.zip>`_.
 
-Initial research about the IGS protocol was performed by Yvan Genuer and published in `SAP IGS : The 'vulnerable' forgotten component <https://www.troopers.de/troopers18/agenda/3r38lr/>`_.
+Initial research about the ``IGS`` protocol was performed by Yvan Genuer and published in `SAP IGS : The 'vulnerable' forgotten component <https://www.troopers.de/troopers18/agenda/3r38lr/>`_.
+
+Additional research about the Message Server (``MS``) and Remote Function Call (``RFC``) protocols was performed by Dmitry Chastuhin and Mathieu Geli and published in `(SAP) Gateway to Heaven <https://github.com/comaeio/OPCDE/tree/master/2019/Emirates/(SAP)%20Gateway%20to%20Heaven%20-%20Dmitry%20Chastuhin%2C%20Mathieu%20Geli>`_.

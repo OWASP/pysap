@@ -5,7 +5,9 @@ Changelog
 v0.1.17 - 2019-XX-XX
 --------------------
 
-- `pysap/SAPCAR.py`; Fixed crafting of archive files by defaulting length fields to zero ([\#22](https://github.com/SecureAuthCorp/pysap/issues/22)) Thanks [@okuuva](https://github.com/okuuva)!
+- `pysap/SAPCAR.py`: Fixed crafting of archive files by defaulting length fields to zero ([\#22](https://github.com/SecureAuthCorp/pysap/issues/22)) Thanks [@okuuva](https://github.com/okuuva)!
+- `pysap/SAPMS.py`: Added the `DPInfo[1-3]` packets for handling specific Message Server `ADM` packets relaying Dispatcher/WP info: `[1-3]` because of tight SAP kernel version dependency. ([\#31](https://github.com/SecureAuthCorp/pysap/pull/31)) Thanks Mathieu ([@gelim](https://github.com/gelim)) and Dmitry ([@_chipik](https://twitter.com/_chipik))!
+- `pysap/SAPRFC.py`: Enhanced with mainly `SAPCPIC*` and `SAPRFXPG*` new packets. ([\#31](https://github.com/SecureAuthCorp/pysap/pull/31)) Thanks Mathieu ([@gelim](https://github.com/gelim)) and Dmitry ([@_chipik](https://twitter.com/_chipik))!
 - `examples/router_scanner.py`: Add capability to provide a comma separated list of targets/ports to scan.
 
 
