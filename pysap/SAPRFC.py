@@ -399,19 +399,18 @@ class SAPCPICSUFFIX(PacketNoPadded):
         StrLenField("suff_kernel", "720", length_from=lambda pkt: pkt.suff_kernel_len),
 
         # next fields exist only in win versions of clients suff_unk9 == "\x00\x01" (??)
-
-        ConditionalField(StrFixedLenField("suff_padd10", "\x10\x04\x1d", length=3),lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(FieldLenField("suff_unk10_len", None, length_of="suff_unk10", fmt="!H"),lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(StrLenField("suff_unk10", "", length_from=lambda pkt: pkt.suff_unk10_len),lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(StrFixedLenField("suff_padd11", "\x10\x04\x1f", length=3),lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(FieldLenField("suff_cli1_len", None, length_of="suff_cli1", fmt="!H"),lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(StrLenField("suff_cli1", "", length_from=lambda pkt: pkt.suff_cli1_len),lambda pkt: pkt.suff_unk9 == "\x00\x01"),  # ip or OS name here
-        ConditionalField(StrFixedLenField("suff_padd12", "\x10\x04\x20", length=3),lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(FieldLenField("suff_cli2_len", None, length_of="suff_cli2", fmt="!H"),lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(StrLenField("suff_cli2", "", length_from=lambda pkt: pkt.suff_cli2_len),lambda pkt: pkt.suff_unk9 == "\x00\x01"),  # browser name here
-        ConditionalField(StrFixedLenField("suff_padd13", "\x10\x04\x21", length=3),lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(FieldLenField("suff_cli3_len", None, length_of="suff_cli3", fmt="!H"),lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(StrLenField("suff_cli3", "", length_from=lambda pkt: pkt.suff_cli3_len),lambda pkt: pkt.suff_unk9 == "\x00\x01"),  # office name here
+        ConditionalField(StrFixedLenField("suff_padd10", "\x10\x04\x1d", length=3), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
+        ConditionalField(FieldLenField("suff_unk10_len", None, length_of="suff_unk10", fmt="!H"), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
+        ConditionalField(StrLenField("suff_unk10", "", length_from=lambda pkt: pkt.suff_unk10_len), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
+        ConditionalField(StrFixedLenField("suff_padd11", "\x10\x04\x1f", length=3), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
+        ConditionalField(FieldLenField("suff_cli1_len", None, length_of="suff_cli1", fmt="!H"), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
+        ConditionalField(StrLenField("suff_cli1", "", length_from=lambda pkt: pkt.suff_cli1_len), lambda pkt: pkt.suff_unk9 == "\x00\x01"),  # ip or OS name here
+        ConditionalField(StrFixedLenField("suff_padd12", "\x10\x04\x20", length=3), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
+        ConditionalField(FieldLenField("suff_cli2_len", None, length_of="suff_cli2", fmt="!H"), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
+        ConditionalField(StrLenField("suff_cli2", "", length_from=lambda pkt: pkt.suff_cli2_len), lambda pkt: pkt.suff_unk9 == "\x00\x01"),  # browser name here
+        ConditionalField(StrFixedLenField("suff_padd13", "\x10\x04\x21", length=3), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
+        ConditionalField(FieldLenField("suff_cli3_len", None, length_of="suff_cli3", fmt="!H"), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
+        ConditionalField(StrLenField("suff_cli3", "", length_from=lambda pkt: pkt.suff_cli3_len), lambda pkt: pkt.suff_unk9 == "\x00\x01"),  # office name here
 
         StrFixedLenField("suff_padd14", "\x10\x04\x24", length=3),
         FieldLenField("suff_unk14_len", None, length_of="suff_unk14", fmt="!H"),
@@ -807,7 +806,7 @@ class SAPCPIC(PacketNoPadded):
 
 
 class SAPCPIC_CUT(PacketNoPadded):
-    """SAP CUT structure.
+    """SAP CPIC CUT structure.
     """
     name = "SAP CUT"
     fields_desc = [
