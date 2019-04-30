@@ -3,8 +3,25 @@
 User guide
 ==========
 
-The following parts of the documentation contains some background information about pysap, as well as some
+The following parts of the documentation contains some background information about
+`pysap <https://www.secureauth.com/labs/open-source-tools/pysap>`_, as well as some
 step-by-step instructions for installing, configuring and using pysap.
+
+
+Projects using pysap
+--------------------
+
+The following projects and repositories are known to be using pysap:
+
+* `HoneySAP <https://github.com/SecureAuthCorp/HoneySAP>`_: HoneySAP is a low-interaction research-focused honeypot specific for SAP services. HoneySAP uses pysap as a library in order to craft and parse different protocol network packets.
+
+* `SAP dissection plug-in for Wireshark <https://github.com/SecureAuthCorp/SAP-Dissection-plug-in-for-Wireshark>`_: This Wireshark plugin provides dissection of SAP's ``NI``, Message Server, ``Router``, ``Diag``, ``Enqueue``, ``IGS`` and ``SNC`` protocols. The Wireshark plug-in makes use of pysap in order to craft packets used during unit tests.
+
+* `SAP Message Server research <https://github.com/gelim/sap_ms>`_: Exploit proof of concept code for two attacks against the Message Server service:
+    * Logon Group (transparent) Hijacking
+    * BeTrusted
+
+* `SAP Gateway RCE exploit PoCs <https://github.com/chipik/SAP_GW_RCE_exploit>`_: Exploit proof of concept code for ACL misconfigurations in the SAP Gateway that leads to a Remote Command Execution (RCE).
 
 
 .. _installation:
@@ -112,4 +129,5 @@ also found in the `Virus Scan Adapter SDK <ftp://ftp.sap.com/pub/icc/nw-vsi/VSA-
 
 Initial research about the ``IGS`` protocol was performed by Yvan Genuer and published in `SAP IGS : The 'vulnerable' forgotten component <https://www.troopers.de/troopers18/agenda/3r38lr/>`_.
 
-Additional research about the Message Server (``MS``) and Remote Function Call (``RFC``) protocols was performed by Dmitry Chastuhin and Mathieu Geli and published in `(SAP) Gateway to Heaven <https://github.com/comaeio/OPCDE/tree/master/2019/Emirates/(SAP)%20Gateway%20to%20Heaven%20-%20Dmitry%20Chastuhin%2C%20Mathieu%20Geli>`_.
+Additional research about the Message Server (``MS``) and Remote Function Call (``RFC``) protocols was performed by
+Dmitry Chastuhin and Mathieu Geli and published in `(SAP) Gateway to Heaven <https://github.com/comaeio/OPCDE/tree/master/2019/Emirates/(SAP)%20Gateway%20to%20Heaven%20-%20Dmitry%20Chastuhin%2C%20Mathieu%20Geli>`_.
