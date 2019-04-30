@@ -35,7 +35,7 @@ from pysap.SAPRouter import SAPRoutedStreamSocket
 conf.verb = 0
 
 
-class SAPRFCMonitorConsole(BaseConsole):
+class SAPGWMonitorConsole(BaseConsole):
 
     intro = "SAP Gateway/RFC Monitor Console"
     connection = None
@@ -43,13 +43,13 @@ class SAPRFCMonitorConsole(BaseConsole):
     clients = []
 
     def __init__(self, options):
-        super(SAPRFCMonitorConsole, self).__init__(options)
+        super(SAPGWMonitorConsole, self).__init__(options)
         self.runtimeoptions["client"] = self.options.client
         self.runtimeoptions["version"] = self.options.version
 
     # Initialization
     def preloop(self):
-        super(SAPRFCMonitorConsole, self).preloop()
+        super(SAPGWMonitorConsole, self).preloop()
         self.do_connect(None)
         self.do_client_list(None)
 
@@ -96,7 +96,7 @@ class SAPRFCMonitorConsole(BaseConsole):
     def do_exit(self, args):
         if self.connected:
             self.do_disconnect(None)
-        return super(SAPRFCMonitorConsole, self).do_exit(args)
+        return super(SAPGWMonitorConsole, self).do_exit(args)
 
     def do_noop(self, args):
         """ Send a noop command to the Gateway service. """
@@ -173,7 +173,7 @@ def main():
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    rfc_console = SAPRFCMonitorConsole(options)
+    rfc_console = SAPGWMonitorConsole(options)
 
     try:
         if options.script:
