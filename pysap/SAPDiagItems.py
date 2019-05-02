@@ -307,7 +307,7 @@ class SAPDiagSupportBits(Packet):
         BitField("AGI_ID_TS_BUTTON", 0, 1),  # 201
         BitField("GROUPBOX", 0, 1),  # 200
 
-        BitField("padding_bits", 0, 56), ]
+        BitField("padding_bits", 0, 48), ]
 
 bind_diagitem(SAPDiagSupportBits, "APPL", 0x04, 0x0b)
 bind_diagitem(SAPDiagSupportBits, "APPL", 0x06, 0x11)
