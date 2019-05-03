@@ -1,4 +1,4 @@
-#<SAP parameter>:<check type in [FILE|EQUAL|INF|SUP|REGEX]>:<expected value>
+#<SAP parameter>:<check type in [FILE|EQUAL|NOTEQUAL|INF|SUP|REGEX]>:<expected value>
 SAPSYSTEM::
 SAPSYSTEMNAME::
 INSTANCE_NAME::
