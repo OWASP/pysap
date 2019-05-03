@@ -34,9 +34,12 @@ login/no_automatic_user_sapstar:EQUAL:1
 login/password_compliance_to_current_policy:EQUAL:1
 login/password_downwards_compatibility:INF:2
 ms/acl_info:FILE:.*
+ms/admin_port:EQUAL:0
 ms/http_logging:EQUAL:1
 ms/monitor:EQUAL:0
 rec/client:EQUAL:ALL
+rdisp/msserv:EQUAL:0
+rdisp/msserv_internal:NOTEQUAL:0
 rsau/enable:EQUAL:1
 rsau/ip_only:REGEX:.*
 rsau/max_diskspace/local:REGEX:.*
