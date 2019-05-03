@@ -200,4 +200,8 @@ The following is an example result of running the command:
     [!] snc/enable = 0
 
 
+The script's output will contain a ``[+]`` mark if the value obtained from the Message Server matched the expected one
+in the provided file or a ``[!]`` mark if that's not the case. Other parameters not checked will have an empty mark
+``[ ]``.
+
 This example script was contributed by `Ivan Genuer <https://twitter.com/_1ggy>`_.
