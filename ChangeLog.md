@@ -5,11 +5,19 @@ Changelog
 v0.1.17 - 2019-XX-XX
 --------------------
 
+- Added documentation of projects using `pysap`.
+- Added documentation of `ms_dump_info` and `ms_dump_param` example scripts.
+- `bin/pysapcar`: Add cli option to determine output directory when extracting archives with pysapcar ([\#24](https://github.com/SecureAuthCorp/pysap/pull/24)) Thanks [@okuuva](https://github.com/okuuva)!
+- `pysap/SAPDiag.py`: Added support bits for SAP GUI 7.50 and SAP NW 7.52 SP01.
 - `pysap/SAPCAR.py`: Fixed crafting of archive files by defaulting length fields to zero ([\#22](https://github.com/SecureAuthCorp/pysap/issues/22)) Thanks [@okuuva](https://github.com/okuuva)!
 - `pysap/SAPMS.py`: Added the `DPInfo[1-3]` packets for handling specific Message Server `ADM` packets relaying Dispatcher/WP info: `[1-3]` because of tight SAP kernel version dependency. ([\#31](https://github.com/SecureAuthCorp/pysap/pull/31)) Thanks Mathieu ([@gelim](https://github.com/gelim)) and Dmitry ([@_chipik](https://twitter.com/_chipik))!
 - `pysap/SAPRFC.py`: Enhanced with mainly `SAPCPIC*` and `SAPRFXPG*` new packets. ([\#31](https://github.com/SecureAuthCorp/pysap/pull/31)) Thanks Mathieu ([@gelim](https://github.com/gelim)) and Dmitry ([@_chipik](https://twitter.com/_chipik))!
+- `pysap/SAPRouter.py`: Fixed padding on SAPRouter client info packets.
+- `examples/rfc_monitor.py`: Renamed the script to `gw_monitor.py`.
 - `examples/router_scanner.py`: Add capability to provide a comma separated list of targets/ports to scan.
-
+- `examples/list_sap_parameters`: Updated recommended values and added new parameters.
+- `examples/ms_dump_info.py`: Added `NOTEQUAL` check type.
+- `examples/router_fingerprints.json`: Added fingerprints for SAP Router 7.49 and 7.45 kernels.
 
 v0.1.16 - 2018-06-19
 --------------------
