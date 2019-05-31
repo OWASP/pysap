@@ -145,25 +145,20 @@ The following is an example result of running the command:
     [*] Sending login packet:
     [*] Login OK, Server string: MSG_SERVER
 
-    [ ] SAPSYSTEM = 01
-    [ ] SAPSYSTEMNAME = SYS
-    [ ] INSTANCE_NAME = ASCS01
-    [ ] system/type = ABAP
-    [ ] dbms/type = syb
-    [ ] SAPDBHOST = sapserver
-    [ ] j2ee/dbtype = syb
-    [ ] j2ee/dbname = SYS
-    [ ] SAPFQDN = NOT_EXIST
-    [ ] login/system_client = 001
-    [ ] DIR_AUDIT = /usr/sap/SYS/ASCS01/log
-    [ ] FN_AUDIT = audit_++++++++
     [+] auth/no_check_in_some_cases = Y
     [+] auth/rfc_authority_check = 1
+    [ ] dbms/type = syb
+    [ ] DIR_AUDIT = /usr/sap/SYS/ASCS01/log
+    [ ] FN_AUDIT = audit_++++++++
     [+] gw/acl_mode = 1
     [+] gw/logging = ACTION=Ss LOGFILE=gw_log-%y-%m-%d SWITCHTF=day MAXSIZEKB=100
     [+] gw/monitor = 1
+    [ ] gw/proxy_check = *
+    [ ] gw/prxy_info = /usr/sap/SYS/ASCS01/data/prxyinfo
     [ ] gw/reg_info = /usr/sap/SYS/ASCS01/data/reginfo
+    [!] gw/reg_no_conn_info = 1
     [ ] gw/sec_info = /usr/sap/SYS/SYS/global/secinfo
+    [+] gw/sim_mode = 0
     [!] icm/HTTP/logging_0 = *
     [!] icm/HTTP/logging_1 = *
     [!] icm/HTTP/logging_2 = *
@@ -174,18 +169,28 @@ The following is an example result of running the command:
     [ ] icm/server_port_2 = NOT_EXIST
     [ ] icm/server_port_3 = NOT_EXIST
     [ ] icm/server_port_4 = NOT_EXIST
+    [ ] INSTANCE_NAME = ASCS01
+    [ ] j2ee/dbname = SYS
+    [ ] j2ee/dbtype = syb
     [+] login/fails_to_user_lock = 5
     [!] login/min_password_lng = 6
     [+] login/no_automatic_user_sapstar = 1
     [!] login/password_compliance_to_current_policy = 0
     [+] login/password_downwards_compatibility = 0
+    [ ] login/system_client = 001
+    [ ] ms/acl_file_admin = NOT_EXIST
+    [ ] ms/acl_file_extbnd = NOT_EXIST
+    [ ] ms/acl_file_ext = NOT_EXIST
+    [ ] ms/acl_file_int = NOT_EXIST
     [ ] ms/acl_info = /usr/sap/SYS/SYS/global/ms_acl_info
     [+] ms/admin_port = 0
+    [+] ms/audit = 1
     [!] ms/http_logging = PREFIX=/,LOGFILE=dev_ms_logging,LOGFORMAT=SAPMSG
     [+] ms/monitor = 0
-    [!] rec/client = OFF
+    [ ] rdisp/extbnd_port = *
     [!] rdisp/msserv = sapmsSYS
     [+] rdisp/msserv_internal = 3901
+    [!] rec/client = OFF
     [!] rsau/enable = 0
     [+] rsau/ip_only = *
     [+] rsau/max_diskspace/local = 1000000000
@@ -194,14 +199,23 @@ The following is an example result of running the command:
     [+] rsdb/ssfs_connect = 1
     [ ] rslg/local/file = /usr/sap/SYS/ASCS01/log/SLOG01
     [+] rslg/max_diskspace/local = 10000000
+    [ ] SAPDBHOST = sapserver
+    [ ] SAPFQDN = NOT_EXIST
+    [ ] SAPSYSTEM = 01
+    [ ] SAPSYSTEMNAME = SYS
     [ ] service/http/acl_file = NOT_EXIST
     [ ] service/https/acl_file = NOT_EXIST
     [+] service/protectedwebmethods = SDEFAULT
     [!] snc/enable = 0
+    [!] system/secure_communication = OFF
+    [ ] system/type = ABAP
 
 
 The script's output will contain a ``[+]`` mark if the value obtained from the Message Server matched the expected one
 in the provided file or a ``[!]`` mark if that's not the case. Other parameters not checked will have an empty mark
 ``[ ]``.
 
-This example script was contributed by `Ivan Genuer <https://twitter.com/_1ggy>`_.
+This example script was contributed by `Ivan Genuer <https://twitter.com/_1ggy>`_. The recommended values and
+parameters related to the Gateway and Message Server services were obtained from the
+`May 2019 Security Notes Webinar <https://support.sap.com/content/dam/support/en_us/library/ssp/offerings-and-programs/support-services/sap-security-optimization-services-portfolio/SAP_Security_Notes_Webinar.pdf>`_
+by Frank Buchholz.
