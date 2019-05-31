@@ -41,7 +41,6 @@ ms/admin_port:EQUAL:0
 ms/audit:SUP:1
 ms/http_logging:EQUAL:1
 ms/monitor:EQUAL:0
-ms/monitor:EQUAL:0
 rdisp/extbnd_port::
 rdisp/msserv:EQUAL:0
 rdisp/msserv_internal:NOTEQUAL:0
