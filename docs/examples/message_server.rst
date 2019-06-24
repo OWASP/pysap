@@ -3,6 +3,18 @@
 Message Server Example scripts
 ==============================
 
+
+``ms_change_param``
+-------------------
+
+XXX
+
+
+``ms_dos_exploit``
+------------------
+
+XXX
+
 ``ms_dump_info``
 ----------------
 
@@ -219,3 +231,34 @@ This example script was contributed by `Ivan Genuer <https://twitter.com/_1ggy>`
 parameters related to the Gateway and Message Server services were obtained from the
 `May 2019 Security Notes Webinar <https://support.sap.com/content/dam/support/en_us/library/ssp/offerings-and-programs/support-services/sap-security-optimization-services-portfolio/SAP_Security_Notes_Webinar.pdf>`_
 by Frank Buchholz.
+
+
+``ms_impersonator``
+-------------------
+
+XXX
+
+
+``ms_listener``
+---------------
+
+XXX
+
+
+``ms_messager``
+---------------
+
+XXX
+
+
+``ms_monitor``
+--------------
+
+XXX
+
+
+``ms_observer``
+---------------
+
+XXX
+
