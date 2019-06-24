@@ -24,7 +24,7 @@ made available via the Message Server service. The script connects to the intern
 
 The following is an example result of running the command:
 
-.. code-block:: none
+.. code-block::
 
     $ examples/ms_dump_info.py -d XXX.XXX.XXX.XXX -p 3901
     [*] Connected to the message server XXX.XXX.XXX.XXX:3901
@@ -124,7 +124,7 @@ allow for performing checks against a defined set of expected values. The list o
 should be provided in a file with the following format:
 
 
-.. code-block:: none
+.. code-block::
 
     #<SAP parameter>:<check type in [FILE|EQUAL|NOTEQUAL|INF|SUP|REGEX]>:<expected value>
 
@@ -149,7 +149,7 @@ programmatically, check the output of ``ms_dump_info`` for more details.
 
 The following is an example result of running the command:
 
-.. code-block:: none
+.. code-block::
 
     $ examples/ms_dump_param.py -d XXX.XXX.XXX.XXX -p 3901 -f examples/list_sap_parameters
     [*] Initiate connection to message server XXX.XXX.XXX.XXX:3901
