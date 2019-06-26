@@ -17,7 +17,7 @@ SAP Router instance is running (connections identified as "local" by the Network
 protocol), or the SAP Router needs to be configured as to allow remote connections to the SAP Router
 port. An example of such a routing table to allow this access is as follows:
 
-.. code-block::
+.. code-block:: none
 
     * * 127.0.0.1 3299
 
@@ -53,7 +53,7 @@ a previously generated database. A fingerprint database is maintained and locate
 The following is an example result of running the script against a version of SAP Router already
 in the database:
 
-.. code-block::
+.. code-block:: none
 
     XXX
 
@@ -63,7 +63,7 @@ it's possible to narrow down the version to a build number.
 The following is an example result of running the script against a version of SAP Router that is
 not found in the database:
 
-.. code-block::
+.. code-block:: none
 
     XXX
 
@@ -75,7 +75,7 @@ and providing the ``json`` record.
 The following example command line options can be used to add the missing version number to the
 database:
 
-.. code-block::
+.. code-block:: none
 
     XXX
 
