@@ -24,7 +24,7 @@ from scapy.fields import (ByteField, ConditionalField, StrFixedLenField, FlagsFi
                           IPField, ShortField, IntField, StrField, PacketListField,
                           FieldLenField, PacketField, StrLenField, IntEnumField,
                           ByteEnumKeysField, ShortEnumKeysField, Field,
-                          PacketLenField, XByteField)
+                          PacketLenField, XByteField, SignedIntField)
 from scapy.layers.inet6 import IP6Field
 # Custom imports
 from pysap.SAPNI import SAPNI
@@ -753,9 +753,9 @@ class SAPMSLogon(PacketNoPadded):
         StrLenField("host", "", length_from=lambda pkt:pkt.host_length),
         FieldLenField("misc_length", None, length_of="misc", fmt="!H"),  # <= 100h bytes
         StrLenField("misc", "", length_from=lambda pkt:pkt.misc_length),
-        FieldLenField("address6_length", 16, length_of="address6", fmt="!H"),  # == 16 bytes
-        ConditionalField(IP6Field("address6", "::"), lambda pkt:pkt.address6_length != 0xffff),
-        ConditionalField(ShortField("end", 0xffff), lambda pkt:pkt.address6_length != 0xffff),
+        FieldLenField("address6_length", 16, length_of="address6", fmt="!h"),  # == 16 bytes
+        ConditionalField(IP6Field("address6", "::"), lambda pkt:pkt.address6_length > 0),
+        ConditionalField(SignedIntField("end", -1), lambda pkt:pkt.address6_length > 0),
     ]
 
 
