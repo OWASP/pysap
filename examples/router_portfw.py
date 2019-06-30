@@ -103,14 +103,16 @@ def parse_options():
 def main():
     options = parse_options()
 
+    level = logging.INFO
     if options.verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        level = logging.DEBUG
+    logging.basicConfig(level=level, format='%(message)s')
 
-    print("[*] Setting a proxy between %s:%d and remote SAP Router %s:%d (talk mode %s)" % (options.local_host,
-                                                                                            options.local_port,
-                                                                                            options.remote_host,
-                                                                                            options.remote_port,
-                                                                                            options.talk_mode))
+    logging.info("[*] Setting a proxy between %s:%d and remote SAP Router %s:%d (talk mode %s)" % (options.local_host,
+                                                                                                   options.local_port,
+                                                                                                   options.remote_host,
+                                                                                                   options.remote_port,
+                                                                                                   options.talk_mode))
 
     options.talk_mode = {"raw": 1, "ni": 0}[options.talk_mode]
 
@@ -129,12 +131,12 @@ def main():
             try:
                 proxy.handle_connection()
             except SocketError as e:
-                print("[*] Socket Error %s" % e)
+                logging.error("[*] Socket Error %s" % e)
 
     except KeyboardInterrupt:
-        print("[*] Cancelled by the user !")
+        logging.error("[*] Cancelled by the user !")
     except SAPRouteException as e:
-        print("[*] Closing routing do to error %s" % e)
+        logging.error("[*] Closing routing do to error %s" % e)
 
 
 if __name__ == "__main__":

@@ -99,9 +99,9 @@ def client_mode(options):
         conn = SAPRoutedStreamSocket.get_nisocket(options.host,
                                                   options.port,
                                                   options.route_string)
-        print("")
-        print(datetime.today().ctime())
-        print("connect to server o.k.")
+        logging.info("")
+        logging.info(datetime.today().ctime())
+        logging.info("connect to server o.k.")
 
         # Send the messages
         for i in range(options.loops):
@@ -113,7 +113,7 @@ def client_mode(options):
 
             # Check the response
             if str(r.payload) != str(p):
-                print("[-] Response on message {} differs".format(i))
+                logging.info("[-] Response on message {} differs".format(i))
 
             # Calculate and record the elapsed time
             times.append(end_time - start_time)
@@ -123,14 +123,14 @@ def client_mode(options):
         conn.close()
 
     except SocketError:
-        print("[*] Connection error")
+        logging.error("[*] Connection error")
     except KeyboardInterrupt:
-        print("[*] Cancelled by the user")
+        logging.error("[*] Cancelled by the user")
 
     if times:
-        print("")
-        print(datetime.today().ctime())
-        print("send and receive {} messages (len {})".format(len(times), options.buffer_size))
+        logging.info("")
+        logging.info(datetime.today().ctime())
+        logging.info("send and receive {} messages (len {})".format(len(times), options.buffer_size))
 
         # Calculate the stats
         times = [x.total_seconds() * 1000 for x in times]
@@ -144,17 +144,17 @@ def client_mode(options):
         times2_tr = float(options.buffer_size * len(times2)) / float(sum(times2))
 
         # Print the stats
-        print("")
-        print("------- times -----")
-        print("avg  {:8.3f} ms".format(times_avg))
-        print("max  {:8.3f} ms".format(times_max))
-        print("min  {:8.3f} ms".format(times_min))
-        print("tr   {:8.3f} kB/s".format(times_tr))
+        logging.info("")
+        logging.info("------- times -----")
+        logging.info("avg  {:8.3f} ms".format(times_avg))
+        logging.info("max  {:8.3f} ms".format(times_max))
+        logging.info("min  {:8.3f} ms".format(times_min))
+        logging.info("tr   {:8.3f} kB/s".format(times_tr))
 
-        print("excluding max and min:")
-        print("av2  {:8.3f} ms".format(times2_avg))
-        print("tr2  {:8.3f} kB/s".format(times2_tr))
-        print("")
+        logging.info("excluding max and min:")
+        logging.info("av2  {:8.3f} ms".format(times2_avg))
+        logging.info("tr2  {:8.3f} kB/s".format(times2_tr))
+        logging.info("")
 
 
 def server_mode(options):
@@ -171,17 +171,17 @@ def server_mode(options):
     try:
         sock.bind((options.host, options.port))
         sock.listen(0)
-        print("")
-        print(datetime.today().ctime())
-        print("ready for connect from client ...")
+        logging.info("")
+        logging.info(datetime.today().ctime())
+        logging.info("ready for connect from client ...")
 
         while True:
             sc, sockname = sock.accept()
             client = SAPNIStreamSocket(sc)
 
-            print("")
-            print(datetime.today().ctime())
-            print("connect from host '{}', client hdl {} o.k.".format(sockname[0], client.fileno()))
+            logging.info("")
+            logging.info(datetime.today().ctime())
+            logging.info("connect from host '{}', client hdl {} o.k.".format(sockname[0], client.fileno()))
 
             try:
                 while True:
@@ -192,14 +192,14 @@ def server_mode(options):
                 pass
 
             finally:
-                print("")
-                print(datetime.today().ctime())
-                print("client hdl {} disconnected ...".format(client.fileno()))
+                logging.info("")
+                logging.info(datetime.today().ctime())
+                logging.info("client hdl {} disconnected ...".format(client.fileno()))
 
     except SocketError:
-        print("[*] Connection error")
+        logging.error("[*] Connection error")
     except KeyboardInterrupt:
-        print("[*] Cancelled by the user")
+        logging.error("[*] Cancelled by the user")
 
     finally:
         sock.shutdown(SHUT_RDWR)
@@ -210,11 +210,13 @@ def server_mode(options):
 def main():
     options = parse_options()
 
+    level = logging.INFO
     if options.verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        level = logging.DEBUG
+    logging.basicConfig(level=level, format='%(message)s')
 
     if options.buffer_size < 10:
-        print("[*] Using minimum buffer size of 10 bytes")
+        logging.info("[*] Using minimum buffer size of 10 bytes")
         options.buffer_size = 10
 
     # Client running mode
