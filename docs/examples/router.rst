@@ -19,7 +19,7 @@ port. An example of such a routing table to allow this access is as follows:
 
 .. code-block:: none
 
-    * * 127.0.0.1 3299
+    P * 127.0.0.1 3299
 
 The undocumented commands implemented by the script are the following ones:
 
@@ -55,7 +55,35 @@ in the database:
 
 .. code-block:: none
 
-    XXX
+    $ python router_fingerprint.py -d <hostname>
+    [*] Loading fingerprint database
+    [*] Trying to fingerprint version using 13 packets
+    [*] (1/13) Fingerprint for packet 'No route one entry'
+    [*] (1/13) Fingerprint for packet 'No route one entry' matched !
+    [*] (2/13) Fingerprint for packet 'Timeout'
+    [*] (2/13) Fingerprint for packet 'Timeout' matched !
+    ..
+    ..
+    [*] (13/13) Fingerprint for packet 'No route invalid length' matched !
+
+    [*] Matched fingerprints (13/13):
+    [+] Request: No route one entry
+    [+] Request: Timeout
+    [+] Request: No route
+    [+] Request: Empty route invalid offset
+    [+] Request: Non existent domain old version
+    [+] Request: Valid domain invalid service
+    [+] Request: Invalid control opcode
+    [+] Request: Network packet too big
+    [+] Request: Empty route invalid length
+    [+] Request: Non existent domain
+    [+] Request: Empty route valid length
+    [+] Request: Empty route null offset
+    [+] Request: No route invalid length
+
+    [*] Probable versions (1):
+    [*]	Hits: 13 Version: version: "40" release: "749" patch_number: "200" source_id: "0.200" update_level: "0" platform: "linux-x86-64" submitted_by: "mgallo@secureauth.com"
+
 
 As can be observed, by matching the information in the error message with the fingerprint database
 it's possible to narrow down the version to a build number.
@@ -65,10 +93,52 @@ not found in the database:
 
 .. code-block:: none
 
-    XXX
+    $ ./router_fingerprint.py -d <hostname>
+    [*] Loading fingerprint database
+    [*] Trying to fingerprint version using 13 packets
+    [*] (1/13) Fingerprint for packet 'No route one entry'
+    [*] (1/13) Fingerprint for packet 'No route one entry' not matched
+    [*] (2/13) Fingerprint for packet 'Timeout'
+    [*] (2/13) Fingerprint for packet 'Timeout' not matched
+    ..
+    ..
+    [*] (13/13) Fingerprint for packet 'No route invalid length'
+    [*] (13/13) Fingerprint for packet 'No route invalid length' not matched
+
+    [*] Non matched fingerprints (13/13):
+    [-] Request: No route one entry
+    [-] Request: Timeout
+    [-] Request: No route
+    [-] Request: Empty route invalid offset
+    [-] Request: Non existent domain old version
+    [-] Request: Valid domain invalid service
+    [-] Request: Invalid control opcode
+    [-] Request: Network packet too big
+    [-] Request: Empty route invalid length
+    [-] Request: Non existent domain
+    [-] Request: Empty route valid length
+    [-] Request: Empty route null offset
+    [-] Request: No route invalid length
+
+    [-] Some error values where not found in the fingerprint database. If you want to contribute submit a issue to https://github.com/SecureAuthCorp/pysap or write an email to mgallo@secureauth.com with the following information along with the SAP Router file information and how it was configured.
+
+
+    New fingerprint saved to: saprouter_new_fingerprints.json
+
+
+    Version information to complete and submit:
+    {
+        "comment": "",
+        "submitted_by": "",
+        "update_level": "",
+        "patch_number": "",
+        "file_version": "",
+        "platform": "",
+        "source_id": ""
+    }
 
 In this case, as the information contained in the error messages wasn't found in the database,
-the script output contains the stepts and information required to incorporate that version in the
+the script output contains the steps and information required to incorporate that version in the
 database as a new record. This can be done by using the ``--add-fingerprint`` option on the script
 and providing the ``json`` record.
 
@@ -77,7 +147,30 @@ database:
 
 .. code-block:: none
 
-    XXX
+    $ ./router_fingerprint.py -a saprouter_new_fingerprints.json -i '{
+    >     "comment": "A new comment to add to the fingerprint",
+    >     "submitted_by": "email or contact of the submitter",
+    >     "update_level": "update level",
+    >     "patch_number": "patch number",
+    >     "file_version": "file vesion",
+    >     "platform": "linux_x86_64",
+    >     "source_id": "source id number"
+    > }'
+    [*] Loading fingerprint database
+    [*] Adding a new entry to the fingerprint database
+    [*]	Added a new entry for the target No route one entry
+    [*]	Added a new entry for the target Timeout
+    [*]	Added a new entry for the target No route
+    [*]	Added a new entry for the target Empty route invalid offset
+    [*]	Added a new entry for the target Non existent domain old version
+    [*]	Added a new entry for the target Valid domain invalid service
+    [*]	Added a new entry for the target Invalid control opcode
+    [*]	Added a new entry for the target Network packet too big
+    [*]	Added a new entry for the target Empty route invalid length
+    [*]	Added a new entry for the target Non existent domain
+    [*]	Added a new entry for the target Empty route valid length
+    [*]	Added a new entry for the target Empty route null offset
+    [*]	Added a new entry for the target No route invalid length
 
 Fingerprints for missing versions can be contributed in the form of GitHub issues reporting the
 version and build numbers or in the form of pull requests with the addition of new records to the
