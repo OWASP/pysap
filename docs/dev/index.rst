@@ -24,8 +24,8 @@ A build is also available at `Read the Docs <https://pysap.readthedocs.io/en/lat
 
 The build process requires several packages and libraries to be available. The operative system libraries required are:
 
-* `pandoc`
-* A LaTex environment, for example `TexLive` on Linux or `MikTex` on Windows.
+* ``pandoc``
+* A LaTex environment, for example ``TexLive`` on Linux or ``MikTex`` on Windows.
 
 For example, installation on a Ubuntu box would require the following commands::
 

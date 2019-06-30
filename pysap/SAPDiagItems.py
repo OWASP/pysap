@@ -298,7 +298,16 @@ class SAPDiagSupportBits(Packet):
         BitField("GUI_SIGNATURE_COLOR", 0, 1),  # 193
         BitField("UNKNOWN_3", 0, 1),  # 192 (Unknown support bit)
 
-        BitField("padding_bits", 0, 56), ]
+        BitField("AGI_ID_TC", 0, 1),  # 207
+        BitField("AGI_ID", 0, 1),  # 206
+        BitField("MSGINFO_WITH_CODEPAGE", 0, 1),  # 205
+        BitField("CONNECT_CHECK_DONE", 0, 1),  # 204
+        BitField("FIORI_MODE", 0, 1),  # 203
+        BitField("NO_FOCUS_ON_LIST", 0, 1),  # 202
+        BitField("AGI_ID_TS_BUTTON", 0, 1),  # 201
+        BitField("GROUPBOX", 0, 1),  # 200
+
+        BitField("padding_bits", 0, 48), ]
 
 bind_diagitem(SAPDiagSupportBits, "APPL", 0x04, 0x0b)
 bind_diagitem(SAPDiagSupportBits, "APPL", 0x06, 0x11)
@@ -313,21 +322,25 @@ bind_diagitem(SAPDiagSupportBits, "APPL", 0x06, 0x11)
 # SAPGUI 7.01 Windows:              ff7ffa0d78b737def6196e9325bf1593ef73feebdb5501000000000000000000
 # SAPGUI 7.30 Windows:              ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed910200000000000000
 # SAPGUI 7.40 Windows:              ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed91ca00000000000000
+# SAPGUI 7.50 Windows:              ff7ffa0d78b737def6196e9325bf1597ef73feebdb51fd91ce2c010000000000
 #
 # SAP EHP 1 for SAP Netweaver 7.0:  ff7ffe2dd8b737d674087e1305971597ebf22f8d03300f000000000000000000
 # SAP EHP 2 for SAP NetWeaver 7.0:  ff7ffe2dd8b737d674087e1305971597ebf23f8d0370ff0f0000000000000000
 # SAP NetWeaver AS ABAP 7.50 SP02:  ff7ffe2dd8b737f674087e9305971597ebf2bf8f4b71ff9f8606000000000000
+# SAP NetWeaver AS ABAP 7.52 SP01:  ff7ffa0d78b737de76186e9325b71597eb73feebdb51fd91ce24010000000000
 
 support_data_sapgui_701_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1593ef73feebdb5501000000000000000000"))
 support_data_sapgui_702_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1593ef73feebdb51ed010000000000000000"))
 support_data_sapgui_730_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed910200000000000000"))
 support_data_sapgui_740_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed91ca00000000000000"))
+support_data_sapgui_750_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1597ef73feebdb51fd91ce2c010000000000"))
 support_data_sapgui_702_java2 = SAPDiagSupportBits(unhex("ff7ffe2ddab737d674087e1305971597eff23f8d0770ff030000000000000000"))
 support_data_sapgui_702_java5 = SAPDiagSupportBits(unhex("ff7ffe2ddab737d674087e1305971597eff23f8d0770ff0f0000000000000000"))
 support_data_sapgui_740_java8 = SAPDiagSupportBits(unhex("ff7ffe2ddab737f674087e9305971597eff2bf8f4f71ff9f8606000000000000"))
 support_data_sapnw_701 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737d674087e1305971597ebf22f8d03300f000000000000000000"))
 support_data_sapnw_702 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737d674087e1305971597ebf23f8d0370ff0f0000000000000000"))
 support_data_sapnw_750 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737f674087e9305971597ebf2bf8f4b71ff9f8606000000000000"))
+support_data_sapnw_752 = SAPDiagSupportBits(unhex("ff7ffa0d78b737de76186e9325b71597eb73feebdb51fd91ce24010000000000"))
 
 support_data = SAPDiagItem(item_type="APPL",
                            item_id="ST_USER",

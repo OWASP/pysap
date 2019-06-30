@@ -532,6 +532,18 @@ class SAPMSMonitorConsole(BaseConsole):
                 self._print("Parameter %s set to %s !" % (parameter_name,
                                                           parameter_value))
 
+    def do_check_acl(self, args):
+        """ Set parameter value (requires monitor mode enabled).
+            Options: <parameter name> <parameter value> """
+
+        response = self._send_simple(0x02, 0x01, opcode=71, opcode_version=1, opcode_charset=0)[SAPMS]
+
+        if response:
+            if response.error_code:
+                self._error("Error checking ACL, code %d" % response.error_code)
+            else:
+                self._print("ACL: %s" % response.acl)
+
 
 # Command line options parser
 def parse_options():
