@@ -5,9 +5,19 @@ Changelog
 v0.1.17 - 2019-XX-XX
 --------------------
 
-- `pysap/SAPCAR.py`; Fixed crafting of archive files by defaulting length fields to zero ([\#22](https://github.com/SecureAuthCorp/pysap/issues/22)) Thanks [@okuuva](https://github.com/okuuva)!
+- Added documentation of projects using `pysap`.
+- Added documentation of `ms_dump_info` and `ms_dump_param` example scripts.
+- `bin/pysapcar`: Add cli option to determine output directory when extracting archives with pysapcar ([\#24](https://github.com/SecureAuthCorp/pysap/pull/24)) Thanks [@okuuva](https://github.com/okuuva)!
+- `pysap/SAPDiag.py`: Added support bits for SAP GUI 7.50 and SAP NW 7.52 SP01.
+- `pysap/SAPCAR.py`: Fixed crafting of archive files by defaulting length fields to zero ([\#22](https://github.com/SecureAuthCorp/pysap/issues/22)) Thanks [@okuuva](https://github.com/okuuva)!
+- `pysap/SAPMS.py`: Added the `DPInfo[1-3]` packets for handling specific Message Server `ADM` packets relaying Dispatcher/WP info: `[1-3]` because of tight SAP kernel version dependency. ([\#31](https://github.com/SecureAuthCorp/pysap/pull/31)) Thanks Mathieu ([@gelim](https://github.com/gelim)) and Dmitry ([@_chipik](https://twitter.com/_chipik))!
+- `pysap/SAPRFC.py`: Enhanced with mainly `SAPCPIC*` and `SAPRFXPG*` new packets. ([\#31](https://github.com/SecureAuthCorp/pysap/pull/31)) Thanks Mathieu ([@gelim](https://github.com/gelim)) and Dmitry ([@_chipik](https://twitter.com/_chipik))!
+- `pysap/SAPRouter.py`: Fixed padding on SAPRouter client info packets.
+- `examples/rfc_monitor.py`: Renamed the script to `gw_monitor.py`.
 - `examples/router_scanner.py`: Add capability to provide a comma separated list of targets/ports to scan.
-
+- `examples/list_sap_parameters`: Updated recommended values and added new parameters.
+- `examples/ms_dump_info.py`: Added `NOTEQUAL` check type.
+- `examples/router_fingerprints.json`: Added fingerprints for SAP Router 7.49 and 7.45 kernels.
 
 v0.1.16 - 2018-06-19
 --------------------
@@ -122,7 +132,7 @@ v0.1.10 - 2016-03-25
 - Version released at Troopers'16
 - Added support for handling SAP SAR file formats.
 - `pysap/SAPCAR.py`: New module for handling SAP SAR file formats.
-- `extra/dlmanager_decrypt.py`: Example PoC for [decrypting](https://www.secureauth.com/labs/advisories/sap-download-manager-password-weak-encryption)
+- `extra/dlmanager_decrypt.py`: Example PoC for [decrypting](https://www.coresecurity.com/advisories/sap-download-manager-password-weak-encryption)
   [SAP Download Manager](https://support.sap.com/software/download-manager.html) stored passwords.
 - `examples/dlmanager_infector.py`: Example script to open a SAP SAR archive file and infect it by adding files with
   arbitrary filenames (e.g. including absolute or relative paths). It can be also used as a
@@ -156,7 +166,7 @@ v0.1.8 - 2015-10-29
 v0.1.7 - 2015-05-13
 -------------------
 
-- Fixed vulnerabilities in `LZC` and `LZH` compression libraries ([CVE-2015-2282 and CVE-2015-2278](https://www.secureauth.com/labs/advisories/sap-lzc-lzh-compression-multiple-vulnerabilities)).
+- Fixed vulnerabilities in `LZC` and `LZH` compression libraries ([CVE-2015-2282 and CVE-2015-2278](https://www.coresecurity.com/advisories/sap-lzc-lzh-compression-multiple-vulnerabilities)).
   Added test cases for checking proper fixes.
 - `pysap/SAPRouter.py`: Moved SAP Router native proxy implementation to the SAP Router module so it can be reused.
 - `examples/router_portfw.py`: Using the native proxy implementation in SAP Router module.
@@ -202,10 +212,10 @@ v0.1.5 - 2015-01-16
 - `pysapcompress/pysapcompress.cpp`: Improved routines and added handling of some error conditions.
 - `examples/diag_capturer.py`: New example script for dumping Diag login credentials by sniffing or reading a pcap file.
 - `examples/enqueue_monitor.py`: Added command for get replication info and command for checking trace pattern endless
-  loop vulnerability ([CVE-2014-0995](https://www.secureauth.com/labs/advisories/sap-netweaver-enqueue-server-trace-pattern-denial-service-vulnerability)).
+  loop vulnerability ([CVE-2014-0995](https://www.coresecurity.com/advisories/sap-netweaver-enqueue-server-trace-pattern-denial-service-vulnerability)).
 - `examples/router_admin.py`: Parsing of info request responses.
 - `examples/router_password_check`: New example script for testing if a SAP Router is vulnerable to a timing attack on
-  the password check ([CVE-2014-0984](https://www.secureauth.com/labs/advisories/sap-router-password-timing-attack)).
+  the password check ([CVE-2014-0984](https://www.coresecurity.com/advisories/sap-router-password-timing-attack)).
 - `requirements-optional.txt`: Added optional requirements.
 
 

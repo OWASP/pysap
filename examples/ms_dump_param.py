@@ -143,6 +143,9 @@ def main():
                     elif check_type == 'EQUAL':
                         if value.upper() == str(value2c).upper():
                             status = '[+]'
+                    elif check_type == 'NOTEQUAL':
+                        if value.upper() != str(value2c).upper():
+                            status = '[+]'
                     elif check_type == 'REGEX':
                         if re.match(value2c.upper(), value.upper()) and value2c != 'NOT_EXIST':
                             status = '[+]'
@@ -162,7 +165,7 @@ def main():
             print("Error reading parameters file !")
             exit(0)
         except ValueError:
-            print("Invalid parameters file format !")
+            print("Invalid parameters file format or access denied!")
             exit(0)
 
 

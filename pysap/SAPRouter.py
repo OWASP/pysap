@@ -210,7 +210,7 @@ class SAPRouterInfoClient(PacketNoPadded):
         StrNullFixedLenField("address", None, length=45),
         StrNullFixedLenField("partner", None, length=45),
         StrNullFixedLenField("service", None, length=27),
-        StrFixedLenField("XXX3", None, length=4),
+        StrFixedLenField("XXX3", None, length=7),
     ]
 
 

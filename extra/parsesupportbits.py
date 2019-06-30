@@ -109,6 +109,7 @@ def main():
         if (bit % 8) == 0 and bit != 0:
             pysap += '\n'
         pysap += '        BitField("%s", 0, 1),  # %d%s\n' % bitfield
+    pysap += '\n        BitField("padding_bits", 0, %d), ]' % (256 - len(bitfields))
 
     print("[*] pysap SAPDiagItems definition:")
     print(pysap)
