@@ -42,8 +42,7 @@ before_script:
       mkdir -p /Users/travis/Library/Python/2.7/lib/python/site-packages;
       echo 'import site; site.addsitedir("/usr/local/lib/python2.7/site-packages")' >> /Users/travis/Library/Python/2.7/lib/python/site-packages/homebrew.pth;
       brew update;
-      brew install --with-python libdnet;
-      brew install https://raw.githubusercontent.com/secdev/scapy/master/.travis/pylibpcap.rb;
+      brew install libdnet libpcap;
     fi
   # stop the build if there are Python syntax errors or undefined names
   - flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
