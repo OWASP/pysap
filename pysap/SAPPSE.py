@@ -21,11 +21,15 @@
 import logging
 # External imports
 from scapy.asn1packet import ASN1_Packet
+from scapy.asn1.ber import BERcodec_SEQUENCE
+from scapy.asn1.asn1 import ASN1_Codecs, ASN1_SEQUENCE
 from scapy.asn1fields import (ASN1F_SEQUENCE, ASN1F_PACKET, ASN1F_INTEGER, ASN1F_STRING,
-                              ASN1_Codecs, ASN1F_CHOICE, ASN1F_OID, ASN1F_optional,
-                              ASN1F_enum_INTEGER, ASN1F_BIT_STRING, ASN1F_SET_OF,
-                              ASN1F_PRINTABLE_STRING, ASN1F_GENERALIZED_TIME, ASN1_SEQUENCE,
-                              ASN1_Class_UNIVERSAL, BERcodec_SEQUENCE)
+                              ASN1F_CHOICE, ASN1F_OID, ASN1F_optional, ASN1F_enum_INTEGER,
+                              ASN1F_BIT_STRING, ASN1F_SET_OF, ASN1F_PRINTABLE_STRING,
+                              ASN1F_GENERALIZED_TIME, ASN1_Class_UNIVERSAL)
+# Import needed to initialize conf.mib
+from scapy.asn1.mib import conf  # noqa: F401
+
 # Custom imports
 from pysap.SAPLPS import SAP_LPS_Cipher
 from pysap.utils.crypto import PKCS12_PBES1
