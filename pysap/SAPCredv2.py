@@ -23,13 +23,16 @@ import logging
 from zlib import crc32
 from binascii import unhexlify
 # External imports
-from scapy.asn1packet import ASN1_Packet
 from scapy.packet import Packet
+from scapy.asn1packet import ASN1_Packet
 from scapy.fields import (ByteField, ByteEnumField, ShortField, StrField, StrFixedLenField)
+from scapy.asn1.asn1 import ASN1_IA5_STRING, ASN1_Codecs
 from scapy.asn1fields import (ASN1F_SEQUENCE, ASN1F_SEQUENCE_OF, ASN1F_BIT_STRING,
-                              ASN1F_IA5_STRING, ASN1F_INTEGER, ASN1_IA5_STRING, ASN1F_SET,
-                              ASN1F_OID, ASN1F_PRINTABLE_STRING, ASN1F_UTF8_STRING,
-                              ASN1_Codecs, ASN1F_optional)
+                              ASN1F_IA5_STRING, ASN1F_INTEGER, ASN1F_SET, ASN1F_OID,
+                              ASN1F_PRINTABLE_STRING, ASN1F_UTF8_STRING, ASN1F_optional)
+# Import needed to initialize conf.mib
+from scapy.asn1.mib import conf  # noqa: F401
+
 # Custom imports
 from pysap.SAPLPS import SAP_LPS_Cipher
 from pysap.utils.fields import ASN1F_CHOICE_SAFE
@@ -170,7 +173,7 @@ class SAPCredv2_Cred(ASN1_Packet):
 
     @property
     def cipher_format_version(self):
-        cipher = str(self.cipher)
+        cipher = self.cipher.val_readable
         if len(cipher) >= 36 and ord(cipher[0]) in [0, 1]:
             return ord(cipher[0])
         return 0
@@ -178,7 +181,7 @@ class SAPCredv2_Cred(ASN1_Packet):
     @property
     def cipher_algorithm(self):
         if self.cipher_format_version == 1:
-            return ord(str(self.cipher)[1])
+            return ord(self.cipher.val_readable[1])
         return 0
 
     def decrypt(self, username):
@@ -217,7 +220,7 @@ class SAPCredv2_Cred(ASN1_Packet):
         :raise Exception: if the decrypted object can't be parsed
         """
 
-        blob = str(self.cipher)
+        blob = self.cipher.val_readable
 
         # Construct the key using the key format and the username
         key = (cred_key_fmt % username)[:24]
@@ -244,7 +247,7 @@ class SAPCredv2_Cred(ASN1_Packet):
         :raise SAPCredv2_Decryption_Error: if there's an error decrypting the object
         """
 
-        blob = str(self.cipher)
+        blob = self.cipher.val_readable
         header = SAPCredv2_Cred_Cipher(blob)
 
         # Validate supported version
@@ -324,7 +327,7 @@ class SAPCredv2_Cred_LPS(ASN1_Packet):
 
     @property
     def lps_type(self):
-        return ord(str(self.cipher)[1])
+        return ord(self.cipher.val_readable[1])
 
     @property
     def lps_type_str(self):
@@ -336,7 +339,7 @@ class SAPCredv2_Cred_LPS(ASN1_Packet):
 
     @property
     def cipher_format_version(self):
-        return ord(str(self.cipher)[0])
+        return ord(self.cipher.val_readable[0])
 
     @property
     def cipher_algorithm(self):
@@ -361,7 +364,7 @@ class SAPCredv2_Cred_LPS(ASN1_Packet):
             log_cred.error("Required library not found")
             raise Exception("Required library not found")
 
-        cipher = SAP_LPS_Cipher(str(self.cipher))
+        cipher = SAP_LPS_Cipher(self.cipher.val_readable)
         log_cred.debug("Obtained LPS cipher object (version={}, lps={})".format(cipher.version,
                                                                                 cipher.lps_type))
         plain = cipher.decrypt()
