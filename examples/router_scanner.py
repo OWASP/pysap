@@ -117,7 +117,7 @@ def parse_target_hosts(target_hosts, target_ports):
 
 def route_test(rhost, rport, thost, tport, talk_mode, router_version):
 
-    print("[*] Routing connections to %s:%s" % (thost, tport))
+    logging.info("[*] Routing connections to %s:%s" % (thost, tport))
 
     # Build the route to the target host passing through the SAP Router
     route = [SAPRouterRouteHop(hostname=rhost,
@@ -149,12 +149,14 @@ def route_test(rhost, rport, thost, tport, talk_mode, router_version):
 def main():
     options = parse_options()
 
+    level = logging.INFO
     if options.verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        level = logging.DEBUG
+    logging.basicConfig(level=level, format='%(message)s')
 
-    print("[*] Connecting to SAP Router %s:%d (talk mode %s)" % (options.remote_host,
-                                                                 options.remote_port,
-                                                                 options.talk_mode))
+    logging.info("[*] Connecting to SAP Router %s:%d (talk mode %s)" % (options.remote_host,
+                                                                        options.remote_port,
+                                                                        options.talk_mode))
 
     # Retrieve the router version used by the server if not specified
     if options.router_version is None:
@@ -163,7 +165,7 @@ def main():
                                               keep_alive=False)
         options.router_version = get_router_version(conn)
         conn.close()
-    print("[*] Using SAP Router version %d" % options.router_version)
+    logging.info("[*] Using SAP Router version %d" % options.router_version)
 
     options.talk_mode = {"raw": 1,
                          "ni": 0}[options.talk_mode]
@@ -173,13 +175,13 @@ def main():
         status = route_test(options.remote_host, options.remote_port, host, port,
                             options.talk_mode, options.router_version)
         if options.verbose:
-            print("[*] Status of %s:%s: %s" % (host, port, status))
+            logging.info("[*] Status of %s:%s: %s" % (host, port, status))
         if status == "open":
             results.append((host, port))
 
-    print("[*] Host/Ports found open:")
+    logging.info("[*] Host/Ports found open:")
     for (host, port) in results:
-        print("\tHost: %s\tPort:%s" % (host, port))
+        logging.info("\tHost: %s\tPort:%s" % (host, port))
 
 
 if __name__ == "__main__":

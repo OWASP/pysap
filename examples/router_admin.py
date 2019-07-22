@@ -114,17 +114,19 @@ def parse_options():
 def print_table(clients):
     """Prints the client table"""
     if tabulate:
-        print(tabulate(clients))
+        logging.info(tabulate(clients))
     else:
-        print("\n".join("\t| ".join([str(col).strip() for col in line]).expandtabs(20) for line in clients))
+        logging.info("\n".join("\t| ".join([str(col).strip() for col in line]).expandtabs(20) for line in clients))
 
 
 # Main function
 def main():
     options = parse_options()
 
+    level = logging.INFO
     if options.verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        level = logging.DEBUG
+    logging.basicConfig(level=level, format='%(message)s')
 
     response = False
 
@@ -132,86 +134,86 @@ def main():
 
     if options.stop:
         p.adm_command = 5
-        print("[*] Requesting stop of the remote SAP Router")
+        logging.info("[*] Requesting stop of the remote SAP Router")
 
     elif options.soft:
         p.adm_command = 9
-        print("[*] Requesting a soft shutdown of the remote SAP Router")
+        logging.info("[*] Requesting a soft shutdown of the remote SAP Router")
         response = True
 
     elif options.info:
         p.adm_command = 2
         if options.info_password:
             if len(options.info_password) > 19:
-                print("[*] Password too long, truncated at 19 characters")
+                logging.info("[*] Password too long, truncated at 19 characters")
             p.adm_password = options.info_password
-            print("[*] Requesting info using password %s" % p.adm_password)
+            logging.info("[*] Requesting info using password %s" % p.adm_password)
         else:
-            print("[*] Requesting info")
+            logging.info("[*] Requesting info")
         response = True
 
     elif options.new_route:
         p.adm_command = 3
-        print("[*] Requesting a refresh of the router table")
+        logging.info("[*] Requesting a refresh of the router table")
 
     elif options.trace:
         p.adm_command = 4
-        print("[*] Requesting a toggle on the trace settings")
+        logging.info("[*] Requesting a toggle on the trace settings")
 
     elif options.cancel:
         p.adm_command = 6
         p.adm_client_ids = list(map(int, options.cancel.split(",")))
-        print("[*] Requesting a cancel of the route(s) with client id(s) %s" % p.adm_client_ids)
+        logging.info("[*] Requesting a cancel of the route(s) with client id(s) %s" % p.adm_client_ids)
         response = True
 
     elif options.dump:
         p.adm_command = 7
-        print("[*] Requesting a dump of the buffers")
+        logging.info("[*] Requesting a dump of the buffers")
 
     elif options.flush:
         p.adm_command = 8
-        print("[*] Requesting a flush of the buffers")
+        logging.info("[*] Requesting a flush of the buffers")
 
     elif options.hide:
         p.adm_command = 14
-        print("[*] Requesting a hide on the errors to clients")
+        logging.info("[*] Requesting a hide on the errors to clients")
         response = True
 
     elif options.set_peer:
         p.adm_command = 10
         p.adm_address_mask = options.set_peer
-        print("[*] Request a set peer trace for the address mask %s" % p.adm_address_mask)
+        logging.info("[*] Request a set peer trace for the address mask %s" % p.adm_address_mask)
         response = True
 
     elif options.clear_peer:
         p.adm_command = 11
         p.adm_address_mask = options.clear_peer
-        print("[*] Request a clear peer trace for the address mask %s" % p.adm_address_mask)
+        logging.info("[*] Request a clear peer trace for the address mask %s" % p.adm_address_mask)
         response = True
 
     elif options.trace_conn:
         p.adm_command = 12
         p.adm_client_ids = list(map(int, options.trace_conn.split(",")))
-        print("[*] Requesting a connection trace with client id(s) %s" % p.adm_client_ids)
+        logging.info("[*] Requesting a connection trace with client id(s) %s" % p.adm_client_ids)
         response = True
 
     else:
-        print("[*] No command specified !")
+        logging.error("[*] No command specified !")
         return
 
     # Initiate the connection
     conn = SAPNIStreamSocket.get_nisocket(options.remote_host, options.remote_port)
-    print("[*] Connected to the SAP Router %s:%d" % (options.remote_host, options.remote_port))
+    logging.info("[*] Connected to the SAP Router %s:%d" % (options.remote_host, options.remote_port))
 
     # Retrieve the router version used by the server if not specified
     if options.router_version:
         p.version = options.router_version
     else:
         p.version = get_router_version(conn) or p.version
-    print("[*] Using SAP Router version %d" % p.version)
+    logging.info("[*] Using SAP Router version %d" % p.version)
 
     # Send the router admin request
-    print("[*] Sending Router Admin packet")
+    logging.info("[*] Sending Router Admin packet")
     if options.verbose:
         p.show2()
     conn.send(p)
@@ -232,15 +234,15 @@ def main():
 
         # If the response is an error, print and exit
         if router_is_error(router_response):
-            print("[*] Error requesting info:")
+            logging.info("[*] Error requesting info:")
             if options.verbose:
                 router_response.show2()
             else:
-                print(router_response.err_text_value.error)
+                logging.error(router_response.err_text_value.error)
 
         # Otherwise, print the packets sent by the SAP Router
         else:
-            print("[*] Response:\n")
+            logging.info("[*] Response:\n")
 
             if options.info:
                 # Decode the first packet as a list of info client
@@ -263,19 +265,19 @@ def main():
                 raw_response = conn.recv()
                 raw_response.decode_payload_as(SAPRouterInfoServer)
 
-                print("SAP Network Interface Router running on port %d (PID = %d)\n"
-                      "Started on: %s\n"
-                      "Parent process: PID = %d, port = %d\n" % (raw_response.port, raw_response.pid,
-                                                                 saptimestamp_to_datetime(raw_response.started_on).ctime(),
-                                                                 raw_response.ppid, raw_response.pport))
+                logging.info("SAP Network Interface Router running on port %d (PID = %d)\n"
+                             "Started on: %s\n"
+                             "Parent process: PID = %d, port = %d\n" % (raw_response.port, raw_response.pid,
+                                                                        saptimestamp_to_datetime(raw_response.started_on).ctime(),
+                                                                        raw_response.ppid, raw_response.pport))
                 print_table(clients)
-                print("(*) Connections being traced")
+                logging.info("(*) Connections being traced")
 
             # Show the plain packets returned
             try:
                 raw_response = conn.recv()
                 while raw_response:
-                    print(raw_response.payload)
+                    logging.info(raw_response.payload)
                     raw_response = conn.recv()
             except error:
                 pass

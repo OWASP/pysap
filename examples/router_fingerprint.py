@@ -204,7 +204,7 @@ class FingerprintDB(object):
                 for entry in new_fingerprint[target]:
                     entry.update(version_info)
                     if entry not in self.fingerprints_db[target]:
-                        print("[*]\tAdded a new entry for the target %s" % target)
+                        logging.info("[*]\tAdded a new entry for the target %s" % target)
                         self.fingerprints_db[target].append(entry)
 
         with open(self.fingerprints_file, 'w') as f:
@@ -218,8 +218,9 @@ class FingerprintDB(object):
                 for key, value in list(finger.items()):
                     if key in fingerprint_fields and hasattr(error_text, key) and getattr(error_text, key) != value:
                         match = False
-                        print("[ ]\tUnmatched field: \"%s\" Value: \"%s\" vs \"%s\"" % (key, value, getattr(error_text,
-                                                                                                            key)))
+                        logging.debug("[ ]\tUnmatched field: \"%s\" Value: \"%s\" vs \"%s\"" % (key, value,
+                                                                                                getattr(error_text,
+                                                                                                        key)))
                 if match:
                     matches.append(finger)
         return matches
@@ -229,31 +230,33 @@ class FingerprintDB(object):
 def main():
     options = parse_options()
 
+    level = logging.INFO
     if options.verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        level = logging.DEBUG
+    logging.basicConfig(level=level, format='%(message)s')
 
-    print("[*] Loading fingerprint database")
+    logging.info("[*] Loading fingerprint database")
     fingerprint_db = FingerprintDB(options.fingerprints)
 
     # Check if we were asked to add a new fingerprint
     if options.add_fingerprint:
         if not options.version_info:
-            print("[-] You must provide version info to add new entries to the fingerprint database !")
+            logging.info("[-] You must provide version info to add new entries to the fingerprint database !")
             return
-        print("[*] Adding a new entry to the fingerprint database")
+        logging.info("[*] Adding a new entry to the fingerprint database")
         fingerprint_db.add_fingerprint(options.new_fingerprint_file, options.version_info)
         return
 
     misses = []
     matches = []
-    print("[*] Trying to fingerprint version using %d packets" % (len(fingerprint_targets)))
+    logging.info("[*] Trying to fingerprint version using %d packets" % (len(fingerprint_targets)))
 
     # Trigger some errors and check with fingerprint db
     l = len(fingerprint_targets)
     i = 1
     for (target, packet) in list(fingerprint_targets.items()):
 
-        print("[*] (%d/%d) Fingerprint for packet '%s'" % (i, l, target))
+        logging.info("[*] (%d/%d) Fingerprint for packet '%s'" % (i, l, target))
 
         # Initiate the connection and send the packet
         conn = SAPNIStreamSocket.get_nisocket(options.remote_host,
@@ -267,10 +270,10 @@ def main():
         matched = fingerprint_db.match_fingerprint(target, error_text)
 
         if matched:
-            print("[*] (%d/%d) Fingerprint for packet '%s' matched !" % (i, l, target))
+            logging.info("[*] (%d/%d) Fingerprint for packet '%s' matched !" % (i, l, target))
             matches.append((target, matched))
         else:
-            print("[*] (%d/%d) Fingerprint for packet '%s' not matched" % (i, l, target))
+            logging.info("[*] (%d/%d) Fingerprint for packet '%s' not matched" % (i, l, target))
             misses.append((target, error_text))
 
         i += 1
@@ -278,9 +281,9 @@ def main():
     if matches:
         versions = []
         counts = {}
-        print("\n[*] Matched fingerprints (%d/%d):" % (len(matches), l))
+        logging.info("\n[*] Matched fingerprints (%d/%d):" % (len(matches), l))
         for (target, fingerprints) in matches:
-            print("[+] Request: %s" % target)
+            logging.info("[+] Request: %s" % target)
             for fingerprint in fingerprints:
                 match = {}
                 for field in version_info_fields:
@@ -291,21 +294,21 @@ def main():
                     versions.append(match)
                 counts[str(match)] += 1
 
-        print("\n[*] Probable versions (%d):" % len(versions))
+        logging.info("\n[*] Probable versions (%d):" % len(versions))
         for version in versions:
             msg = " ".join(["%s: \"%s\"" % (field, version[field]) for field in version_info_fields
                             if version[field] != ""])
-            print("[*]\tHits: %d Version: %s" % (counts[str(version)], msg))
+            logging.info("[*]\tHits: %d Version: %s" % (counts[str(version)], msg))
 
     if misses:
-        print("\n[*] Non matched fingerprints (%d/%d):" % (len(misses), l))
+        logging.info("\n[*] Non matched fingerprints (%d/%d):" % (len(misses), l))
         for (target, _) in misses:
-            print("[-] Request: %s" % target)
+            logging.info("[-] Request: %s" % target)
 
-        print("\n[-] Some error values where not found in the fingerprint database. "
-              "If you want to contribute submit a issue to https://github.com/SecureAuthCorp/pysap "
-              "or write an email to mgallo@secureauth.com with the following information along "
-              "with the SAP Router file information and how it was configured.\n")
+        logging.info("\n[-] Some error values where not found in the fingerprint database. "
+                     "If you want to contribute submit a issue to https://github.com/SecureAuthCorp/pysap "
+                     "or write an email to mgallo@secureauth.com with the following information along "
+                     "with the SAP Router file information and how it was configured.\n")
         options.new_entries = True
 
     # Build new entries for the fingerprint database
@@ -319,7 +322,7 @@ def main():
         for (target, fingerprint) in matches:
             new_fingerprint[target] = fingerprint
 
-        print("\nNew fingerprint saved to: %s" % options.new_fingerprint_file)
+        logging.info("\nNew fingerprint saved to: %s" % options.new_fingerprint_file)
         with open(options.new_fingerprint_file, 'w') as f:
             json.dump(new_fingerprint, f)
 
@@ -331,8 +334,8 @@ def main():
                         "submitted_by": "",
                         "comment": "",
                         }
-        print("\n\nVersion information to complete and submit:")
-        print("%s" % json.dumps(version_info, indent=4))
+        logging.info("\n\nVersion information to complete and submit:")
+        logging.info("%s" % json.dumps(version_info, indent=4))
 
 
 if __name__ == "__main__":

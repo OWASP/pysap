@@ -5,6 +5,7 @@ Changelog
 v0.1.17 - 2019-XX-XX
 --------------------
 
+- Using Scapy version 2.4.3.
 - Added documentation of projects using `pysap`.
 - Added documentation of `ms_dump_info` and `ms_dump_param` example scripts.
 - `bin/pysapcar`: Add cli option to determine output directory when extracting archives with pysapcar ([\#24](https://github.com/SecureAuthCorp/pysap/pull/24)) Thanks [@okuuva](https://github.com/okuuva)!
