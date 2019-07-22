@@ -1,4 +1,4 @@
 tabulate==0.8.3
 netaddr==0.7.19
-cryptography==2.5
+cryptography==2.7
 requests
