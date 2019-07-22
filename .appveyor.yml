@@ -16,13 +16,13 @@ environment:
       PYTHON_ARCH: "64"
       PLAT_NAME: "win-amd64"
 
-    - PYTHON: "C:\\Python27"
-      PYTHON_VERSION: "3.6.x"
+    - PYTHON: "C:\\Python37"
+      PYTHON_VERSION: "3.7.x"
       ARCH: "32"
       PLAT_NAME: "win32"
 
-    - PYTHON: "C:\\Python27-x64"
-      PYTHON_VERSION: "3.6.x"
+    - PYTHON: "C:\\Python37-x64"
+      PYTHON_VERSION: "3.7.x"
       ARCH: "64"
       PLAT_NAME: "win-amd64"
 

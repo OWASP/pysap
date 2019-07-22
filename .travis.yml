@@ -33,7 +33,12 @@ matrix:
             - CXX=clang++ CC=clang
 
         - os: linux
-          python: 3.6
+          python: 3.7
+          env:
+            - CXX=clang++ CC=clang
+
+        - os: linux
+          python: 3.7
           env:
             - CXX=g++ CC=gcc
 
