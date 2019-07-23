@@ -22,7 +22,7 @@ import socket
 import unittest
 from threading import Thread
 from struct import pack, unpack
-from SocketServer import BaseRequestHandler, ThreadingTCPServer
+from six.moves.socketserver import BaseRequestHandler, ThreadingTCPServer
 # External imports
 from scapy.fields import StrField
 from scapy.packet import Packet, Raw

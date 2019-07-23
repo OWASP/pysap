@@ -23,7 +23,7 @@ import logging
 from select import select
 from struct import unpack
 from threading import Event
-from SocketServer import BaseRequestHandler, ThreadingMixIn, TCPServer
+from six.moves.socketserver import BaseRequestHandler, ThreadingMixIn, TCPServer
 # External imports
 from scapy.fields import LenField
 from scapy.packet import Packet, Raw
