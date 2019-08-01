@@ -7,7 +7,7 @@ Router Example scripts
 ----------------
 
 This example script connects to a SAP Router instance and allows to perform administrative tasks.
-The commands available and their syntaxis is similar to the one found on the ``saprouter`` program.
+The commands available and their syntax is similar to the one found on the ``saprouter`` program.
 The operation codes and commands are documented in the SAP's help pages for the SAP Router.
 In addition to those commands found in the ``saprouter`` program, the scripts includes undocumented
 operations codes.
