@@ -264,7 +264,7 @@ another connected to the service.
 
 
 ``ms_messenger``
----------------
+----------------
 
 This example script connects with the Message Server service and sends a message to another
 client connected to it. Along with the ``ms_listener`` script, it can be used as an example
