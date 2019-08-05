@@ -184,12 +184,12 @@ def render_diag_screen(screen, verbose):
     toolbars = get_item_value(screen, "APPL4", "MNUENTRY", "MENU_KYB")
 
     if verbose:
-        print "[*] DB Name:", dbname
-        print "[*] CPU Name:", cpuname
-        print "[*] Client:", client
-        print "[*] Session Icon:", session_icon
-        print "[*] Session Title:", session_title
-        print "[*] Window Size:", areasize.window_height, "x", areasize.window_width
+        print("[*] DB Name: " + dbname)
+        print("[*] CPU Name: " + cpuname)
+        print("[*] Client: " + client)
+        print("[*] Session Icon: " + session_icon)
+        print("[*] Session Title: " + session_title)
+        print("[*] Window Size: " + areasize.window_height + " x " + areasize.window_width)
 
     app = wx.App(False)
     login_frame = DiagScreen(None, "%s (%s)" % (session_icon, client), areasize.window_height, areasize.window_width, session_title, dbname, cpuname)
@@ -216,41 +216,41 @@ def render_diag_screen(screen, verbose):
                     else:
                         tooltip = None
                     if verbose:
-                        print "[*] Found text label at %d,%d: \"%s\" (maxlength=%d) (tooltip=\"%s\")" % (atom_item.col, atom_item.row, text.strip(), maxnrchars, tooltip)
+                        print("[*] Found text label at %d,%d: \"%s\" (maxlength=%d) (tooltip=\"%s\")" % (atom_item.col, atom_item.row, text.strip(), maxnrchars, tooltip))
                     login_frame.add_text(atom_item.col, atom_item.row, maxnrchars, text)
                 elif atom_item.etype in [121, 130]:  # DIAG_DGOTYP_EFIELD_1 or DIAG_DGOTYP_EFIELD_2
                     if verbose:
-                        print "[*] Found text box at %d,%d: \"%s\" (maxlength=%d)" % (atom_item.col, atom_item.row, text.strip(), maxnrchars)
+                        print("[*] Found text box at %d,%d: \"%s\" (maxlength=%d)" % (atom_item.col, atom_item.row, text.strip(), maxnrchars))
                     login_frame.add_text_box(atom_item.col, atom_item.row, maxnrchars, text.strip(), atom_item.attr_DIAG_BSD_INVISIBLE == 1)
             else:
-                print "[*] Found label without text"
+                print("[*] Found label without text")
 
     # Render the menus
     if menus:
         for menu in menus.entries:
             if verbose:
-                print "[*] Found menu item: \"%s\"" % menu.text
+                print("[*] Found menu item: \"%s\"" % menu.text)
             login_frame.add_menu(menu.position_1, menu.text)
 
         # Render the submenus
         if menudetails:
             for menu in menudetails.entries:
                 if verbose:
-                    print "[*] Found child menu item: \"%s\", pos %d, %d, %d, %d" % (menu.text, menu.position_1, menu.position_2, menu.position_3, menu.position_4)
+                    print("[*] Found child menu item: \"%s\", pos %d, %d, %d, %d" % (menu.text, menu.position_1, menu.position_2, menu.position_3, menu.position_4))
                 login_frame.add_child_menu(menu.text, menu.position_1, menu.position_2, menu.position_3, menu.position_4, menu.flag_TERM_SEL, menu.flag_TERM_MEN, menu.flag_TERM_SEP)
 
     # Render the buttonbar
     if buttonbars:
         for button in buttonbars.entries:
             if verbose:
-                print "[*] Found button item: \"%s\"" % button.text
+                print("[*] Found button item: \"%s\"" % button.text)
             login_frame.add_button(button.text)
 
     # Render the toolbar
     if toolbars:
         for toolbar in toolbars.entries:
             if verbose:
-                print "[*] Found toolbar item: \"%s\"" % toolbar.text
+                print("[*] Found toolbar item: \"%s\"" % toolbar.text)
             login_frame.add_toolbar(toolbar.text)
 
     login_frame.Show(True)
@@ -262,14 +262,14 @@ def main():
     options = parse_options()
 
     if not has_wx:
-        print ("[-] Required library not found. Please install it from https://wxpython.org/")
+        print("[-] Required library not found. Please install it from https://wxpython.org/")
         return
 
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
     # Create the connection to the SAP Netweaver server
-    print "[*] Connecting to", options.remote_host, "port", options.remote_port
+    print("[*] Connecting to %s port %d" % (options.remote_host, "port", options.remote_port))
     connection = SAPDiagConnection(options.remote_host,
                                    options.remote_port,
                                    terminal=options.terminal,
@@ -278,7 +278,7 @@ def main():
     # Send the initialization packet and store the response (login screen)
     login_screen = connection.init()
 
-    print "[*] Login screen grabbed, rendering it"
+    print("[*] Login screen grabbed, rendering it")
     render_diag_screen(login_screen[SAPDiag], options.verbose)
 
     # Close the connection

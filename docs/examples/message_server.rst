@@ -3,6 +3,31 @@
 Message Server Example scripts
 ==============================
 
+
+``ms_change_param``
+-------------------
+
+This example script changes a parameter using SAP Message Server Administration requests. In order to
+be able to change a parameter the Message Server should be configured in monitoring mode
+(``ms/monitor=1``, see corresponding `help <https://help.sap.com/saphelp_nw70/helpdata/en/4e/cffdb69d10424e97eb1d993b1e2cfd/content.html>`_
+for more details) and the internal port should be reachable. Keep in mind that some of the
+parameters are not "dynamic" and can't be changed using this method. If the parameter value is not
+specified, the script retrieve the current value.
+
+
+``ms_dos_exploit``
+------------------
+
+This example script can be used to tests a Denial of Service vulnerability
+affecting the Message Server (`CVE-2017-5997 <://cve.mitre.org/cgi-bin/cvename.cgi?name=2017-5997>`_).
+For more details about the vulnerability see
+`ERPScan's Security Advisory <https://erpscan.com/advisories/erpscan-16-038-sap-message-server-http-remote-dos/>`_
+and SAP `Security Note 2358972 <https://launchpad.support.sap.com/#/notes/2358972>`_.
+
+This example script was contributed by `Vahagn Vardanyan <https://github.com/vah13>`_ and
+`Mathieu Geli <ttps://github.com/gelim>`_.
+
+
 ``ms_dump_info``
 ----------------
 
@@ -219,3 +244,50 @@ This example script was contributed by `Ivan Genuer <https://twitter.com/_1ggy>`
 parameters related to the Gateway and Message Server services were obtained from the
 `May 2019 Security Notes Webinar <https://support.sap.com/content/dam/support/en_us/library/ssp/offerings-and-programs/support-services/sap-security-optimization-services-portfolio/SAP_Security_Notes_Webinar.pdf>`_
 by Frank Buchholz.
+
+
+``ms_impersonator``
+-------------------
+
+This example script is a proof of concept that connects with the Message Server service of
+a SAP Netweaver Application Server and impersonates an application server registering as a
+Dialog instance server.
+
+
+``ms_listener``
+---------------
+
+This example script connects with the Message Server service and listen for messages coming
+from the server. Along with the ``ms_messenger`` script, it can be used as an example for
+using the Message Server as a messenger service and send packets from one client to
+another connected to the service.
+
+
+``ms_messenger``
+----------------
+
+This example script connects with the Message Server service and sends a message to another
+client connected to it. Along with the ``ms_listener`` script, it can be used as an example
+for using the Message Server as a messenger service and send packets from one client to
+another connected to the service.
+
+
+``ms_monitor``
+--------------
+
+This script is an example implementation of SAP's Message Server Monitor program (``msmon``).
+It allows the monitoring of a Message Server service and allows sending different commands and
+opcodes. Includes some commands not available on the ``msmon`` program. Some commands requires the
+server running in monitor mode, while most of them requires access to the Message Server internal port.
+
+The script implements a console-like interface that can be used to specify the operations to
+perform on the Message Server. A list of implemented commands can be obtained by running ``help``.
+
+
+``ms_observer``
+---------------
+
+This example script connects with the Message Server service of a SAP Netweaver Application Server
+and monitors the clients to identify new application servers. As the Message Server broadcast
+the addition, removal or change of clients to all the clients connected to it, it's possible to
+identify those state changes and print them. Similar to SAP's ``msprot`` tool.
