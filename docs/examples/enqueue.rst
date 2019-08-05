@@ -13,12 +13,13 @@ For more details about the vulnerability see
 
 This example script was contributed by `Vahagn Vardanyan <https://github.com/vah13>`_.
 
+
 ``enqueue_monitor``
 -------------------
 
 This script is an example implementation of SAP's Enqueue Server Monitor program (``ens_mon``).
 It allows the monitoring of a Enqueue Server service and allows sending different admin commands
-and opcodes. Includes some commands not available on the ``ensmon`` program. The script implements
-a console-like interface that can be used to specify the operations to perform on the Enqueue
-Server. A list of implemented commands can be obtained by running ``help``.
+and opcodes. Includes some commands not available on the ``ensmon`` program.
 
+The script implements a console-like interface that can be used to specify the operations to
+perform on the Enqueue Server. A list of implemented commands can be obtained by running ``help``.
