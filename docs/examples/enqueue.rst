@@ -11,6 +11,7 @@ the Enqueue service (`CVE-2016-4015 <https://cve.mitre.org/cgi-bin/cvename.cgi?n
 For more details about the vulnerability see
 `ERPScan's Security Advisory <https://erpscan.com/advisories/erpscan-16-019-sap-netweaver-enqueue-server-dos-vulnerability/>`_.
 
+This example script was contributed by `Vahagn Vardanyan <ttps://github.com/vah13>`_.
 
 ``enqueue_monitor``
 -------------------
