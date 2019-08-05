@@ -26,7 +26,7 @@ The undocumented commands implemented by the script are the following ones:
 * ``set-peer-trace``:
     Takes an address mask as an argument and sets the tracing of peers matching that address mask.
 * ``clear-peer-trace``:
-    Take san address mask as an argument and clears the tracing of peers matching that address mask.
+    Takes an address mask as an argument and clears the tracing of peers matching that address mask.
 * ``trace-connection``:
     Takes a client identifier as an argument and enables a trace for that connection. The list of
     clients being traced can be observed using the ``router-info`` commands.
@@ -35,20 +35,20 @@ The undocumented commands implemented by the script are the following ones:
 ``router_fingerprint``
 ----------------------
 
-It was found out that SAP Router instances include certain information in error messages when
+It was found out that SAP Router instances include some information in error messages when
 processing certain type of malformed packets or when certain fault situations are reached. The
 information contained in those error messages includes details such as the SAP Router's release
-number, name of the source code file where the error is thrown, and in some cases the line where
-the error was identified. As the source file numbers are frequently changing between one version
-of the program an another, it can be very precise as to potentially identify build numbers and
-pinpoint particular version numbers. This information can be valuable as to determine
+number, name of the source code file where the error is thrown, and in some cases the code line
+where the error was identified. As the source file numbers are frequently changing between one
+version of the program an another, it can be very precise as to potentially identify build
+numbers and pinpoint particular version numbers. This information can be valuable as to determine
 potential security risk in case of running old and potentially vulnerable versions of the SAP
 Router service.
 
-This example script is an experimental attempt at performing SAP Router version fingerprinting by
-triggering those error conditions and matching the information provided in the error messages with
-a previously generated database. A fingerprint database is maintained and located in the
-``examples/router_fingerprints.json`` file.
+This example script is an experimental attempt at performing remote SAP Router version
+fingerprinting by triggering those error conditions and matching the information provided in the
+error messages with a previously generated database. A fingerprint database is maintained and
+located in the ``examples/router_fingerprints.json`` file.
 
 The following is an example result of running the script against a version of SAP Router already
 in the database:
@@ -180,19 +180,66 @@ database.
 ``router_niping``
 -----------------
 
-XXX
+This example scripts is a very basic implementation of the ``niping`` tool available with SAP kernel
+distributions and the ``saprouter`` program. The ``niping`` utility establishes a communication
+between two ends (a "client" and a "server") and uses the ``NI`` protocol to send payloads. The tool
+is offered as a way to perform troubleshooting and network diagnostics, and it can help determining
+network speed and identify connectivity issues. Due to the implementation of the ``NI`` protocol is
+also used to validate SAP Router configurations and ACLs.
+
 
 ``router_password_check``
 -------------------------
 
-XXX
+This example and proof of concept script connects with a SAP Router service and makes an information
+request using a provided password. It then records the time the remote service takes to respond to
+the request. Further analysis of the time records could be performed in order to identify whether
+the server is vulnerable to a timing attack on the password check
+(`CVE-2014-0984 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=2014-0984>`_).
+More details about the vulnerability can be found in the
+`SAP Router Password Timing Attack security advisory <https://www.coresecurity.com/advisories/sap-router-password-timing-attack>`_.
+
+The script make use of the fau_timer library for measuring the timing of server's responses, which
+can be installed from the `mona-timing-lib repository in GitHub <https://github.com/seecurity/mona-timing-lib>`_.
+
 
 ``router_portfw``
 -----------------
 
-XXX
+This example script establishes a connection to a target host and port through a SAP Router service.
+It works by binding a local port (specified by ``--local-port``) on a local IP address (provided by
+``--local-host``) and requesting the SAP Router (specified with ``--remote-host`` and ``--remote-port``)
+to route a connection to the specified target port (``--target-port``) and host (``--target-host``).
+A route password can be optionally provided as well (with the ``--target-pass`` parameter).
+
+The script can be used to route traffic to a remote destination through the SAP Router, for either
+testing ACLs or accessing internal resources exposed through it. It's worth mentioning that as the
+implementation relies on the use of a "proxy" pattern, the route is only requested to the SAP Router
+when there's traffic received on the local port binded.
+
+The script is based on a similar functionality implemented in BizPloit's ``saprouterNative`` script.
+More information can be found in Onapsis' blogpost series about testing SAP Router security with
+BizPloit, `part I <https://blog.onapsis.com/blog/assessing-a-saprouters-security-with-onapsis-bizploit-part-i/>`_
+and `part II <https://blog.onapsis.com/blog/assessing-a-saprouters-security-with-onapsis-bizploit-part-ii/>`_.
+
 
 ``router_scanner``
 ------------------
 
-XXX
+This example script performs a scan of a given set of target hosts (specified with ``--target-hosts``)
+and ports (provided with ``--target-ports``) via a SAP Router instance (specified with ``--remote-host``
+and ``--remote-port``). By requesting a connection to be routed to a given host/port combination and
+looking to the SAP Router response, it's possible to determine if the aforementioned host/port is open
+to the SAP Router. The script can be also used to discover and validate ACLs configured in the SAP
+Router instance.
+
+The list of hosts can be provided to the ``--target-hosts`` parameter as a comma-separated list of
+hostnames or IP addresses (e.g. ``10.0.0.1,10.0.0.10``), or if the Python's ``netaddr`` library is
+installed in ``CIDR`` representation (e.g. ``10.0.0.1/24``). In the same way, the ports to scan for
+can be provided in the ``--target-ports`` parameter using a commma-separated list (e.g. ``3200,3300``)
+or a range (e.g. ``3200-3299``).
+
+The script is based on a similar functionality implemented in BizPloit's ``saprouterSpy`` script.
+More information can be found in Onapsis' blogpost series about testing SAP Router security with
+BizPloit, `part I <https://blog.onapsis.com/blog/assessing-a-saprouters-security-with-onapsis-bizploit-part-i/>`_
+and `part II <https://blog.onapsis.com/blog/assessing-a-saprouters-security-with-onapsis-bizploit-part-ii/>`_.
