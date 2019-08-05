@@ -215,16 +215,15 @@ def main():
     # Send the initialization packet and store the response (login screen)
     login_screen = connection.init()
 
-    print "[+] Dumping technical information"
+    print("[+] Dumping technical information")
     for item in login_screen[SAPDiag].get_item(["APPL"],
                                                ["ST_R3INFO", "ST_USER", "VARINFO"]):
         show_serv_info(item)
-    print
-    print "[+] Login Screen text"
+    print("\n[+] Login Screen text")
     for item in login_screen[SAPDiag].get_item(["APPL", "APPL4"],
                                                ["DYNT"]):
         show_text_info(item)
-    print "-"*key_len + "-"*val_len
+    print("-" * key_len + "-" * val_len)
 
     connection.close()
 
