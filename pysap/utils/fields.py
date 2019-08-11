@@ -324,6 +324,16 @@ class ASN1F_CHOICE_SAFE(ASN1F_CHOICE):
         raise ASN1_Error
 
 
+class LESignedByteField(Field):
+    def __init__(self, name, default):
+        Field.__init__(self, name, default, "<b")
+
+
+class LESignedShortField(Field):
+    def __init__(self, name, default):
+        Field.__init__(self, name, default, "<h")
+
+
 class LESignedLongField(Field):
     def __init__(self, name, default):
         Field.__init__(self, name, default, "<q")
