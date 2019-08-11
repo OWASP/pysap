@@ -322,3 +322,8 @@ class ASN1F_CHOICE_SAFE(ASN1F_CHOICE):
             except (ASN1_Error, ASN1F_badsequence, BER_Decoding_Error):
                 pass
         raise ASN1_Error
+
+
+class LESignedLongField(Field):
+    def __init__(self, name, default):
+        Field.__init__(self, name, default, "<q")
