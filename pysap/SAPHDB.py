@@ -20,6 +20,9 @@
 # External imports
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
+from scapy.fields import (LEIntField, LESignedIntField)
+# Custom imports
+from pysap.utils.fields import LESignedLongField
 
 
 class SAPHDB(Packet):
@@ -29,6 +32,9 @@ class SAPHDB(Packet):
     """
     name = "SAP HANA SQL Command Network Protocol"
     fields_desc = [
+        LESignedLongField("sessionid", 0),
+        LESignedIntField("packetcount", 0),
+        LEIntField("varpartlength", 0),
     ]
 
 
