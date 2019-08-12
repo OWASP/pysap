@@ -78,6 +78,18 @@ hdb_message_type_values = {
 """SAP HDB Segment Message Type Values"""
 
 
+def hdb_segment_is_request(segment):
+    """Returns if the segment is a request
+
+    :param segment: segment to look at
+    :type segment: :class:`SAPHDBSegment`
+
+    :return: if the segment is a request
+    :rtype: ``bool``
+    """
+    return segment.segmentkind == 1
+
+
 def hdb_segment_is_reply(segment):
     """Returns if the segment is a reply
 
@@ -102,10 +114,10 @@ class SAPHDBSegment(PacketNoPadded):
         LESignedShortField("noofparts", 0),
         LESignedShortField("segmentno", 0),
         EnumField("segmentkind", 1, hdb_segmentkind_values, fmt="<b"),
-        ConditionalField(EnumField("messagetype", 0, hdb_message_type_values, fmt="<b"), hdb_segment_is_reply),
-        ConditionalField(LESignedByteField("commit", 0), hdb_segment_is_reply),
-        ConditionalField(LESignedByteField("commandoptions", 0), hdb_segment_is_reply),
-        ConditionalField(LongField("reserved1", 0), hdb_segment_is_reply),
+        ConditionalField(EnumField("messagetype", 0, hdb_message_type_values, fmt="<b"), hdb_segment_is_request),
+        ConditionalField(LESignedByteField("commit", 0), hdb_segment_is_request),
+        ConditionalField(LESignedByteField("commandoptions", 0), hdb_segment_is_request),
+        ConditionalField(LongField("reserved1", 0), hdb_segment_is_request),
         ConditionalField(ByteField("reserved2", 0), hdb_segment_is_reply),
         ConditionalField(LESignedShortField("functioncode", 0), hdb_segment_is_reply),
         ConditionalField(LongField("reserved3", 0), hdb_segment_is_reply),
