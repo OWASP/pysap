@@ -24,7 +24,8 @@ from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField,
                           IntField, PacketListField, SignedByteField, LongField,
                           LEIntField, LESignedIntField)
 # Custom imports
-from pysap.utils.fields import LESignedByteField, LESignedShortField, LESignedLongField
+from pysap.utils.fields import (PacketNoPadded, LESignedByteField, LESignedShortField,
+                                LESignedLongField)
 
 
 hdb_segmentkind_values = {
@@ -33,7 +34,7 @@ hdb_segmentkind_values = {
     2: "reply",
     5: "error",
 }
-"""Segment Kind Values"""
+"""SAP HDB Segment Kind Values"""
 
 
 hdb_message_type_values = {
@@ -74,7 +75,7 @@ hdb_message_type_values = {
     88: "XOPEN_XARECOVER",
     89: "XOPEN_XAFORGET",
 }
-"""Message Type Values"""
+"""SAP HDB Segment Message Type Values"""
 
 
 def hdb_segment_is_reply(segment):
@@ -89,7 +90,7 @@ def hdb_segment_is_reply(segment):
     return segment.segmentkind == 2
 
 
-class SAPHDBSegment(Packet):
+class SAPHDBSegment(PacketNoPadded):
     """SAP HANA SQL Command Network Protocol Segment
 
     This packet represents a segment within a HDB packet.
