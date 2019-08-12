@@ -111,6 +111,66 @@ hdb_function_code_values = {
 """SAP HDB Segment Function Code Values"""
 
 
+hdb_partkind_values = {
+    0: "NIL",
+    3: "COMMAND",
+    5: "RESULTSET",
+    6: "ERROR",
+    10: "STATEMENTID",
+    11: "TRANSACTIONID",
+    12: "ROWSAFFECTED",
+    13: "RESULTSETID",
+    15: "TOPOLOGYINFORMATION",
+    16: "TABLELOCATION",
+    17: "READLOBREQUEST",
+    18: "READLOBREPLY",
+    25: "ABAPISTREAM",
+    26: "ABAPOSTREAM",
+    27: "COMMANDINFO",
+    28: "WRITELOBREQUEST",
+    29: "CLIENTCONTEXT",
+    30: "WRITELOBREPLY",
+    32: "PARAMETERS",
+    33: "AUTHENTICATION",
+    34: "SESSIONCONTEXT",
+    35: "CLIENTID",
+    38: "PROFILE",
+    39: "STATEMENTCONTEXT",
+    40: "PARTITIONINFORMATION",
+    41: "OUTPUTPARAMETERS",
+    42: "CONNECTOPTIONS",
+    43: "COMMITOPTIONS",
+    44: "FETCHOPTIONS",
+    45: "FETCHSIZE",
+    47: "PARAMETERMETADATA",
+    48: "RESULTSETMETADATA",
+    49: "FINDLOBREQUEST",
+    50: "FINDLOBREPLY",
+    51: "ITABSHM",
+    53: "ITABCHUNKMETADATA",
+    55: "ITABMETADATA",
+    56: "ITABRESULTCHUNK",
+    57: "CLIENTINFO",
+    58: "STREAMDATA",
+    59: "OSTREAMRESULT",
+    60: "FDAREQUESTMETADATA",
+    61: "FDAREPLYMETADATA",
+    62: "BATCHPREPARE",
+    63: "BATCHEXECUTE",
+    64: "TRANSACTIONFLAGS",
+    65: "ROWSLOTIMAGEPARAMMETADATA",
+    66: "ROWSLOTIMAGERESULTSET",
+    67: "DBCONNECTINFO",
+    68: "LOBFLAGS",
+    69: "RESULTSETOPTIONS",
+    70: "XATRANSACTIONINFO",
+    71: "SESSIONVARIABLE",
+    72: "WORKLOADREPLAYCONTEXT",
+    73: "SQLREPLYOTIONS",
+}
+"""SAP HDB Part Kind Values"""
+
+
 def hdb_segment_is_request(segment):
     """Returns if the segment is a request
 
@@ -135,6 +195,22 @@ def hdb_segment_is_reply(segment):
     return segment.segmentkind == 2
 
 
+class SAPHDBPart(PacketNoPadded):
+    """SAP HANA SQL Command Network Protocol Part
+
+    This packet represents a part within a HDB packet.
+    """
+    name = "SAP HANA SQL Command Network Protocol Part"
+    fields_desc = [
+        EnumField("partkind", 0, hdb_partkind_values, fmt="<b"),
+        LESignedByteField("partattributes", 0),
+        LESignedShortField("argumentcount", 0),
+        LESignedIntField("bigargumentcount", 0),
+        LESignedIntField("bufferlength", 0),
+        LESignedIntField("buffersize", 0),
+    ]
+
+
 class SAPHDBSegment(PacketNoPadded):
     """SAP HANA SQL Command Network Protocol Segment
 
@@ -144,7 +220,7 @@ class SAPHDBSegment(PacketNoPadded):
     fields_desc = [
         LESignedIntField("segmentlength", 0),
         LESignedIntField("segmentofs", 0),
-        LESignedShortField("noofparts", 0),
+        FieldLenField("noofparts", 0, count_of=lambda x: x.parts, fmt="<h"),
         LESignedShortField("segmentno", 0),
         EnumField("segmentkind", 1, hdb_segmentkind_values, fmt="<b"),
         ConditionalField(EnumField("messagetype", 0, hdb_message_type_values, fmt="<b"), hdb_segment_is_request),
@@ -154,6 +230,7 @@ class SAPHDBSegment(PacketNoPadded):
         ConditionalField(ByteField("reserved2", 0), hdb_segment_is_reply),
         ConditionalField(EnumField("functioncode", 0, hdb_function_code_values, fmt="<h"), hdb_segment_is_reply),
         ConditionalField(LongField("reserved3", 0), hdb_segment_is_reply),
+        PacketListField("parts", None, SAPHDBPart, count_from=lambda x: x.noofparts),
     ]
 
 
