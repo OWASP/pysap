@@ -29,10 +29,10 @@ from pysap.utils.fields import (PacketNoPadded, LESignedByteField, LESignedShort
 
 
 hdb_segmentkind_values = {
-    0: "invalid",
-    1: "request",
-    2: "reply",
-    5: "error",
+    0: "Invalid",
+    1: "Request",
+    2: "Reply",
+    5: "Error",
 }
 """SAP HDB Segment Kind Values"""
 
@@ -78,6 +78,39 @@ hdb_message_type_values = {
 """SAP HDB Segment Message Type Values"""
 
 
+hdb_function_code_values = {
+    0: "NIL",
+    1: "DDL",
+    2: "INSERT",
+    3: "UPDATE",
+    4: "DELETE",
+    5: "SELECT",
+    6: "SELECTFORUPDATE",
+    7: "EXPLAIN",
+    8: "DBPROCEDURECALL",
+    9: "DBPROCEDURECALLWITHRESULT",
+    10: "FETCH",
+    11: "COMMIT",
+    12: "ROLLBACK",
+    13: "SAVEPOINT",
+    14: "CONNECT",
+    15: "WRITELOB",
+    16: "READLOB",
+    17: "PING",
+    18: "DISCONNECT",
+    19: "CLOSECURSOR",
+    20: "FINDLOB",
+    21: "ABAPSTREAM",
+    22: "XASTART",
+    23: "XAJOIN",
+    24: "ITABWRITE",
+    25: "XOPEN_XACONTROL",
+    26: "XOPEN_XAPREPARE",
+    27: "XOPEN_XARECOVER",
+}
+"""SAP HDB Segment Function Code Values"""
+
+
 def hdb_segment_is_request(segment):
     """Returns if the segment is a request
 
@@ -119,7 +152,7 @@ class SAPHDBSegment(PacketNoPadded):
         ConditionalField(LESignedByteField("commandoptions", 0), hdb_segment_is_request),
         ConditionalField(LongField("reserved1", 0), hdb_segment_is_request),
         ConditionalField(ByteField("reserved2", 0), hdb_segment_is_reply),
-        ConditionalField(LESignedShortField("functioncode", 0), hdb_segment_is_reply),
+        ConditionalField(EnumField("functioncode", 0, hdb_function_code_values, fmt="<h"), hdb_segment_is_reply),
         ConditionalField(LongField("reserved3", 0), hdb_segment_is_reply),
     ]
 
