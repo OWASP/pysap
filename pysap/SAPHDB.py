@@ -220,7 +220,7 @@ class SAPHDBSegment(PacketNoPadded):
     fields_desc = [
         LESignedIntField("segmentlength", 0),
         LESignedIntField("segmentofs", 0),
-        FieldLenField("noofparts", 0, count_of=lambda x: x.parts, fmt="<h"),
+        FieldLenField("noofparts", None, count_of="parts", fmt="<h"),
         LESignedShortField("segmentno", 0),
         EnumField("segmentkind", 1, hdb_segmentkind_values, fmt="<b"),
         ConditionalField(EnumField("messagetype", 0, hdb_message_type_values, fmt="<b"), hdb_segment_is_request),
