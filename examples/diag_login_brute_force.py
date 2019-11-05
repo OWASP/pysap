@@ -20,10 +20,8 @@
 
 # Standard imports
 import logging
-from Queue import Queue
 from string import letters
 from random import choice
-from threading import Thread
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
@@ -31,6 +29,7 @@ from scapy.packet import bind_layers
 # Custom imports
 import pysap
 from pysap.SAPNI import SAPNI
+from pysap.utils import ThreadPool
 from pysap.SAPDiag import SAPDiag, SAPDiagDP
 from pysap.SAPDiagItems import *
 from pysap.SAPDiagClient import SAPDiagConnection
@@ -49,42 +48,6 @@ conf.verb = 0
 
 
 # TODO: Add support for interpolating usernames with SID/CLIENT to test for SOLMAN accounts
-
-# Simple Thread Pool implementation based on http://code.activestate.com/recipes/577187-python-thread-pool/
-# WorkerQueue class
-class WorkerQueue(Thread):
-    """Thread executing tasks from a given tasks queue"""
-    def __init__(self, tasks):
-        Thread.__init__(self)
-        self.tasks = tasks
-        self.daemon = True
-        self.start()
-
-    def run(self):
-        while True:
-            func, args, kargs = self.tasks.get()
-            try:
-                func(*args, **kargs)
-            except Exception as e:
-                print(e)
-            self.tasks.task_done()
-
-
-# ThreadPool class
-class ThreadPool(object):
-    """Pool of threads consuming tasks from a queue"""
-    def __init__(self, num_threads):
-        self.tasks = Queue(num_threads)
-        for _ in range(num_threads):
-            WorkerQueue(self.tasks)
-
-    def add_task(self, func, *args, **kargs):
-        """Add a task to the queue"""
-        self.tasks.put((func, args, kargs))
-
-    def wait_completion(self):
-        """Wait for completion of all the tasks in the queue"""
-        self.tasks.join()
 
 
 # Command line options parser
@@ -234,7 +197,6 @@ def login(host, port, terminal, route, username, password, client, verbose, resu
     else:
         status = "Unknown error"
 
-
     # Close the connection
     connection.close()
 
@@ -265,7 +227,7 @@ def discover_client(host, port, terminal, route, client, verbose, results):
 
     if status == license_check:
         available = False
-    elif status == unavailable % (client):
+    elif status == unavailable % client:
         available = False
     else:
         available = True
