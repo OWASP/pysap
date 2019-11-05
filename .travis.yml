@@ -61,7 +61,7 @@ before_deploy:
 deploy:
     provider: releases
     api_key:
-        secure: jph0ZzpFytrPyZKm71s7LwaXvQ2QkGMM1DgwiBu4p9E99vAKvpNdVOXvyp4BmMp7PEksUKtPYpyGWIQCoTY7ffJUf72VbXLxLfsNqpGMP62UteVt5ssleYvpzVqfTt26gqGvsMZB2EhP9zpH3AgYaGuJIB1L0/CM+5Ilf3u2j4I=
+        secure: "Z8jyTnnCr+pxjJ2uOaJFUPl7roDj1F/r+gib+KAf2TMjx9et2WTMzCnERaGZCpga3RXKlPxAuXHi467zua30fes5JQlMMeE7klsE8oxA6lj0dRhpUgpdat5eMHQ4+SDcIL2zSSmCQmZgt8aGZLSn35MTJ63EncbijB++EtdqrvU="
     file:
         - "dist/*.whl"
         - "dist/*.tar.gz"
