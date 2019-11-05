@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-v0.1.17 - 2019-XX-XX
+v0.1.17 - 2019-11-05
 --------------------
 
 - Using Scapy version 2.4.3.
@@ -19,6 +19,7 @@ v0.1.17 - 2019-XX-XX
 - `examples/list_sap_parameters`: Updated recommended values and added new parameters.
 - `examples/ms_dump_info.py`: Added `NOTEQUAL` check type.
 - `examples/router_fingerprints.json`: Added fingerprints for SAP Router 7.49 and 7.45 kernels.
+
 
 v0.1.16 - 2018-06-19
 --------------------
