@@ -2,13 +2,13 @@ pysap - Python library for crafting SAP's network protocols packets
 ===================================================================
 
 [![Build Status](https://travis-ci.org/SecureAuthCorp/pysap.svg?branch=master)](https://travis-ci.org/SecureAuthCorp/pysap)
-[![Build status](https://ci.appveyor.com/api/projects/status/189ohb2wsqjwgkbw?svg=true)](https://ci.appveyor.com/project/CoreSecurity/pysap)
+[![Build status](https://ci.appveyor.com/api/projects/status/pg7cajkr1iuhmmh1?svg=true)](https://ci.appveyor.com/project/martingalloar/pysap)
 [![Latest Version](https://img.shields.io/pypi/v/pysap.svg)](https://pypi.python.org/pypi/pysap/)
 [![Documentation Status](http://readthedocs.org/projects/pysap/badge/?version=latest)](http://pysap.readthedocs.io/en/latest/?badge=latest)
 
 SECUREAUTH LABS. Copyright (C) 2019 SecureAuth Corporation. All rights reserved.
 
-Version 0.1.17.dev0 (XXX 2019)
+Version 0.1.18.dev0 (XXX 2019)
 
 
 Overview

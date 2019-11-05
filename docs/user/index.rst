@@ -1,3 +1,4 @@
+
 .. User guide frontend
 
 User guide
@@ -11,17 +12,30 @@ step-by-step instructions for installing, configuring and using pysap.
 Projects using pysap
 --------------------
 
-The following projects and repositories are known to be using pysap:
+The following projects, tools and repositories are known to be using pysap:
 
-* `HoneySAP <https://github.com/SecureAuthCorp/HoneySAP>`_: HoneySAP is a low-interaction research-focused honeypot specific for SAP services. HoneySAP uses pysap as a library in order to craft and parse different protocol network packets.
+* `HoneySAP <https://github.com/SecureAuthCorp/HoneySAP>`_: HoneySAP is a
+  low-interaction research-focused honeypot specific for SAP services. HoneySAP uses
+  pysap as a library in order to craft and parse different protocol network packets.
 
-* `SAP dissection plug-in for Wireshark <https://github.com/SecureAuthCorp/SAP-Dissection-plug-in-for-Wireshark>`_: This Wireshark plugin provides dissection of SAP's ``NI``, Message Server, ``Router``, ``Diag``, ``Enqueue``, ``IGS`` and ``SNC`` protocols. The Wireshark plug-in makes use of pysap in order to craft packets used during unit tests.
+* `SAP dissection plug-in for Wireshark <https://github.com/SecureAuthCorp/SAP-Dissection-plug-in-for-Wireshark>`_:
+  This Wireshark plugin provides dissection of SAP's ``NI``, Message Server,
+  ``Router``, ``Diag``, ``Enqueue``, ``IGS`` and ``SNC`` protocols. The Wireshark
+  plug-in makes use of pysap in order to craft packets used during unit tests.
 
-* `SAP Message Server research <https://github.com/gelim/sap_ms>`_: Exploit proof of concept code for two attacks against the Message Server service:
-    * Logon Group (transparent) Hijacking
-    * BeTrusted
+* `SAP Message Server research <https://github.com/gelim/sap_ms>`_: Exploit proof of
+  concept code for two attacks against the Message Server service:
 
-* `SAP Gateway RCE exploit PoCs <https://github.com/chipik/SAP_GW_RCE_exploit>`_: Exploit proof of concept code for ACL misconfigurations in the SAP Gateway that leads to a Remote Command Execution (RCE).
+  * Logon Group (transparent) Hijacking
+  * BeTrusted
+
+* `SAP Gateway RCE exploit PoCs <https://github.com/chipik/SAP_GW_RCE_exploit>`_:
+  Exploit proof of concept code for ACL misconfigurations in the SAP Gateway that
+  leads to a Remote Command Execution (RCE).
+
+* `John the Ripper's pse2john script <https://github.com/magnumripper/JohnTheRipper/blob/bleeding-jumbo/run/pse2john.py>`_:
+  Script to export PSE's encryption PIN into a format that can be cracked with
+  John the Ripper.
 
 
 .. _installation:

@@ -23,9 +23,9 @@ pysap
 
 [pysap](https://www.secureauth.com/labs/open-source-tools/pysap)
 is an open source Python library that provides modules for crafting and sending packets
-using SAP's NI, Diag, Enqueue, Router, Message Server, SNC and IGS protocols. In addition,
-support for creating and parsing different proprietary file formats is included. The
-modules are built on top of [Scapy](https://scapy.net/) and are
+using SAP's NI, Diag, Enqueue, Router, Message Server, SNC, IGS and RFC
+protocols. In addition, support for creating and parsing different proprietary file
+formats is included. The modules are built on top of [Scapy](https://scapy.net/) and are
 based on information acquired at researching the different protocols, file formats
 and services.
 
@@ -65,7 +65,7 @@ Features
 __title__ = 'pysap'
 """The title of the library"""
 
-__version__ = '0.1.17.dev0'
+__version__ = '0.1.18.dev0'
 """The version of pysap"""
 
 __url__ = "https://www.secureauth.com/labs/open-source-tools/pysap"

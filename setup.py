@@ -124,6 +124,7 @@ setup(name=pysap.__title__,   # Package information
 
       # Requirements
       install_requires=open('requirements.txt').read().splitlines(),
+      tests_requires=open('requirements-optional.txt').read().splitlines(),
 
       tests_require=open('requirements-tests.txt').read().splitlines(),
 

