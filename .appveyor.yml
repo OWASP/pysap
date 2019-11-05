@@ -26,7 +26,7 @@ install:
   - "%PYTHON%\\python.exe -m pip install wheel"
 
   # Installing Npcap
-  - ps: iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/secdev/scapy/master/.appveyor/InstallNpcap.ps1'))
+  - ps: iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/secdev/scapy/master/.config/appveyor/InstallNpcap.ps1'))
   - refreshenv
 
   # Set the proper build program
