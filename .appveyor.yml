@@ -64,7 +64,7 @@ deploy:
   release: "pysap $(APPVEYOR_REPO_TAG_NAME)"
   provider: GitHub
   auth_token:
-    secure: E3woIwT5J6hCuCVvP2u7Pc+r1mS1hG0dGwoYntsNZHXVqZ0V3DiqefqneBmTXmPZ
+    secure: k2lCNklpD1t3zNEIHWMg9R6AZFHyJ7UxrCvDVTI7yjAkpgfmKCJ1pbdku+WAw4t/
   artifact: dist\*.whl
   draft: true
   force_update: true
