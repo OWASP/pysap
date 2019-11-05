@@ -42,6 +42,16 @@ matrix:
           env:
             - CXX=g++ CC=gcc
 
+        - os: linux
+          python: 3.8
+          env:
+            - CXX=clang++ CC=clang
+
+        - os: linux
+          python: 3.8
+          env:
+            - CXX=g++ CC=gcc
+
         - os: osx
           language: generic
 
