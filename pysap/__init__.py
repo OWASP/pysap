@@ -65,7 +65,7 @@ Features
 __title__ = 'pysap'
 """The title of the library"""
 
-__version__ = '0.1.17'
+__version__ = '0.1.18.dev0'
 """The version of pysap"""
 
 __url__ = "https://www.secureauth.com/labs/open-source-tools/pysap"
