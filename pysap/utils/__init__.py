@@ -19,7 +19,7 @@
 
 
 # Standard imports
-from Queue import Queue
+from six.moves import queue
 from threading import Thread, Event
 
 
@@ -67,7 +67,7 @@ class WorkerQueue(Thread):
 class ThreadPool(object):
     """Pool of threads consuming tasks from a queue"""
     def __init__(self, num_threads):
-        self.tasks = Queue(num_threads)
+        self.tasks = queue(num_threads)
         for _ in range(num_threads):
             WorkerQueue(self.tasks)
 
