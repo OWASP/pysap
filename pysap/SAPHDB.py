@@ -22,7 +22,7 @@ from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
 from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField,
                           IntField, PacketListField, SignedByteField, LongField,
-                          LEIntField, LESignedIntField)
+                          LEIntField, LESignedIntField, StrFixedLenField, ShortField)
 # Custom imports
 from pysap.utils.fields import (PacketNoPadded, LESignedByteField, LESignedShortField,
                                 LESignedLongField)
@@ -251,6 +251,32 @@ class SAPHDB(Packet):
         LEIntField("compressionvarpartlength", 0),
         IntField("reserved2", None),
         PacketListField("segments", None, SAPHDBSegment, count_from=lambda x: x.noofsegm),
+    ]
+
+
+class SAPHDBInitializationRequest(Packet):
+    """SAP HANA SQL Command Network Protocol Initialization Request packet
+
+    This packet is used for the HANA SQL Command Network Protocol during initialization.
+    """
+    name = "SAP HANA SQL Command Network Protocol Initialization Request"
+    fields_desc = [
+        StrFixedLenField("initialization", "\xff\xff\xff\xff\x04\x20\x00\x04\x01\x00\x00\x01\x01\x01", 14),
+    ]
+
+
+class SAPHDBInitializationReply(Packet):
+    """SAP HANA SQL Command Network Protocol Initialization Reply packet
+
+    This packet is used for the HANA SQL Command Network Protocol during initialization.
+    """
+    name = "SAP HANA SQL Command Network Protocol Initialization Reply"
+    fields_desc = [
+        LESignedByteField("product_major", 0),
+        ShortField("product_minor", 0),
+        LESignedByteField("protocol_major", 0),
+        ShortField("protocol_minor", 0),
+        ShortField("padding", 0),
     ]
 
 
