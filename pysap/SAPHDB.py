@@ -245,7 +245,7 @@ class SAPHDB(Packet):
         LESignedIntField("packetcount", 0),
         FieldLenField("varpartlength", None, length_of="segments", fmt="<I"),
         LEIntField("varpartsize", 0),
-        FieldLenField("noofsegm", None, count_of="segments", fmt="h"),
+        FieldLenField("noofsegm", None, count_of="segments", fmt="<h"),
         SignedByteField("packetoptions", 0),
         ByteField("reserved1", None),
         LEIntField("compressionvarpartlength", 0),
