@@ -230,6 +230,7 @@ class SAPHDBSegment(PacketNoPadded):
         ConditionalField(ByteField("reserved2", 0), hdb_segment_is_reply),
         ConditionalField(EnumField("functioncode", 0, hdb_function_code_values, fmt="<h"), hdb_segment_is_reply),
         ConditionalField(LongField("reserved3", 0), hdb_segment_is_reply),
+        ConditionalField(LongField("reserved4", 0), lambda pkt: not (hdb_segment_is_reply(pkt) or hdb_segment_is_request(pkt))),
         PacketListField("parts", None, SAPHDBPart, count_from=lambda x: x.noofparts),
     ]
 
