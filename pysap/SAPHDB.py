@@ -195,10 +195,36 @@ def hdb_segment_is_reply(segment):
     return segment.segmentkind == 2
 
 
+class SAPHDBPartAuthenticationField(PacketNoPadded):
+    """SAP HANA SQL Command Network Protocol Authentication Part Field
+
+    This packet represents a field in the Authentication Part
+    """
+    name = "SAP HANA SQL Command Network Protocol Authentication Field"
+    fields_desc = [
+        FieldLenField("length", None, length_of="value", fmt="B"),
+        StrFixedLenField("value", None, length_from=lambda x:x.length)
+    ]
+
+
+class SAPHDBPartAuthentication(PacketNoPadded):
+    """SAP HANA SQL Command Network Protocol Authentication Part
+
+    This packet represents an Authentication Part
+    """
+    name = "SAP HANA SQL Command Network Protocol Authentication Part"
+    fields_desc = [
+        FieldLenField("count", None, count_of="fields", fmt="<H"),
+        PacketListField("fields", None, SAPHDBPartAuthenticationField, count_from=lambda x: x.count),
+    ]
+
+
 class SAPHDBPart(PacketNoPadded):
     """SAP HANA SQL Command Network Protocol Part
 
     This packet represents a part within a HDB packet.
+
+    The part header is comprised of 16 bytes.
     """
     name = "SAP HANA SQL Command Network Protocol Part"
     fields_desc = [
@@ -206,8 +232,9 @@ class SAPHDBPart(PacketNoPadded):
         LESignedByteField("partattributes", 0),
         LESignedShortField("argumentcount", 0),
         LESignedIntField("bigargumentcount", 0),
-        LESignedIntField("bufferlength", 0),
-        LESignedIntField("buffersize", 0),
+        FieldLenField("bufferlength", None, length_of="buffer", fmt="<i"),
+        LESignedIntField("buffersize", 2**17 - 32 - 24),
+        PacketListField("buffer", None)
     ]
 
 
@@ -215,13 +242,17 @@ class SAPHDBSegment(PacketNoPadded):
     """SAP HANA SQL Command Network Protocol Segment
 
     This packet represents a segment within a HDB packet.
+
+    The segment header is comprised of 24 byte, being the first 13 bytes always the same fields and the remaining 11
+    bytes depend on the segment kind field.
     """
     name = "SAP HANA SQL Command Network Protocol Segment"
     fields_desc = [
-        LESignedIntField("segmentlength", 0),
+        # Segment length needs to be calculated counting the segment header
+        FieldLenField("segmentlength", None, length_of="parts", fmt="<i", adjust=lambda x, l:l+24),
         LESignedIntField("segmentofs", 0),
         FieldLenField("noofparts", None, count_of="parts", fmt="<h"),
-        LESignedShortField("segmentno", 0),
+        LESignedShortField("segmentno", 1),
         EnumField("segmentkind", 1, hdb_segmentkind_values, fmt="<b"),
         ConditionalField(EnumField("messagetype", 0, hdb_message_type_values, fmt="<b"), hdb_segment_is_request),
         ConditionalField(LESignedByteField("commit", 0), hdb_segment_is_request),
@@ -238,14 +269,16 @@ class SAPHDBSegment(PacketNoPadded):
 class SAPHDB(Packet):
     """SAP HANA SQL Command Network Protocol packet
 
-    This packet is used for the HANA SQL Command Network Protocol
+    This packet is used for the HANA SQL Command Network Protocol.
+
+    The message header is comprised of 32 bytes.
     """
     name = "SAP HANA SQL Command Network Protocol"
     fields_desc = [
-        LESignedLongField("sessionid", 0),
+        LESignedLongField("sessionid", -1),
         LESignedIntField("packetcount", 0),
         FieldLenField("varpartlength", None, length_of="segments", fmt="<I"),
-        LEIntField("varpartsize", 0),
+        LEIntField("varpartsize", 2**17 - 32),
         FieldLenField("noofsegm", None, count_of="segments", fmt="<h"),
         SignedByteField("packetoptions", 0),
         ByteField("reserved1", None),
