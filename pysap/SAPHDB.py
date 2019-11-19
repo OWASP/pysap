@@ -21,7 +21,7 @@
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
 from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField,
-                          IntField, PacketListField, SignedByteField, LongField,
+                          IntField, PacketListField, SignedByteField, LongField, PadField,
                           LEIntField, LESignedIntField, StrFixedLenField, ShortField)
 # Custom imports
 from pysap.utils.fields import (PacketNoPadded, LESignedByteField, LESignedShortField,
@@ -297,7 +297,7 @@ class SAPHDBPart(PacketNoPadded):
         LESignedIntField("bigargumentcount", 0),
         FieldLenField("bufferlength", None, length_of="buffer", fmt="<i"),
         LESignedIntField("buffersize", 2**17 - 32 - 24),
-        PacketListField("buffer", None)
+        PadField(PacketListField("buffer", None), 8),
     ]
 
 
