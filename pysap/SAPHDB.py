@@ -210,7 +210,70 @@ class SAPHDBPartAuthenticationField(PacketNoPadded):
 class SAPHDBPartAuthentication(PacketNoPadded):
     """SAP HANA SQL Command Network Protocol Authentication Part
 
-    This packet represents an Authentication Part
+    This packet represents an Authentication Part. The Authentication part consists of a count value and then
+    a number of key/value pairs expressed with field values.
+
+    Authentication methods documented are:
+        - "GSS" - Provides GSS/Kerberos authentication.
+        - "PLAINPASSWORD" - Reserved. Do not use.
+        - "SAML" - Provides SAML authentication.
+        - "SCRAMMD5" - Reserved. Do not use.
+        - "SCRAMSHA256" - Provides password-based authentication.
+
+    Non-documented methods are:
+        - "JWT"
+        - "SAPLogon"
+        - "SCRAMPBKDF2SHA256"
+        - "SessionCookie"
+        - "X509Internal"
+
+    Known authentication key values are:
+
+    - GSS Authentication:
+        - USERNAME - User name
+        - METHODNAME - Method name
+        - CLIENTCHALLENGE - Client challenge
+            - KRB5OID - KRB5 object ID
+            - TYPEOID - Type object ID
+            - CLIENTGSSNAME - Client GSS Name
+        - SERVERTOKEN - Server-specific Kerberos tokens
+        - CLIENTOKEN - Client-specific Kerberos tokens
+    - LDAP Authentication:
+        - USERNAME - User name
+        - METHODNAME - Method name ("LDAP")
+        - CLIENTCHALLENGE - Client challenge
+        - SERVERCHALLENGE - Server Challenge
+            - CLIENTNONCE - Specifies the client nonce that was sent in the initial request.
+            - SERVERNONCE - Specifies the server nonce.
+            - SERVERPUBLICKEY - Specifies the server public key.
+            - CAPABILITYRESULT - Specifies the capability, chosen by the server, from the client request.
+        - CLIENTPROOF - Specifies the client proof.
+            - ENCRYPTEDSESSKEY - Specifies the encrypted session key. This is specified as: RSAEncrypt(public key, SESSIONKEY + SERVERNONCE).
+            - ENCRYPTEDPASSWORD - Specifies the encrypted password. This is specified as: AES256Encrypt(SESSIONKEY, PASSWORD + SERVERNONCE).
+        - SERVERPROOF - Specifies the authentication result from the LDAP server. This is specified as either SUCCESS or FAIL.
+    - SAML Authentication:
+        - USERNAME - Specifies the user name (always empty user name).
+        - METHODNAME - Specifies the method name.
+        - SAMLASSERTION - Specifies the SAML assertion.
+        - SAMLUSER - Specifies the user name associated with the SAML assertion.
+        - FINALDATA - Specifies the final data (this is empty).
+        - SESSIONCOOKIE - Specifies the session cookie used for the reconnect.
+    - SCRAMSHA256 Authentication:
+        - USERNAME - Specifies the user name.
+        - METHODNAME - Specifies the method name.
+        - CLIENTCHALLENGE - Specifies the client challenge. (64 bytes)
+        - SERVERCHALLENGEDATA - Specifies the server challenge.
+            - SALT - Specifies the password salt.
+            - SERVERCHALLENGE - Specifies the server challenge.
+        - CLIENTPROOF - Specifies the client proof. (35 bytes)
+            - SCRAMMESSAGE - Specifies the SCRAM HMAC message, the actual Client Proof that is sent to the server. (32 bytes)
+        - SERVERPROOF - Specifies the server proof.
+    - Session Cookie Authentication:
+        - USERNAME - Specifies the user name.
+        - METHODNAME - Specifies the method name.
+        - SESSIONCOOKIE - Specifies the session cookie, process ID, and hostname.
+        - SERVERREPLY - Specifies the server reply (this is empty).
+        - FINALDATA - Specifies the final data (this is empty).
     """
     name = "SAP HANA SQL Command Network Protocol Authentication Part"
     fields_desc = [
