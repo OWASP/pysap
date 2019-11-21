@@ -23,9 +23,11 @@ import math
 # Optional imports
 try:
     from cryptography.exceptions import InvalidKey
-    from cryptography.hazmat.primitives import constant_time, padding
-    from cryptography.hazmat.primitives.hashes import Hash
+    from cryptography.hazmat.primitives.hmac import HMAC
+    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
     from cryptography.hazmat.primitives.ciphers import Cipher, modes
+    from cryptography.hazmat.primitives import constant_time, padding
+    from cryptography.hazmat.primitives.hashes import Hash, SHA256, MD5
 except ImportError:
     Cipher = Hash = None
 
@@ -253,3 +255,72 @@ class PKCS12_PBES1(object):
         plain_text = decryptor.update(cipher_text) + decryptor.finalize()
 
         return plain_text
+
+
+class SCRAM(object):
+    """Base interface for implementing SCRAM password schemes.
+    """
+
+    CLIENT_PROOF_SIZE = 32
+    CLIENT_KEY_SIZE = 64
+    ALGORITHM = None
+
+    def __init__(self, backend):
+        """Initializes the SCRAM scheme"""
+        self.backend = backend
+
+    def get_client_key(self):
+        """Returns a client key to be used during the handshake.
+        """
+        return os.urandom(self.CLIENT_KEY_SIZE)
+
+    def scramble_salt(self, password, salt, server_key, client_key):
+        """Scrambles a given salt using the specified server key.
+        """
+        msg = salt + server_key + client_key
+
+        hmac = HMAC(password, self.ALGORITHM, self.backend)
+        hmac.update(salt)
+        hmac_digest = hmac.finalize()
+
+        hash = Hash(self.ALGORITHM, self.backend)
+        hash.update(hmac_digest)
+        hash_digest = hash.finalize()
+
+        key_hash = Hash(self.ALGORITHM, self.backend)
+        key_hash.update(server_key)
+        key_hash_digest = key_hash.finalize()
+
+        sig = HMAC(key_hash_digest, self.ALGORITHM, self.backend)
+        sig.update(msg)
+        sig_digest = sig.finalize()
+
+        return self.xor(sig_digest, hash_digest)
+
+    def xor(self, a, b):
+        """XOR two strings"""
+        a = bytearray(a)
+        b = bytearray(b)
+        result = bytearray(len(a))
+        for i in range(len(a)):
+            result[i] += a[i] ^ b[i]
+        return bytes(result)
+
+
+class SCRAM256(SCRAM):
+    """SCRAM scheme using SHA256 as the hashing algorithm.
+    """
+    ALGORITHM = SHA256
+
+
+class SCRAMMD5(SCRAM):
+    """SCRAM scheme using MD5 as the hashing algorithm.
+    """
+
+    ALGORITHM = MD5
+
+
+class SCRAMPBKDF2SHA256(SCRAM256):
+    """SCRAM scheme using PBKDF2 with SHA256"""
+
+    # TODO: scramble_salt would probably need to be rebuilt or refactored
