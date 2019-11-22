@@ -26,13 +26,10 @@ from scapy.fields import (ByteField, ByteEnumField, ShortField, StrFixedLenField
 # Custom imports
 from pysap.utils.crypto import dpapi_decrypt_blob
 # Optional imports
-try:
-    from cryptography.hazmat.backends import default_backend
-    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-    from cryptography.hazmat.primitives.hashes import Hash, SHA256, SHA1
-    from cryptography.hazmat.primitives.hmac import HMAC
-except ImportError:
-    Cipher = Hash = None
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.hashes import Hash, SHA1
+from cryptography.hazmat.primitives.hmac import HMAC
 
 
 # Create a logger for the LPS layer
@@ -93,18 +90,12 @@ class SAP_LPS_Cipher(Packet):
         LPS-protected PSEs/credentials are verified with both a CRC32 checksum and an HMAC.
         Validation of the checksum and HMAC is not implemented.
 
-        Requires the cryptography library installed.
-
         :return: decrypted object
         :rtype: string
 
-        :raise Exception: if the cryptography library is not available
         :raise NotImplemented: if the LPS method is not implemented
         :raise SAP_LPS_Decryption_Error: if there's an error decrypting the object
         """
-        if not Cipher:
-            log_lps.error("Required library not found")
-            raise Exception("Required library not found")
 
         # Validate supported version
         if self.version != 2:
@@ -173,6 +164,7 @@ class SAP_LPS_Cipher(Packet):
         """
         log_lps.error("LPS TPM decryption not implemented")
         raise NotImplemented("LPS TPM decryption not implemented")
+
 
 lps_encryption_key_decryptor = {
     SAP_LPS_Cipher.LPS_FALLBACK: SAP_LPS_Cipher.decrypt_encryption_key_fallback,

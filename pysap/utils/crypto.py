@@ -20,14 +20,11 @@
 # Standard imports
 import os
 import math
-# Optional imports
-try:
-    from cryptography.exceptions import InvalidKey
-    from cryptography.hazmat.primitives import constant_time, padding
-    from cryptography.hazmat.primitives.hashes import Hash
-    from cryptography.hazmat.primitives.ciphers import Cipher, modes
-except ImportError:
-    Cipher = Hash = None
+# External imports
+from cryptography.exceptions import InvalidKey
+from cryptography.hazmat.primitives import constant_time, padding
+from cryptography.hazmat.primitives.hashes import Hash
+from cryptography.hazmat.primitives.ciphers import Cipher, modes
 
 
 def dpapi_decrypt_blob(blob, entropy=None):
