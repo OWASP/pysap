@@ -1,0 +1,34 @@
+# References
+
+[Single Sign-On Using JSON Web Tokens](https://help.sap.com/viewer/b3ee5778bc2e4a089d3299b82ec762a7/2.0.04/en-US/4b3dc4d4b5514dbd9d45cee7bc167c5a.html)
+
+[Managing Client Certificates](https://help.sap.com/viewer/6b94445c94ae495c83a19646e7c3fd56/2.0.04/en-US/76554e9740c44836bfc219d80e726eec.html)
+
+
+# Create a RSA certificate for signing JWT:
+
+    openssl req -x509 -nodes -newkey rsa:2048 -keyout JWT/JWT-RS256-2048.key -out JWT/JWT-RS256-2048.cert -subj "/CN=JWTProvider"
+
+
+# SAP HANA:
+
+## Create a JWT Provider
+
+    CREATE JWT PROVIDER JWTPROVIDER WITH ISSUER "https://jwtprovider/" CLAIM "username" AS EXTERNAL IDENTITY;
+
+## Create a PSE Collection
+
+    CREATE PSE JWTPSE;
+
+## Associate the PSE Collection with the JWT Provider
+
+    SET PSE JWTPSE PURPOSE JWT FOR PROVIDER JWTPROVIDER;
+
+## Create the Certificate
+
+    CREATE CERTIFICATE FROM 'XXXX' COMMENT 'Comment';
+
+## Add the Certificate to the PSE
+
+    ALTER PSE JWTPSE ADD CERTIFICATE 162543;
+

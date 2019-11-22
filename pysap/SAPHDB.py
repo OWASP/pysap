@@ -202,8 +202,8 @@ class SAPHDBPartAuthenticationField(PacketNoPadded):
     """
     name = "SAP HANA SQL Command Network Protocol Authentication Field"
     fields_desc = [
-        FieldLenField("length", None, length_of="value", fmt="B"),
-        StrFixedLenField("value", None, length_from=lambda x:x.length)
+        FieldLenField("length", None, length_of="value", fmt="B", adjust=lambda pkt, x: 0xff if x > 0xf0 else x),
+        StrFixedLenField("value", None, length_from=lambda pkt:pkt.length if pkt.length != 0xff else pkt.length_long)
     ]
 
 
