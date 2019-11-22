@@ -1,0 +1,154 @@
+#!/usr/bin/env python
+# ===========
+# pysap - Python library for crafting SAP's network protocols packets
+#
+# SECUREAUTH LABS. Copyright (C) 2019 SecureAuth Corporation. All rights reserved.
+#
+# The library was designed and developed by Martin Gallo from
+# the SecureAuth Labs team.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# ==============
+
+# Standard imports
+import logging
+from os import environ
+from os.path import join
+from optparse import OptionParser, OptionGroup
+# Custom imports
+import pysap
+from pysap.SAPSSFS import SAPSSFSKey, SAPSSFSData
+
+
+pysaphdbuserstore_usage = """
+
+"""
+
+
+class PySAPHDBUserStore(object):
+
+    # Private attributes
+    _logger = None
+
+    # Instance attributes
+    mode = None
+    log_level = None
+
+    commands = ["list"]
+
+    def parse_options(self):
+        """Parses command-line options.
+        """
+
+        description = "Basic and experimental implementation of hdbuserstore tool."
+
+        epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
+                                                             "url": pysap.__url__,
+                                                             "repo": pysap.__repo__}
+
+        parser = OptionParser(usage=pysaphdbuserstore_usage, description=description, epilog=epilog)
+
+        # Commands
+        parser.add_option("-c", dest="command", help="Command", type="choice", choices=["list"])
+        parser.add_option("-k", dest="key_filename", help="SSFS Key filename", metavar="FILE")
+        parser.add_option("-d", dest="data_filename", help="SSFS Data filename", metavar="FILE")
+
+        list = OptionGroup(parser, "List command options")
+        parser.add_option_group(list)
+
+        misc = OptionGroup(parser, "Misc options")
+        misc.add_option("-v", dest="verbose", action="store_true", help="Verbose output")
+        parser.add_option_group(misc)
+
+        (options, args) = parser.parse_args()
+
+        return options, args
+
+    @property
+    def logger(self):
+        """Sets the logger of the cli tool.
+        """
+        if self._logger is None:
+            self._logger = logging.getLogger("pysap.pysaphdbuserstore")
+            self._logger.setLevel(logging.DEBUG if self.verbose else logging.INFO)
+            self._logger.addHandler(logging.StreamHandler())
+        return self._logger
+
+    def main(self):
+        """Main routine for parsing options and dispatch desired command.
+        """
+        options, args = self.parse_options()
+
+        # Set the verbosity
+        self.verbose = options.verbose
+
+        self.logger.info("pysaphdbuserstore version: %s", pysap.__version__)
+
+        # Dispatch the command
+        if options.command in self.commands:
+            getattr(self, options.command)(options, args)
+        else:
+            self.logger.error("pysaphdbuserstore: Invalid command '%s'", options.command)
+            self.logger.error("pysaphdbuserstore: Valid commands are: %s", ",".join(self.commands))
+
+    def open_file(self, filename, cls, type):
+        """Opens a file to work with it and tries to parse it.
+
+        :param filename: name of the file to open
+        :type filename: string
+
+        :param cls: class to use for parsing the file
+        :type cls: type
+
+        :param type: name of the file type
+        :type type: string
+
+        :return: parsed packet
+        :rtype: Packet
+        """
+
+        try:
+            with open(filename) as f:
+                obj = cls(f.read())
+            self.logger.info("pysaphdbuserstore: Reading {} file '{}'".format(type, filename))
+        except IOError as e:
+            self.logger.error("pysaphdbuserstore: Error reading {} file '{}' ({})".format(type, filename, e.message))
+            return None
+
+        return obj
+
+    def list(self, options, args):
+        """List credentials in a SSFS key file
+        """
+
+        if not options.key_filename:
+            options.key_filename = join(environ["HOME"], ".hdb", environ["DESKTOP_SESSION"], "SSFS_HDB.KEY")
+        if not options.data_filename:
+            options.data_filename = join(environ["HOME"], ".hdb", environ["DESKTOP_SESSION"], "SSFS_HDB.DAT")
+
+        # Parse the key file
+        try:
+            ssfs_key = self.open_file(options.key_filename, SAPSSFSKey, "SSFS Key")
+            ssfs_key.show()
+        except Exception:
+            self.logger.error("pysaphdbuserstore: Unable to read key in file {}\n".format(options.key_filename))
+
+        # Parse the data file
+        try:
+            ssfs_data = self.open_file(options.data_filename, SAPSSFSData, "SSFS Data")
+            ssfs_data.show()
+        except Exception:
+            self.logger.error("pysaphdbuserstore: Unable to read key in file {}\n".format(options.data_filename))
+
+
+if __name__ == "__main__":
+    pysaphdbuserstore = PySAPHDBUserStore()
+    pysaphdbuserstore.main()
