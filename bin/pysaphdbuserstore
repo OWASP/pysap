@@ -42,7 +42,7 @@ class PySAPHDBUserStore(object):
     mode = None
     log_level = None
 
-    commands = ["list"]
+    commands = ["list", "get"]
 
     def parse_options(self):
         """Parses command-line options.
@@ -63,6 +63,10 @@ class PySAPHDBUserStore(object):
 
         list = OptionGroup(parser, "List command options")
         parser.add_option_group(list)
+
+        get = OptionGroup(parser, "Get command options")
+        get.add_option("--decrypt", dest="decrypt", action="store_false", help="Whether to try to decrypt the value")
+        parser.add_option_group(get)
 
         misc = OptionGroup(parser, "Misc options")
         misc.add_option("-v", dest="verbose", action="store_true", help="Verbose output")
@@ -89,6 +93,12 @@ class PySAPHDBUserStore(object):
 
         # Set the verbosity
         self.verbose = options.verbose
+
+        # Obtain the default paths to key and data files
+        if not options.key_filename:
+            options.key_filename = join(environ["HOME"], ".hdb", environ["DESKTOP_SESSION"], "SSFS_HDB.KEY")
+        if not options.data_filename:
+            options.data_filename = join(environ["HOME"], ".hdb", environ["DESKTOP_SESSION"], "SSFS_HDB.DAT")
 
         self.logger.info("pysaphdbuserstore version: %s", pysap.__version__)
 
@@ -126,13 +136,22 @@ class PySAPHDBUserStore(object):
         return obj
 
     def list(self, options, args):
-        """List credentials in a SSFS key file
+        """List records in a SSFS Data file
         """
 
-        if not options.key_filename:
-            options.key_filename = join(environ["HOME"], ".hdb", environ["DESKTOP_SESSION"], "SSFS_HDB.KEY")
-        if not options.data_filename:
-            options.data_filename = join(environ["HOME"], ".hdb", environ["DESKTOP_SESSION"], "SSFS_HDB.DAT")
+        # Parse the data file
+        try:
+            ssfs_data = self.open_file(options.data_filename, SAPSSFSData, "SSFS Data")
+            ssfs_data.show()
+        except Exception:
+            self.logger.error("pysaphdbuserstore: Unable to read data in file {}\n".format(options.data_filename))
+
+        for ssfs_record in ssfs_data.records:
+            self.logger.info(ssfs_record.key_name.rstrip(" "))
+
+    def get(self, options, args):
+        """Get a record value in a SSFS Data file
+        """
 
         # Parse the key file
         try:
@@ -146,7 +165,14 @@ class PySAPHDBUserStore(object):
             ssfs_data = self.open_file(options.data_filename, SAPSSFSData, "SSFS Data")
             ssfs_data.show()
         except Exception:
-            self.logger.error("pysaphdbuserstore: Unable to read key in file {}\n".format(options.data_filename))
+            self.logger.error("pysaphdbuserstore: Unable to read data in file {}\n".format(options.data_filename))
+
+        for arg in args:
+            if ssfs_data.has_record(arg):
+                self.logger.info("Record value for key name %s:", arg)
+                self.logger.info(ssfs_data.get_value(arg))
+            else:
+                self.logger.info("Record value for key name %s not found.", arg)
 
 
 if __name__ == "__main__":
