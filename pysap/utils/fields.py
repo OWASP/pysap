@@ -327,6 +327,6 @@ class ASN1F_CHOICE_SAFE(ASN1F_CHOICE):
 class TimestampField(LongField):
     """Timestamp field"""
 
-    def i2repr(self, pkt, x):
+    def i2h(self, pkt, x):
         dt = datetime.utcfromtimestamp(x)
         return dt.strftime("%Y-%m-%d %H:%M:%S %Z")
