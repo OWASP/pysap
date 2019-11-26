@@ -22,6 +22,7 @@
 import logging
 from os import environ
 from os.path import join
+from socket import gethostname
 from optparse import OptionParser, OptionGroup
 # Custom imports
 import pysap
@@ -96,9 +97,9 @@ class PySAPHDBUserStore(object):
 
         # Obtain the default paths to key and data files
         if not options.key_filename:
-            options.key_filename = join(environ["HOME"], ".hdb", environ["DESKTOP_SESSION"], "SSFS_HDB.KEY")
+            options.key_filename = join(environ["HOME"], ".hdb", gethostname(), "SSFS_HDB.KEY")
         if not options.data_filename:
-            options.data_filename = join(environ["HOME"], ".hdb", environ["DESKTOP_SESSION"], "SSFS_HDB.DAT")
+            options.data_filename = join(environ["HOME"], ".hdb", gethostname(), "SSFS_HDB.DAT")
 
         self.logger.info("pysaphdbuserstore version: %s", pysap.__version__)
 
