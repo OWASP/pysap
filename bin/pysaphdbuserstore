@@ -57,7 +57,7 @@ class PySAPHDBUserStore(object):
         parser = OptionParser(usage=pysaphdbuserstore_usage, description=description, epilog=epilog)
 
         # Commands
-        parser.add_option("-c", dest="command", help="Command", type="choice", choices=["list"])
+        parser.add_option("-c", dest="command", help="Command", type="choice", choices=self.commands)
         parser.add_option("-k", dest="key_filename", help="SSFS Key filename", metavar="FILE")
         parser.add_option("-d", dest="data_filename", help="SSFS Data filename", metavar="FILE")
 
