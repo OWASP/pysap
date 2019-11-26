@@ -24,7 +24,7 @@ import logging
 from scapy.packet import Packet
 from scapy.fields import (ByteField, YesNoByteField, LenField, StrFixedLenField, PacketListField)
 # Custom imports
-from pysap.utils.fields import PacketNoPadded
+from pysap.utils.fields import PacketNoPadded, StrFixedLenPaddedField
 
 
 # Create a logger for the SSFS layer
@@ -41,8 +41,8 @@ class SAPSSFSLock(Packet):
         ByteField("file_type", 0),
         ByteField("type", 0),
         StrFixedLenField("timestamp", None, 8),
-        StrFixedLenField("user", None, 24),
-        StrFixedLenField("host", None, 24),
+        StrFixedLenPaddedField("user", None, 24, padd=" "),
+        StrFixedLenPaddedField("host", None, 24, padd=" "),
     ]
 
 
@@ -57,8 +57,8 @@ class SAPSSFSKey(Packet):
         ByteField("type", 1),
         StrFixedLenField("key", None, 24),
         StrFixedLenField("timestamp", None, 8),
-        StrFixedLenField("user", None, 24),
-        StrFixedLenField("host", None, 24),
+        StrFixedLenPaddedField("user", None, 24, padd=" "),
+        StrFixedLenPaddedField("host", None, 24, padd=" "),
     ]
 
 
@@ -77,10 +77,10 @@ class SAPSSFSDataRecord(PacketNoPadded):
         ByteField("type", 1),   # Record type "1" supported
         StrFixedLenField("filler1", None, 7),
         # Data Header
-        StrFixedLenField("key_name", None, 64),
+        StrFixedLenPaddedField("key_name", None, 64, padd=" "),
         StrFixedLenField("timestamp", None, 8),
-        StrFixedLenField("user", None, 24),
-        StrFixedLenField("host", None, 24),
+        StrFixedLenPaddedField("user", None, 24, padd=" "),
+        StrFixedLenPaddedField("host", None, 24, padd=" "),
         YesNoByteField("is_deleted", 0),
         YesNoByteField("is_stored_as_plaintext", 0),
         YesNoByteField("is_binary_data", 0),
@@ -89,6 +89,12 @@ class SAPSSFSDataRecord(PacketNoPadded):
         # Data
         StrFixedLenField("data", None, length_from=lambda pkt: pkt.length - 176),
     ]
+
+    @property
+    def plain_data(self):
+        if self.is_stored_as_plaintext:
+            return self.data
+        raise NotImplementedError("Decryption not yet implemented")
 
 
 class SAPSSFSData(Packet):
@@ -100,3 +106,45 @@ class SAPSSFSData(Packet):
     fields_desc = [
         PacketListField("records", None, SAPSSFSDataRecord),
     ]
+
+    def has_record(self, key_name):
+        """Returns if the data file contains a record with a given key name.
+
+        :param key_name: the name of the key to look for
+        :type key_name: string
+
+        :return: if the data file contains the record with key_name
+        :rtype: bool
+        """
+        for record in self.records:
+            if record.key_name.rstrip(" ") == key_name:
+                return True
+        return False
+
+    def get_record(self, key_name):
+        """Returns the record with the given key name.
+
+        :param key_name: the name of the key to look for
+        :type key_name: string
+
+        :return: the record with key_name
+        :rtype: SAPSSFSDataRecord
+        """
+        for record in self.records:
+            if record.key_name.rstrip(" ") == key_name:
+                return record
+        return None
+
+    def get_value(self, key_name):
+        """Returns the record with the given key name.
+
+        :param key_name: the name of the key to look for
+        :type key_name: string
+
+        :return: the record with key_name
+        :rtype: SAPSSFSDataRecord
+        """
+        try:
+            return self.get_record(key_name).plain_data
+        except AttributeError:
+            return None
