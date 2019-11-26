@@ -106,12 +106,12 @@ class PySAPSSFSDataDecryptTest(unittest.TestCase):
             s = fd.read()
         data = SAPSSFSData(s)
 
-        for key, value in self.ENCRYPTED_VALUES.items():
-            self.assertTrue(data.has_record(key))
-            self.assertIsNotNone(data.get_record(key))
-            self.assertEqual(data.get_value(key), value)
+        for name, value in self.ENCRYPTED_VALUES.items():
+            self.assertTrue(data.has_record(name))
+            self.assertIsNotNone(data.get_record(name))
+            self.assertEqual(data.get_value(name), value)
 
-            record = data.get_record(key)
+            record = data.get_record(name)
             self.assertFalse(record.is_stored_as_plaintext)
 
 
