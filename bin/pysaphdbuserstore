@@ -148,7 +148,10 @@ class PySAPHDBUserStore(object):
             self.logger.error("pysaphdbuserstore: Unable to read data in file {}\n".format(options.data_filename))
 
         for ssfs_record in ssfs_data.records:
-            self.logger.info(ssfs_record.key_name.rstrip(" "))
+            self.logger.info("%s\t%s\t%s",
+                             ssfs_record.key_name.rstrip(" "),
+                             "Plaintext" if ssfs_record.is_stored_as_plaintext else "Encrypted",
+                             ssfs_record.timestamp)
 
     def get(self, options, args):
         """Get a record value in a SSFS Data file
@@ -170,10 +173,14 @@ class PySAPHDBUserStore(object):
 
         for arg in args:
             if ssfs_data.has_record(arg):
-                self.logger.info("Record value for key name %s:", arg)
-                self.logger.info(ssfs_data.get_value(arg))
+                ssfs_record = ssfs_data.get_record(arg)
+                self.logger.info("Record Key   : %s", arg)
+                self.logger.info("Record Value : %s", ssfs_record.plain_data)
+                self.logger.info("Time Stamp   : %s", ssfs_record.timestamp)
+                self.logger.info("Host Name    : %s", ssfs_record.host)
+                self.logger.info("OS-User      : %s", ssfs_record.user)
             else:
-                self.logger.info("Record value for key name %s not found.", arg)
+                self.logger.info("Record with key %s not found in data file.", arg)
 
 
 if __name__ == "__main__":
