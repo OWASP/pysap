@@ -24,7 +24,7 @@ import logging
 from scapy.packet import Packet
 from scapy.fields import (ByteField, YesNoByteField, LenField, StrFixedLenField, PacketListField)
 # Custom imports
-from pysap.utils.fields import PacketNoPadded, StrFixedLenPaddedField
+from pysap.utils.fields import PacketNoPadded, StrFixedLenPaddedField, TimestampField
 
 
 # Create a logger for the SSFS layer
@@ -40,7 +40,7 @@ class SAPSSFSLock(Packet):
         StrFixedLenField("preamble", "RSecSSFsLock", 12),
         ByteField("file_type", 0),
         ByteField("type", 0),
-        StrFixedLenField("timestamp", None, 8),
+        TimestampField("timestamp", None),
         StrFixedLenPaddedField("user", None, 24, padd=" "),
         StrFixedLenPaddedField("host", None, 24, padd=" "),
     ]
@@ -56,7 +56,7 @@ class SAPSSFSKey(Packet):
         StrFixedLenField("preamble", "RSecSSFsKey", 11),
         ByteField("type", 1),
         StrFixedLenField("key", None, 24),
-        StrFixedLenField("timestamp", None, 8),
+        TimestampField("timestamp", None),
         StrFixedLenPaddedField("user", None, 24, padd=" "),
         StrFixedLenPaddedField("host", None, 24, padd=" "),
     ]
@@ -78,7 +78,7 @@ class SAPSSFSDataRecord(PacketNoPadded):
         StrFixedLenField("filler1", None, 7),
         # Data Header
         StrFixedLenPaddedField("key_name", None, 64, padd=" "),
-        StrFixedLenField("timestamp", None, 8),
+        TimestampField("timestamp", None),
         StrFixedLenPaddedField("user", None, 24, padd=" "),
         StrFixedLenPaddedField("host", None, 24, padd=" "),
         YesNoByteField("is_deleted", 0),
