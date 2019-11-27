@@ -90,6 +90,37 @@ class PySAPSSFSDataTest(unittest.TestCase):
             record = data.get_record(key)
             self.assertTrue(record.is_stored_as_plaintext)
 
+    def test_ssfs_data_record_hmac(self):
+        """Test validation of header and data with HMAC field in a SSFS Data file."""
+
+        with open(data_filename("ssfs_hdb_dat"), "rb") as fd:
+            s = fd.read()
+        data = SAPSSFSData(s)
+
+        for record in data.records:
+            self.assertTrue(record.is_valid)
+
+            # Now tamper with the header
+            original_user = record.user
+            record.user = "NewUser"
+            self.assertFalse(record.is_valid)
+            record.user = original_user
+            self.assertTrue(record.is_valid)
+
+            # Now tamper with the data
+            orginal_data = record.data
+            record.data = orginal_data + "AddedDataBytes"
+            self.assertFalse(record.is_valid)
+            record.data = orginal_data
+            self.assertTrue(record.is_valid)
+
+            # Now tamper with the HMAC
+            orginal_hmac = record.hmac
+            record.hmac = orginal_hmac[:-1] + "A"
+            self.assertFalse(record.is_valid)
+            record.hmac = orginal_hmac
+            self.assertTrue(record.is_valid)
+
 
 class PySAPSSFSDataDecryptTest(unittest.TestCase):
 
