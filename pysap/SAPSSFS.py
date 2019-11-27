@@ -23,12 +23,20 @@ import logging
 # External imports
 from scapy.packet import Packet
 from scapy.fields import (ByteField, YesNoByteField, LenField, StrFixedLenField, PacketListField)
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.hmac import HMAC
+from cryptography.hazmat.primitives.hashes import SHA1
+from cryptography.hazmat.backends import default_backend
 # Custom imports
 from pysap.utils.fields import PacketNoPadded, StrFixedLenPaddedField, TimestampField
 
 
 # Create a logger for the SSFS layer
 log_ssfs = logging.getLogger("pysap.ssfs")
+
+
+ssfs_hmac_key_unobscured = "\xe3\xa0\x61\x11\x85\x41\x68\x99\xf3\x0e\xda\x87\x7a\x80\xcc\x69"
+"""Fixed key embedded in rsecssfx binaries for validating integrity of records"""
 
 
 class RSecSSFsLKY(Packet):
@@ -108,8 +116,19 @@ class SAPSSFSDataRecord(PacketNoPadded):
 
     @property
     def is_valid(self):
-        """Returns wether the HMAC value is valid for the given payload"""
-        return
+        """Returns whether the HMAC-SHA1 value is valid for the given payload"""
+
+        # Calculate the HMAC-SHA1
+        h = HMAC(ssfs_hmac_key_unobscured, SHA1(), backend=default_backend())
+        h.update(str(self)[24:156])  # Entire Data header without the HMAC field
+        h.update(self.data)
+
+        # Validate the signature
+        try:
+            h.verify(self.hmac)
+            return True
+        except InvalidSignature:
+            return False
 
 
 class SAPSSFSData(Packet):
