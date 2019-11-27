@@ -28,7 +28,17 @@ from pysap.utils.fields import PacketNoPadded, StrFixedLenPaddedField, Timestamp
 
 
 # Create a logger for the SSFS layer
-log_cred = logging.getLogger("pysap.ssfs")
+log_ssfs = logging.getLogger("pysap.ssfs")
+
+
+class RSecSSFsLKY(Packet):
+    """SAP SSFS LKY file format packet.
+
+    """
+    name = "SAP SSFS LKY"
+    fields_desc = [
+        StrFixedLenField("preamble", "RSecSSFsLKY", 11),
+    ]
 
 
 class SAPSSFSLock(Packet):
@@ -95,6 +105,11 @@ class SAPSSFSDataRecord(PacketNoPadded):
         if self.is_stored_as_plaintext:
             return self.data
         raise NotImplementedError("Decryption not yet implemented")
+
+    @property
+    def is_valid(self):
+        """Returns wether the HMAC value is valid for the given payload"""
+        return
 
 
 class SAPSSFSData(Packet):
