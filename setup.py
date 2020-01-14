@@ -87,12 +87,17 @@ sapcompress = Extension('pysapcompress',
                         ])
 
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
+
 setup(name=pysap.__title__,   # Package information
       version=pysap.__version__,
       author='Martin Gallo',
       author_email='mgallo@secureauth.com',
       description='Python library for crafting SAP\'s network protocols packets',
-      long_description=pysap.__doc__,  # @UndefinedVariable
+      long_description=long_description,
+      long_description_content_type="text/markdown",
       url=pysap.__url__,
       download_url=pysap.__url__,
       license=pysap.__license__,
