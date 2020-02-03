@@ -1,7 +1,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# SECUREAUTH LABS. Copyright (C) 2019 SecureAuth Corporation. All rights reserved.
+# SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
 # the SecureAuth Labs team.
@@ -34,13 +34,10 @@ from scapy.asn1.mib import conf  # noqa: F401
 from pysap.SAPLPS import SAP_LPS_Cipher
 from pysap.utils.crypto import PKCS12_PBES1
 from pysap.utils.fields import ASN1F_CHOICE_SAFE
-# Optional imports
-try:
-    from cryptography.hazmat.backends import default_backend
-    from cryptography.hazmat.primitives.hashes import Hash, SHA1
-    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-except ImportError:
-    Cipher = None
+# External imports
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.hashes import SHA1
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 
 # Create a logger for the PSE layer
