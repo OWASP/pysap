@@ -1,7 +1,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# SECUREAUTH LABS. Copyright (C) 2019 SecureAuth Corporation. All rights reserved.
+# SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
 # the SecureAuth Labs team.
@@ -37,14 +37,10 @@ from scapy.asn1.mib import conf  # noqa: F401
 from pysap.SAPLPS import SAP_LPS_Cipher
 from pysap.utils.fields import ASN1F_CHOICE_SAFE
 from pysap.utils.crypto import dpapi_decrypt_blob
-# Optional imports
-try:
-    from cryptography.hazmat.backends import default_backend
-    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-    from cryptography.hazmat.primitives.hashes import Hash, SHA256, SHA1
-    from cryptography.hazmat.primitives.hmac import HMAC
-except ImportError:
-    Cipher = None
+# External imports
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.hashes import Hash, SHA256
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 
 # Create a logger for the Credv2 layer
@@ -70,8 +66,7 @@ class SAPCredv2_Cred_Plain(ASN1_Packet):
 
     def decrypt_provider(self, cred):
         """Decrypts a credential file already decrypted using the specified
-        provider. This is platform dependent and requires specific third-party
-        libraries.
+        provider. This is platform dependent.
 
         :param cred: credential from where the blob was extracted
         :type cred: SAPCredv2_Cred
@@ -188,18 +183,12 @@ class SAPCredv2_Cred(ASN1_Packet):
         """Decrypt a credential given a particular username. Tries to identify the credential
         format and choose the decryption method to use.
 
-        Requires the cryptography library installed.
-
         :param username: Username to use when decrypting
         :type username: string
 
         :return: decrypted object
         :rtype: SAPCredv2_Cred_Plain
-
-        :raise Exception: if the cryptography library is not available
         """
-        if not Cipher:
-            raise Exception("Required library not found")
 
         if self.cipher_format_version == 1:
             return self.decrypt_with_header(username)
@@ -216,8 +205,6 @@ class SAPCredv2_Cred(ASN1_Packet):
 
         :return: decrypted object
         :rtype: SAPCredv2_Cred_Plain
-
-        :raise Exception: if the decrypted object can't be parsed
         """
 
         blob = self.cipher.val_readable
@@ -350,19 +337,13 @@ class SAPCredv2_Cred_LPS(ASN1_Packet):
 
     def decrypt(self, username=None):
         """Decrypt a credential file using LPS.
-        Requires the cryptography library installed.
 
         :param username: Username to use when decrypting. Not used but kept to match signature
         :type username: string
 
         :return: decrypted object
         :rtype: SAPCredv2_Cred_Plain
-
-        :raise Exception: if the cryptography library is not available
         """
-        if not Cipher:
-            log_cred.error("Required library not found")
-            raise Exception("Required library not found")
 
         cipher = SAP_LPS_Cipher(self.cipher.val_readable)
         log_cred.debug("Obtained LPS cipher object (version={}, lps={})".format(cipher.version,
