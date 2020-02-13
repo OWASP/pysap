@@ -34,6 +34,7 @@ from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
 from pysap.SAPSNC import SAPSNCFrame
 from pysap.SAPNI import (SAPNI, SAPNIStreamSocket, SAPNIProxy,
                          SAPNIProxyHandler)
+from pysap.utils import unicode
 from pysap.utils.fields import (PacketNoPadded, StrNullFixedLenField)
 
 
@@ -182,11 +183,11 @@ class SAPRouterRouteHop(PacketNoPadded):
         """
         result = ""
         for route_hop in route_hops:
-            result += "/H/{}".format(route_hop.hostname)
+            result += "/H/{}".format(unicode(route_hop.hostname))
             if route_hop.port:
-                result += "/S/{}".format(route_hop.port)
+                result += "/S/{}".format(unicode(route_hop.port))
             if route_hop.password:
-                result += "/W/{}".format(route_hop.password)
+                result += "/W/{}".format(unicode(route_hop.password))
         return result
 
 
@@ -392,25 +393,25 @@ class SAPRouter(Packet):
     SAPROUTER_DEFAULT_VERSION = 40
 
     # Constants for router types
-    SAPROUTER_ROUTE = "NI_ROUTE"
+    SAPROUTER_ROUTE = b"NI_ROUTE"
     """ :cvar: Constant for route packets
-        :type: C{string} """
+        :type: C{bytes} """
 
-    SAPROUTER_ADMIN = "ROUTER_ADM"
+    SAPROUTER_ADMIN = b"ROUTER_ADM"
     """ :cvar: Constant for administration packets
-        :type: C{string} """
+        :type: C{bytes} """
 
-    SAPROUTER_ERROR = "NI_RTERR"
+    SAPROUTER_ERROR = b"NI_RTERR"
     """ :cvar: Constant for error information packets
-        :type: C{string} """
+        :type: C{bytes} """
 
-    SAPROUTER_CONTROL = "NI_RTERR"
+    SAPROUTER_CONTROL = b"NI_RTERR"
     """ :cvar: Constant for control messages packets
-        :type: C{string} """
+        :type: C{bytes} """
 
-    SAPROUTER_PONG = "NI_PONG"
+    SAPROUTER_PONG = b"NI_PONG"
     """ :cvar: Constant for route accepted packets
-        :type: C{string} """
+        :type: C{bytes} """
 
     router_type_values = [
         SAPROUTER_ADMIN,
@@ -420,7 +421,7 @@ class SAPRouter(Packet):
         SAPROUTER_PONG,
     ]
     """ :cvar: List of known packet types
-        :type: ``list`` of C{string} """
+        :type: ``list`` of C{bytes} """
 
     name = "SAP Router"
     fields_desc = [
@@ -445,7 +446,7 @@ class SAPRouter(Packet):
         ConditionalField(ShortField("adm_unused", 0x00), lambda pkt:router_is_admin(pkt) and pkt.adm_command not in [10, 11, 12, 13]),
 
         # Info Request fields
-        ConditionalField(StrNullFixedLenField("adm_password", "", 19), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [2]),
+        ConditionalField(StrNullFixedLenField("adm_password", b"", 19), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [2]),
 
         # Cancel Route fields
         ConditionalField(FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="H"), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [6]),
@@ -470,7 +471,7 @@ class SAPRouter(Packet):
 
         # Control Message fields
         ConditionalField(IntField("control_text_length", 0), lambda pkt: router_is_control(pkt) and pkt.opcode != 0),
-        ConditionalField(StrField("control_text_value", "*ERR"), lambda pkt: router_is_control(pkt) and pkt.opcode != 0),
+        ConditionalField(StrField("control_text_value", b"*ERR"), lambda pkt: router_is_control(pkt) and pkt.opcode != 0),
 
         # SNC Frame fields
         ConditionalField(PacketField("snc_frame", None, SAPSNCFrame), lambda pkt: router_is_control(pkt) and pkt.opcode in [70, 71])
