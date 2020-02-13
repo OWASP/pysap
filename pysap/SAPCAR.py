@@ -32,8 +32,8 @@ from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
                           PacketField, StrFixedLenField, PacketListField,
                           ConditionalField, LESignedIntField, StrField, LELongField)
 # Custom imports
+from pysap.utils import unicode
 from pysap.utils.fields import (PacketNoPadded, StrNullFixedLenField, PacketListStopField)
-from pysap.utils.six import unicode
 from pysapcompress import (decompress, compress, ALG_LZH, CompressError, DecompressError)
 
 

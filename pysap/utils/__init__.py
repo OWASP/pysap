@@ -21,6 +21,7 @@
 # Standard imports
 from six.moves import queue
 from threading import Thread, Event
+from six import binary_type, text_type
 
 
 class Worker(Thread):
@@ -78,3 +79,21 @@ class ThreadPool(object):
     def wait_completion(self):
         """Wait for completion of all the tasks in the queue"""
         self.tasks.join()
+
+
+# All custom general purpose Python 2/3 compatibility should go here
+
+
+def unicode(string):
+    """Convert given string to unicode string
+
+    :param string: String to convert
+    :type string: bytes | str | unicode
+    :return: six.text_type
+    """
+    string_type = type(string)
+    if string_type == binary_type:
+        return string.decode()
+    elif string_type == text_type:
+        return string
+    raise ValueError("Expected bytes or str, got {}".format(string_type))
