@@ -59,13 +59,13 @@ class SAPNI(Packet):
     fields_desc = [LenField("length", None, fmt="!I")]
 
     # Constants for keep-alive messages
-    SAPNI_PING = "NI_PING\x00"
+    SAPNI_PING = b"NI_PING\x00"
     """ :cvar: Constant for keep-alive request messages (NI_PING)
-        :type: C{string} """
+        :type: C{bytes} """
 
-    SAPNI_PONG = "NI_PONG\x00"
+    SAPNI_PONG = b"NI_PONG\x00"
     """ :cvar: Constant for keep-alive response messages (NI_PONG)
-        :type: C{string} """
+        :type: C{bytes} """
 
 
 class SAPNIStreamSocket(StreamSocket):
