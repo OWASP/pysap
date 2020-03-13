@@ -2,10 +2,9 @@
 
 language: python
 
-dist: xenial
-sudo: false
+dist: bionic
 
-matrix:
+jobs:
     include:
         - os: linux
           python: 2.7
@@ -60,13 +59,12 @@ before_deploy:
 
 deploy:
     provider: releases
-    api_key:
+    token:
         secure: "Z8jyTnnCr+pxjJ2uOaJFUPl7roDj1F/r+gib+KAf2TMjx9et2WTMzCnERaGZCpga3RXKlPxAuXHi467zua30fes5JQlMMeE7klsE8oxA6lj0dRhpUgpdat5eMHQ4+SDcIL2zSSmCQmZgt8aGZLSn35MTJ63EncbijB++EtdqrvU="
     file:
         - "dist/*.whl"
         - "dist/*.tar.gz"
     file_glob: true
-    skip_cleanup: true
     on:
         tags: true
         repo: SecureAuthCorp/pysap
