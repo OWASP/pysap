@@ -5,6 +5,9 @@ Changelog
 v0.1.18 - 2020-XX-XX
 --------------------
 
+- Using Sphinx 1.8.5 for documentation.
+- Added `cryptography` library as requirement.
+
 
 v0.1.17 - 2019-11-05
 --------------------
