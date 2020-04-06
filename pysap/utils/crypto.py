@@ -20,16 +20,13 @@
 # Standard imports
 import os
 import math
-# Optional imports
-try:
-    from cryptography.exceptions import InvalidKey
-    from cryptography.hazmat.primitives.hmac import HMAC
-    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-    from cryptography.hazmat.primitives.ciphers import Cipher, modes
-    from cryptography.hazmat.primitives import constant_time, padding
-    from cryptography.hazmat.primitives.hashes import Hash, SHA256, MD5
-except ImportError:
-    Cipher = Hash = None
+# External imports
+from cryptography.exceptions import InvalidKey
+from cryptography.hazmat.primitives.hmac import HMAC
+from cryptography.hazmat.primitives.ciphers import Cipher
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives import constant_time, padding
+from cryptography.hazmat.primitives.hashes import Hash, SHA256, MD5
 
 
 def dpapi_decrypt_blob(blob, entropy=None):
