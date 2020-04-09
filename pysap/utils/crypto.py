@@ -276,19 +276,19 @@ class SCRAM(object):
         """
         msg = salt + server_key + client_key
 
-        hmac = HMAC(password, self.ALGORITHM, self.backend)
+        hmac = HMAC(password, self.ALGORITHM(), self.backend)
         hmac.update(salt)
         hmac_digest = hmac.finalize()
 
-        hash = Hash(self.ALGORITHM, self.backend)
+        hash = Hash(self.ALGORITHM(), self.backend)
         hash.update(hmac_digest)
         hash_digest = hash.finalize()
 
-        key_hash = Hash(self.ALGORITHM, self.backend)
-        key_hash.update(server_key)
+        key_hash = Hash(self.ALGORITHM(), self.backend)
+        key_hash.update(hash_digest)
         key_hash_digest = key_hash.finalize()
 
-        sig = HMAC(key_hash_digest, self.ALGORITHM, self.backend)
+        sig = HMAC(key_hash_digest, self.ALGORITHM(), self.backend)
         sig.update(msg)
         sig_digest = sig.finalize()
 
@@ -304,20 +304,20 @@ class SCRAM(object):
         return bytes(result)
 
 
-class SCRAM256(SCRAM):
+class SCRAM_SHA256(SCRAM):
     """SCRAM scheme using SHA256 as the hashing algorithm.
     """
     ALGORITHM = SHA256
 
 
-class SCRAMMD5(SCRAM):
+class SCRAM_MD5(SCRAM):
     """SCRAM scheme using MD5 as the hashing algorithm.
     """
 
     ALGORITHM = MD5
 
 
-class SCRAMPBKDF2SHA256(SCRAM256):
+class SCRAM_PBKDF2SHA256(SCRAM_SHA256):
     """SCRAM scheme using PBKDF2 with SHA256"""
 
     # TODO: scramble_salt would probably need to be rebuilt or refactored

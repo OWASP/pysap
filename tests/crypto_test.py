@@ -22,13 +22,13 @@ import unittest
 # External imports
 from cryptography.hazmat.backends import default_backend
 # Custom imports
-from pysap.utils.crypto import (SCRAM256)
+from pysap.utils.crypto import SCRAM_SHA256
 
 
 class PySAPCryptoUtilsTest(unittest.TestCase):
 
-    def test_scram256_client_proof(self):
-        """Test SCRAM SHA256 client proof calculation.
+    def test_scram_sha256_scramble_salt(self):
+        """Test SCRAM SHA256 scramble salt calculation.
 
         Values are taken from https://github.com/SAP/PyHDB/blob/master/tests/test_auth.py
         """
@@ -46,12 +46,14 @@ class PySAPCryptoUtilsTest(unittest.TestCase):
                      b"\x3a\xac\x51\x07\x5e\x67\xbb\xe5\x2f\xdb\x61\x03" \
                      b"\xa7\xc3\x4c\x8a\x70\x90\x8e\xd5\xbe\x0b\x35\x42" \
                      b"\x70\x5f\x73\x8c"
-        client_proof = b"\x00\x01\x20\xe4\x7d\x8f\x24\x48\x55\xb9\x2d\xc9\x66\x39\x5d" \
+        expected_scrambled_salt = b"\xe4\x7d\x8f\x24\x48\x55\xb9\x2d\xc9\x66\x39\x5d" \
                        b"\x0d\x28\x25\x47\xb5\x4d\xfd\x09\x61\x4d\x44\x37\x4d\xf9\x4f" \
                        b"\x29\x3c\x1a\x02\x0e"
 
-        scram = SCRAM256(default_backend)
-        self.assertEqual(client_proof, scram.scramble_salt(password, salt, server_key, client_key))
+        scram = SCRAM_SHA256(default_backend())
+        scrambled_salt = scram.scramble_salt(password, salt, server_key, client_key)
+        self.assertEqual(len(expected_scrambled_salt), len(scrambled_salt))
+        self.assertEqual(expected_scrambled_salt, scrambled_salt)
 
 
 def test_suite():
