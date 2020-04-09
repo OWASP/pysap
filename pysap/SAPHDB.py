@@ -24,6 +24,7 @@ from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField,
                           IntField, PacketListField, SignedByteField, LongField, PadField,
                           LEIntField, LESignedIntField, StrFixedLenField, ShortField)
 # Custom imports
+from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.utils.fields import (PacketNoPadded, LESignedByteField, LESignedShortField,
                                 LESignedLongField)
 
@@ -375,6 +376,40 @@ class SAPHDBInitializationReply(Packet):
         ShortField("protocol_minor", 0),
         ShortField("padding", 0),
     ]
+
+
+class SAPHDBConnection(object):
+    """SAP HDB Connection
+
+    This class represents a basic client connection to a HANA server using
+    the SQL Command Network Protocol.
+    """
+
+    def __init__(self, host, port, route=None):
+        """Creates the connection to the Diag server.
+
+        :param host: remote host to connect to
+        :type host: C{string}
+
+        :param port: remote port to connect to
+        :type port: ``int``
+
+        :param route: route to use for connecting through a SAP Router
+        :type route: C{string}
+        """
+        self.host = host
+        self.port = port
+        self.route = route
+        self._connection = None
+
+    def connect(self):
+        """Creates a :class:`SAPNIStreamSocket` connection to the host/port. If a route
+        was specified, connect to the target HANA server through the SAP Router.
+        """
+        self._connection = SAPRoutedStreamSocket.get_nisocket(self.host,
+                                                              self.port,
+                                                              self.route,
+                                                              base_cls=SAPHDB)
 
 
 # Bind SAP NI with the HDB ports

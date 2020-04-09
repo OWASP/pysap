@@ -30,7 +30,7 @@ from scapy.supersocket import StreamSocket
 # Custom imports
 import pysap
 from pysap.SAPHDB import (SAPHDB, SAPHDBInitializationRequest, SAPHDBInitializationReply, SAPHDBPart, SAPHDBSegment,
-                          SAPHDBPartAuthentication, SAPHDBPartAuthenticationField)
+                          SAPHDBPartAuthentication, SAPHDBPartAuthenticationField, SAPHDBConnection)
 
 
 # Set the verbosity to 0
@@ -55,6 +55,8 @@ def parse_options():
                       help="Remote host")
     target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=39015,
                       help="Remote port [%default]")
+    target.add_option("--route-string", dest="route_string",
+                      help="Route string for connecting through a SAP Router")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
@@ -78,28 +80,28 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     # Initiate the connection
-    conn = StreamSocket(socket.create_connection((options.remote_host,
-                                                  options.remote_port)),
-                        basecls=SAPHDB)
+    hdb = SAPHDBConnection(options.remote_host,
+                           options.remote_port,
+                           options.route_string)
     print("[*] Connected to HANA database %s:%d" % (options.remote_host, options.remote_port))
 
     # Send Initialization Request packet
     p = SAPHDBInitializationRequest()
     logging.debug("[*] Sending init request:")
-    conn.send(p)
-    response = SAPHDBInitializationReply(str(conn.recv(8)))
+    hdb._connection.send(p)
+    response = SAPHDBInitializationReply(str(hdb._connection.recv(8)))
 
     logging.debug("[*] Received init reply:")
     logging.debug(response.summary())
 
     # Manually craft a JWT
+    import jwt
     from base64 import b64encode
     signed_jwt = ".".join([b64encode('{"alg":"RS256"}'),
                            b64encode('{"iss":"https://jwtprovider/"}'),
                            b64encode('Signature')])
 
     # Craft a JWT using jwt
-    import jwt
     key = open('JWT/JWT-RS256-2048.key').read()
     claim = {"iss": "https://jwtprovider/"}
     signed_jwt = jwt.encode(claim, key, algorithm='RS256')
@@ -120,9 +122,9 @@ def main():
     auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
     auth_pkt = SAPHDB(segments=[auth_segm])
     auth_pkt.show2()
-    conn.send(auth_pkt)
+    hdb._connection.send(auth_pkt)
 
-    response = conn.recv()
+    response = hdb._connection.recv()
     response.show()
 
 
