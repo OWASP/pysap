@@ -83,16 +83,12 @@ def main():
     hdb = SAPHDBConnection(options.remote_host,
                            options.remote_port,
                            options.route_string)
+    hdb.connect()
     print("[*] Connected to HANA database %s:%d" % (options.remote_host, options.remote_port))
 
-    # Send Initialization Request packet
-    p = SAPHDBInitializationRequest()
-    logging.debug("[*] Sending init request:")
-    hdb._connection.send(p)
-    response = SAPHDBInitializationReply(str(hdb._connection.recv(8)))
-
-    logging.debug("[*] Received init reply:")
-    logging.debug(response.summary())
+    hdb.initialize()
+    print("[*] HANA database version %d/protocol version %d" % (hdb.product_version,
+                                                                hdb.protocol_version))
 
     # Manually craft a JWT
     import jwt

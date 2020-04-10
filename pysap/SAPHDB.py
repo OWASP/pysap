@@ -19,6 +19,7 @@
 
 # External imports
 from scapy.layers.inet import TCP
+from scapy.supersocket import StreamSocket
 from scapy.packet import Packet, bind_layers
 from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField,
                           IntField, PacketListField, SignedByteField, LongField, PadField,
@@ -378,6 +379,11 @@ class SAPHDBInitializationReply(Packet):
     ]
 
 
+class SAPHDBConnectionError(Exception):
+    """SAP HDB Connection exception
+    """
+
+
 class SAPHDBConnection(object):
     """SAP HDB Connection
 
@@ -386,7 +392,7 @@ class SAPHDBConnection(object):
     """
 
     def __init__(self, host, port, route=None):
-        """Creates the connection to the Diag server.
+        """Creates the connection to the HANA server.
 
         :param host: remote host to connect to
         :type host: C{string}
@@ -401,6 +407,8 @@ class SAPHDBConnection(object):
         self.port = port
         self.route = route
         self._connection = None
+        self.product_version = None
+        self.protocol_version = None
 
     def connect(self):
         """Creates a :class:`SAPNIStreamSocket` connection to the host/port. If a route
@@ -409,7 +417,29 @@ class SAPHDBConnection(object):
         self._connection = SAPRoutedStreamSocket.get_nisocket(self.host,
                                                               self.port,
                                                               self.route,
-                                                              base_cls=SAPHDB)
+                                                              base_cls=SAPHDB,
+                                                              talk_mode=1)
+
+    def initialize(self):
+        """Initializes the connection with the server
+        """
+        if self._connection is None:
+            self.connect()
+
+        # Send initialization request packet
+        init_request = SAPHDBInitializationRequest()
+        self._connection.send(init_request)
+
+        # Receive initialization response packet
+        init_reply = SAPHDBInitializationReply(self._connection.recv(8))
+        self.product_version = init_reply.product_major
+        self.protocol_version = init_reply.protocol_major
+
+    def close(self):
+        """Closes the connection with the server
+        """
+        if self._connection is None:
+            raise SAPHDBConnectionError("Connection already closed")
 
 
 # Bind SAP NI with the HDB ports
