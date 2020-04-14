@@ -112,6 +112,8 @@ Additional information about the protocols and the research can be found at diff
 
 * `Hunting crypto secrets in SAP systems <https://www.coresecurity.com/publication/hunting-crypto-secrets-sap-systems>`_
 
+* `Revisiting the Old and Looking at New Potential SAP Vulnerabilities <https://www.secureauth.com/blog/revisiting-old-and-looking-new-potential-sap-vulnerabilities>`_
+
 And advisories:
 
 * `SAP Netweaver Dispatcher Multiple Vulnerabilities <https://www.coresecurity.com/content/sap-netweaver-dispatcher-multiple-vulnerabilities>`_
