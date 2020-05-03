@@ -681,7 +681,8 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
             if talk_mode == ROUTER_TALK_MODE_NI_RAW_IO:
                 sock = socket.create_connection((host, port))
                 if "base_cls" in kwargs:
-                    kwargs["base_cls"] = Raw
+                    kwargs["basecls"] = Raw
+                    del(kwargs["base_cls"])
                 return StreamSocket(sock, **kwargs)
 
             # Otherwise use the standard SAPNIStreamSocket get_nisocket method
