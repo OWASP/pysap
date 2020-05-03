@@ -30,7 +30,8 @@ import pysap
 from pysap.SAPNI import SAPNI
 from pysap.SAPRouter import (SAPRouter, SAPRouteException,
                              SAPRouterNativeProxy,
-                             SAPRouterNativeRouterHandler)
+                             SAPRouterNativeRouterHandler,
+                             ROUTER_TALK_MODE_NI_RAW_IO, ROUTER_TALK_MODE_NI_MSG_IO)
 
 
 # Bind the SAPRouter layer
@@ -114,7 +115,7 @@ def main():
                                                                                                    options.remote_port,
                                                                                                    options.talk_mode))
 
-    options.talk_mode = {"raw": 1, "ni": 0}[options.talk_mode]
+    options.talk_mode = {"raw": ROUTER_TALK_MODE_NI_RAW_IO, "ni": ROUTER_TALK_MODE_NI_MSG_IO}[options.talk_mode]
 
     proxy = SAPRouterNativeProxy(options.local_host, options.local_port,
                                  options.remote_host, options.remote_port,

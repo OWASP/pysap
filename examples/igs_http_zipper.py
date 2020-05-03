@@ -28,7 +28,7 @@ from scapy.config import conf
 # Custom imports
 import pysap
 from pysap.SAPIGS import SAPIGS
-from pysap.SAPRouter import SAPRoutedStreamSocket
+from pysap.SAPRouter import SAPRoutedStreamSocket, ROUTER_TALK_MODE_NI_RAW_IO
 
 # Set the verbosity to 0
 conf.verb = 0
@@ -98,7 +98,7 @@ def main():
     conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
                                               options.remote_port,
                                               options.route_string,
-                                              talk_mode=1)
+                                              talk_mode=ROUTER_TALK_MODE_NI_RAW_IO)
 
     # the xml request for zipper interpreter
     xml = '<?xml version="1.0"?><REQUEST><COMPRESS type="zip"><FILES>'

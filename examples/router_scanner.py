@@ -29,7 +29,8 @@ import pysap
 from pysap.SAPNI import SAPNIStreamSocket, SAPNI
 from pysap.SAPRouter import (SAPRouterRouteHop, get_router_version,
                              SAPRoutedStreamSocket, SAPRouteException,
-                             SAPRouter)
+                             SAPRouter,
+                             ROUTER_TALK_MODE_NI_MSG_IO, ROUTER_TALK_MODE_NI_RAW_IO)
 # Optional imports
 try:
     import netaddr
@@ -112,7 +113,7 @@ def parse_target_hosts(target_hosts, target_ports):
                     for ip in netaddr.iter_unique_ips(host):
                         yield (ip, port)
             else:
-                yield(host, port)
+                yield (host, port)
 
 
 def route_test(rhost, rport, thost, tport, talk_mode, router_version):
@@ -167,8 +168,8 @@ def main():
         conn.close()
     logging.info("[*] Using SAP Router version %d" % options.router_version)
 
-    options.talk_mode = {"raw": 1,
-                         "ni": 0}[options.talk_mode]
+    options.talk_mode = {"raw": ROUTER_TALK_MODE_NI_RAW_IO,
+                         "ni": ROUTER_TALK_MODE_NI_MSG_IO}[options.talk_mode]
 
     results = []
     for (host, port) in parse_target_hosts(options.target_hosts, options.target_ports):
