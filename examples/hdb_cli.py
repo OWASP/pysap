@@ -29,8 +29,8 @@ from scapy.config import conf
 from scapy.supersocket import StreamSocket
 # Custom imports
 import pysap
-from pysap.SAPHDB import (SAPHDB, SAPHDBInitializationRequest, SAPHDBInitializationReply, SAPHDBPart, SAPHDBSegment,
-                          SAPHDBPartAuthentication, SAPHDBPartAuthenticationField, SAPHDBConnection)
+from pysap.SAPHDB import (SAPHDB, SAPHDBPart, SAPHDBSegment, SAPHDBPartAuthentication,
+                          SAPHDBPartAuthenticationField, SAPHDBConnection, SAPHDBTLSConnection)
 
 
 # Set the verbosity to 0
@@ -57,6 +57,8 @@ def parse_options():
                       help="Remote port [%default]")
     target.add_option("--route-string", dest="route_string",
                       help="Route string for connecting through a SAP Router")
+    target.add_option("--tls", dest="tls", action="store_true", default=False,
+                      help="Use TLS/SSL [%default]")
     parser.add_option_group(target)
 
     misc = OptionGroup(parser, "Misc options")
@@ -80,9 +82,13 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     # Initiate the connection
-    hdb = SAPHDBConnection(options.remote_host,
+    connection_class = SAPHDBConnection
+    if options.tls:
+        connection_class = SAPHDBTLSConnection
+    hdb = connection_class(options.remote_host,
                            options.remote_port,
                            options.route_string)
+
     hdb.connect()
     print("[*] Connected to HANA database %s:%d" % (options.remote_host, options.remote_port))
 

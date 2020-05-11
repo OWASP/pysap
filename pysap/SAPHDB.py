@@ -17,10 +17,13 @@
 # GNU General Public License for more details.
 # ==============
 
+# Standard imports
+import ssl
+import socket
 # External imports
 from scapy.layers.inet import TCP
-from scapy.supersocket import StreamSocket
 from scapy.packet import Packet, bind_layers
+from scapy.supersocket import SSLStreamSocket
 from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField,
                           IntField, PacketListField, SignedByteField, LongField, PadField,
                           LEIntField, LESignedIntField, StrFixedLenField, ShortField)
@@ -440,6 +443,31 @@ class SAPHDBConnection(object):
         """
         if self._connection is None:
             raise SAPHDBConnectionError("Connection already closed")
+
+
+class SAPHDBTLSConnection(SAPHDBConnection):
+    """SAP HDB Connection using TLS
+
+    This class wraps the connection socket with a TLS-enabled one for use as a secure channel.
+    """
+
+    def connect(self):
+        # Create a plain socket first
+        plain_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        plain_socket.settimeout(10)
+
+        # TLS/SSL Context
+        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        context.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1  # optional
+        context.verify_mode = ssl.CERT_NONE
+        context.set_default_verify_paths()
+
+        # Wrap the plain socket in a TLS/SSL one
+        tls_socket = context.wrap_socket(plain_socket, server_hostname=self.host)
+        tls_socket.connect((self.host, self.port))
+
+        # Create the stream socket from the TLS/SSL one. From here treatment should be similar to a plain one.
+        self._connection = SSLStreamSocket(tls_socket, basecls=SAPHDB)
 
 
 # Bind SAP NI with the HDB ports
