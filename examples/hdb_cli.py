@@ -30,7 +30,8 @@ from scapy.supersocket import StreamSocket
 # Custom imports
 import pysap
 from pysap.SAPHDB import (SAPHDB, SAPHDBPart, SAPHDBSegment, SAPHDBPartAuthentication,
-                          SAPHDBPartAuthenticationField, SAPHDBConnection, SAPHDBTLSConnection)
+                          SAPHDBPartAuthenticationField, SAPHDBConnection, SAPHDBTLSConnection,
+                          SAPHDBAuthScramSHA256)
 
 
 # Set the verbosity to 0
@@ -85,9 +86,15 @@ def main():
     connection_class = SAPHDBConnection
     if options.tls:
         connection_class = SAPHDBTLSConnection
+
+    # Select the desired authentication method
+    auth_method = SAPHDBAuthScramSHA256("username", "password")
+
+    # Create the connection
     hdb = connection_class(options.remote_host,
                            options.remote_port,
-                           options.route_string)
+                           auth_method=auth_method,
+                           route=options.route_string)
 
     hdb.connect()
     print("[*] Connected to HANA database %s:%d" % (options.remote_host, options.remote_port))
@@ -96,38 +103,10 @@ def main():
     print("[*] HANA database version %d/protocol version %d" % (hdb.product_version,
                                                                 hdb.protocol_version))
 
-    # Manually craft a JWT
-    import jwt
-    from base64 import b64encode
-    signed_jwt = ".".join([b64encode('{"alg":"RS256"}'),
-                           b64encode('{"iss":"https://jwtprovider/"}'),
-                           b64encode('Signature')])
+    hdb.authenticate()
+    print("[*] Authenticated against HANA database server")
 
-    # Craft a JWT using jwt
-    key = open('JWT/JWT-RS256-2048.key').read()
-    claim = {"iss": "https://jwtprovider/"}
-    signed_jwt = jwt.encode(claim, key, algorithm='RS256')
-    print(signed_jwt)
-
-    # Send authentication packet
-    auth_fields = SAPHDBPartAuthentication(fields=[SAPHDBPartAuthenticationField(value="MARTIN"),
-                                                   #SAPHDBPartAuthenticationField(value="SCRAMMD5"),
-                                                   #SAPHDBPartAuthenticationField(value="A" * 64),
-                                                   #SAPHDBPartAuthenticationField(value="SCRAMPBKDF2SHA256"),
-                                                   #SAPHDBPartAuthenticationField(value="A" * 64),
-                                                   #SAPHDBPartAuthenticationField(value="SCRAMSHA256"),
-                                                   #SAPHDBPartAuthenticationField(value="A" * 64),
-                                                   SAPHDBPartAuthenticationField(value="JWT"),
-                                                   SAPHDBPartAuthenticationField(value=signed_jwt),
-                                                   ])
-    auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
-    auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
-    auth_pkt = SAPHDB(segments=[auth_segm])
-    auth_pkt.show2()
-    hdb._connection.send(auth_pkt)
-
-    response = hdb._connection.recv()
-    response.show()
+    hdb.close()
 
 
 if __name__ == "__main__":

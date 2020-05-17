@@ -20,7 +20,9 @@
 # Standard imports
 import ssl
 import socket
+import struct
 # External imports
+from cryptography.hazmat.backends import default_backend
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
 from scapy.supersocket import SSLStreamSocket
@@ -29,6 +31,7 @@ from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField,
                           LEIntField, LESignedIntField, StrFixedLenField, ShortField)
 # Custom imports
 from pysap.SAPRouter import SAPRoutedStreamSocket
+from pysap.utils.crypto import SCRAM_SHA256
 from pysap.utils.fields import (PacketNoPadded, LESignedByteField, LESignedShortField,
                                 LESignedLongField)
 
@@ -282,8 +285,8 @@ class SAPHDBPartAuthentication(PacketNoPadded):
     """
     name = "SAP HANA SQL Command Network Protocol Authentication Part"
     fields_desc = [
-        FieldLenField("count", None, count_of="fields", fmt="<H"),
-        PacketListField("fields", None, SAPHDBPartAuthenticationField, count_from=lambda x: x.count),
+        FieldLenField("count", None, count_of="auth_fields", fmt="<H"),
+        PacketListField("auth_fields", None, SAPHDBPartAuthenticationField, count_from=lambda x: x.count),
     ]
 
 
@@ -382,6 +385,85 @@ class SAPHDBInitializationReply(Packet):
     ]
 
 
+class SAPHDBAuthenticationError(Exception):
+    """SAP HDB Authentication exception"""
+
+
+class SAPHDBAuthMethod(object):
+    """SAP HDB Authentication Method
+
+    This is the base class to define the authentication methods to use on
+    a connection.
+    """
+
+    def authenticate(self, connection):
+        """Method to authenticate the client connection.
+
+        :param connection: connection to the server
+        :type connection: :class:`SAPHDBConnection`
+
+        :raise: SAPHDBAuthenticationError
+        """
+        raise NotImplemented("Authentication method not implemented")
+
+
+class SAPHDBAuthScramSHA256(SAPHDBAuthMethod):
+    """SAP HDB Authentication using SCRAM-SHA256 algorithm
+    """
+
+    METHOD = "SCRAMSHA256"
+    SCRAM_CLASS = SCRAM_SHA256
+
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+    def authenticate(self, connection):
+        """Perform the handshake using SCRAM-SHA256"""
+
+        scram = self.SCRAM_CLASS(default_backend())
+
+        # Craft authentication packet
+        client_key = scram.get_client_key()
+        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
+                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
+                                                            SAPHDBPartAuthenticationField(value=client_key),
+                                                            ])
+        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
+        auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
+        auth_request = SAPHDB(segments=[auth_segm])
+
+        # Send authentication packet
+        auth_response = connection.sr(auth_request)
+        auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
+
+        # Check the method replied by the server
+        if self.METHOD != auth_response_part.auth_fields[0].value:
+            raise SAPHDBAuthenticationError("Authentication method not supported on server")
+
+        # Obtain the salt and the server key from the response
+        method_parts = SAPHDBPartAuthentication(auth_response_part.auth_fields[1].value)
+        salt = method_parts.auth_fields[0].value
+        server_key = method_parts.auth_fields[1].value
+
+        # Calculate the client proof from the password, salt and the server and client key
+        client_proof = b"\x00\x01" + struct.pack('b', scram.CLIENT_PROOF_SIZE)
+        client_proof += scram.scramble_salt(self.password, salt, server_key, client_key)
+
+        # Craft authentication packet
+        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
+                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
+                                                            SAPHDBPartAuthenticationField(value=client_proof),
+                                                            ])
+        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
+        auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
+        auth_request = SAPHDB(segments=[auth_segm])
+
+        # Send authentication packet
+        auth_response = connection.sr(auth_request)
+        auth_response.show()
+
+
 class SAPHDBConnectionError(Exception):
     """SAP HDB Connection exception
     """
@@ -394,7 +476,7 @@ class SAPHDBConnection(object):
     the SQL Command Network Protocol.
     """
 
-    def __init__(self, host, port, route=None):
+    def __init__(self, host, port, auth_method=None, route=None):
         """Creates the connection to the HANA server.
 
         :param host: remote host to connect to
@@ -403,13 +485,17 @@ class SAPHDBConnection(object):
         :param port: remote port to connect to
         :type port: ``int``
 
+        :param auth_method: authentication method to use when connecting
+        :type auth_method: :class:`SAPHDBAuthMethod`
+
         :param route: route to use for connecting through a SAP Router
         :type route: C{string}
         """
         self.host = host
         self.port = port
+        self.auth_method = auth_method
         self.route = route
-        self._connection = None
+        self._stream_socket = None
         self.product_version = None
         self.protocol_version = None
 
@@ -417,32 +503,82 @@ class SAPHDBConnection(object):
         """Creates a :class:`SAPNIStreamSocket` connection to the host/port. If a route
         was specified, connect to the target HANA server through the SAP Router.
         """
-        self._connection = SAPRoutedStreamSocket.get_nisocket(self.host,
-                                                              self.port,
-                                                              self.route,
-                                                              base_cls=SAPHDB,
-                                                              talk_mode=1)
+        self._stream_socket = SAPRoutedStreamSocket.get_nisocket(self.host,
+                                                                 self.port,
+                                                                 self.route,
+                                                                 base_cls=SAPHDB,
+                                                                 talk_mode=1)
+
+    def is_connected(self):
+        return self._stream_socket is not None
+
+    def send(self, message):
+        if not self.is_connected():
+            raise SAPHDBConnectionError("Socket not ready")
+        self._stream_socket.send(message)
+
+    def sr(self, message):
+        if not self.is_connected():
+            raise SAPHDBConnectionError("Socket not ready")
+        self.send(message)
+        return self.recv()
+
+    def recv(self):
+        if not self.is_connected():
+            raise SAPHDBConnectionError("Socket not ready")
+        # First we receive the header to obtain the variable length field
+        header_raw = self._stream_socket.ins.recv(32)
+        header = SAPHDB(header_raw)
+        # Then get the payload
+        payload = self._stream_socket.ins.recv(header.varpartlength)
+        # And finally construct the whole packet with header plus payload
+        return SAPHDB(header_raw + payload)
 
     def initialize(self):
-        """Initializes the connection with the server
+        """Initializes the connection with the server.
         """
-        if self._connection is None:
-            self.connect()
+        if not self.is_connected():
+            raise SAPHDBConnectionError("Socket not ready")
+
+        if self.product_version is not None and self.protocol_version is not None:
+            return
 
         # Send initialization request packet
         init_request = SAPHDBInitializationRequest()
-        self._connection.send(init_request)
+        self.send(init_request)
 
         # Receive initialization response packet
-        init_reply = SAPHDBInitializationReply(self._connection.recv(8))
+        init_reply = SAPHDBInitializationReply(self._stream_socket.recv(8))  # We use the raw socket recv here
         self.product_version = init_reply.product_major
         self.protocol_version = init_reply.protocol_major
+
+    def authenticate(self):
+        """Authenticates the connection against the server using the selected method.
+        """
+        if not self.is_connected():
+            raise SAPHDBConnectionError("Socket not ready")
+
+        self.auth_method.authenticate(self)
+
+    def connect_authenticate(self):
+        """Connects to the server, performs initialization and authenticates the client.
+        """
+        if not self.is_connected():
+            self.connect()
+        self.initialize()
+        self.authenticate()
 
     def close(self):
         """Closes the connection with the server
         """
-        if self._connection is None:
+        if not self.is_connected():
             raise SAPHDBConnectionError("Connection already closed")
+
+        try:
+            pass  # Send the disconnect message
+        finally:
+            self._stream_socket.close()
+            self._stream_socket = None
 
 
 class SAPHDBTLSConnection(SAPHDBConnection):
@@ -467,7 +603,7 @@ class SAPHDBTLSConnection(SAPHDBConnection):
         tls_socket.connect((self.host, self.port))
 
         # Create the stream socket from the TLS/SSL one. From here treatment should be similar to a plain one.
-        self._connection = SSLStreamSocket(tls_socket, basecls=SAPHDB)
+        self._stream_socket = SSLStreamSocket(tls_socket, basecls=SAPHDB)
 
 
 # Bind SAP NI with the HDB ports
