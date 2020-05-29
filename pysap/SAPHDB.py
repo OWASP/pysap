@@ -586,12 +586,10 @@ class SAPHDBConnection(object):
             disconnect_segm = SAPHDBSegment(messagetype=77)
             disconnect_request = SAPHDB(segments=[disconnect_segm])
 
-            # Send disconnect packet
+            # Send disconnect packet and check the response
             disconnect_response = self.sr(disconnect_request)
-            disconnect_response.show()
-
-            # Now check the response
-            if disconnect_response.segments[0].functioncode != 18:
+            if disconnect_response.segments[0].segmentkind != 2 or \
+               disconnect_response.segments[0].functioncode != 18:
                 raise SAPHDBConnectionError("Connection incorrectly closed")
 
         finally:
