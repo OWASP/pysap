@@ -583,7 +583,17 @@ class SAPHDBConnection(object):
             raise SAPHDBConnectionError("Connection already closed")
 
         try:
-            pass  # Send the disconnect message
+            disconnect_segm = SAPHDBSegment(messagetype=77)
+            disconnect_request = SAPHDB(segments=[disconnect_segm])
+
+            # Send disconnect packet
+            disconnect_response = self.sr(disconnect_request)
+            disconnect_response.show()
+
+            # Now check the response
+            if disconnect_response.segments[0].functioncode != 18:
+                raise SAPHDBConnectionError("Connection incorrectly closed")
+
         finally:
             self._stream_socket.close()
             self._stream_socket = None
