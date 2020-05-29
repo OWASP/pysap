@@ -29,9 +29,8 @@ from scapy.config import conf
 from scapy.supersocket import StreamSocket
 # Custom imports
 import pysap
-from pysap.SAPHDB import (SAPHDB, SAPHDBPart, SAPHDBSegment, SAPHDBPartAuthentication,
-                          SAPHDBPartAuthenticationField, SAPHDBConnection, SAPHDBTLSConnection,
-                          SAPHDBAuthScramSHA256)
+from pysap.SAPHDB import (SAPHDBConnection, SAPHDBTLSConnection,
+                          saphdb_auth_methods)
 
 
 # Set the verbosity to 0
@@ -62,6 +61,13 @@ def parse_options():
                       help="Use TLS/SSL [%default]")
     parser.add_option_group(target)
 
+    auth = OptionGroup(parser, "Authentication")
+    auth.add_option("-m", "--method", dest="method", default="SCRAMSHA256",
+                    help="Authentication method. Supported methods: SCRAMSHA256 [%default]")
+    auth.add_option("--username", dest="username", help="User name")
+    auth.add_option("--password", dest="password", help="Password")
+    parser.add_option_group(auth)
+
     misc = OptionGroup(parser, "Misc options")
     misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
                     help="Verbose output [%default]")
@@ -71,6 +77,11 @@ def parse_options():
 
     if not options.remote_host:
         parser.error("Remote host is required")
+
+    if options.method not in saphdb_auth_methods:
+        parser.error("Invalid authentication method")
+    if options.method == "SCRAMSHA256" and (not options.username or not options.password):
+        parser.error("Username and password need to be provided")
 
     return options
 
@@ -88,7 +99,13 @@ def main():
         connection_class = SAPHDBTLSConnection
 
     # Select the desired authentication method
-    auth_method = SAPHDBAuthScramSHA256("username", "password")
+    print("[*] Using authentication method %s" % options.method)
+    auth_method_cls = saphdb_auth_methods[options.method]
+    if options.method == "SCRAMSHA256":
+        auth_method = auth_method_cls(options.username, options.password)
+    else:
+        print("[-] Unsupported authentication method")
+        return
 
     # Create the connection
     hdb = connection_class(options.remote_host,

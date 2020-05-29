@@ -447,6 +447,8 @@ class SAPHDBAuthScramSHA256(SAPHDBAuthMethod):
         server_key = method_parts.auth_fields[1].value
 
         # Calculate the client proof from the password, salt and the server and client key
+        # TODO: It might be good to see if this can be moved into a new Packet
+        # TODO: We're only considering one server key
         client_proof = b"\x00\x01" + struct.pack('b', scram.CLIENT_PROOF_SIZE)
         client_proof += scram.scramble_salt(self.password, salt, server_key, client_key)
 
@@ -462,6 +464,12 @@ class SAPHDBAuthScramSHA256(SAPHDBAuthMethod):
         # Send authentication packet
         auth_response = connection.sr(auth_request)
         auth_response.show()
+
+
+saphdb_auth_methods = {
+    "SCRAMSHA256": SAPHDBAuthScramSHA256,
+}
+"""SAP HDB Authentication Methods Implemented"""
 
 
 class SAPHDBConnectionError(Exception):
