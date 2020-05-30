@@ -402,6 +402,9 @@ class SAPHDBAuthMethod(object):
         :param connection: connection to the server
         :type connection: :class:`SAPHDBConnection`
 
+        :return: authentication part to use in Connect packet
+        :rtype: SAPHDBPart
+
         :raise: SAPHDBAuthenticationError
         """
         raise NotImplemented("Authentication method not implemented")
@@ -452,18 +455,14 @@ class SAPHDBAuthScramSHA256(SAPHDBAuthMethod):
         client_proof = b"\x00\x01" + struct.pack('b', scram.CLIENT_PROOF_SIZE)
         client_proof += scram.scramble_salt(self.password, salt, server_key, client_key)
 
-        # Craft authentication packet
+        # Craft authentication part and return it
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
                                                             SAPHDBPartAuthenticationField(value=client_proof),
                                                             ])
         auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
-        auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
-        auth_request = SAPHDB(segments=[auth_segm])
 
-        # Send authentication packet
-        auth_response = connection.sr(auth_request)
-        auth_response.show()
+        return auth_part
 
 
 saphdb_auth_methods = {
@@ -566,7 +565,16 @@ class SAPHDBConnection(object):
         if not self.is_connected():
             raise SAPHDBConnectionError("Socket not ready")
 
-        self.auth_method.authenticate(self)
+        # Perform the handshake and obtain the authentication part
+        auth_part = self.auth_method.authenticate(self)
+
+        # Craft the connect packet
+        auth_segm = SAPHDBSegment(messagetype=66, parts=[auth_part])
+        auth_request = SAPHDB(segments=[auth_segm])
+
+        # Send authentication packet
+        auth_response = self.sr(auth_request)
+        auth_response.show()
 
     def connect_authenticate(self):
         """Connects to the server, performs initialization and authenticates the client.
