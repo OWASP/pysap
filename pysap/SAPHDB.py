@@ -458,8 +458,7 @@ class SAPHDBAuthScramSHA256(SAPHDBAuthMethod):
         # Craft authentication part and return it
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
-                                                            SAPHDBPartAuthenticationField(value=client_proof),
-                                                            ])
+                                                            SAPHDBPartAuthenticationField(value=client_proof)])
         auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
 
         return auth_part
@@ -537,7 +536,9 @@ class SAPHDBConnection(object):
         header_raw = self._stream_socket.ins.recv(32)
         header = SAPHDB(header_raw)
         # Then get the payload
-        payload = self._stream_socket.ins.recv(header.varpartlength)
+        payload = ""
+        if header.varpartlength > 0:
+            payload = self._stream_socket.ins.recv(header.varpartlength)
         # And finally construct the whole packet with header plus payload
         return SAPHDB(header_raw + payload)
 
@@ -569,11 +570,17 @@ class SAPHDBConnection(object):
         auth_part = self.auth_method.authenticate(self)
 
         # Craft the connect packet
-        auth_segm = SAPHDBSegment(messagetype=66, parts=[auth_part])
+        clientid_part = SAPHDBPart(partkind=35, buffer="pysap hdb_cli")
+        auth_segm = SAPHDBSegment(messagetype=66, parts=[auth_part, clientid_part])
         auth_request = SAPHDB(segments=[auth_segm])
 
-        # Send authentication packet
+        # Send connect packet
         auth_response = self.sr(auth_request)
+
+        if auth_response.segments[0].segmentkind == 5:  # If is Error segment kind
+            self.close_socket()
+            raise SAPHDBAuthenticationError("Authentication failed")
+
         auth_response.show()
 
     def connect_authenticate(self):
@@ -601,8 +608,13 @@ class SAPHDBConnection(object):
                 raise SAPHDBConnectionError("Connection incorrectly closed")
 
         finally:
-            self._stream_socket.close()
-            self._stream_socket = None
+            self.close_socket()
+
+    def close_socket(self):
+        """Closes the underlaying socket of the connection
+        """
+        self._stream_socket.close()
+        self._stream_socket = None
 
 
 class SAPHDBTLSConnection(SAPHDBConnection):

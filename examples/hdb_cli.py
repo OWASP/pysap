@@ -30,7 +30,7 @@ from scapy.supersocket import StreamSocket
 # Custom imports
 import pysap
 from pysap.SAPHDB import (SAPHDBConnection, SAPHDBTLSConnection,
-                          saphdb_auth_methods)
+                          SAPHDBAuthenticationError, saphdb_auth_methods)
 
 
 # Set the verbosity to 0
@@ -120,8 +120,12 @@ def main():
     print("[*] HANA database version %d/protocol version %d" % (hdb.product_version,
                                                                 hdb.protocol_version))
 
-    hdb.authenticate()
-    print("[*] Authenticated against HANA database server")
+    try:
+        hdb.authenticate()
+        print("[*] Authenticated against HANA database server")
+    except SAPHDBAuthenticationError as e:
+        print("[-] Authentication error: %s" % e.message)
+        return
 
     hdb.close()
 
