@@ -24,12 +24,10 @@ import logging
 from binascii import unhexlify
 from optparse import OptionParser, OptionGroup
 # External imports
-from scapy.packet import Raw
 from scapy.config import conf
-from scapy.supersocket import StreamSocket
 # Custom imports
 import pysap
-from pysap.SAPHDB import (SAPHDBConnection, SAPHDBTLSConnection,
+from pysap.SAPHDB import (SAPHDBConnection, SAPHDBTLSConnection, SAPHDBConnectionError,
                           SAPHDBAuthenticationError, saphdb_auth_methods)
 
 
@@ -113,12 +111,16 @@ def main():
                            auth_method=auth_method,
                            route=options.route_string)
 
-    hdb.connect()
-    print("[*] Connected to HANA database %s:%d" % (options.remote_host, options.remote_port))
+    try:
+        hdb.connect()
+        print("[*] Connected to HANA database %s:%d" % (options.remote_host, options.remote_port))
 
-    hdb.initialize()
-    print("[*] HANA database version %d/protocol version %d" % (hdb.product_version,
-                                                                hdb.protocol_version))
+        hdb.initialize()
+        print("[*] HANA database version %d/protocol version %d" % (hdb.product_version,
+                                                                    hdb.protocol_version))
+    except SAPHDBConnectionError as e:
+        print("[-] Connection error: %s" % e.message)
+        return
 
     try:
         hdb.authenticate()

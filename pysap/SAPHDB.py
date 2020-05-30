@@ -509,11 +509,14 @@ class SAPHDBConnection(object):
         """Creates a :class:`SAPNIStreamSocket` connection to the host/port. If a route
         was specified, connect to the target HANA server through the SAP Router.
         """
-        self._stream_socket = SAPRoutedStreamSocket.get_nisocket(self.host,
-                                                                 self.port,
-                                                                 self.route,
-                                                                 base_cls=SAPHDB,
-                                                                 talk_mode=1)
+        try:
+            self._stream_socket = SAPRoutedStreamSocket.get_nisocket(self.host,
+                                                                     self.port,
+                                                                     self.route,
+                                                                     base_cls=SAPHDB,
+                                                                     talk_mode=1)
+        except socket.error as e:
+            raise SAPHDBConnectionError("Error connecting to the server (%s)" % e)
 
     def is_connected(self):
         return self._stream_socket is not None
