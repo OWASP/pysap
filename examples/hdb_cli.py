@@ -114,22 +114,21 @@ def main():
     try:
         hdb.connect()
         print("[*] Connected to HANA database %s:%d" % (options.remote_host, options.remote_port))
-
         hdb.initialize()
         print("[*] HANA database version %d/protocol version %d" % (hdb.product_version,
                                                                     hdb.protocol_version))
-    except SAPHDBConnectionError as e:
-        print("[-] Connection error: %s" % e.message)
-        return
-
-    try:
         hdb.authenticate()
         print("[*] Authenticated against HANA database server")
+
+        hdb.close()
+        print("[*] Connection with HANA database server closed")
+
     except SAPHDBAuthenticationError as e:
         print("[-] Authentication error: %s" % e.message)
-        return
-
-    hdb.close()
+    except SAPHDBConnectionError as e:
+        print("[-] Connection error: %s" % e.message)
+    except KeyboardInterrupt:
+        print("[-] Connection canceled")
 
 
 if __name__ == "__main__":
