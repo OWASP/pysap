@@ -271,14 +271,17 @@ class SCRAM(object):
         """
         return os.urandom(self.CLIENT_KEY_SIZE)
 
-    def scramble_salt(self, password, salt, server_key, client_key):
+    def salt_key(self, password, salt, rounds):
+        hmac = HMAC(password, self.ALGORITHM(), self.backend)
+        hmac.update(salt)
+        return hmac.finalize()
+
+    def scramble_salt(self, password, salt, server_key, client_key, rounds=None):
         """Scrambles a given salt using the specified server key.
         """
         msg = salt + server_key + client_key
 
-        hmac = HMAC(password, self.ALGORITHM(), self.backend)
-        hmac.update(salt)
-        hmac_digest = hmac.finalize()
+        hmac_digest = self.salt_key(password, salt, rounds)
 
         hash = Hash(self.ALGORITHM(), self.backend)
         hash.update(hmac_digest)
@@ -320,4 +323,6 @@ class SCRAM_MD5(SCRAM):
 class SCRAM_PBKDF2SHA256(SCRAM_SHA256):
     """SCRAM scheme using PBKDF2 with SHA256"""
 
-    # TODO: scramble_salt would probably need to be rebuilt or refactored
+    def salt_key(self, password, salt, rounds):
+        pbkdf2 = PBKDF2HMAC(self.ALGORITHM(), self.CLIENT_PROOF_SIZE, salt, rounds, self.backend)
+        return pbkdf2.derive(password)

@@ -22,7 +22,7 @@ import unittest
 # External imports
 from cryptography.hazmat.backends import default_backend
 # Custom imports
-from pysap.utils.crypto import SCRAM_SHA256
+from pysap.utils.crypto import SCRAM_SHA256, SCRAM_PBKDF2SHA256
 
 
 class PySAPCryptoUtilsTest(unittest.TestCase):
@@ -52,6 +52,24 @@ class PySAPCryptoUtilsTest(unittest.TestCase):
 
         scram = SCRAM_SHA256(default_backend())
         scrambled_salt = scram.scramble_salt(password, salt, server_key, client_key)
+        self.assertEqual(len(expected_scrambled_salt), len(scrambled_salt))
+        self.assertEqual(expected_scrambled_salt, scrambled_salt)
+
+    def test_scram_pbkdf2sha256_scramble_salt(self):
+        """Test SCRAM-PBKDF2-SHA256 scramble salt calculation.
+
+        Values are taken from https://github.com/SAP/go-hdb/blob/master/internal/protocol/authentication_test.go
+        """
+
+        password = "Toor1234"
+        rounds = 15000
+        salt = b"3\xb2\xd5\xd5\\R\xc2(Px\xc5[\xa6C\x17?"
+        server_key = b" [\xa5\x12\x9eM\x86E\x80\x9dE\xd1/!\xab\xa48\xac\xe5\x00\x99\x03A\x1d\xef\xd2\xba\x86Q \x1d\x89\xef\xa7'\x01\xabuU\x8am&*M+*RF"
+        client_key = b'\x89\x9c\xb6<\x9e\x8a]gP\xca6\xbf\xd2N\x8e\xcf\xd2\xb0\x9d\x81\x80\x13\x87\x00\x7f\x1a:\xc5\xbc\xd8y\x1ax\xc4"\x8a\x05\x08: $\xf0\xc7~\xa4p@#.f\xff\xf9~\xfa\x18g\xc6\x98!K\x06\xb3\xbb\xe6'
+        expected_scrambled_salt = b'\xfd\xb5e\x00\xd6\xde\x19cb\xfd\x8dj&\xff\x10\x99"J\xd3F\x15[G\xdf\xaa$\xf9|\x01\x87\xb0%'
+
+        scram = SCRAM_PBKDF2SHA256(default_backend())
+        scrambled_salt = scram.scramble_salt(password, salt, server_key, client_key, rounds)
         self.assertEqual(len(expected_scrambled_salt), len(scrambled_salt))
         self.assertEqual(expected_scrambled_salt, scrambled_salt)
 
