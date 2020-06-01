@@ -396,6 +396,8 @@ class SAPHDBAuthMethod(object):
     a connection.
     """
 
+    METHOD = None
+
     def authenticate(self, connection):
         """Method to authenticate the client connection.
 
@@ -417,7 +419,6 @@ class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
     algorithms.
     """
 
-    METHOD = None
     SCRAM_CLASS = None
 
     def __init__(self, username, password):
@@ -503,9 +504,50 @@ class SAPHDBAuthScramPBKDF2SHA256(SAPHDBAuthScramMethod):
         return client_proof
 
 
+class SAPHDBAuthSessionCookie(SAPHDBAuthMethod):
+    """SAP HDB Authentication using a Session Cookie.
+    """
+
+    METHOD = "SessionCookie"
+
+    def __init__(self, username, session_cookie, pid, hostname):
+        self.username = username
+        self.session_cookie = session_cookie
+        self.pid = pid
+        self.hostname = hostname
+
+    def authenticate(self, connection):
+        hostname = self.hostname or socket.gethostname()
+        session_cookie = self.session_cookie + self.pid + "@" + hostname
+        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
+                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
+                                                            SAPHDBPartAuthenticationField(value=session_cookie),
+                                                            ])
+        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
+        auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
+        auth_request = SAPHDB(segments=[auth_segm])
+        auth_request.show()
+
+        auth_response = connection.sr(auth_request)
+        auth_response.show()
+        auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
+
+        # Check the method replied by the server
+        if self.METHOD != auth_response_part.auth_fields[0].value:
+            raise SAPHDBAuthenticationError("Authentication method not supported on server")
+
+        # Craft authentication part and return it
+        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
+                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
+                                                            SAPHDBPartAuthenticationField()])
+        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
+        return auth_part
+
+
 saphdb_auth_methods = {
     "SCRAMSHA256": SAPHDBAuthScramSHA256,
     "SCRAMPBKDF2SHA256": SAPHDBAuthScramPBKDF2SHA256,
+    "SessionCookie": SAPHDBAuthSessionCookie,
 }
 """SAP HDB Authentication Methods Implemented"""
 

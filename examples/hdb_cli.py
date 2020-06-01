@@ -61,9 +61,12 @@ def parse_options():
 
     auth = OptionGroup(parser, "Authentication")
     auth.add_option("-m", "--method", dest="method", default="SCRAMSHA256",
-                    help="Authentication method. Supported methods: SCRAMSHA256, SCRAMPBKDF2SHA256 [%default]")
+                    help="Authentication method. Supported methods: SCRAMSHA256, SCRAMPBKDF2SHA256, SessionCookie [%default]")
     auth.add_option("--username", dest="username", help="User name")
     auth.add_option("--password", dest="password", help="Password")
+    auth.add_option("--session-cookie", dest="session_cookie", help="Session Cookie")
+    auth.add_option("--pid", dest="pid", default="pysap", help="Process ID")
+    auth.add_option("--hostname", dest="hostname", help="Hostname")
     parser.add_option_group(auth)
 
     misc = OptionGroup(parser, "Misc options")
@@ -80,6 +83,8 @@ def parse_options():
         parser.error("Invalid authentication method")
     if options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"] and (not options.username or not options.password):
         parser.error("Username and password need to be provided")
+    if options.method == "SessionCookie" and (not options.username or not options.session_cookie):
+        parser.error("Username and session cookie need to be provided")
 
     return options
 
@@ -101,6 +106,8 @@ def main():
     auth_method_cls = saphdb_auth_methods[options.method]
     if options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"]:
         auth_method = auth_method_cls(options.username, options.password)
+    elif options.method == "SessionCookie":
+        auth_method = auth_method_cls(options.username, options.session_cookie, options.pid, options.hostname)
     else:
         print("[-] Unsupported authentication method")
         return
