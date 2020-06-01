@@ -64,6 +64,7 @@ def parse_options():
                     help="Authentication method. Supported methods: {} [%default]".format(",".join(saphdb_auth_methods.keys())))
     auth.add_option("--username", dest="username", help="User name")
     auth.add_option("--password", dest="password", help="Password")
+    auth.add_option("--jwt-file", dest="jwt_file", help="File to read a signed JWT from")
     auth.add_option("--session-cookie", dest="session_cookie", help="Session Cookie")
     auth.add_option("--pid", dest="pid", default="pysap", help="Process ID")
     auth.add_option("--hostname", dest="hostname", help="Hostname")
@@ -104,7 +105,24 @@ def main():
     # Select the desired authentication method
     print("[*] Using authentication method %s" % options.method)
     auth_method_cls = saphdb_auth_methods[options.method]
-    if options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"]:
+    if options.method == "JWT":
+        if options.jwt_file:
+            with open(options.jwt_file, 'r') as jwt_fd:
+                auth_method = auth_method_cls(options.username, jwt_fd.read(),
+                                              pid=options.pid, hostname=options.hostname)
+        else:
+            import jwt as pyjwt
+            import datetime
+            key = open("JWT/JWT-RS256-2048.key", 'r').read()
+            jwt_raw = {"user1": options.username,
+                       "user_name": options.username,
+                       "iss": "https://jwtprovider/",
+                       "nbf": datetime.datetime.utcnow() - datetime.timedelta(seconds=30),
+                       "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=30),
+                       }
+            jwt_signed = pyjwt.encode(jwt_raw, key, algorithm="RS256")
+            auth_method = auth_method_cls(options.username, jwt_signed, pid=options.pid, hostname=options.hostname)
+    elif options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"]:
         auth_method = auth_method_cls(options.username, options.password,
                                       pid=options.pid, hostname=options.hostname)
     elif options.method == "SessionCookie":

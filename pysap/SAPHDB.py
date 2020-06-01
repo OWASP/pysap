@@ -32,8 +32,8 @@ from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField,
 # Custom imports
 from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.utils.crypto import SCRAM_SHA256, SCRAM_PBKDF2SHA256
-from pysap.utils.fields import (PacketNoPadded, LESignedByteField, LESignedShortField,
-                                LESignedLongField)
+from pysap.utils.fields import (PacketNoPadded, AdjustableFieldLenField, LESignedByteField,
+                                LESignedShortField, LESignedLongField)
 
 
 hdb_segmentkind_values = {
@@ -210,8 +210,8 @@ class SAPHDBPartAuthenticationField(PacketNoPadded):
     """
     name = "SAP HANA SQL Command Network Protocol Authentication Field"
     fields_desc = [
-        FieldLenField("length", None, length_of="value", fmt="B", adjust=lambda pkt, x: 0xff if x > 0xf0 else x),
-        StrFixedLenField("value", None, length_from=lambda pkt:pkt.length if pkt.length != 0xff else pkt.length_long)
+        AdjustableFieldLenField("length", None, length_of="value"),
+        StrFixedLenField("value", None, length_from=lambda pkt: pkt.length),
     ]
 
 
@@ -537,10 +537,44 @@ class SAPHDBAuthSessionCookie(SAPHDBAuthMethod):
         auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
         auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
         auth_request = SAPHDB(segments=[auth_segm])
+
+        auth_response = connection.sr(auth_request)
+        auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
+
+        # Check the method replied by the server
+        if self.METHOD != auth_response_part.auth_fields[0].value:
+            raise SAPHDBAuthenticationError("Authentication method not supported on server")
+
+        # Craft authentication part and return it
+        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
+                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
+                                                            SAPHDBPartAuthenticationField()])
+        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
+        return auth_part
+
+
+class SAPHDBAuthJWT(SAPHDBAuthMethod):
+    """SAP HDB Authentication using JWT (JSON Web Token).
+    """
+
+    METHOD = "JWT"
+
+    def __init__(self, username, jwt, pid=None, hostname=None):
+        super(SAPHDBAuthJWT, self).__init__(pid, hostname)
+        self.username = username
+        self.jwt = jwt
+
+    def authenticate(self, connection):
+        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
+                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
+                                                            SAPHDBPartAuthenticationField(value=self.jwt),
+                                                            ])
+        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
+        auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
+        auth_request = SAPHDB(segments=[auth_segm])
         auth_request.show()
 
         auth_response = connection.sr(auth_request)
-        auth_response.show()
         auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
 
         # Check the method replied by the server
@@ -556,6 +590,7 @@ class SAPHDBAuthSessionCookie(SAPHDBAuthMethod):
 
 
 saphdb_auth_methods = {
+    "JWT": SAPHDBAuthJWT,
     "SCRAMSHA256": SAPHDBAuthScramSHA256,
     "SCRAMPBKDF2SHA256": SAPHDBAuthScramPBKDF2SHA256,
     "SessionCookie": SAPHDBAuthSessionCookie,
