@@ -21,7 +21,7 @@
 # Standard imports
 import socket
 import logging
-from binascii import unhexlify
+import datetime
 from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
@@ -29,6 +29,11 @@ from scapy.config import conf
 import pysap
 from pysap.SAPHDB import (SAPHDBConnection, SAPHDBTLSConnection, SAPHDBConnectionError,
                           SAPHDBAuthenticationError, saphdb_auth_methods)
+# Optional imports
+try:
+    import jwt as py_jwt
+except ImportError:
+    py_jwt = None
 
 
 # Set the verbosity to 0
@@ -92,8 +97,11 @@ def parse_options():
         parser.error("Password need to be provided for SCRAM-based authentication")
     if options.method == "SessionCookie" and not options.session_cookie:
         parser.error("Session cookie need to be provided for SessionCookie authentication")
-    if options.method == "JWT" and (not options.jwt_file or (not options.jwt_cert and not options.jwt_issuer)):
-        parser.error("JWT file or a signing certificate and issuer need to be provided for JWT authentication")
+    if options.method == "JWT":
+        if not (options.jwt_file or (options.jwt_cert and options.jwt_issuer)):
+            parser.error("JWT file or a signing certificate and issuer need to be provided for JWT authentication")
+        if options.jwt_cert and not py_jwt:
+            parser.error("JWT crafting requires the PyJWT library installed")
 
     return options
 
@@ -119,15 +127,13 @@ def main():
                 auth_method = auth_method_cls(options.username, jwt_fd.read(),
                                               pid=options.pid, hostname=options.hostname)
         elif options.jwt_cert:
-            import jwt as pyjwt
-            import datetime
             with open(options.jwt_cert, 'r') as jwt_cert_fd:
                 jwt_raw = {options.jwt_claim: options.username,
                            "iss": options.jwt_issuer,
                            "nbf": datetime.datetime.utcnow() - datetime.timedelta(seconds=30),
                            "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=30),
                            }
-                jwt_signed = pyjwt.encode(jwt_raw, jwt_cert_fd.read(), algorithm="RS256")
+                jwt_signed = py_jwt.encode(jwt_raw, jwt_cert_fd.read(), algorithm="RS256")
                 auth_method = auth_method_cls(options.username, jwt_signed,
                                               pid=options.pid, hostname=options.hostname)
     elif options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"]:
