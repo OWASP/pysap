@@ -398,6 +398,18 @@ class SAPHDBAuthMethod(object):
 
     METHOD = None
 
+    def __init__(self, pid=None, hostname=None):
+        self.pid = pid
+        self.hostname = hostname
+
+    @property
+    def client_id(self):
+        """Returns the Client Id to use when authenticating and connecting to the
+        server."""
+        pid = self.pid or "pysap"
+        hostname = self.hostname or socket.gethostname()
+        return "{}@{}".format(pid, hostname)
+
     def authenticate(self, connection):
         """Method to authenticate the client connection.
 
@@ -421,7 +433,8 @@ class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
 
     SCRAM_CLASS = None
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, pid=None, hostname=None):
+        super(SAPHDBAuthScramMethod, self).__init__(pid, hostname)
         self.username = username
         self.password = password
 
@@ -510,15 +523,13 @@ class SAPHDBAuthSessionCookie(SAPHDBAuthMethod):
 
     METHOD = "SessionCookie"
 
-    def __init__(self, username, session_cookie, pid, hostname):
+    def __init__(self, username, session_cookie, pid=None, hostname=None):
+        super(SAPHDBAuthSessionCookie, self).__init__(pid, hostname)
         self.username = username
         self.session_cookie = session_cookie
-        self.pid = pid
-        self.hostname = hostname
 
     def authenticate(self, connection):
-        hostname = self.hostname or socket.gethostname()
-        session_cookie = self.session_cookie + self.pid + "@" + hostname
+        session_cookie = self.session_cookie + self.client_id
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
                                                             SAPHDBPartAuthenticationField(value=session_cookie),
@@ -655,7 +666,7 @@ class SAPHDBConnection(object):
         auth_part = self.auth_method.authenticate(self)
 
         # Craft the connect packet
-        clientid_part = SAPHDBPart(partkind=35, buffer="pysap hdb_cli")
+        clientid_part = SAPHDBPart(partkind=35, buffer=self.auth_method.client_id)
         auth_segm = SAPHDBSegment(messagetype=66, parts=[auth_part, clientid_part])
         auth_request = SAPHDB(segments=[auth_segm])
 

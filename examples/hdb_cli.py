@@ -61,7 +61,7 @@ def parse_options():
 
     auth = OptionGroup(parser, "Authentication")
     auth.add_option("-m", "--method", dest="method", default="SCRAMSHA256",
-                    help="Authentication method. Supported methods: SCRAMSHA256, SCRAMPBKDF2SHA256, SessionCookie [%default]")
+                    help="Authentication method. Supported methods: {} [%default]".format(",".join(saphdb_auth_methods.keys())))
     auth.add_option("--username", dest="username", help="User name")
     auth.add_option("--password", dest="password", help="Password")
     auth.add_option("--session-cookie", dest="session_cookie", help="Session Cookie")
@@ -105,9 +105,11 @@ def main():
     print("[*] Using authentication method %s" % options.method)
     auth_method_cls = saphdb_auth_methods[options.method]
     if options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"]:
-        auth_method = auth_method_cls(options.username, options.password)
+        auth_method = auth_method_cls(options.username, options.password,
+                                      pid=options.pid, hostname=options.hostname)
     elif options.method == "SessionCookie":
-        auth_method = auth_method_cls(options.username, options.session_cookie, options.pid, options.hostname)
+        auth_method = auth_method_cls(options.username, options.session_cookie,
+                                      pid=options.pid, hostname=options.hostname)
     else:
         print("[-] Unsupported authentication method")
         return
