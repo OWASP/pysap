@@ -19,7 +19,6 @@
 # ==============
 
 # Standard imports
-import socket
 import logging
 import datetime
 from optparse import OptionParser, OptionGroup
@@ -69,8 +68,10 @@ def parse_options():
                     help="Authentication method. Supported methods: {} [%default]".format(",".join(saphdb_auth_methods.keys())))
     auth.add_option("--username", dest="username", help="User name")
     auth.add_option("--password", dest="password", help="Password")
-    auth.add_option("--jwt-file", dest="jwt_file", help="File to read a signed JWT from")
-    auth.add_option("--jwt-cert", dest="jwt_cert", help="File to read the JWT signature certificate")
+    auth.add_option("--jwt-file", dest="jwt_file", metavar="FILE",
+                    help="File to read a signed JWT from")
+    auth.add_option("--jwt-cert", dest="jwt_cert", metavar="FILE",
+                    help="File to read the private key to sign the JWT")
     auth.add_option("--jwt-issuer", dest="jwt_issuer", help="JWT signature issuer")
     auth.add_option("--jwt-claim", dest="jwt_claim", default="user_name",
                     help="Name of the JWT claim to map username [%default]")
