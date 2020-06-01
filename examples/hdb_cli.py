@@ -61,7 +61,7 @@ def parse_options():
 
     auth = OptionGroup(parser, "Authentication")
     auth.add_option("-m", "--method", dest="method", default="SCRAMSHA256",
-                    help="Authentication method. Supported methods: SCRAMSHA256 [%default]")
+                    help="Authentication method. Supported methods: SCRAMSHA256, SCRAMPBKDF2SHA256 [%default]")
     auth.add_option("--username", dest="username", help="User name")
     auth.add_option("--password", dest="password", help="Password")
     parser.add_option_group(auth)
@@ -78,7 +78,7 @@ def parse_options():
 
     if options.method not in saphdb_auth_methods:
         parser.error("Invalid authentication method")
-    if options.method == "SCRAMSHA256" and (not options.username or not options.password):
+    if options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"] and (not options.username or not options.password):
         parser.error("Username and password need to be provided")
 
     return options
@@ -99,7 +99,7 @@ def main():
     # Select the desired authentication method
     print("[*] Using authentication method %s" % options.method)
     auth_method_cls = saphdb_auth_methods[options.method]
-    if options.method == "SCRAMSHA256":
+    if options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"]:
         auth_method = auth_method_cls(options.username, options.password)
     else:
         print("[-] Unsupported authentication method")

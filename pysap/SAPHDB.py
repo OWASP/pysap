@@ -31,7 +31,7 @@ from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField,
                           LEIntField, LESignedIntField, StrFixedLenField, ShortField)
 # Custom imports
 from pysap.SAPRouter import SAPRoutedStreamSocket
-from pysap.utils.crypto import SCRAM_SHA256
+from pysap.utils.crypto import SCRAM_SHA256, SCRAM_PBKDF2SHA256
 from pysap.utils.fields import (PacketNoPadded, LESignedByteField, LESignedShortField,
                                 LESignedLongField)
 
@@ -410,23 +410,22 @@ class SAPHDBAuthMethod(object):
         raise NotImplemented("Authentication method not implemented")
 
 
-class SAPHDBAuthScramSHA256(SAPHDBAuthMethod):
-    """SAP HDB Authentication using SCRAM-SHA256 algorithm
+class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
+    """SAP HDB Authentication using a SCRAM-based algorithm
+
+    This base class is used to abstract the common implementation across different
+    algorithms.
     """
 
-    METHOD = "SCRAMSHA256"
-    SCRAM_CLASS = SCRAM_SHA256
+    METHOD = None
+    SCRAM_CLASS = None
 
     def __init__(self, username, password):
         self.username = username
         self.password = password
 
-    def authenticate(self, connection):
-        """Perform the handshake using SCRAM-SHA256"""
-
-        scram = self.SCRAM_CLASS(default_backend())
-
-        # Craft authentication packet
+    def craft_authentication_request(self, scram):
+        """Send the initial authentication request"""
         client_key = scram.get_client_key()
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
@@ -434,16 +433,9 @@ class SAPHDBAuthScramSHA256(SAPHDBAuthMethod):
                                                             ])
         auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
         auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
-        auth_request = SAPHDB(segments=[auth_segm])
+        return client_key, SAPHDB(segments=[auth_segm])
 
-        # Send authentication packet
-        auth_response = connection.sr(auth_request)
-        auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
-
-        # Check the method replied by the server
-        if self.METHOD != auth_response_part.auth_fields[0].value:
-            raise SAPHDBAuthenticationError("Authentication method not supported on server")
-
+    def obtain_client_proof(self, scram, client_key, auth_response_part):
         # Obtain the salt and the server key from the response
         method_parts = SAPHDBPartAuthentication(auth_response_part.auth_fields[1].value)
         salt = method_parts.auth_fields[0].value
@@ -455,17 +447,65 @@ class SAPHDBAuthScramSHA256(SAPHDBAuthMethod):
         client_proof = b"\x00\x01" + struct.pack('b', scram.CLIENT_PROOF_SIZE)
         client_proof += scram.scramble_salt(self.password, salt, server_key, client_key)
 
-        # Craft authentication part and return it
+        return client_proof
+
+    def craft_authentication_response(self, scram, client_key, auth_response_part):
+        client_proof = self.obtain_client_proof(scram, client_key, auth_response_part)
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
                                                             SAPHDBPartAuthenticationField(value=client_proof)])
-        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
+        return SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
 
+    def authenticate(self, connection):
+        """Perform the handshake using the scram method defined by the class"""
+
+        scram = self.SCRAM_CLASS(default_backend())
+
+        # Craft and send the authentication packet
+        client_key, auth_request = self.craft_authentication_request(scram)
+        auth_response = connection.sr(auth_request)
+        auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
+
+        # Check the method replied by the server
+        if self.METHOD != auth_response_part.auth_fields[0].value:
+            raise SAPHDBAuthenticationError("Authentication method not supported on server")
+
+        # Craft authentication part and return it
+        auth_part = self.craft_authentication_response(scram, client_key, auth_response_part)
         return auth_part
+
+
+class SAPHDBAuthScramSHA256(SAPHDBAuthScramMethod):
+    """SAP HDB Authentication using SCRAM-SHA256 algorithm.
+    """
+    METHOD = "SCRAMSHA256"
+    SCRAM_CLASS = SCRAM_SHA256
+
+
+class SAPHDBAuthScramPBKDF2SHA256(SAPHDBAuthScramMethod):
+    """SAP HDB Authentication using SCRAM-PBKDF2-SHA256 algorithm.
+    """
+    METHOD = "SCRAMPBKDF2SHA256"
+    SCRAM_CLASS = SCRAM_PBKDF2SHA256
+
+    def obtain_client_proof(self, scram, client_key, auth_response_part):
+        # Obtain the salt, the server key and the number of rounds from the response
+        method_parts = SAPHDBPartAuthentication(auth_response_part.auth_fields[1].value)
+        salt = method_parts.auth_fields[0].value
+        server_key = method_parts.auth_fields[1].value
+        rounds, = struct.unpack('>I', method_parts.auth_fields[2].value)
+
+        # Calculate the client proof from the password, salt, rounds and the server and client key
+        # TODO: It might be good to see if this can be moved into a new Packet
+        # TODO: We're only considering one server key
+        client_proof = b"\x00\x01" + struct.pack('b', scram.CLIENT_PROOF_SIZE)
+        client_proof += scram.scramble_salt(self.password, salt, server_key, client_key, rounds)
+        return client_proof
 
 
 saphdb_auth_methods = {
     "SCRAMSHA256": SAPHDBAuthScramSHA256,
+    "SCRAMPBKDF2SHA256": SAPHDBAuthScramPBKDF2SHA256,
 }
 """SAP HDB Authentication Methods Implemented"""
 
