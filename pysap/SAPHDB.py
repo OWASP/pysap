@@ -650,6 +650,9 @@ class SAPHDBConnection(object):
                disconnect_response.segments[0].functioncode != 18:
                 raise SAPHDBConnectionError("Connection incorrectly closed")
 
+        except socket.error as e:
+            raise SAPHDBConnectionError("Error closing the connection to the server (%s)" % e)
+
         finally:
             self.close_socket()
 
