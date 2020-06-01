@@ -65,6 +65,10 @@ def parse_options():
     auth.add_option("--username", dest="username", help="User name")
     auth.add_option("--password", dest="password", help="Password")
     auth.add_option("--jwt-file", dest="jwt_file", help="File to read a signed JWT from")
+    auth.add_option("--jwt-cert", dest="jwt_cert", help="File to read the JWT signature certificate")
+    auth.add_option("--jwt-issuer", dest="jwt_issuer", help="JWT signature issuer")
+    auth.add_option("--jwt-claim", dest="jwt_claim", default="user_name",
+                    help="Name of the JWT claim to map username [%default]")
     auth.add_option("--session-cookie", dest="session_cookie", help="Session Cookie")
     auth.add_option("--pid", dest="pid", default="pysap", help="Process ID")
     auth.add_option("--hostname", dest="hostname", help="Hostname")
@@ -82,10 +86,14 @@ def parse_options():
 
     if options.method not in saphdb_auth_methods:
         parser.error("Invalid authentication method")
-    if options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"] and (not options.username or not options.password):
-        parser.error("Username and password need to be provided")
-    if options.method == "SessionCookie" and (not options.username or not options.session_cookie):
-        parser.error("Username and session cookie need to be provided")
+    if not options.username:
+        parser.error("Username needs to be provided")
+    if options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"] and not options.password:
+        parser.error("Password need to be provided for SCRAM-based authentication")
+    if options.method == "SessionCookie" and not options.session_cookie:
+        parser.error("Session cookie need to be provided for SessionCookie authentication")
+    if options.method == "JWT" and (not options.jwt_file or (not options.jwt_cert and not options.jwt_issuer)):
+        parser.error("JWT file or a signing certificate and issuer need to be provided for JWT authentication")
 
     return options
 
@@ -110,18 +118,18 @@ def main():
             with open(options.jwt_file, 'r') as jwt_fd:
                 auth_method = auth_method_cls(options.username, jwt_fd.read(),
                                               pid=options.pid, hostname=options.hostname)
-        else:
+        elif options.jwt_cert:
             import jwt as pyjwt
             import datetime
-            key = open("JWT/JWT-RS256-2048.key", 'r').read()
-            jwt_raw = {"user1": options.username,
-                       "user_name": options.username,
-                       "iss": "https://jwtprovider/",
-                       "nbf": datetime.datetime.utcnow() - datetime.timedelta(seconds=30),
-                       "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=30),
-                       }
-            jwt_signed = pyjwt.encode(jwt_raw, key, algorithm="RS256")
-            auth_method = auth_method_cls(options.username, jwt_signed, pid=options.pid, hostname=options.hostname)
+            with open(options.jwt_cert, 'r') as jwt_cert_fd:
+                jwt_raw = {options.jwt_claim: options.username,
+                           "iss": options.jwt_issuer,
+                           "nbf": datetime.datetime.utcnow() - datetime.timedelta(seconds=30),
+                           "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=30),
+                           }
+                jwt_signed = pyjwt.encode(jwt_raw, jwt_cert_fd.read(), algorithm="RS256")
+                auth_method = auth_method_cls(options.username, jwt_signed,
+                                              pid=options.pid, hostname=options.hostname)
     elif options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"]:
         auth_method = auth_method_cls(options.username, options.password,
                                       pid=options.pid, hostname=options.hostname)

@@ -398,7 +398,8 @@ class SAPHDBAuthMethod(object):
 
     METHOD = None
 
-    def __init__(self, pid=None, hostname=None):
+    def __init__(self, username, pid=None, hostname=None):
+        self.username = username
         self.pid = pid
         self.hostname = hostname
 
@@ -409,6 +410,21 @@ class SAPHDBAuthMethod(object):
         pid = self.pid or "pysap"
         hostname = self.hostname or socket.gethostname()
         return "{}@{}".format(pid, hostname)
+
+    def craft_authentication_request(self, value=None):
+        """Craft the initial authentication request"""
+        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
+                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
+                                                            SAPHDBPartAuthenticationField(value=value)])
+        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
+        auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
+        return SAPHDB(segments=[auth_segm])
+
+    def craft_authentication_response_part(self, value=None):
+        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
+                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
+                                                            SAPHDBPartAuthenticationField(value=value)])
+        return SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
 
     def authenticate(self, connection):
         """Method to authenticate the client connection.
@@ -434,20 +450,8 @@ class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
     SCRAM_CLASS = None
 
     def __init__(self, username, password, pid=None, hostname=None):
-        super(SAPHDBAuthScramMethod, self).__init__(pid, hostname)
-        self.username = username
+        super(SAPHDBAuthScramMethod, self).__init__(username, pid=pid, hostname=hostname)
         self.password = password
-
-    def craft_authentication_request(self, scram):
-        """Send the initial authentication request"""
-        client_key = scram.get_client_key()
-        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
-                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
-                                                            SAPHDBPartAuthenticationField(value=client_key),
-                                                            ])
-        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
-        auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
-        return client_key, SAPHDB(segments=[auth_segm])
 
     def obtain_client_proof(self, scram, client_key, auth_response_part):
         # Obtain the salt and the server key from the response
@@ -463,20 +467,14 @@ class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
 
         return client_proof
 
-    def craft_authentication_response(self, scram, client_key, auth_response_part):
-        client_proof = self.obtain_client_proof(scram, client_key, auth_response_part)
-        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
-                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
-                                                            SAPHDBPartAuthenticationField(value=client_proof)])
-        return SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
-
     def authenticate(self, connection):
         """Perform the handshake using the scram method defined by the class"""
 
         scram = self.SCRAM_CLASS(default_backend())
 
         # Craft and send the authentication packet
-        client_key, auth_request = self.craft_authentication_request(scram)
+        client_key = scram.get_client_key()
+        auth_request = self.craft_authentication_request(client_key)
         auth_response = connection.sr(auth_request)
         auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
 
@@ -485,18 +483,18 @@ class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
             raise SAPHDBAuthenticationError("Authentication method not supported on server")
 
         # Craft authentication part and return it
-        auth_part = self.craft_authentication_response(scram, client_key, auth_response_part)
-        return auth_part
+        client_proof = self.obtain_client_proof(scram, client_key, auth_response_part)
+        return self.craft_authentication_response_part(client_proof)
 
 
-class SAPHDBAuthScramSHA256(SAPHDBAuthScramMethod):
+class SAPHDBAuthScramSHA256Method(SAPHDBAuthScramMethod):
     """SAP HDB Authentication using SCRAM-SHA256 algorithm.
     """
     METHOD = "SCRAMSHA256"
     SCRAM_CLASS = SCRAM_SHA256
 
 
-class SAPHDBAuthScramPBKDF2SHA256(SAPHDBAuthScramMethod):
+class SAPHDBAuthScramPBKDF2SHA256Method(SAPHDBAuthScramMethod):
     """SAP HDB Authentication using SCRAM-PBKDF2-SHA256 algorithm.
     """
     METHOD = "SCRAMPBKDF2SHA256"
@@ -517,26 +515,19 @@ class SAPHDBAuthScramPBKDF2SHA256(SAPHDBAuthScramMethod):
         return client_proof
 
 
-class SAPHDBAuthSessionCookie(SAPHDBAuthMethod):
+class SAPHDBAuthSessionCookieMethod(SAPHDBAuthMethod):
     """SAP HDB Authentication using a Session Cookie.
     """
 
     METHOD = "SessionCookie"
 
     def __init__(self, username, session_cookie, pid=None, hostname=None):
-        super(SAPHDBAuthSessionCookie, self).__init__(pid, hostname)
-        self.username = username
+        super(SAPHDBAuthSessionCookieMethod, self).__init__(username, pid=pid, hostname=hostname)
         self.session_cookie = session_cookie
 
     def authenticate(self, connection):
         session_cookie = self.session_cookie + self.client_id
-        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
-                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
-                                                            SAPHDBPartAuthenticationField(value=session_cookie),
-                                                            ])
-        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
-        auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
-        auth_request = SAPHDB(segments=[auth_segm])
+        auth_request = self.craft_authentication_request(session_cookie)
 
         auth_response = connection.sr(auth_request)
         auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
@@ -546,32 +537,22 @@ class SAPHDBAuthSessionCookie(SAPHDBAuthMethod):
             raise SAPHDBAuthenticationError("Authentication method not supported on server")
 
         # Craft authentication part and return it
-        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
-                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
-                                                            SAPHDBPartAuthenticationField()])
-        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
-        return auth_part
+        return self.craft_authentication_response_part()
 
 
-class SAPHDBAuthJWT(SAPHDBAuthMethod):
+class SAPHDBAuthJWTMethod(SAPHDBAuthMethod):
     """SAP HDB Authentication using JWT (JSON Web Token).
     """
 
     METHOD = "JWT"
 
     def __init__(self, username, jwt, pid=None, hostname=None):
-        super(SAPHDBAuthJWT, self).__init__(pid, hostname)
+        super(SAPHDBAuthJWTMethod, self).__init__(pid, hostname)
         self.username = username
         self.jwt = jwt
 
     def authenticate(self, connection):
-        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
-                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
-                                                            SAPHDBPartAuthenticationField(value=self.jwt),
-                                                            ])
-        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
-        auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
-        auth_request = SAPHDB(segments=[auth_segm])
+        auth_request = self.craft_authentication_request(self.jwt)
         auth_request.show()
 
         auth_response = connection.sr(auth_request)
@@ -582,18 +563,14 @@ class SAPHDBAuthJWT(SAPHDBAuthMethod):
             raise SAPHDBAuthenticationError("Authentication method not supported on server")
 
         # Craft authentication part and return it
-        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
-                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
-                                                            SAPHDBPartAuthenticationField()])
-        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
-        return auth_part
+        return self.craft_authentication_response_part()
 
 
 saphdb_auth_methods = {
-    "JWT": SAPHDBAuthJWT,
-    "SCRAMSHA256": SAPHDBAuthScramSHA256,
-    "SCRAMPBKDF2SHA256": SAPHDBAuthScramPBKDF2SHA256,
-    "SessionCookie": SAPHDBAuthSessionCookie,
+    "JWT": SAPHDBAuthJWTMethod,
+    "SCRAMSHA256": SAPHDBAuthScramSHA256Method,
+    "SCRAMPBKDF2SHA256": SAPHDBAuthScramPBKDF2SHA256Method,
+    "SessionCookie": SAPHDBAuthSessionCookieMethod,
 }
 """SAP HDB Authentication Methods Implemented"""
 
