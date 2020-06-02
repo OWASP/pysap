@@ -19,6 +19,7 @@
 # ==============
 
 # Standard imports
+from os import path
 from sys import stdout
 from binascii import hexlify
 from argparse import ArgumentParser
@@ -45,8 +46,8 @@ def parse_options():
 
 def parse_pse(filename):
     """Parses a PSE file and produces """
-    with open(filename, "rb") as f:
-        data = f.read()
+    with open(filename, "rb") as fp:
+        data = fp.read()
 
     pse_file = SAPPSEFile(data)
 
@@ -64,8 +65,8 @@ def parse_pse(filename):
     encrypted_pin_length = len(pse_file.enc_cont.encrypted_pin.val)
 
     return "{}:$pse${}${}${}${}${}${}${}${}:::::\n".format(
-        filename, pbe_algo, iterations, salt_size, salt, iv_size, iv, encrypted_pin_length, encrypted_pin,
-    )
+        path.basename(filename), pbe_algo, iterations, salt_size, salt, iv_size, iv,
+        encrypted_pin_length, encrypted_pin)
 
 
 if __name__ == "__main__":
