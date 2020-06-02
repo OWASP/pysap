@@ -22,7 +22,7 @@
 import logging
 from string import letters
 from random import choice
-from optparse import OptionParser, OptionGroup
+from argparse import ArgumentParser
 # External imports
 from scapy.config import conf
 from scapy.packet import bind_layers
@@ -57,53 +57,42 @@ def parse_options():
                   "application server. The scripts performs a login through the Diag protocol. It can also discover " \
                   "available clients."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s [options] -d <remote host>"
 
-    usage = "Usage: %prog [options] -d <remote host>"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
+    target = parser.add_argument_group("Target")
+    target.add_argument("-d", "--remote-host", dest="remote_host",
+                        help="Remote host")
+    target.add_argument("-p", "--remote-port", dest="remote_port", type=int, default=3200,
+                        help="Remote port [%(default)d]")
+    target.add_argument("--route-string", dest="route_string",
+                        help="Route string for connecting through a SAP Router")
 
-    target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host",
-                      help="Remote host")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3200,
-                      help="Remote port [%default]")
-    target.add_option("--route-string", dest="route_string",
-                      help="Route string for connecting through a SAP Router")
-    parser.add_option_group(target)
+    credentials = parser.add_argument_group("Credentials")
+    credentials.add_argument("-u", "--usernames", dest="usernames", metavar="FILE",
+                             help="Usernames file")
+    credentials.add_argument("-l", "--passwords", dest="passwords", metavar="FILE",
+                             help="Passwords file")
+    credentials.add_argument("-m", "--client", dest="client", default="000,001,066",
+                             help="Client number [%(default)s]")
+    credentials.add_argument("-c", "--credentials", dest="credentials", metavar="FILE",
+                             help="Credentials file (username:password:client)")
 
-    credentials = OptionGroup(parser, "Credentials")
-    credentials.add_option("-u", "--usernames", dest="usernames", metavar="FILE",
-                           help="Usernames file")
-    credentials.add_option("-l", "--passwords", dest="passwords", metavar="FILE",
-                           help="Passwords file")
-    credentials.add_option("-m", "--client", dest="client", default="000,001,066",
-                           help="Client number [%default]")
-    credentials.add_option("-c", "--credentials", dest="credentials", metavar="FILE",
-                           help="Credentials file (username:password:client)")
-    credentials.add_option("-t", "--max-tries", dest="max_tries",
-                           help="Max tries per username")
-    parser.add_option_group(credentials)
+    discovery = parser.add_argument_group("Clients Discovery")
+    discovery.add_argument("--discovery", dest="discovery", action="store_true",
+                           help="Performs discovery of available clients")
+    discovery.add_argument("--discovery-range", dest="discovery_range", default="000-099",
+                           help="Client range for the discovery of available clients [%(default)s]")
 
-    discovery = OptionGroup(parser, "Clients Discovery")
-    discovery.add_option("--discovery", dest="discovery", action="store_true", default=False,
-                         help="Performs discovery of available clients [%default]")
-    discovery.add_option("--discovery-range", dest="discovery_range", default="000-099",
-                         help="Client range for the discovery of available clients [%default]")
-    parser.add_option_group(discovery)
+    misc = parser.add_argument_group("Misc options")
+    misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
+    misc.add_argument("--threads", dest="threads", type=int, default=1,
+                      help="Number of threads [%(default)d]")
+    misc.add_argument("--terminal", dest="terminal", default=None,
+                      help="Terminal name")
 
-    misc = OptionGroup(parser, "Misc options")
-    misc.add_option("--threads", dest="threads", type="int", default=1,
-                    help="Number of threads [%default]")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
-                    help="Verbose output [%default]")
-    misc.add_option("--terminal", dest="terminal", default=None,
-                    help="Terminal name")
-    parser.add_option_group(misc)
-
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     if not (options.remote_host or options.route_string):
         parser.error("Remote host or route string is required")

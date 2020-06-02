@@ -21,7 +21,7 @@
 # Standard imports
 from sys import stdout
 from binascii import hexlify
-from optparse import OptionParser
+from argparse import ArgumentParser
 # Custom imports
 import pysap
 from pysap.SAPPSE import (SAPPSEFile, PKCS12_ALGORITHM_PBE1_SHA_3DES_CBC)
@@ -33,16 +33,12 @@ def parse_options():
     description = "This script can be used to parse PSE files and extract encrypted material and data in a format that" \
                   "John the Ripper or other cracking tools can use to look for the decryption PIN."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s <input_file>"
 
-    usage = "Usage: %prog <input_file>"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
+    parser.add_argument("-o", "--output", help="Filename to write the output to [stdout]")
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
-    parser.add_option("-o", "--output", help="Filename to write the output to [stdout]")
-
-    options, args = parser.parse_args()
+    options, args = parser.parse_known_args()
 
     return options, args
 

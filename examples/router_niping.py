@@ -21,7 +21,7 @@
 # Standard imports
 import logging
 from datetime import datetime
-from optparse import OptionParser, OptionGroup
+from argparse import ArgumentParser
 from socket import socket, SHUT_RDWR, error as SocketError
 # External imports
 from scapy.packet import Raw
@@ -41,39 +41,31 @@ def parse_options():
 
     description = "This script is an example implementation of SAP's niping utility."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s [options] [mode] -H <remote host>"
 
-    usage = "Usage: %prog [options] [mode] -d <remote host>"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
+    mode = parser.add_argument_group("Running mode")
+    mode.add_argument("-s", "--start-server", dest="server", action="store_true",
+                      help="Start server")
+    mode.add_argument("-c", "--start-client", dest="client", action="store_true",
+                      help="Start client")
 
-    mode = OptionGroup(parser, "Running mode")
-    mode.add_option("-s", "--start-server", dest="server", action="store_true",
-                    help="Start server")
-    mode.add_option("-c", "--start-client", dest="client", action="store_true",
-                    help="Start client")
-    parser.add_option_group(mode)
+    target = parser.add_argument_group("Target")
+    target.add_argument("-H", "--host", dest="host", help="Host")
+    target.add_argument("-S", "--port", dest="port", type=int, default=3298,
+                        help="Port [%(default)d]")
+    target.add_argument("--route-string", dest="route_string",
+                        help="Route string for connecting through a SAP Router")
 
-    target = OptionGroup(parser, "Target")
-    target.add_option("-H", "--host", dest="host", help="Host")
-    target.add_option("-S", "--port", dest="port", type="int", default=3298,
-                      help="Port [%default]")
-    target.add_option("--route-string", dest="route_string",
-                      help="Route string for connecting through a SAP Router")
-    parser.add_option_group(target)
+    misc = parser.add_argument_group("Misc options")
+    misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
+    misc.add_argument("-B", "--buffer-size", dest="buffer_size", type=int, default=1000,
+                      help="Size of data-buffer [%(default)d]")
+    misc.add_argument("-L", "--loops", dest="loops", type=int, default=10,
+                      help="Number of loops [%(default)d]")
 
-    misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
-                    help="Verbose output [%default]")
-    misc.add_option("-B", "--buffer-size", dest="buffer_size", type="int", default=1000,
-                    help="Size of data-buffer [%default]")
-    misc.add_option("-L", "--loops", dest="loops", type="int", default=10,
-                    help="Number of loops [%default]")
-    parser.add_option_group(misc)
-
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     if not options.server and not options.client:
         parser.error("Running mode is required")
