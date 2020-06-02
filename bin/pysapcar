@@ -71,6 +71,7 @@ class PySAPCAR(object):
         description = "Basic and experimental implementation of SAPCAR archive format."
 
         parser = ArgumentParser(usage=pysapcar_usage, description=description, epilog=pysap.epilog)
+        parser.add_argument("--version", action="version", version="%(prog)s {}".format(pysap.__version__))
 
         # Commands
         parser.add_argument("-c", dest="create", action="store_true", help="Create archive with specified files")

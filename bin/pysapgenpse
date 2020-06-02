@@ -69,7 +69,9 @@ class PySAPGenPSE(object):
         """Parses command-line options.
         """
         description = "Basic and experimental implementation of sapgenpse tool."
+
         parser = ArgumentParser(usage=pysapgenpse_usage, description=description, epilog=pysap.epilog)
+        parser.add_argument("--version", action="version", version="%(prog)s {}".format(pysap.__version__))
 
         # Commands
         parser.add_argument("-c", dest="command", help="Command", choices=PySAPGenPSE.commands)
