@@ -22,7 +22,7 @@
 import logging
 from os import environ
 from os.path import join
-from optparse import OptionParser, OptionGroup
+from argparse import ArgumentParser
 # Custom imports
 import pysap
 from pysap.SAPPSE import SAPPSEFile
@@ -64,42 +64,36 @@ class PySAPGenPSE(object):
 
     commands = ["seclogin", "get_pse_certs"]
 
-    def parse_options(self):
+    @staticmethod
+    def parse_options():
         """Parses command-line options.
         """
-
         description = "Basic and experimental implementation of sapgenpse tool."
 
-        epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                             "url": pysap.__url__,
-                                                             "repo": pysap.__repo__}
-
-        parser = OptionParser(usage=pysapgenpse_usage, description=description, epilog=epilog)
+        parser = ArgumentParser(usage=pysapgenpse_usage, description=description, epilog=pysap.epilog)
+        parser.add_argument("--version", action="version", version="%(prog)s {}".format(pysap.__version__))
 
         # Commands
-        parser.add_option("-c", dest="command", help="Command", type="choice", choices=["seclogin", "get_pse_certs"])
-        parser.add_option("-f", dest="filename", help="Archive filename", metavar="FILE")
-        parser.add_option("-o", dest="output", help="Output filename", metavar="FILE")
+        parser.add_argument("-c", dest="command", help="Command", choices=PySAPGenPSE.commands)
+        parser.add_argument("-f", dest="filename", help="Input filename", metavar="FILE")
+        parser.add_argument("-o", dest="output", help="Output filename", metavar="FILE")
 
-        seclogin = OptionGroup(parser, "seclogin command options")
-        seclogin.add_option("-l", "--list", dest="list", action="store_true", help="List the contents of a cred file")
-        seclogin.add_option("-d", "--decrypt", dest="decrypt", action="store_true", default=False,
-                            help="Decrypt the contents of a cred file [%default]")
-        seclogin.add_option("--no-decrypt-provider", dest="decrypt_provider", action="store_false",
-                            help="Do not attempt to further decrypt using the provider [%default]", default=True)
-        seclogin.add_option("-u", dest="username", help="Username to decrypt the cred file [$USER or $USERNAME env]")
-        parser.add_option_group(seclogin)
+        seclogin = parser.add_argument_group("seclogin command options")
+        seclogin.add_argument("-l", "--list", dest="list", action="store_true", help="List the contents of a cred file")
+        seclogin.add_argument("-d", "--decrypt", dest="decrypt", action="store_true",
+                              help="Decrypt the contents of a cred file")
+        seclogin.add_argument("--no-decrypt-provider", dest="decrypt_provider", action="store_false",
+                              help="Do not attempt to further decrypt using the provider")
+        seclogin.add_argument("-u", dest="username", help="Username to decrypt the cred file [$USER or $USERNAME env]")
 
-        get_pse_certs = OptionGroup(parser, "get_pse_certs command options")
-        get_pse_certs.add_option("-x", dest="pin", help="Pin to use to decrypt the PSE file")
-        parser.add_option_group(get_pse_certs)
+        get_pse_certs = parser.add_argument_group("get_pse_certs command options")
+        get_pse_certs.add_argument("-x", dest="pin", help="Pin to use to decrypt the PSE file")
 
-        misc = OptionGroup(parser, "Misc options")
-        misc.add_option("-v", dest="verbose", action="store_true", help="Verbose output")
-        misc.add_option("-n", dest="number", type="int", help="Number of credential/certificate to decrypt")
-        parser.add_option_group(misc)
+        misc = parser.add_argument_group("Misc options")
+        misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
+        misc.add_argument("-n", dest="number", type=int, help="Number of credential/certificate to decrypt")
 
-        (options, args) = parser.parse_args()
+        (options, args) = parser.parse_known_args()
 
         return options, args
 

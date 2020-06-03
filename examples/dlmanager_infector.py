@@ -23,9 +23,8 @@ import re
 import logging
 from os import unlink
 from os.path import exists
+from argparse import ArgumentParser
 from tempfile import NamedTemporaryFile
-# External imports
-from optparse import OptionParser, OptionGroup
 # Custom imports
 import pysap
 from pysap.SAPCAR import SAPCARArchive
@@ -61,27 +60,21 @@ def parse_options(args=None, req_filename=True):
                   "parameters, performs an SSLStrip-like MitM and when identifies a SAR file that is going to be " \
                   "offered as a download it infects it."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
-
-    usage = "Usage: %prog [options] "
+    usage = "%(prog)s [options] "
     if req_filename:
         usage += "-f <sar_filename> "
     usage += "[<filename> <archive filename>]"
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
-    target = OptionGroup(parser, "Target options")
-    target.add_option("-f", "--sar-filename", dest="sar_filename", help="Filename of the SAR file to infect")
-    parser.add_option_group(target)
+    target = parser.add_argument_group("Target options")
+    target.add_argument("-f", "--sar-filename", dest="sar_filename",
+                        help="Filename of the SAR file to infect")
 
-    misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true",
-                    default=False, help="Verbose output [%default]")
-    parser.add_option_group(misc)
+    misc = parser.add_argument_group("Misc options")
+    misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
 
-    (options, args) = parser.parse_args(args)
+    (options, args) = parser.parse_known_args(args)
 
     if not req_filename:
         args.pop(0)

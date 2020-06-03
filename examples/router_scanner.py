@@ -20,7 +20,7 @@
 
 # Standard imports
 import logging
-from optparse import OptionParser, OptionGroup
+from argparse import ArgumentParser
 # External imports
 from scapy.config import conf
 from scapy.packet import bind_layers
@@ -54,35 +54,28 @@ def parse_options():
                   "https://blog.onapsis.com/blog/assessing-a-saprouters-security-with-onapsis-bizploit-part-i/ and " \
                   "https://blog.onapsis.com/blog/assessing-a-saprouters-security-with-onapsis-bizploit-part-ii/"
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s [options] -d <remote host>"
 
-    usage = "Usage: %prog [options] -d <remote host>"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
+    target = parser.add_argument_group("Target")
+    target.add_argument("-d", "--remote-host", dest="remote_host", default="127.0.0.1",
+                        help="Remote host [%(default)s]")
+    target.add_argument("-p", "--remote-port", dest="remote_port", type=int, default=3299,
+                        help="Remote port [%(default)d]")
+    target.add_argument("-t", "--target-hosts", dest="target_hosts",
+                        help="Target hosts to scan (comma separated or CIDR if netaddr is installed)")
+    target.add_argument("-r", "--target-ports", dest="target_ports",
+                        help="Target ports to scan (comma separated or range)")
+    target.add_argument("--router-version", dest="router_version", type=int,
+                        help="SAP Router version to use [retrieve from the remote SAP Router]")
+    target.add_argument("--talk-mode", dest="talk_mode", default="raw",
+                        help="Talk mode to use when requesting the route (raw or ni) [%(default)s]")
 
-    target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host", default="127.0.0.1",
-                      help="Remote host [%default]")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3299,
-                      help="Remote port [%default]")
-    target.add_option("-t", "--target-hosts", dest="target_hosts",
-                      help="Target hosts to scan (comma separated or CIDR if netaddr is installed)")
-    target.add_option("-r", "--target-ports", dest="target_ports",
-                      help="Target ports to scan (comma separated or range)")
-    target.add_option("--router-version", dest="router_version", type="int",
-                      help="SAP Router version to use [retrieve from the remote SAP Router]")
-    target.add_option("--talk-mode", dest="talk_mode", default="raw",
-                      help="Talk mode to use when requesting the route (raw or ni) [%default]")
-    parser.add_option_group(target)
+    misc = parser.add_argument_group("Misc options")
+    misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
 
-    misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
-                    help="Verbose output [%default]")
-    parser.add_option_group(misc)
-
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     if not options.remote_host:
         parser.error("Remote host is required")

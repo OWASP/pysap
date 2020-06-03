@@ -22,7 +22,7 @@
 import logging
 import itertools
 from struct import unpack
-from optparse import OptionParser, OptionGroup
+from argparse import ArgumentParser
 # External imports
 import scapy.arch
 from scapy.config import conf
@@ -127,26 +127,19 @@ def parse_options():
     description = "This example script can be used to grab SAP GUI login credentials from a pcap file or by sniffing " \
                   "on a network interface."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s [options] [-i <interface> | -f <pcap file>]"
 
-    usage = "Usage: %prog [options] [-i <interface> | -f <pcap file>]"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
+    target = parser.add_argument_group("Target")
+    target.add_argument("-i", "--interface", dest="interface", help="Choose an interface")
+    target.add_argument("-f", "--file", dest="pcap", metavar="FILE", help="Parse info from a pcap file")
+    target.add_argument("-p", "--port", dest="port", type=int, default=3200, help="Port to use as filter [%(default)d]")
 
-    target = OptionGroup(parser, "Target")
-    target.add_option("-i", "--interface", dest="interface", help="Choose an interface")
-    target.add_option("-f", "--file", dest="pcap", metavar="FILE", help="Parse info from a pcap file")
-    target.add_option("-p", "--port", dest="port", type="int", default=3200, help="Port to use as filter [%default]")
-    parser.add_option_group(target)
+    misc = parser.add_argument_group("Misc options")
+    misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
 
-    misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true",
-                    default=False, help="Verbose output [%default]")
-    parser.add_option_group(misc)
-
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     return options
 

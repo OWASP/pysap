@@ -22,8 +22,8 @@
 
 # Standard imports
 import re
-from optparse import OptionParser, OptionGroup
 import logging
+from argparse import ArgumentParser
 # External imports
 from scapy.config import conf
 # Custom imports
@@ -43,36 +43,28 @@ def parse_options():
                   " Access of the internal Message Server port is required." \
                   " Due to the wide of parameters type in SAP System, it's not perfect, and false positive could exist."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s [options] -d <remote host> -f <parameters_file>"
 
-    usage = "Usage: %prog [options] -d <remote host> -f <parameters_file>"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
+    target = parser.add_argument_group("Target")
+    target.add_argument("-d", "--remote-host", dest="remote_host",
+                        help="Remote host")
+    target.add_argument("-p", "--remote-port", dest="remote_port", type=int, default=3900,
+                        help="Remote port [%(default)d]")
+    target.add_argument("--route-string", dest="route_string",
+                        help="Route string for connecting through a SAP Router")
 
-    target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host",
-                      help="Remote host")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3900,
-                      help="Remote port [%default]")
-    target.add_option("--route-string", dest="route_string",
-                      help="Route string for connecting through a SAP Router")
-    parser.add_option_group(target)
+    param = parser.add_argument_group("Parameter")
+    param.add_argument("-f", "--parameter-file", dest="file_param", metavar="FILE",
+                       help="parameters file (<SAP parameter>:<Check type>:<expected_value>)")
 
-    param = OptionGroup(parser, "Parameter")
-    param.add_option("-f", "--parameter-file", dest="file_param", metavar="FILE",
-                     help="parameters file (<SAP parameter>:<Check type>:<expected_value>)")
-    parser.add_option_group(param)
+    misc = parser.add_argument_group("Misc options")
+    misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
+    misc.add_argument("-c", "--client", dest="client", default="pysap's-getparam",
+                      help="Client name [%(default)s]")
 
-    misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
-                    help="Verbose output [%default]")
-    misc.add_option("-c", "--client", dest="client", default="pysap's-getparam",
-                    help="Client name [%default]")
-    parser.add_option_group(misc)
-
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     if not (options.remote_host or options.route_string):
         parser.error("Remote host or route string is required")

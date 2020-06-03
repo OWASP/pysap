@@ -21,7 +21,7 @@
 # Standard imports
 import json
 import logging
-from optparse import OptionParser, OptionGroup
+from argparse import ArgumentParser
 # External imports
 from scapy.config import conf
 from scapy.packet import bind_layers, Raw
@@ -45,41 +45,32 @@ def parse_options():
                   "Finger printing is performed by triggering different errors and looking at the lines where the " \
                   "error is produced."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s -d <remote host> [options]"
 
-    usage = "Usage: %prog -d <remote host> [options]"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
+    target = parser.add_argument_group("Target")
+    target.add_argument("-d", "--remote-host", dest="remote_host", default="127.0.0.1",
+                        help="Remote host [%(default)s]")
+    target.add_argument("-p", "--remote-port", dest="remote_port", type=int, default=3299,
+                        help="Remote port [%(default)d]")
 
-    target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host", default="127.0.0.1",
-                      help="Remote host [%default]")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3299,
-                      help="Remote port [%default]")
-    parser.add_option_group(target)
+    database = parser.add_argument_group("Database options")
+    database.add_argument("-f", "--fingerprints-file", dest="fingerprints", metavar="FILE",
+                          default="router_fingerprints.json", help="Fingerprints file to use [%(default)s]")
+    database.add_argument("-a", "--add-fingerprint", dest="add_fingerprint", action="store_true",
+                          help="New fingerprint to add to the database in json format")
+    database.add_argument("-i", "--version-information", dest="version_info",
+                          help="Version information to use when adding new entries in json format")
+    database.add_argument("-n", "--new-entries", dest="new_entries", action="store_true",
+                          help="Generate new database entries even when the fingerprints matched")
+    database.add_argument("--new-fingerprints-file", dest="new_fingerprint_file", metavar="FILE",
+                          default="saprouter_new_fingerprints.json", help="File to write or load from new fingerprints")
 
-    database = OptionGroup(parser, "Database options")
-    database.add_option("-f", "--fingerprints-file", dest="fingerprints", metavar="FILE",
-                        default="router_fingerprints.json", help="Fingerprints file to use [%default]")
-    database.add_option("-a", "--add-fingerprint", dest="add_fingerprint", action="store_true", default=False,
-                        help="New fingerprint to add to the database in json format")
-    database.add_option("-i", "--version-information", dest="version_info",
-                        help="Version information to use when adding new entries in json format")
-    database.add_option("-n", "--new-entries", dest="new_entries", action="store_true", default=False,
-                        help="Generate new database entries even when the fingerprints matched")
-    database.add_option("--new-fingerprints-file", dest="new_fingerprint_file", metavar="FILE",
-                        default="saprouter_new_fingerprints.json", help="File to write or load from new fingerprints")
-    parser.add_option_group(database)
+    misc = parser.add_argument_group("Misc options")
+    misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
 
-    misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
-                    help="Verbose output [%default]")
-
-    parser.add_option_group(misc)
-
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     if not options.remote_host:
         parser.error("Remote host is required")

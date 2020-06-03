@@ -21,7 +21,7 @@
 # Standard imports
 import logging
 from socket import error
-from optparse import OptionParser, OptionGroup
+from argparse import ArgumentParser
 # External imports
 from scapy.config import conf
 from scapy.packet import bind_layers
@@ -52,58 +52,50 @@ def parse_options():
                   "The options are the ones found on the regular SAP Router tool with the addition of some " \
                   "undocumented operation codes."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s [options] [command] -d <remote host>"
 
-    usage = "Usage: %prog [options] -d <remote host>"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
+    target = parser.add_argument_group("Target")
+    target.add_argument("-d", "--remote-host", dest="remote_host", default="127.0.0.1",
+                        help="Remote host [%(default)s]")
+    target.add_argument("-p", "--remote-port", dest="remote_port", type=int, default=3299,
+                        help="Remote port [%(default)s]")
+    target.add_argument("--router-version", dest="router_version", type=int,
+                        help="SAP Router version to use [retrieve from the remote SAP Router]")
 
-    target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host", default="127.0.0.1",
-                      help="Remote host [%default]")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3299,
-                      help="Remote port [%default]")
-    target.add_option("--router-version", dest="router_version", type="int",
-                      help="SAP Router version to use [retrieve from the remote SAP Router]")
-    parser.add_option_group(target)
+    command = parser.add_mutually_exclusive_group(required=True)
+    command.add_argument("-s", "--stop-router", dest="stop", action="store_true",
+                         help="Stop router request")
+    command.add_argument("-o", "--soft-shutdown", dest="soft", action="store_true",
+                         help="Soft shutdown request")
+    command.add_argument("-l", "--router-info", dest="info", action="store_true",
+                         help="Router info request")
+    command.add_argument("-P", "--info-pass", dest="info_password", action="store",
+                         help="Password for info request")
+    command.add_argument("-n", "--new-route", dest="new_route", action="store_true",
+                         help="New route table request")
+    command.add_argument("-t", "--toggle-trace", dest="trace", action="store_true",
+                         help="Toggle trace request")
+    command.add_argument("-c", "--cancel-route", dest="cancel", action="store",
+                         help="Cancel route request")
+    command.add_argument("-b", "--dump-buffer", dest="dump", action="store_true",
+                         help="Dump buffers request")
+    command.add_argument("-f", "--flush-buffer", dest="flush", action="store_true",
+                         help="Flush buffers request")
+    command.add_argument("-z", "--hide-errors", dest="hide", action="store_true",
+                         help="Hide errors info")
+    command.add_argument("--set-peer-trace", dest="set_peer", action="store",
+                         help="Set peer trace (undocumented command)")
+    command.add_argument("--clear-peer-trace", dest="clear_peer", action="store",
+                         help="Clear peer trace (undocumented command)")
+    command.add_argument("--trace-connection", dest="trace_conn", action="store",
+                         help="Trace connection (undocumented command)")
 
-    command = OptionGroup(parser, "Command")
-    command.add_option("-s", "--stop-router", dest="stop", action="store_true",
-                       help="Stop router request")
-    command.add_option("-o", "--soft-shutdown", dest="soft", action="store_true",
-                       help="Soft shutdown request")
-    command.add_option("-l", "--router-info", dest="info", action="store_true",
-                       help="Router info request")
-    command.add_option("-P", "--info-pass", dest="info_password", action="store",
-                       help="Password for info request")
-    command.add_option("-n", "--new-route", dest="new_route", action="store_true",
-                       help="New route table request")
-    command.add_option("-t", "--toggle-trace", dest="trace", action="store_true",
-                       help="Toggle trace request")
-    command.add_option("-c", "--cancel-route", dest="cancel", action="store",
-                       help="Cancel route request")
-    command.add_option("-b", "--dump-buffer", dest="dump", action="store_true",
-                       help="Dump buffers request")
-    command.add_option("-f", "--flush-buffer", dest="flush", action="store_true",
-                       help="Flush buffers request")
-    command.add_option("-z", "--hide-errors", dest="hide", action="store_true",
-                       help="Hide errors info")
-    command.add_option("--set-peer-trace", dest="set_peer", action="store",
-                       help="Set peer trace (undocumented command)")
-    command.add_option("--clear-peer-trace", dest="clear_peer", action="store",
-                       help="Clear peer trace (undocumented command)")
-    command.add_option("--trace-connection", dest="trace_conn", action="store",
-                       help="Trace connection (undocumented command)")
-    parser.add_option_group(command)
+    misc = parser.add_argument_group("Misc options")
+    misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
 
-    misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
-                    help="Verbose output [%default]")
-    parser.add_option_group(misc)
-
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     if not options.remote_host:
         parser.error("Remote host is required")

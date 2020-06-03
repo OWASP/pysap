@@ -19,7 +19,7 @@
 # ==============
 
 # Standard imports
-from optparse import OptionParser
+from argparse import ArgumentParser
 # Custom imports
 import pysap
 
@@ -30,16 +30,12 @@ def parse_options():
     description = "This script can be used to parse support bits info and generate required info for pysap/wireshark "\
                   "plugin. Input file can be obtained from SAP Gui traces (for example file 'sapguidll_01_0001.trc')."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s -i <input_file>"
 
-    usage = "Usage: %prog -i <input_file>"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
+    parser.add_argument("-i", "--input", dest="input_file", help="Input file")
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
-    parser.add_option("-i", "--input", dest="input_file", help="Input file")
-
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     if not options.input_file:
         parser.error("Input file required")
