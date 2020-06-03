@@ -80,6 +80,17 @@ This library is distributed under the GPLv2 license. Check the `COPYING` file fo
 more details.
 
 
+Disclaimer
+----------
+
+The spirit of this open source initiative is hopefully to help the community to
+alleviate some of the hindrances associated with the implementation of
+networking protocols and stacks, aiming at speeding up research and educational
+activities. By no means this package is meant to be used in production
+environments / commercial products. If so, we would advise to include it into a
+proper SDLC process.
+
+
 Authors
 -------
 
