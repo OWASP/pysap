@@ -566,8 +566,35 @@ class SAPHDBAuthJWTMethod(SAPHDBAuthMethod):
         return self.craft_authentication_response_part()
 
 
+class SAPHDBAuthSAMLMethod(SAPHDBAuthMethod):
+    """SAP HDB Authentication using Security Assertion Markup Language (SAML) 2.0 Bearer Assertions.
+    """
+
+    METHOD = "SAML"
+
+    def __init__(self, username, saml_assertion, pid=None, hostname=None):
+        super(SAPHDBAuthSAMLMethod, self).__init__(pid, hostname)
+        self.username = username
+        self.saml_assertion = saml_assertion
+
+    def authenticate(self, connection):
+        auth_request = self.craft_authentication_request(self.saml_assertion)
+        auth_request.show()
+
+        auth_response = connection.sr(auth_request)
+        auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
+
+        # Check the method replied by the server
+        if self.METHOD != auth_response_part.auth_fields[0].value:
+            raise SAPHDBAuthenticationError("Authentication method not supported on server")
+
+        # Craft authentication part and return it
+        return self.craft_authentication_response_part()
+
+
 saphdb_auth_methods = {
     "JWT": SAPHDBAuthJWTMethod,
+    "SAML": SAPHDBAuthSAMLMethod,
     "SCRAMSHA256": SAPHDBAuthScramSHA256Method,
     "SCRAMPBKDF2SHA256": SAPHDBAuthScramPBKDF2SHA256Method,
     "SessionCookie": SAPHDBAuthSessionCookieMethod,

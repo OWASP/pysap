@@ -75,6 +75,8 @@ def parse_options():
     auth.add_option("--jwt-issuer", dest="jwt_issuer", help="JWT signature issuer")
     auth.add_option("--jwt-claim", dest="jwt_claim", default="user_name",
                     help="Name of the JWT claim to map username [%default]")
+    auth.add_option("--saml-assertion", dest="saml_assertion", metavar="FILE",
+                    help="File to read a signed SAML 2.0 bearer assertion from")
     auth.add_option("--session-cookie", dest="session_cookie", help="Session Cookie")
     auth.add_option("--pid", dest="pid", default="pysap", help="Process ID")
     auth.add_option("--hostname", dest="hostname", help="Hostname")
@@ -92,17 +94,23 @@ def parse_options():
 
     if options.method not in saphdb_auth_methods:
         parser.error("Invalid authentication method")
-    if not options.username:
+    if not options.username and options.method not in ["SAML"]:
         parser.error("Username needs to be provided")
-    if options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"] and not options.password:
-        parser.error("Password need to be provided for SCRAM-based authentication")
-    if options.method == "SessionCookie" and not options.session_cookie:
-        parser.error("Session cookie need to be provided for SessionCookie authentication")
+
     if options.method == "JWT":
         if not (options.jwt_file or (options.jwt_cert and options.jwt_issuer)):
             parser.error("JWT file or a signing certificate and issuer need to be provided for JWT authentication")
         if options.jwt_cert and not py_jwt:
             parser.error("JWT crafting requires the PyJWT library installed")
+
+    if options.method == "SAML" and not options.saml_assertion:
+        parser.error("SAML bearer assertion file need to be provided for SAML authentication")
+
+    if options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"] and not options.password:
+        parser.error("Password need to be provided for SCRAM-based authentication")
+
+    if options.method == "SessionCookie" and not options.session_cookie:
+        parser.error("Session cookie need to be provided for SessionCookie authentication")
 
     return options
 
@@ -122,7 +130,11 @@ def main():
     # Select the desired authentication method
     print("[*] Using authentication method %s" % options.method)
     auth_method_cls = saphdb_auth_methods[options.method]
-    if options.method == "JWT":
+    if options.method == "SAML":
+        with open(options.saml_assertion, 'r') as saml_assertion_fd:
+            auth_method = auth_method_cls("", saml_assertion_fd.read(),
+                                          pid=options.pid, hostname=options.hostname)
+    elif options.method == "JWT":
         if options.jwt_file:
             with open(options.jwt_file, 'r') as jwt_fd:
                 auth_method = auth_method_cls(options.username, jwt_fd.read(),
