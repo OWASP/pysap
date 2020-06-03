@@ -21,16 +21,13 @@
 # Standard imports
 from sys import platform
 from struct import pack, unpack
-from optparse import OptionParser
 from subprocess import check_output
+from argparse import ArgumentParser
+# External import
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 # Custom imports
 import pysap
-# Optional import
-try:
-    from cryptography.hazmat.backends import default_backend
-    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-except ImportError:
-    Cipher = None
 
 
 # Java serialization decoding. Taken from http://stackoverflow.com/a/16470856
@@ -252,24 +249,20 @@ def main():
                   "CVE-2016-3684 documented at " \
                   "https://www.coresecurity.com/advisories/sap-download-manager-password-weak-encryption."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s [options] -f <config filename>"
 
-    usage = "Usage: %prog [options] -f <config filename>"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
-
-    parser.add_option("-f", "--filename", dest="filename", metavar="FILE",
-                      help="DLManager config filename")
-    parser.add_option("-e", "--encrypted", dest="encrypted", action="store_true",
-                      help="If passwords are stored encrypted (version >= 2.1.140a)")
-    parser.add_option("-s", "--serial-number", dest="serial_number",
-                      help="The machine's BIOS serial number")
-    parser.add_option("-r", "--retrieve-serial-number", dest="retrieve", action="store_true",
-                      help="If the script should try to retrieve the serial number from the machine and use it for "
-                           "decryption")
-    (options, args) = parser.parse_args()
+    parser.add_argument("-f", "--filename", dest="filename", metavar="FILE",
+                        help="DLManager config filename")
+    parser.add_argument("-e", "--encrypted", dest="encrypted", action="store_true",
+                        help="If passwords are stored encrypted (version >= 2.1.140a)")
+    parser.add_argument("-s", "--serial-number", dest="serial_number",
+                        help="The machine's BIOS serial number")
+    parser.add_argument("-r", "--retrieve-serial-number", dest="retrieve", action="store_true",
+                        help="If the script should try to retrieve the serial number from the machine and use it for "
+                             "decryption")
+    options = parser.parse_args()
 
     if not options.filename:
         parser.error("[-] DLManager config filename required !")

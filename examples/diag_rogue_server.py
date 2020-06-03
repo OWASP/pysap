@@ -21,7 +21,7 @@
 # Standard imports
 import logging
 from socket import error
-from optparse import OptionParser, OptionGroup
+from argparse import ArgumentParser
 # External imports
 from scapy.config import conf
 from scapy.packet import bind_layers
@@ -236,30 +236,30 @@ def parse_options():
                   "customizable login screen and gathers entered credentials. Tested with SAP Gui for Java 7.20 Patch "\
                   "Level 5 running on Ubuntu."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s [options]"
 
-    usage = "Usage: %prog [options]"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
+    local = parser.add_argument_group("Local")
+    local.add_argument("-b", "--local-host", dest="local_host", default="127.0.0.1",
+                       help="Local address [%(default)s]")
+    local.add_argument("-l", "--local-port", dest="local_port", type=int, default=3200,
+                       help="Local port [%(default)d]")
 
-    local = OptionGroup(parser, "Local")
-    local.add_option("-b", "--local-host", dest="local_host", help="Local address [%default]", default="127.0.0.1")
-    local.add_option("-l", "--local-port", dest="local_port", type="int", help="Local port [%default]", default=3200)
-    parser.add_option_group(local)
+    server = parser.add_argument_group("Server")
+    server.add_argument("--sid", dest="server_sid", default="PRD",
+                        help="System ID [%(default)s]")
+    server.add_argument("--client", dest="server_client", default="001",
+                        help="Default Client [%(default)s]")
+    server.add_argument("--hostname", dest="server_hostname", default="SAPNWPRD",
+                        help="Hostname [%(default)s]")
+    server.add_argument("--session-title", dest="server_session_title", default="SAP Netweaver Demo Server",
+                        help="Session Title [%(default)s]")
 
-    server = OptionGroup(parser, "Server")
-    server.add_option("--sid", dest="server_sid", help="System ID", default="PRD")
-    server.add_option("--client", dest="server_client", help="Default Client", default="001")
-    server.add_option("--hostname", dest="server_hostname", help="Hostname", default="SAPNWPRD")
-    server.add_option("--session-title", dest="server_session_title", help="Session Title", default="SAP Netweaver Demo Server")
+    misc = parser.add_argument_group("Misc options")
+    misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
 
-    misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Verbose output [%default]")
-    parser.add_option_group(misc)
-
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     return options
 
