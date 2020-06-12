@@ -113,8 +113,10 @@ def parse_options():
 def main():
     options = parse_options()
 
+    level = logging.INFO
     if options.verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        level = logging.DEBUG
+    logging.basicConfig(level=level, format='%(message)s')
 
     # Initiate the connection
     connection_class = SAPHDBConnection

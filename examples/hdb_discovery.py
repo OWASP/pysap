@@ -74,8 +74,10 @@ def parse_options():
 def main():
     options = parse_options()
 
+    level = logging.INFO
     if options.verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        level = logging.DEBUG
+    logging.basicConfig(level=level, format='%(message)s')
 
     # Initiate the connection
     connection_class = SAPHDBConnection
@@ -94,7 +96,6 @@ def main():
                            options.remote_port,
                            route=options.route_string)
 
-    print(tenants)
     try:
         for tenant in tenants:
             logging.info("[*] Discovering tenant '{}'".format(tenant))
@@ -109,17 +110,22 @@ def main():
                 hdb_dbconnectinfo_part = SAPHDBPart(partkind=67, argumentcount=1, buffer=hdb_dbconnectinfo_options)
                 hdb_dbconnectinfo_request = SAPHDB(sessionid=0, segments=[SAPHDBSegment(messagetype=82,
                                                                                         parts=[hdb_dbconnectinfo_part])])
-                hdb_dbconnectinfo_request.show()
 
                 hdb_dbconnectinfo_response = hdb.sr(hdb_dbconnectinfo_request)
-                hdb_dbconnectinfo_response.show()
+                hdb_dbconnectinfo_response_part = SAPHDBOptionPartRow(hdb_dbconnectinfo_response.segments[0].parts[0].buffer[0])
+
+                # Is Connected?
+                if hdb_dbconnectinfo_response_part.key == 4 and hdb_dbconnectinfo_response_part.value:
+                    logging.info("[+] Tenant '%s' is connected" % tenant)
+                else:
+                    logging.debug("[-] Tenant '%s' is not connected" % tenant)
+                    hdb_dbconnectinfo_response_part.show()
 
                 hdb.close()
-
                 logging.debug("[*] Connection with HANA database server closed")
 
-            except SocketError as e:
-                logging.error("[-] Connection error: %s" % e.message)
+            except SocketError:
+                logging.error("[-] Tenant '%s' doesn't exist" % tenant)
             except SAPHDBConnectionError as e:
                 logging.error("[-] Connection error: %s" % e.message)
 
