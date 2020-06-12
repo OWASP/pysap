@@ -24,11 +24,12 @@ import struct
 # External imports
 from cryptography.hazmat.backends import default_backend
 from scapy.layers.inet import TCP
-from scapy.packet import Packet, bind_layers
+from scapy.packet import Packet, bind_layers, Raw
 from scapy.supersocket import SSLStreamSocket
-from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField,
+from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField, YesNoByteField,
                           IntField, PacketListField, SignedByteField, LongField, PadField,
-                          LEIntField, LESignedIntField, StrFixedLenField, ShortField)
+                          LEIntField, LESignedIntField, StrFixedLenField, ShortField,
+                          MultipleTypeField, StrField)
 # Custom imports
 from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.utils.crypto import SCRAM_SHA256, SCRAM_PBKDF2SHA256
@@ -179,6 +180,84 @@ hdb_partkind_values = {
 """SAP HDB Part Kind Values"""
 
 
+hdb_data_type_vals = {
+    0: "NULL",
+    1: "TINYINT",
+    2: "SMALLINT",
+    3: "INT",
+    4: "BIGINT",
+    5: "DECIMAL",
+    6: "REAL",
+    7: "DOUBLE",
+    8: "CHAR",
+    9: "VARCHAR1",
+    10: "NCHAR",
+    11: "NVARCHAR",
+    12: "BINARY",
+    13: "VARBINARY",
+    14: "DATE",
+    15: "TIME",
+    16: "TIMESTAMP",
+    17: "TIME_TZ",
+    18: "TIME_LTZ",
+    19: "TIMESTAMP_TZ",
+    20: "TIMESTAMP_LTZ",
+    21: "INTERVAL_YM",
+    22: "INTERVAL_DS",
+    23: "ROWID",
+    24: "UROWID",
+    25: "CLOB",
+    26: "NCLOB",
+    27: "BLOB",
+    28: "BOOLEAN",
+    29: "STRING",
+    30: "NSTRING",
+    31: "LOCATOR",
+    32: "NLOCATOR",
+    33: "BSTRING",
+    34: "DECIMAL_DIGIT_ARRAY",
+    35: "VARCHAR2",
+    36: "VARCHAR3",
+    37: "NVARCHAR3",
+    38: "VARBINARY3",
+    39: "VARGROUP",
+    40: "TINYINT_NOTNULL",
+    41: "SMALLINT_NOTNULL",
+    42: "INT_NOTNULL",
+    43: "BIGINT_NOTNULL",
+    44: "ARGUMENT",
+    45: "TABLE",
+    46: "CURSOR",
+    47: "SMALLDECIMAL",
+    48: "ABAPSTREAM",
+    49: "ABAPSTRUCT",
+    50: "ARRAY",
+    51: "TEXT",
+    52: "SHORTTEXT",
+    53: "FIXEDSTRING",
+    54: "FIXEDPOINTDECIMAL",
+    55: "ALPHANUM",
+    56: "TLOCATOR",
+    61: "LONGDATE",
+    62: "SECONDDATE",
+    63: "DAYDATE",
+    64: "SECONDTIME",
+    65: "CSDATE",
+    66: "CSTIME",
+    71: "BLOB_DISK",
+    72: "CLOB_DISK",
+    73: "NCLOB_DISK",
+    74: "GEOMETRY",
+    75: "POINT",
+    76: "FIXED16",
+    77: "BLOB_HYBRID",
+    78: "CLOB_HYBRID",
+    79: "NCLOB_HYBRID",
+    80: "POINTZ",
+}
+"""SAP HDB Data Type Values"""
+
+
 def hdb_segment_is_request(segment):
     """Returns if the segment is a request
 
@@ -290,6 +369,32 @@ class SAPHDBPartAuthentication(PacketNoPadded):
     ]
 
 
+class SAPHDBOptionPartRow(PacketNoPadded):
+    """SAP HANA SQL Command Network Protocol Option Part Row
+
+    This packet represents a row in an Option Part.
+
+    Each row is comprised of a key, type and value.
+    """
+    name = "SAP HANA SQL Command Network Protocol Option Part Row"
+    fields_desc = [
+        LESignedByteField("key", 0),
+        EnumField("type", 0, hdb_data_type_vals, fmt="<b"),
+        ConditionalField(FieldLenField("length", None, length_of="value", fmt="<h"), lambda x: x.type in [29, 30, 33]),
+        MultipleTypeField(
+            [
+                (LESignedByteField("value", 0), lambda x: x.type == 1),
+                (LESignedShortField("value", 0), lambda x: x.type == 2),
+                (LESignedIntField("value", 0), lambda x: x.type == 3),
+                (LESignedLongField("value", 0), lambda x: x.type == 4),
+                (YesNoByteField("value", 0), lambda x: x.type == 28),
+                (StrFixedLenField("value", None, length_from=lambda x: x.length), lambda x: x.type in [29, 30, 33]),
+            ],
+            StrField("value", ""),
+        ),
+    ]
+
+
 class SAPHDBPart(PacketNoPadded):
     """SAP HANA SQL Command Network Protocol Part
 
@@ -301,11 +406,13 @@ class SAPHDBPart(PacketNoPadded):
     fields_desc = [
         EnumField("partkind", 0, hdb_partkind_values, fmt="<b"),
         LESignedByteField("partattributes", 0),
-        LESignedShortField("argumentcount", 0),
+        FieldLenField("argumentcount", None, count_of="buffer", fmt="<h"),
         LESignedIntField("bigargumentcount", 0),
         FieldLenField("bufferlength", None, length_of="buffer", fmt="<i"),
         LESignedIntField("buffersize", 2**17 - 32 - 24),
-        PadField(PacketListField("buffer", None), 8),
+        PadField(PacketListField("buffer", [],
+                                 count_from=lambda x: x.argumentcount,
+                                 length_from=lambda x: x.bufferlength), 8),
     ]
 
 
@@ -553,7 +660,6 @@ class SAPHDBAuthJWTMethod(SAPHDBAuthMethod):
 
     def authenticate(self, connection):
         auth_request = self.craft_authentication_request(self.jwt)
-        auth_request.show()
 
         auth_response = connection.sr(auth_request)
         auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
@@ -579,7 +685,6 @@ class SAPHDBAuthSAMLMethod(SAPHDBAuthMethod):
 
     def authenticate(self, connection):
         auth_request = self.craft_authentication_request(self.saml_assertion)
-        auth_request.show()
 
         auth_response = connection.sr(auth_request)
         auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
@@ -716,8 +821,6 @@ class SAPHDBConnection(object):
             self.close_socket()
             raise SAPHDBAuthenticationError("Authentication failed")
 
-        auth_response.show()
-
     def connect_authenticate(self):
         """Connects to the server, performs initialization and authenticates the client.
         """
@@ -738,7 +841,7 @@ class SAPHDBConnection(object):
 
             # Send disconnect packet and check the response
             disconnect_response = self.sr(disconnect_request)
-            if disconnect_response.segments[0].segmentkind != 2 or \
+            if not hdb_segment_is_reply(disconnect_response.segments[0]) or \
                disconnect_response.segments[0].functioncode != 18:
                 raise SAPHDBConnectionError("Connection incorrectly closed")
 

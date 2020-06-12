@@ -60,7 +60,7 @@ def parse_options():
 
     auth = parser.add_argument_group("Authentication")
     auth.add_argument("-m", "--method", dest="method", default="SCRAMSHA256",
-                      help="Authentication method. Supported methods: {} [%default]".format(",".join(saphdb_auth_methods.keys())))
+                      help="Authentication method. Supported methods: {} [%(default)s]".format(",".join(saphdb_auth_methods.keys())))
     auth.add_argument("--username", dest="username", help="User name")
     auth.add_argument("--password", dest="password", help="Password")
     auth.add_argument("--jwt-file", dest="jwt_file", metavar="FILE",
