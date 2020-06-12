@@ -97,13 +97,13 @@ def main():
     print(tenants)
     try:
         for tenant in tenants:
-            print("[*] Discovering tenant '{}'".format(tenant))
+            logging.info("[*] Discovering tenant '{}'".format(tenant))
             try:
                 hdb.connect()
-                print("[*] Connected to HANA database %s:%d" % (options.remote_host, options.remote_port))
+                logging.debug("[*] Connected to HANA database %s:%d" % (options.remote_host, options.remote_port))
                 hdb.initialize()
-                print("[*] HANA database version %d/protocol version %d" % (hdb.product_version,
-                                                                            hdb.protocol_version))
+                logging.debug("[*] HANA database version %d/protocol version %d" % (hdb.product_version,
+                                                                                    hdb.protocol_version))
 
                 hdb_dbconnectinfo_options = [SAPHDBOptionPartRow(key=1, type=29, value=tenant)]
                 hdb_dbconnectinfo_part = SAPHDBPart(partkind=67, argumentcount=1, buffer=hdb_dbconnectinfo_options)
@@ -116,15 +116,15 @@ def main():
 
                 hdb.close()
 
-                print("[*] Connection with HANA database server closed")
+                logging.debug("[*] Connection with HANA database server closed")
 
             except SocketError as e:
-                print("[-] Connection error: %s" % e.message)
+                logging.error("[-] Connection error: %s" % e.message)
             except SAPHDBConnectionError as e:
-                print("[-] Connection error: %s" % e.message)
+                logging.error("[-] Connection error: %s" % e.message)
 
     except KeyboardInterrupt:
-        print("[-] Connection canceled")
+        logging.info("[-] Connection canceled")
 
 
 if __name__ == "__main__":

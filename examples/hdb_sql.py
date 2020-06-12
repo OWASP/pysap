@@ -42,7 +42,9 @@ conf.verb = 0
 # Command line options parser
 def parse_options():
 
-    description = "This example script is an experimental implementation of the HANA's hdbcli tool."
+    description = "This example script is an experimental implementation of the HANA's hdbsql tool. It" \
+                  "focuses on the authentication and connection to the HANA server, and it't not meant" \
+                  "to implement the full capabilities offered by hdbsql or any other HDB client interface."
 
     usage = "%(prog)s [options] -d <remote host>"
 
@@ -120,7 +122,7 @@ def main():
         connection_class = SAPHDBTLSConnection
 
     # Select the desired authentication method
-    print("[*] Using authentication method %s" % options.method)
+    logging.debug("[*] Using authentication method %s" % options.method)
     auth_method_cls = saphdb_auth_methods[options.method]
     if options.method == "SAML":
         with open(options.saml_assertion, 'r') as saml_assertion_fd:
@@ -148,7 +150,7 @@ def main():
         auth_method = auth_method_cls(options.username, options.session_cookie,
                                       pid=options.pid, hostname=options.hostname)
     else:
-        print("[-] Unsupported authentication method")
+        logging.error("[-] Unsupported authentication method")
         return
 
     # Create the connection
@@ -159,22 +161,22 @@ def main():
 
     try:
         hdb.connect()
-        print("[*] Connected to HANA database %s:%d" % (options.remote_host, options.remote_port))
+        logging.debug("[*] Connected to HANA database %s:%d" % (options.remote_host, options.remote_port))
         hdb.initialize()
-        print("[*] HANA database version %d/protocol version %d" % (hdb.product_version,
-                                                                    hdb.protocol_version))
+        logging.debug("[*] HANA database version %d/protocol version %d" % (hdb.product_version,
+                                                                            hdb.protocol_version))
         hdb.authenticate()
-        print("[*] Authenticated against HANA database server")
+        logging.debug("[*] Authenticated against HANA database server")
 
         hdb.close()
-        print("[*] Connection with HANA database server closed")
+        logging.debug("[*] Connection with HANA database server closed")
 
     except SAPHDBAuthenticationError as e:
-        print("[-] Authentication error: %s" % e.message)
+        logging.error("[-] Authentication error: %s" % e.message)
     except SAPHDBConnectionError as e:
-        print("[-] Connection error: %s" % e.message)
+        logging.error("[-] Connection error: %s" % e.message)
     except KeyboardInterrupt:
-        print("[-] Connection canceled")
+        logging.info("[-] Connection canceled")
 
 
 if __name__ == "__main__":
