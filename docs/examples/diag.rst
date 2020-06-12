@@ -67,6 +67,16 @@ generates false positive. In addition, it should be noted that there's no mechan
 to prevent the lockout of user accounts if the server is configured with a lockout policy. Use
 with care and at your own risk.
 
+Finally, the ``login/show_detailed_errors`` parameter can be configured to ``FALSE`` in the SAP
+Application Server to avoid disclosing information about whether a client exists or not, and
+to avoid returning information about existent users. For more information see
+`SAP Security Note 1823687 <https://launchpad.support.sap.com/#/notes/1823687>`_.
+
+If the parameter is configured to ``FALSE``, the results of the discovery will be flawed, with
+probably a large set (if not all) of clients invalidly reported as existent. The same false
+positives will be reported for user names validity. The finding of valid credentials is not
+affected thought.
+
 
 ``diag_login_screen_info``
 --------------------------
