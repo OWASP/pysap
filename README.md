@@ -114,6 +114,7 @@ Contributions made by:
   * [@cclauss](https://github.com/cclauss)
   * [@okuuva](https://github.com/okuuva)
   * Dmitry Chastuhin ([@_chipik](https://twitter.com/_chipik))
+  * fabhap
 
 
 Contact
