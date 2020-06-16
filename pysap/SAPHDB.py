@@ -282,93 +282,6 @@ def hdb_segment_is_reply(segment):
     return segment.segmentkind == 2
 
 
-class SAPHDBPartAuthenticationField(PacketNoPadded):
-    """SAP HANA SQL Command Network Protocol Authentication Part Field
-
-    This packet represents a field in the Authentication Part
-    """
-    name = "SAP HANA SQL Command Network Protocol Authentication Field"
-    fields_desc = [
-        AdjustableFieldLenField("length", None, length_of="value"),
-        StrFixedLenField("value", None, length_from=lambda pkt: pkt.length),
-    ]
-
-
-class SAPHDBPartAuthentication(PacketNoPadded):
-    """SAP HANA SQL Command Network Protocol Authentication Part
-
-    This packet represents an Authentication Part. The Authentication part consists of a count value and then
-    a number of key/value pairs expressed with field values.
-
-    Authentication methods documented are:
-        - "GSS" - Provides GSS/Kerberos authentication.
-        - "PLAINPASSWORD" - Reserved. Do not use.
-        - "SAML" - Provides SAML authentication.
-        - "SCRAMMD5" - Reserved. Do not use.
-        - "SCRAMSHA256" - Provides password-based authentication.
-
-    Non-documented methods are:
-        - "JWT"
-        - "SAPLogon"
-        - "SCRAMPBKDF2SHA256"
-        - "SessionCookie"
-        - "X509Internal"
-
-    Known authentication key values are:
-
-    - GSS Authentication:
-        - USERNAME - User name
-        - METHODNAME - Method name
-        - CLIENTCHALLENGE - Client challenge
-            - KRB5OID - KRB5 object ID
-            - TYPEOID - Type object ID
-            - CLIENTGSSNAME - Client GSS Name
-        - SERVERTOKEN - Server-specific Kerberos tokens
-        - CLIENTOKEN - Client-specific Kerberos tokens
-    - LDAP Authentication:
-        - USERNAME - User name
-        - METHODNAME - Method name ("LDAP")
-        - CLIENTCHALLENGE - Client challenge
-        - SERVERCHALLENGE - Server Challenge
-            - CLIENTNONCE - Specifies the client nonce that was sent in the initial request.
-            - SERVERNONCE - Specifies the server nonce.
-            - SERVERPUBLICKEY - Specifies the server public key.
-            - CAPABILITYRESULT - Specifies the capability, chosen by the server, from the client request.
-        - CLIENTPROOF - Specifies the client proof.
-            - ENCRYPTEDSESSKEY - Specifies the encrypted session key. This is specified as: RSAEncrypt(public key, SESSIONKEY + SERVERNONCE).
-            - ENCRYPTEDPASSWORD - Specifies the encrypted password. This is specified as: AES256Encrypt(SESSIONKEY, PASSWORD + SERVERNONCE).
-        - SERVERPROOF - Specifies the authentication result from the LDAP server. This is specified as either SUCCESS or FAIL.
-    - SAML Authentication:
-        - USERNAME - Specifies the user name (always empty user name).
-        - METHODNAME - Specifies the method name.
-        - SAMLASSERTION - Specifies the SAML assertion.
-        - SAMLUSER - Specifies the user name associated with the SAML assertion.
-        - FINALDATA - Specifies the final data (this is empty).
-        - SESSIONCOOKIE - Specifies the session cookie used for the reconnect.
-    - SCRAMSHA256 Authentication:
-        - USERNAME - Specifies the user name.
-        - METHODNAME - Specifies the method name.
-        - CLIENTCHALLENGE - Specifies the client challenge. (64 bytes)
-        - SERVERCHALLENGEDATA - Specifies the server challenge.
-            - SALT - Specifies the password salt.
-            - SERVERCHALLENGE - Specifies the server challenge.
-        - CLIENTPROOF - Specifies the client proof. (35 bytes)
-            - SCRAMMESSAGE - Specifies the SCRAM HMAC message, the actual Client Proof that is sent to the server. (32 bytes)
-        - SERVERPROOF - Specifies the server proof.
-    - Session Cookie Authentication:
-        - USERNAME - Specifies the user name.
-        - METHODNAME - Specifies the method name.
-        - SESSIONCOOKIE - Specifies the session cookie, process ID, and hostname.
-        - SERVERREPLY - Specifies the server reply (this is empty).
-        - FINALDATA - Specifies the final data (this is empty).
-    """
-    name = "SAP HANA SQL Command Network Protocol Authentication Part"
-    fields_desc = [
-        FieldLenField("count", None, count_of="auth_fields", fmt="<H"),
-        PacketListField("auth_fields", None, SAPHDBPartAuthenticationField, count_from=lambda x: x.count),
-    ]
-
-
 hdb_option_part_key_vals = {
     15: {  # TOPOLOGYINFORMATION
         1: "Host Name",
@@ -488,6 +401,7 @@ hdb_option_part_key_vals = {
     },
     None: {},  # Default to non enum if we don't know that part type
 }
+"""SAP HDB Option Part Key Values"""
 
 
 class SAPHDBOptionPartRow(PacketNoPadded):
@@ -517,6 +431,115 @@ class SAPHDBOptionPartRow(PacketNoPadded):
     ]
 
 
+hdb_error_level_vals = {
+    0: "WARNING",
+    1: "ERROR",
+    2: "FATALERROR",
+}
+"""SAP HDB Error Level Values"""
+
+
+class SAPHDBPartError(PacketNoPadded):
+    """SAP HANA SQL Command Network Protocol Error Part
+    """
+    name = "SAP HANA SQL Command Network Protocol Authentication Part"
+    fields_desc = [
+        LESignedIntField("error_code", 0),
+        LESignedIntField("error_position", 0),
+        FieldLenField("error_text_length", None, length_of="error_text", fmt="<i"),
+        EnumField("error_level", 0, hdb_error_level_vals, fmt="<b"),
+        StrFixedLenField("sql_state", "HY000", 5),
+        PadField(StrFixedLenField("error_text", None, length_from=lambda pkt: pkt.error_text_length), 8),
+    ]
+
+
+class SAPHDBPartAuthenticationField(PacketNoPadded):
+    """SAP HANA SQL Command Network Protocol Authentication Part Field
+
+    This packet represents a field in the Authentication Part.
+    """
+    name = "SAP HANA SQL Command Network Protocol Authentication Field"
+    fields_desc = [
+        AdjustableFieldLenField("length", None, length_of="value"),
+        StrFixedLenField("value", None, length_from=lambda pkt: pkt.length),
+    ]
+
+
+class SAPHDBPartAuthentication(PacketNoPadded):
+    """SAP HANA SQL Command Network Protocol Authentication Part
+
+    This packet represents an Authentication Part. The Authentication part consists of a count value and then
+    a number of key/value pairs expressed with field values.
+
+    Authentication methods documented are:
+        - "GSS" - Provides GSS/Kerberos authentication.
+        - "PLAINPASSWORD" - Reserved. Do not use.
+        - "SAML" - Provides SAML authentication.
+        - "SCRAMMD5" - Reserved. Do not use.
+        - "SCRAMSHA256" - Provides password-based authentication.
+
+    Non-documented methods are:
+        - "JWT"
+        - "SAPLogon"
+        - "SCRAMPBKDF2SHA256"
+        - "SessionCookie"
+        - "X509Internal"
+
+    Known authentication key values are:
+
+    - GSS Authentication:
+        - USERNAME - User name
+        - METHODNAME - Method name
+        - CLIENTCHALLENGE - Client challenge
+            - KRB5OID - KRB5 object ID
+            - TYPEOID - Type object ID
+            - CLIENTGSSNAME - Client GSS Name
+        - SERVERTOKEN - Server-specific Kerberos tokens
+        - CLIENTOKEN - Client-specific Kerberos tokens
+    - LDAP Authentication:
+        - USERNAME - User name
+        - METHODNAME - Method name ("LDAP")
+        - CLIENTCHALLENGE - Client challenge
+        - SERVERCHALLENGE - Server Challenge
+            - CLIENTNONCE - Specifies the client nonce that was sent in the initial request.
+            - SERVERNONCE - Specifies the server nonce.
+            - SERVERPUBLICKEY - Specifies the server public key.
+            - CAPABILITYRESULT - Specifies the capability, chosen by the server, from the client request.
+        - CLIENTPROOF - Specifies the client proof.
+            - ENCRYPTEDSESSKEY - Specifies the encrypted session key. This is specified as: RSAEncrypt(public key, SESSIONKEY + SERVERNONCE).
+            - ENCRYPTEDPASSWORD - Specifies the encrypted password. This is specified as: AES256Encrypt(SESSIONKEY, PASSWORD + SERVERNONCE).
+        - SERVERPROOF - Specifies the authentication result from the LDAP server. This is specified as either SUCCESS or FAIL.
+    - SAML Authentication:
+        - USERNAME - Specifies the user name (always empty user name).
+        - METHODNAME - Specifies the method name.
+        - SAMLASSERTION - Specifies the SAML assertion.
+        - SAMLUSER - Specifies the user name associated with the SAML assertion.
+        - FINALDATA - Specifies the final data (this is empty).
+        - SESSIONCOOKIE - Specifies the session cookie used for the reconnect.
+    - SCRAMSHA256 Authentication:
+        - USERNAME - Specifies the user name.
+        - METHODNAME - Specifies the method name.
+        - CLIENTCHALLENGE - Specifies the client challenge. (64 bytes)
+        - SERVERCHALLENGEDATA - Specifies the server challenge.
+            - SALT - Specifies the password salt.
+            - SERVERCHALLENGE - Specifies the server challenge.
+        - CLIENTPROOF - Specifies the client proof. (35 bytes)
+            - SCRAMMESSAGE - Specifies the SCRAM HMAC message, the actual Client Proof that is sent to the server. (32 bytes)
+        - SERVERPROOF - Specifies the server proof.
+    - Session Cookie Authentication:
+        - USERNAME - Specifies the user name.
+        - METHODNAME - Specifies the method name.
+        - SESSIONCOOKIE - Specifies the session cookie, process ID, and hostname.
+        - SERVERREPLY - Specifies the server reply (this is empty).
+        - FINALDATA - Specifies the final data (this is empty).
+    """
+    name = "SAP HANA SQL Command Network Protocol Authentication Part"
+    fields_desc = [
+        FieldLenField("count", None, count_of="auth_fields", fmt="<H"),
+        PacketListField("auth_fields", None, SAPHDBPartAuthenticationField, count_from=lambda x: x.count),
+    ]
+
+
 def saphdb_determine_part_class(pkt, lst, cur, remain):
     """Determines the class of the buffer elements based on the Part Kind value.
     """
@@ -529,7 +552,9 @@ def saphdb_determine_part_class(pkt, lst, cur, remain):
             return TailoredSAPHDBOptionPartRow
         # Otherwise just use the plain Option Part Row
         return SAPHDBOptionPartRow
-    # Authentication
+
+    elif pkt.partkind == 6:
+        return SAPHDBPartError
     elif pkt.partkind == 33:
         return SAPHDBPartAuthentication
     # Default to Raw if the part kind is not implemented

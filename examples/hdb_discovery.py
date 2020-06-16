@@ -115,7 +115,7 @@ def main():
 
                 # Check if it's an error response
                 if hdb_dbconnectinfo_response.segments[0].segmentkind == 5:
-                    logging.error("[-] Tenant '%s' doesn't exist" % tenant)
+                    logging.error("[-] Tenant '%s' exist but is not connected" % tenant)
                     continue
 
                 hdb_dbconnectinfo_response_part = hdb_dbconnectinfo_response.segments[0].parts[0].buffer[0]
