@@ -112,7 +112,15 @@ def main():
                                                                                         parts=[hdb_dbconnectinfo_part])])
 
                 hdb_dbconnectinfo_response = hdb.sr(hdb_dbconnectinfo_request)
-                hdb_dbconnectinfo_response_part = SAPHDBOptionPartRow(hdb_dbconnectinfo_response.segments[0].parts[0].buffer[0])
+
+                # Check if it's an error response
+                if hdb_dbconnectinfo_response.segments[0].segmentkind == 5:
+                    logging.error("[-] Tenant '%s' doesn't exist" % tenant)
+                    continue
+
+                hdb_dbconnectinfo_response_part = hdb_dbconnectinfo_response.segments[0].parts[0].buffer[0]
+                for option_row in hdb_dbconnectinfo_response.segments[0].parts[0].buffer:
+                    logging.debug(option_row.show(True))
 
                 # Is Connected?
                 if hdb_dbconnectinfo_response_part.key == 4 and hdb_dbconnectinfo_response_part.value:

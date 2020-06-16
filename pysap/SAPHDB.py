@@ -29,7 +29,7 @@ from scapy.supersocket import SSLStreamSocket
 from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField, YesNoByteField,
                           IntField, PacketListField, SignedByteField, LongField, PadField,
                           LEIntField, LESignedIntField, StrFixedLenField, ShortField,
-                          MultipleTypeField, StrField)
+                          MultipleTypeField, StrField, MultiEnumField)
 # Custom imports
 from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.utils.crypto import SCRAM_SHA256, SCRAM_PBKDF2SHA256
@@ -369,6 +369,127 @@ class SAPHDBPartAuthentication(PacketNoPadded):
     ]
 
 
+hdb_option_part_key_vals = {
+    15: {  # TOPOLOGYINFORMATION
+        1: "Host Name",
+        2: "Host Port Number",
+        3: "Tenant Name",
+        4: "Load Factor",
+        5: "Site Volume ID",
+        6: "Is Master",
+        7: "Is Current Session",
+        8: "Service Type",
+        9: "Network Domain",
+        10: "Is Stand-By",
+        11: "All IP Addresses",
+        12: "All Host Names",
+        13: "Site Type"
+    },
+    27: {   # COMMANDINFO
+        1: "Line Number",
+        2: "Source Module",
+    },
+    34: {   # SESSIONCONTEXT
+        1: "Primary Connection ID",
+        2: "Primary Host Name",
+        3: "Primary Host Port Number",
+        4: "Master Connection ID",
+        5: "Master Host Name",
+        6: "Master Host Port Number",
+    },
+    39: {   # STATEMENTCONTEXT
+        1: "Statement Sequence Info",
+        2: "Server Processing Time",
+        3: "Schema Name",
+        4: "Flag Set",
+        5: "Query Time Out",
+    },
+    42: {   # CONNECTOPTIONS
+        1: "Connection ID",
+        2: "Complete Array Execution",
+        3: "Client Locale",
+        4: "Supports Large Bulk Operations",
+        5: "Distribution Enabled",
+        6: "Primary Connection ID",
+        7: "Primary Connection Host",
+        8: "Primary Connection Port",
+        9: "Complete Data Type Support",
+        10: "Large Number of Parameters Support",
+        11: "System ID",
+        12: "Data Format Version",
+        13: "ABAP VARCHAR Mode",
+        14: "Select for Update Supported",
+        15: "Client Distribution Mode",
+        16: "Engine Data Format Version",
+        17: "Distribution Protocol Version",
+        18: "Split Batch Commands",
+        19: "Use Transaction Flags Only",
+        20: "Row and Column Optimized Format",
+        21: "Ignore Unknown Parts",
+        22: "Table Output Parameter",
+        23: "Data Format Version 2",
+        24: "ITAB Parameter",
+        25: "Describe Table Output Parameter",
+        26: "Columnar Result Set",
+        27: "Scrollable Result Set",
+        28: "Client Info NULL Value Supported",
+        29: "Associated Connection ID",
+        30: "Non-Transactional Prepare",
+        31: "Fast Data Access Enabled",
+        32: "OS User",
+        33: "Row Slot Image Result",
+        34: "Endianness",
+        35: "Update Topology Anwhere",
+        36: "Enable Array Type",
+        37: "Implicit LOB Streaming",
+        38: "Cached View Property",
+        39: "X OpenXA Protocol Supported",
+        40: "Master Commit Redirection Supported",
+        41: "Active/Active Protocol Version",
+        42: "Active/Active Connection Origin Site",
+        43: "Query Timeout Supported",
+        44: "Full Version String",
+        45: "Database Name",
+        46: "Build Platform",
+        47: "Implicit XA Session Supported",
+        48: "Client Side Column Encryption Version",
+        49: "Compression Level And Flags",
+        50: "Client Side Re-Execution Supported",
+        51: "Client Reconnect Wait Timeout",
+        52: "Original Anchor Connection ID",
+        53: "Flag Set 1",
+        54: "Topology Network Group",
+        55: "IP Address",
+        56: "LRR Ping Time",
+    },
+    43: {   # COMMITOPTIONS
+        1: "Hold Cursors Over Commit",
+    },
+    44: {   # FETCHOPTIONS
+        1: "Result Set Pos",
+    },
+    64: {   # TRANSACTIONFLAGS
+        0: "Rolled Back",
+        1: "Commited",
+        2: "New Isolation Level",
+        3: "DDL Commit Mode Changed",
+        4: "Write Transaction Started",
+        5: "No Write Transaction Started",
+        6: "Session Closing Transaction Error",
+    },
+    67: {   # DBCONNECTINFO
+        1: "Database Name",
+        2: "Host",
+        3: "Port",
+        4: "Is Connected",
+    },
+    68: {   # LOBFLAGS
+        0: "Implicit Streaming",
+    },
+    None: {},  # Default to non enum if we don't know that part type
+}
+
+
 class SAPHDBOptionPartRow(PacketNoPadded):
     """SAP HANA SQL Command Network Protocol Option Part Row
 
@@ -376,9 +497,10 @@ class SAPHDBOptionPartRow(PacketNoPadded):
 
     Each row is comprised of a key, type and value.
     """
+    partkind = None
     name = "SAP HANA SQL Command Network Protocol Option Part Row"
     fields_desc = [
-        LESignedByteField("key", 0),
+        MultiEnumField("key", 0, hdb_option_part_key_vals, depends_on=lambda x: x.partkind, fmt="<b"),
         EnumField("type", 0, hdb_data_type_vals, fmt="<b"),
         ConditionalField(FieldLenField("length", None, length_of="value", fmt="<h"), lambda x: x.type in [29, 30, 33]),
         MultipleTypeField(
@@ -393,6 +515,25 @@ class SAPHDBOptionPartRow(PacketNoPadded):
             StrField("value", ""),
         ),
     ]
+
+
+def saphdb_determine_part_class(pkt, lst, cur, remain):
+    """Determines the class of the buffer elements based on the Part Kind value.
+    """
+    # Option Row
+    if pkt.partkind in [15, 27, 34, 39, 42, 43, 44, 64, 67, 68]:
+        # If we've information about the Option Part key values, add it to the enum field in a new tailored class
+        if pkt.partkind in hdb_option_part_key_vals:
+            class TailoredSAPHDBOptionPartRow(SAPHDBOptionPartRow):
+                partkind = pkt.partkind
+            return TailoredSAPHDBOptionPartRow
+        # Otherwise just use the plain Option Part Row
+        return SAPHDBOptionPartRow
+    # Authentication
+    elif pkt.partkind == 33:
+        return SAPHDBPartAuthentication
+    # Default to Raw if the part kind is not implemented
+    return Raw
 
 
 class SAPHDBPart(PacketNoPadded):
@@ -410,7 +551,7 @@ class SAPHDBPart(PacketNoPadded):
         LESignedIntField("bigargumentcount", 0),
         FieldLenField("bufferlength", None, length_of="buffer", fmt="<i"),
         LESignedIntField("buffersize", 2**17 - 32 - 24),
-        PadField(PacketListField("buffer", [],
+        PadField(PacketListField("buffer", [], next_cls_cb=saphdb_determine_part_class,
                                  count_from=lambda x: x.argumentcount,
                                  length_from=lambda x: x.bufferlength), 8),
     ]
@@ -816,6 +957,7 @@ class SAPHDBConnection(object):
 
         # Send connect packet
         auth_response = self.sr(auth_request)
+        auth_response.show()
 
         if auth_response.segments[0].segmentkind == 5:  # If is Error segment kind
             self.close_socket()
