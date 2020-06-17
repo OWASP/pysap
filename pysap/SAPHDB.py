@@ -31,6 +31,7 @@ from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField,
                           LEIntField, LESignedIntField, StrFixedLenField, ShortField,
                           MultipleTypeField, StrField, MultiEnumField, Field)
 # Custom imports
+import pysap
 from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.utils.crypto import SCRAM_SHA256, SCRAM_PBKDF2SHA256
 from pysap.utils.fields import (PacketNoPadded, AdjustableFieldLenField, LESignedByteField,
@@ -409,6 +410,17 @@ class SAPHDBPartCommandInfo(SAPHDBOptionPartRow):
 
 
 @hdb_register_part_kind
+class SAPHDBPartClientContext(SAPHDBOptionPartRow):
+    part_kind = 29
+    name = "SAP HANA SQL Command Network Protocol Client Context"
+    option_keys = {
+        1: "Client Version",
+        2: "Client Type",
+        3: "Application Name",
+    }
+
+
+@hdb_register_part_kind
 class SAPHDBPartSessionContext(SAPHDBOptionPartRow):
     part_kind = 34
     name = "SAP HANA SQL Command Network Protocol Session Context"
@@ -769,27 +781,20 @@ class SAPHDBAuthMethod(object):
 
     METHOD = None
 
-    def __init__(self, username, pid=None, hostname=None):
+    def __init__(self, username):
         self.username = username
-        self.pid = pid
-        self.hostname = hostname
 
-    @property
-    def client_id(self):
-        """Returns the Client Id to use when authenticating and connecting to the
-        server. If the PID and the hostname are not specified, by default uses 'pysap@<hostname>'.
-        """
-        pid = self.pid or "pysap"
-        hostname = self.hostname or socket.gethostname()
-        return "{}@{}".format(pid, hostname)
-
-    def craft_authentication_request(self, value=None):
+    def craft_authentication_request(self, value=None, connection=None):
         """Craft the initial authentication request"""
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
                                                             SAPHDBPartAuthenticationField(value=value)])
         auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
         auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
+
+        if connection:
+            auth_segm.parts.insert(0, connection.craft_client_context_part())
+
         return SAPHDB(segments=[auth_segm])
 
     def craft_authentication_response_part(self, auth_response_part, value=None):
@@ -810,7 +815,7 @@ class SAPHDBAuthMethod(object):
         :raise: SAPHDBAuthenticationError
         """
 
-        auth_request = self.craft_authentication_request()
+        auth_request = self.craft_authentication_request(connection=connection)
 
         auth_response = connection.sr(auth_request)
         auth_response_part = auth_response.segments[0].parts[0].buffer[0]
@@ -832,8 +837,8 @@ class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
 
     SCRAM_CLASS = None
 
-    def __init__(self, username, password, pid=None, hostname=None):
-        super(SAPHDBAuthScramMethod, self).__init__(username, pid=pid, hostname=hostname)
+    def __init__(self, username, password):
+        super(SAPHDBAuthScramMethod, self).__init__(username)
         self.password = password
         self.client_key = self.scram = None
 
@@ -851,7 +856,7 @@ class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
 
         return client_proof
 
-    def craft_authentication_request(self, value=None):
+    def craft_authentication_request(self, value=None, connection=None):
         """Instantiates the SCRAM class and craft the authentication request.
         """
         if value is None:
@@ -860,7 +865,7 @@ class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
             self.client_key = self.scram.get_client_key()
             value = self.client_key
 
-        return super(SAPHDBAuthScramMethod, self).craft_authentication_request(value)
+        return super(SAPHDBAuthScramMethod, self).craft_authentication_request(value, connection)
 
     def craft_authentication_response_part(self, auth_response_part, value=None):
         """Calculates the client proof and craft the authentication response part.
@@ -903,12 +908,13 @@ class SAPHDBAuthSessionCookieMethod(SAPHDBAuthMethod):
 
     METHOD = "SessionCookie"
 
-    def __init__(self, username, session_cookie, pid=None, hostname=None):
-        super(SAPHDBAuthSessionCookieMethod, self).__init__(username, pid=pid, hostname=hostname)
+    def __init__(self, username, session_cookie):
+        super(SAPHDBAuthSessionCookieMethod, self).__init__(username)
         self.session_cookie = session_cookie
 
-    def craft_authentication_request(self, value=None):
-        return super(SAPHDBAuthSessionCookieMethod, self).craft_authentication_request(self.session_cookie + self.client_id)
+    def craft_authentication_request(self, value=None, connection=None):
+        return super(SAPHDBAuthSessionCookieMethod, self).craft_authentication_request(self.session_cookie + connection.client_id,
+                                                                                       connection)
 
 
 class SAPHDBAuthJWTMethod(SAPHDBAuthMethod):
@@ -917,13 +923,12 @@ class SAPHDBAuthJWTMethod(SAPHDBAuthMethod):
 
     METHOD = "JWT"
 
-    def __init__(self, username, jwt, pid=None, hostname=None):
-        super(SAPHDBAuthJWTMethod, self).__init__(pid, hostname)
-        self.username = username
+    def __init__(self, username, jwt):
+        super(SAPHDBAuthJWTMethod, self).__init__(username)
         self.jwt = jwt
 
-    def craft_authentication_request(self, value=None):
-        return super(SAPHDBAuthJWTMethod, self).craft_authentication_request(self.jwt)
+    def craft_authentication_request(self, value=None, connection=None):
+        return super(SAPHDBAuthJWTMethod, self).craft_authentication_request(self.jwt, connection)
 
 
 class SAPHDBAuthSAMLMethod(SAPHDBAuthMethod):
@@ -932,13 +937,12 @@ class SAPHDBAuthSAMLMethod(SAPHDBAuthMethod):
 
     METHOD = "SAML"
 
-    def __init__(self, username, saml_assertion, pid=None, hostname=None):
-        super(SAPHDBAuthSAMLMethod, self).__init__(pid, hostname)
-        self.username = username
+    def __init__(self, username, saml_assertion):
+        super(SAPHDBAuthSAMLMethod, self).__init__(username)
         self.saml_assertion = saml_assertion
 
-    def craft_authentication_request(self, value=None):
-        return super(SAPHDBAuthSAMLMethod, self).craft_authentication_request(self.saml_assertion)
+    def craft_authentication_request(self, value=None, connection=None):
+        return super(SAPHDBAuthSAMLMethod, self).craft_authentication_request(self.saml_assertion, connection)
 
 
 saphdb_auth_methods = {
@@ -963,7 +967,8 @@ class SAPHDBConnection(object):
     the SQL Command Network Protocol.
     """
 
-    def __init__(self, host, port, auth_method=None, route=None):
+    def __init__(self, host, port, auth_method=None, route=None, pid=None, hostname=None,
+                 client_version=None, client_type=None, app_name=None):
         """Creates the connection to the HANA server.
 
         :param host: remote host to connect to
@@ -982,9 +987,33 @@ class SAPHDBConnection(object):
         self.port = port
         self.auth_method = auth_method
         self.route = route
+        self.pid = pid or "pysap"
+        self.hostname = hostname or socket.gethostname()
+        self.client_version = client_version or pysap.__version__
+        self.client_type = client_type or "SQLODBC"
+        self.app_name = app_name or "pysap"
         self._stream_socket = None
         self.product_version = None
         self.protocol_version = None
+
+    @property
+    def client_id(self):
+        """Returns the Client Id to use when authenticating and connecting to the
+        server. If the PID and the hostname are not specified, by default uses 'pysap@<hostname>'.
+        """
+        pid = self.pid
+        hostname = self.hostname
+        return "{}@{}".format(pid, hostname)
+
+    def craft_client_context_part(self):
+        """Crafts the client context part that is sent to the server. It contains the
+        information about the client version, type and application name.
+        If those values are not specified, by default uses pysap's version.
+        """
+        client_context = [SAPHDBPartClientContext(key=1, type=29, value=self.client_version),
+                          SAPHDBPartClientContext(key=2, type=29, value=self.client_type),
+                          SAPHDBPartClientContext(key=3, type=29, value=self.app_name)]
+        return SAPHDBPart(partkind=29, buffer=client_context)
 
     def connect(self):
         """Creates a :class:`SAPNIStreamSocket` connection to the host/port. If a route
@@ -1050,12 +1079,15 @@ class SAPHDBConnection(object):
         if not self.is_connected():
             raise SAPHDBConnectionError("Socket not ready")
 
-        # Perform the handshake and obtain the authentication part
+        # Perform the authentication handshake and obtain the final authentication part.
+        # Note that this might involve a series of round trips depending on the authentication
+        # method.
         auth_part = self.auth_method.authenticate(self)
 
-        # Craft the connect packet
-        clientid_part = SAPHDBPart(partkind=35, buffer=SAPHDBPartClientId(clientid=self.auth_method.client_id))
-        auth_segm = SAPHDBSegment(messagetype=66, parts=[auth_part, clientid_part])
+        # Craft the CONNECT packet
+        clientcontext_part = SAPHDBPart(partkind=29)
+        clientid_part = SAPHDBPart(partkind=35, buffer=SAPHDBPartClientId(clientid=self.client_id))
+        auth_segm = SAPHDBSegment(messagetype=66, parts=[clientcontext_part, auth_part, clientid_part])
         auth_request = SAPHDB(segments=[auth_segm])
 
         # Send connect packet

@@ -130,14 +130,12 @@ def main():
         # If SAML was specified, read the SAML signed assertion from a file and pass it to the auth method
         # Note that the username is not specified and instead read by the server from the SAML assertion
         with open(options.saml_assertion, 'r') as saml_assertion_fd:
-            auth_method = auth_method_cls("", saml_assertion_fd.read(),
-                                          pid=options.pid, hostname=options.hostname)
+            auth_method = auth_method_cls("", saml_assertion_fd.read())
     elif options.method == "JWT":
         # If JWT from file was specified, read the signed JWT from a file and pass it to the auth method
         if options.jwt_file:
             with open(options.jwt_file, 'r') as jwt_fd:
-                auth_method = auth_method_cls(options.username, jwt_fd.read(),
-                                              pid=options.pid, hostname=options.hostname)
+                auth_method = auth_method_cls(options.username, jwt_fd.read())
         # Otherwise if a JWT certificate was specified, we'll try to create and sign a new JWT and pass it
         # Note that this requires the PyJWT library
         elif options.jwt_cert:
@@ -148,14 +146,11 @@ def main():
                            "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=30),
                            }
                 jwt_signed = py_jwt.encode(jwt_raw, jwt_cert_fd.read(), algorithm="RS256")
-                auth_method = auth_method_cls(options.username, jwt_signed,
-                                              pid=options.pid, hostname=options.hostname)
+                auth_method = auth_method_cls(options.username, jwt_signed)
     elif options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"]:
-        auth_method = auth_method_cls(options.username, options.password,
-                                      pid=options.pid, hostname=options.hostname)
+        auth_method = auth_method_cls(options.username, options.password)
     elif options.method == "SessionCookie":
-        auth_method = auth_method_cls(options.username, options.session_cookie,
-                                      pid=options.pid, hostname=options.hostname)
+        auth_method = auth_method_cls(options.username, options.session_cookie)
     else:
         logging.error("[-] Unsupported authentication method")
         return
@@ -164,7 +159,8 @@ def main():
     hdb = connection_class(options.remote_host,
                            options.remote_port,
                            auth_method=auth_method,
-                           route=options.route_string)
+                           route=options.route_string,
+                           pid=options.pid, hostname=options.hostname)
 
     try:
         hdb.connect()
