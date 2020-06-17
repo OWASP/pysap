@@ -431,6 +431,15 @@ class SAPHDBOptionPartRow(PacketNoPadded):
     ]
 
 
+class SAPHDBPartCommand(PacketNoPadded):
+    """SAP HANA SQL Command Network Protocol Command
+    """
+    name = "SAP HANA SQL Command Network Protocol Command Part"
+    fields_desc = [
+        StrField("command", None),
+    ]
+
+
 hdb_error_level_vals = {
     0: "WARNING",
     1: "ERROR",
@@ -442,7 +451,7 @@ hdb_error_level_vals = {
 class SAPHDBPartError(PacketNoPadded):
     """SAP HANA SQL Command Network Protocol Error Part
     """
-    name = "SAP HANA SQL Command Network Protocol Authentication Part"
+    name = "SAP HANA SQL Command Network Protocol Error Part"
     fields_desc = [
         LESignedIntField("error_code", 0),
         LESignedIntField("error_position", 0),
@@ -540,6 +549,15 @@ class SAPHDBPartAuthentication(PacketNoPadded):
     ]
 
 
+class SAPHDBPartClientId(PacketNoPadded):
+    """SAP HANA SQL Command Network Protocol Client ID
+    """
+    name = "SAP HANA SQL Command Network Protocol Client ID Part"
+    fields_desc = [
+        StrField("clientid", None),
+    ]
+
+
 def saphdb_determine_part_class(pkt, lst, cur, remain):
     """Determines the class of the buffer elements based on the Part Kind value.
     """
@@ -553,10 +571,14 @@ def saphdb_determine_part_class(pkt, lst, cur, remain):
         # Otherwise just use the plain Option Part Row
         return SAPHDBOptionPartRow
 
+    elif pkt.partkind == 3:
+        return SAPHDBPartCommand
     elif pkt.partkind == 6:
         return SAPHDBPartError
     elif pkt.partkind == 33:
         return SAPHDBPartAuthentication
+    elif pkt.partkind == 35:
+        return SAPHDBPartClientId
     # Default to Raw if the part kind is not implemented
     return Raw
 
@@ -956,7 +978,7 @@ class SAPHDBConnection(object):
         auth_part = self.auth_method.authenticate(self)
 
         # Craft the connect packet
-        clientid_part = SAPHDBPart(partkind=35, buffer=self.auth_method.client_id)
+        clientid_part = SAPHDBPart(partkind=35, buffer=SAPHDBPartClientId(clientid=self.auth_method.client_id))
         auth_segm = SAPHDBSegment(messagetype=66, parts=[auth_part, clientid_part])
         auth_request = SAPHDB(segments=[auth_segm])
 
