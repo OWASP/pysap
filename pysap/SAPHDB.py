@@ -679,7 +679,8 @@ class SAPHDBAuthMethod(object):
     @property
     def client_id(self):
         """Returns the Client Id to use when authenticating and connecting to the
-        server."""
+        server. If the PID and the hostname are not specified, by default uses 'pysap@<hostname>'.
+        """
         pid = self.pid or "pysap"
         hostname = self.hostname or socket.gethostname()
         return "{}@{}".format(pid, hostname)
@@ -693,7 +694,7 @@ class SAPHDBAuthMethod(object):
         auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
         return SAPHDB(segments=[auth_segm])
 
-    def craft_authentication_response_part(self, value=None):
+    def craft_authentication_response_part(self, auth_response_part, value=None):
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
                                                             SAPHDBPartAuthenticationField(value=value)])
@@ -710,7 +711,18 @@ class SAPHDBAuthMethod(object):
 
         :raise: SAPHDBAuthenticationError
         """
-        raise NotImplemented("Authentication method not implemented")
+
+        auth_request = self.craft_authentication_request()
+
+        auth_response = connection.sr(auth_request)
+        auth_response_part = auth_response.segments[0].parts[0].buffer[0]
+
+        # Check the method replied by the server
+        if self.METHOD != auth_response_part.auth_fields[0].value:
+            raise SAPHDBAuthenticationError("Authentication method not supported on server")
+
+        # Craft authentication part and return it
+        return self.craft_authentication_response_part(auth_response_part)
 
 
 class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
@@ -725,6 +737,7 @@ class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
     def __init__(self, username, password, pid=None, hostname=None):
         super(SAPHDBAuthScramMethod, self).__init__(username, pid=pid, hostname=hostname)
         self.password = password
+        self.client_key = self.scram = None
 
     def obtain_client_proof(self, scram, client_key, auth_response_part):
         # Obtain the salt and the server key from the response
@@ -740,24 +753,22 @@ class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
 
         return client_proof
 
-    def authenticate(self, connection):
-        """Perform the handshake using the scram method defined by the class"""
+    def craft_authentication_request(self, value=None):
+        """Instantiates the SCRAM class and craft the authentication request.
+        """
+        if value is None:
+            self.scram = self.SCRAM_CLASS(default_backend())
+            # Craft and send the authentication packet
+            self.client_key = self.scram.get_client_key()
+            value = self.client_key
 
-        scram = self.SCRAM_CLASS(default_backend())
+        return super(SAPHDBAuthScramMethod, self).craft_authentication_request(value)
 
-        # Craft and send the authentication packet
-        client_key = scram.get_client_key()
-        auth_request = self.craft_authentication_request(client_key)
-        auth_response = connection.sr(auth_request)
-        auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
-
-        # Check the method replied by the server
-        if self.METHOD != auth_response_part.auth_fields[0].value:
-            raise SAPHDBAuthenticationError("Authentication method not supported on server")
-
-        # Craft authentication part and return it
-        client_proof = self.obtain_client_proof(scram, client_key, auth_response_part)
-        return self.craft_authentication_response_part(client_proof)
+    def craft_authentication_response_part(self, auth_response_part, value=None):
+        """Calculates the client proof and craft the authentication response part.
+        """
+        value = self.obtain_client_proof(self.scram, self.client_key, auth_response_part)
+        return super(SAPHDBAuthScramMethod, self).craft_authentication_response_part(auth_response_part, value)
 
 
 class SAPHDBAuthScramSHA256Method(SAPHDBAuthScramMethod):
@@ -798,19 +809,8 @@ class SAPHDBAuthSessionCookieMethod(SAPHDBAuthMethod):
         super(SAPHDBAuthSessionCookieMethod, self).__init__(username, pid=pid, hostname=hostname)
         self.session_cookie = session_cookie
 
-    def authenticate(self, connection):
-        session_cookie = self.session_cookie + self.client_id
-        auth_request = self.craft_authentication_request(session_cookie)
-
-        auth_response = connection.sr(auth_request)
-        auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
-
-        # Check the method replied by the server
-        if self.METHOD != auth_response_part.auth_fields[0].value:
-            raise SAPHDBAuthenticationError("Authentication method not supported on server")
-
-        # Craft authentication part and return it
-        return self.craft_authentication_response_part()
+    def craft_authentication_request(self, value=None):
+        return super(SAPHDBAuthSessionCookieMethod, self).craft_authentication_request(self.session_cookie + self.client_id)
 
 
 class SAPHDBAuthJWTMethod(SAPHDBAuthMethod):
@@ -824,18 +824,8 @@ class SAPHDBAuthJWTMethod(SAPHDBAuthMethod):
         self.username = username
         self.jwt = jwt
 
-    def authenticate(self, connection):
-        auth_request = self.craft_authentication_request(self.jwt)
-
-        auth_response = connection.sr(auth_request)
-        auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
-
-        # Check the method replied by the server
-        if self.METHOD != auth_response_part.auth_fields[0].value:
-            raise SAPHDBAuthenticationError("Authentication method not supported on server")
-
-        # Craft authentication part and return it
-        return self.craft_authentication_response_part()
+    def craft_authentication_request(self, value=None):
+        return super(SAPHDBAuthJWTMethod, self).craft_authentication_request(self.jwt)
 
 
 class SAPHDBAuthSAMLMethod(SAPHDBAuthMethod):
@@ -849,18 +839,8 @@ class SAPHDBAuthSAMLMethod(SAPHDBAuthMethod):
         self.username = username
         self.saml_assertion = saml_assertion
 
-    def authenticate(self, connection):
-        auth_request = self.craft_authentication_request(self.saml_assertion)
-
-        auth_response = connection.sr(auth_request)
-        auth_response_part = SAPHDBPartAuthentication(auth_response.segments[0].parts[0].buffer[0])
-
-        # Check the method replied by the server
-        if self.METHOD != auth_response_part.auth_fields[0].value:
-            raise SAPHDBAuthenticationError("Authentication method not supported on server")
-
-        # Craft authentication part and return it
-        return self.craft_authentication_response_part()
+    def craft_authentication_request(self, value=None):
+        return super(SAPHDBAuthSAMLMethod, self).craft_authentication_request(self.saml_assertion)
 
 
 saphdb_auth_methods = {
@@ -982,7 +962,6 @@ class SAPHDBConnection(object):
 
         # Send connect packet
         auth_response = self.sr(auth_request)
-        auth_response.show()
 
         if auth_response.segments[0].segmentkind == 5:  # If is Error segment kind
             self.close_socket()

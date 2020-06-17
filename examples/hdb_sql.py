@@ -127,14 +127,19 @@ def main():
     logging.debug("[*] Using authentication method %s" % options.method)
     auth_method_cls = saphdb_auth_methods[options.method]
     if options.method == "SAML":
+        # If SAML was specified, read the SAML signed assertion from a file and pass it to the auth method
+        # Note that the username is not specified and instead read by the server from the SAML assertion
         with open(options.saml_assertion, 'r') as saml_assertion_fd:
             auth_method = auth_method_cls("", saml_assertion_fd.read(),
                                           pid=options.pid, hostname=options.hostname)
     elif options.method == "JWT":
+        # If JWT from file was specified, read the signed JWT from a file and pass it to the auth method
         if options.jwt_file:
             with open(options.jwt_file, 'r') as jwt_fd:
                 auth_method = auth_method_cls(options.username, jwt_fd.read(),
                                               pid=options.pid, hostname=options.hostname)
+        # Otherwise if a JWT certificate was specified, we'll try to create and sign a new JWT and pass it
+        # Note that this requires the PyJWT library
         elif options.jwt_cert:
             with open(options.jwt_cert, 'r') as jwt_cert_fd:
                 jwt_raw = {options.jwt_claim: options.username,
