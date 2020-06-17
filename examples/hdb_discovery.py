@@ -107,7 +107,7 @@ def main():
                                                                                     hdb.protocol_version))
 
                 hdb_dbconnectinfo_options = [SAPHDBOptionPartRow(key=1, type=29, value=tenant)]
-                hdb_dbconnectinfo_part = SAPHDBPart(partkind=67, argumentcount=1, buffer=hdb_dbconnectinfo_options)
+                hdb_dbconnectinfo_part = SAPHDBPart(partkind=67, buffer=hdb_dbconnectinfo_options)
                 hdb_dbconnectinfo_request = SAPHDB(sessionid=0, segments=[SAPHDBSegment(messagetype=82,
                                                                                         parts=[hdb_dbconnectinfo_part])])
 
