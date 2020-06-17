@@ -29,7 +29,7 @@ from scapy.supersocket import SSLStreamSocket
 from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField, YesNoByteField,
                           IntField, PacketListField, SignedByteField, LongField, PadField,
                           LEIntField, LESignedIntField, StrFixedLenField, ShortField,
-                          MultipleTypeField, StrField, MultiEnumField)
+                          MultipleTypeField, StrField, MultiEnumField, Field)
 # Custom imports
 from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.utils.crypto import SCRAM_SHA256, SCRAM_PBKDF2SHA256
@@ -282,8 +282,106 @@ def hdb_segment_is_reply(segment):
     return segment.segmentkind == 2
 
 
-hdb_option_part_key_vals = {
-    15: {  # TOPOLOGYINFORMATION
+# Registry of Part classes and Option Part key values
+hdb_part_kind_classes = {}
+hdb_option_part_key_vals = {}
+hdb_multi_option_part_key_vals = {}
+
+
+def hdb_register_part_kind(cls):
+    """Helper function to use as a decorator when defining Part classes. It will register
+    the class with the proper Part Kind so dissection can find it. It will also register
+    the keys for the options defined in each Part Kind.
+    """
+    if cls.part_kind:
+        hdb_part_kind_classes[cls.part_kind] = cls
+    if hasattr(cls, "option_part") and cls.option_part:
+        hdb_option_part_key_vals[cls.part_kind] = cls.option_keys
+    elif hasattr(cls, "multi_option_part") and cls.multi_option_part:
+        hdb_multi_option_part_key_vals[cls.part_kind] = cls.option_keys
+    return cls
+
+
+class SAPHDBOptionPartRow(PacketNoPadded):
+    """SAP HANA SQL Command Network Protocol Option Part Row
+
+    This packet represents a row in an Option Part.
+
+    Each row is comprised of a key, type and value.
+    """
+    part_kind = None
+    option_keys = None
+    name = "SAP HANA SQL Command Network Protocol Option Part Row"
+    fields_desc = [
+        MultiEnumField("key", 0, hdb_option_part_key_vals, depends_on=lambda x: x.part_kind, fmt="<b"),
+        EnumField("type", 0, hdb_data_type_vals, fmt="<b"),
+        ConditionalField(FieldLenField("length", None, length_of="value", fmt="<h"), lambda x: x.type in [29, 30, 33]),
+        MultipleTypeField(
+            [
+                (LESignedByteField("value", 0), lambda x: x.type == 1),
+                (LESignedShortField("value", 0), lambda x: x.type == 2),
+                (LESignedIntField("value", 0), lambda x: x.type == 3),
+                (LESignedLongField("value", 0), lambda x: x.type == 4),
+                (Field("value", 0, fmt="<d"), lambda x: x.type == 7),
+                (YesNoByteField("value", 0), lambda x: x.type == 28),
+                (StrFixedLenField("value", None, length_from=lambda x: x.length), lambda x: x.type in [29, 30, 33]),
+            ],
+            StrField("value", ""),
+        ),
+    ]
+
+
+class SAPHDBMultiLineOptionPartRow(PacketNoPadded):
+    """SAP HANA SQL Command Network Protocol Multi-line Option Part
+
+    This packet represents a collection of Option Part Rows
+    """
+    partkind = None
+    name = "SAP HANA SQL Command Network Protocol Multi-line Option Part"
+    fields_desc = [
+        FieldLenField("argcount", None, count_of="rows", fmt="<h"),
+        PacketListField("rows", None, SAPHDBOptionPartRow, count_from=lambda x: x.argcount),
+    ]
+
+
+@hdb_register_part_kind
+class SAPHDBPartCommand(PacketNoPadded):
+    part_kind = 3
+    name = "SAP HANA SQL Command Network Protocol Command Part"
+    fields_desc = [
+        StrField("command", None),
+    ]
+
+
+hdb_error_level_vals = {
+    0: "WARNING",
+    1: "ERROR",
+    2: "FATALERROR",
+}
+"""SAP HDB Error Level Values"""
+
+
+@hdb_register_part_kind
+class SAPHDBPartError(PacketNoPadded):
+    """SAP HANA SQL Command Network Protocol Error Part
+    """
+    part_kind = 6
+    name = "SAP HANA SQL Command Network Protocol Error Part"
+    fields_desc = [
+        LESignedIntField("error_code", 0),
+        LESignedIntField("error_position", 0),
+        FieldLenField("error_text_length", None, length_of="error_text", fmt="<i"),
+        EnumField("error_level", 0, hdb_error_level_vals, fmt="<b"),
+        StrFixedLenField("sql_state", "HY000", 5),
+        PadField(StrFixedLenField("error_text", None, length_from=lambda pkt: pkt.error_text_length), 8),
+    ]
+
+
+@hdb_register_part_kind
+class SAPHDBPartTopologyInformation(SAPHDBMultiLineOptionPartRow):
+    part_kind = 15
+    name = "SAP HANA SQL Command Network Protocol Topology Information"
+    option_keys = {
         1: "Host Name",
         2: "Host Port Number",
         3: "Tenant Name",
@@ -297,27 +395,61 @@ hdb_option_part_key_vals = {
         11: "All IP Addresses",
         12: "All Host Names",
         13: "Site Type"
-    },
-    27: {   # COMMANDINFO
+    }
+
+
+@hdb_register_part_kind
+class SAPHDBPartCommandInfo(SAPHDBOptionPartRow):
+    part_kind = 27
+    name = "SAP HANA SQL Command Network Protocol Command Information"
+    option_keys = {
         1: "Line Number",
         2: "Source Module",
-    },
-    34: {   # SESSIONCONTEXT
+    }
+
+
+@hdb_register_part_kind
+class SAPHDBPartSessionContext(SAPHDBOptionPartRow):
+    part_kind = 34
+    name = "SAP HANA SQL Command Network Protocol Session Context"
+    option_keys = {
         1: "Primary Connection ID",
         2: "Primary Host Name",
         3: "Primary Host Port Number",
         4: "Master Connection ID",
         5: "Master Host Name",
         6: "Master Host Port Number",
-    },
-    39: {   # STATEMENTCONTEXT
+    }
+
+
+@hdb_register_part_kind
+class SAPHDBPartClientId(PacketNoPadded):
+    """SAP HANA SQL Command Network Protocol Client ID
+    """
+    part_kind = 35
+    name = "SAP HANA SQL Command Network Protocol Client ID Part"
+    fields_desc = [
+        StrField("clientid", None),
+    ]
+
+
+@hdb_register_part_kind
+class SAPHDBPartStatementContext(SAPHDBOptionPartRow):
+    part_kind = 39
+    name = "SAP HANA SQL Command Network Protocol Statement Context"
+    option_keys = {
         1: "Statement Sequence Info",
         2: "Server Processing Time",
         3: "Schema Name",
         4: "Flag Set",
-        5: "Query Time Out",
-    },
-    42: {   # CONNECTOPTIONS
+    }
+
+
+@hdb_register_part_kind
+class SAPHDBPartConnectOptions(SAPHDBOptionPartRow):
+    part_kind = 42
+    name = "SAP HANA SQL Command Network Protocol Connect Options"
+    option_keys = {
         1: "Connection ID",
         2: "Complete Array Execution",
         3: "Client Locale",
@@ -374,14 +506,32 @@ hdb_option_part_key_vals = {
         54: "Topology Network Group",
         55: "IP Address",
         56: "LRR Ping Time",
-    },
-    43: {   # COMMITOPTIONS
+    }
+
+
+@hdb_register_part_kind
+class SAPHDBPartCommitOptions(SAPHDBOptionPartRow):
+    part_kind = 43
+    name = "SAP HANA SQL Command Network Protocol Commit Options"
+    option_keys = {
         1: "Hold Cursors Over Commit",
-    },
-    44: {   # FETCHOPTIONS
+    }
+
+
+@hdb_register_part_kind
+class SAPHDBPartFetchOptions(SAPHDBOptionPartRow):
+    part_kind = 44
+    name = "SAP HANA SQL Command Network Protocol Fetch Options"
+    option_keys = {
         1: "Result Set Pos",
-    },
-    64: {   # TRANSACTIONFLAGS
+    }
+
+
+@hdb_register_part_kind
+class SAPHDBPartTransactionFlags(SAPHDBOptionPartRow):
+    part_kind = 64
+    name = "SAP HANA SQL Command Network Protocol Transaction Flags"
+    option_keys = {
         0: "Rolled Back",
         1: "Commited",
         2: "New Isolation Level",
@@ -389,77 +539,27 @@ hdb_option_part_key_vals = {
         4: "Write Transaction Started",
         5: "No Write Transaction Started",
         6: "Session Closing Transaction Error",
-    },
-    67: {   # DBCONNECTINFO
+    }
+
+
+@hdb_register_part_kind
+class SAPHDBPartDBConnectInfo(SAPHDBOptionPartRow):
+    part_kind = 67
+    name = "SAP HANA SQL Command Network Protocol DB Connect Information"
+    option_keys = {
         1: "Database Name",
         2: "Host",
         3: "Port",
         4: "Is Connected",
-    },
-    68: {   # LOBFLAGS
+    }
+
+@hdb_register_part_kind
+class SAPHDBPartLOBFlags(SAPHDBOptionPartRow):
+    part_kind = 68
+    name = "SAP HANA SQL Command Network Protocol LOB Flags"
+    option_keys = {
         0: "Implicit Streaming",
-    },
-    None: {},  # Default to non enum if we don't know that part type
-}
-"""SAP HDB Option Part Key Values"""
-
-
-class SAPHDBOptionPartRow(PacketNoPadded):
-    """SAP HANA SQL Command Network Protocol Option Part Row
-
-    This packet represents a row in an Option Part.
-
-    Each row is comprised of a key, type and value.
-    """
-    partkind = None
-    name = "SAP HANA SQL Command Network Protocol Option Part Row"
-    fields_desc = [
-        MultiEnumField("key", 0, hdb_option_part_key_vals, depends_on=lambda x: x.partkind, fmt="<b"),
-        EnumField("type", 0, hdb_data_type_vals, fmt="<b"),
-        ConditionalField(FieldLenField("length", None, length_of="value", fmt="<h"), lambda x: x.type in [29, 30, 33]),
-        MultipleTypeField(
-            [
-                (LESignedByteField("value", 0), lambda x: x.type == 1),
-                (LESignedShortField("value", 0), lambda x: x.type == 2),
-                (LESignedIntField("value", 0), lambda x: x.type == 3),
-                (LESignedLongField("value", 0), lambda x: x.type == 4),
-                (YesNoByteField("value", 0), lambda x: x.type == 28),
-                (StrFixedLenField("value", None, length_from=lambda x: x.length), lambda x: x.type in [29, 30, 33]),
-            ],
-            StrField("value", ""),
-        ),
-    ]
-
-
-class SAPHDBPartCommand(PacketNoPadded):
-    """SAP HANA SQL Command Network Protocol Command
-    """
-    name = "SAP HANA SQL Command Network Protocol Command Part"
-    fields_desc = [
-        StrField("command", None),
-    ]
-
-
-hdb_error_level_vals = {
-    0: "WARNING",
-    1: "ERROR",
-    2: "FATALERROR",
-}
-"""SAP HDB Error Level Values"""
-
-
-class SAPHDBPartError(PacketNoPadded):
-    """SAP HANA SQL Command Network Protocol Error Part
-    """
-    name = "SAP HANA SQL Command Network Protocol Error Part"
-    fields_desc = [
-        LESignedIntField("error_code", 0),
-        LESignedIntField("error_position", 0),
-        FieldLenField("error_text_length", None, length_of="error_text", fmt="<i"),
-        EnumField("error_level", 0, hdb_error_level_vals, fmt="<b"),
-        StrFixedLenField("sql_state", "HY000", 5),
-        PadField(StrFixedLenField("error_text", None, length_from=lambda pkt: pkt.error_text_length), 8),
-    ]
+    }
 
 
 class SAPHDBPartAuthenticationField(PacketNoPadded):
@@ -474,6 +574,7 @@ class SAPHDBPartAuthenticationField(PacketNoPadded):
     ]
 
 
+@hdb_register_part_kind
 class SAPHDBPartAuthentication(PacketNoPadded):
     """SAP HANA SQL Command Network Protocol Authentication Part
 
@@ -542,6 +643,7 @@ class SAPHDBPartAuthentication(PacketNoPadded):
         - SERVERREPLY - Specifies the server reply (this is empty).
         - FINALDATA - Specifies the final data (this is empty).
     """
+    part_kind = 33
     name = "SAP HANA SQL Command Network Protocol Authentication Part"
     fields_desc = [
         FieldLenField("count", None, count_of="auth_fields", fmt="<H"),
@@ -549,37 +651,11 @@ class SAPHDBPartAuthentication(PacketNoPadded):
     ]
 
 
-class SAPHDBPartClientId(PacketNoPadded):
-    """SAP HANA SQL Command Network Protocol Client ID
-    """
-    name = "SAP HANA SQL Command Network Protocol Client ID Part"
-    fields_desc = [
-        StrField("clientid", None),
-    ]
-
-
 def saphdb_determine_part_class(pkt, lst, cur, remain):
     """Determines the class of the buffer elements based on the Part Kind value.
     """
-    # Option Row
-    if pkt.partkind in [15, 27, 34, 39, 42, 43, 44, 64, 67, 68]:
-        # If we've information about the Option Part key values, add it to the enum field in a new tailored class
-        if pkt.partkind in hdb_option_part_key_vals:
-            class TailoredSAPHDBOptionPartRow(SAPHDBOptionPartRow):
-                partkind = pkt.partkind
-            return TailoredSAPHDBOptionPartRow
-        # Otherwise just use the plain Option Part Row
-        return SAPHDBOptionPartRow
-
-    elif pkt.partkind == 3:
-        return SAPHDBPartCommand
-    elif pkt.partkind == 6:
-        return SAPHDBPartError
-    elif pkt.partkind == 33:
-        return SAPHDBPartAuthentication
-    elif pkt.partkind == 35:
-        return SAPHDBPartClientId
-    # Default to Raw if the part kind is not implemented
+    if pkt.partkind in hdb_part_kind_classes:
+        return hdb_part_kind_classes[pkt.partkind]
     return Raw
 
 
