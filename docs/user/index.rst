@@ -139,9 +139,10 @@ at the `Troopers 2016 Security Conference <https://www.troopers.de/troopers16/ag
 performed by `Hans-Christian Esperer <https://github.com/hce>`_ and published in the
 `Hascar <https://github.com/VirtualForgeGmbH/hascar>`_ tool.
 
-Documentation on the SAP ``SAR`` archive file protocol is available in SAP's `Virus Scan Interface (NW-VSI) <ftp://ftp.sap.com/pub/icc/nw-vsi>`_
-`specification document <ftp://ftp.sap.com/pub/icc/nw-vsi/VSA-Specification.pdf>`_. An example implementation can be
-also found in the `Virus Scan Adapter SDK <ftp://ftp.sap.com/pub/icc/nw-vsi/VSA-SDK-2.0.zip>`_.
+Documentation on the SAP `SAR <https://www.iana.org/assignments/media-types/application/vnd.sar>`_ archive file format
+is available in SAP's `Virus Scan Interface (NW-VSI) <https://archive.sap.com/documents/docs/DOC-7838>`_
+specification document. An example implementation can be also found in the `Virus Scan Adapter SDK`, which is
+available upon request.
 
 Initial research about the ``IGS`` protocol was performed by Yvan Genuer and published in `SAP IGS : The 'vulnerable' forgotten component <https://www.troopers.de/troopers18/agenda/3r38lr/>`_.
 

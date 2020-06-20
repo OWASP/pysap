@@ -46,7 +46,7 @@ Features
 
 * Client interfaces for handling the following file formats:
 
-    * SAP `SAR` archive files
+    * SAP [`SAR` archive files](https://www.iana.org/assignments/media-types/application/vnd.sar)
     * SAP Personal Security Environment (`PSE`) files
     * SAP SSO Credential (`Credv2`) files
 

@@ -163,6 +163,9 @@ SAPCAR_TYPE_LINK = "LK"
 SAPCAR_TYPE_AS400 = "SV"
 """SAP CAR AS400 save file string"""
 
+SAPCAR_TYPE_SIGNATURE = "SM"
+"""SAP CAR SIGNATURE.SMF file string"""
+# XXX: Unsure if this file has any particular treatment in latest versions of SAPCAR
 
 SAPCAR_VERSION_200 = "2.00"
 """SAP CAR file format version 2.00 string"""
