@@ -1138,7 +1138,23 @@ class SAPHDBTLSConnection(SAPHDBConnection):
     """SAP HDB Connection using TLS
 
     This class wraps the connection socket with a TLS-enabled one for use as a secure channel.
+    We're using TLS 1.2 by default but setting RSA-based cipher suites without (EC)DHE so traffic
+    can be easily decrypted in Wireshark.
     """
+
+    TLS_DEFAULT_PROTOCOL = ssl.PROTOCOL_TLS
+    TLS_DEFAULT_OPTIONS = ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
+    TLS_DEFAULT_CIPHERS = "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:AES256-GCM-SHA384:AES256-CCM8"
+
+    def __init__(self, host, port, auth_method=None, route=None, pid=None, hostname=None,
+                 client_version=None, client_type=None, app_name=None, tls_protocol=None,
+                 tls_options=None, tls_ciphers=None):
+        super(SAPHDBTLSConnection, self).__init__(host, port, auth_method, route, pid, hostname,
+                                                  client_version, client_type, app_name)
+        # Get TLS related parameters or set default values.
+        self.tls_protocol = tls_protocol or self.TLS_DEFAULT_PROTOCOL
+        self.tls_options = tls_options or self.TLS_DEFAULT_OPTIONS
+        self.tls_ciphers = tls_ciphers or self.TLS_DEFAULT_CIPHERS
 
     def connect(self):
         # Create a plain socket first
@@ -1146,8 +1162,10 @@ class SAPHDBTLSConnection(SAPHDBConnection):
         plain_socket.settimeout(10)
 
         # TLS/SSL Context
-        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-        context.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1  # optional
+        context = ssl.SSLContext(self.tls_protocol)
+        context.options |= self.tls_options
+        if self.tls_ciphers:
+            context.set_ciphers(self.tls_ciphers)
         context.verify_mode = ssl.CERT_NONE
         context.set_default_verify_paths()
 
