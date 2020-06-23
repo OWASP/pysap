@@ -57,8 +57,16 @@ def parse_options():
                         help="Remote port [%(default)d]")
     target.add_argument("--route-string", dest="route_string",
                         help="Route string for connecting through a SAP Router")
-    target.add_argument("--tls", dest="tls", action="store_true",
-                        help="Use TLS/SSL")
+
+    tls = parser.add_argument_group("TLS")
+    tls.add_argument("--tls", dest="tls", action="store_true",
+                     help="Use TLS/SSL")
+    tls.add_argument("--tls-no-trust-cert", dest="tls_cert_trust", action="store_false",
+                     help="Do not trust the TLS certificate and validate it")
+    tls.add_argument("--tls-cert-file", dest="tls_cert_file",
+                     help="Path to the certificate file to use when validating server's TLS certificate")
+    tls.add_argument("--tls-check-hostname", dest="tls_check_hostname", action="store_true",
+                     help="Validate the hostname provided in the TLS certificate")
 
     auth = parser.add_argument_group("Authentication")
     auth.add_argument("-m", "--method", dest="method", default="SCRAMSHA256",
@@ -118,11 +126,6 @@ def main():
         level = logging.DEBUG
     logging.basicConfig(level=level, format='%(message)s')
 
-    # Initiate the connection
-    connection_class = SAPHDBConnection
-    if options.tls:
-        connection_class = SAPHDBTLSConnection
-
     # Select the desired authentication method
     logging.debug("[*] Using authentication method %s" % options.method)
     auth_method_cls = saphdb_auth_methods[options.method]
@@ -156,11 +159,20 @@ def main():
         return
 
     # Create the connection
+    connection_class = SAPHDBConnection
+    kwargs = {"auth_method": auth_method,
+              "route": options.route_string,
+              "pid": options.pid,
+              "hostname": options.hostname}
+    if options.tls:
+        connection_class = SAPHDBTLSConnection
+        kwargs.update({"tls_cert_trust": options.tls_cert_trust,
+                       "tls_cert_file": options.tls_cert_file,
+                       "tls_check_hostname": options.tls_check_hostname})
+
     hdb = connection_class(options.remote_host,
                            options.remote_port,
-                           auth_method=auth_method,
-                           route=options.route_string,
-                           pid=options.pid, hostname=options.hostname)
+                           **kwargs)
 
     try:
         hdb.connect()

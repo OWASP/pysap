@@ -1142,16 +1142,23 @@ class SAPHDBTLSConnection(SAPHDBConnection):
     can be easily decrypted in Wireshark.
     """
 
+    TLS_CERT_TRUST = False
+    TLS_CERT_FILE = None
+    TLS_CHECK_HOSTNAME = False
     TLS_DEFAULT_PROTOCOL = ssl.PROTOCOL_TLS
     TLS_DEFAULT_OPTIONS = ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
     TLS_DEFAULT_CIPHERS = "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:AES256-GCM-SHA384:AES256-CCM8"
 
     def __init__(self, host, port, auth_method=None, route=None, pid=None, hostname=None,
-                 client_version=None, client_type=None, app_name=None, tls_protocol=None,
+                 client_version=None, client_type=None, app_name=None, tls_cert_trust=None,
+                 tls_cert_file=None, tls_check_hostname=None, tls_protocol=None,
                  tls_options=None, tls_ciphers=None):
         super(SAPHDBTLSConnection, self).__init__(host, port, auth_method, route, pid, hostname,
                                                   client_version, client_type, app_name)
         # Get TLS related parameters or set default values.
+        self.tls_cert_trust = tls_cert_trust or self.TLS_CERT_TRUST
+        self.tls_cert_file = tls_cert_file or self.TLS_CERT_FILE
+        self.tls_check_hostname = tls_check_hostname or self.TLS_CHECK_HOSTNAME
         self.tls_protocol = tls_protocol or self.TLS_DEFAULT_PROTOCOL
         self.tls_options = tls_options or self.TLS_DEFAULT_OPTIONS
         self.tls_ciphers = tls_ciphers or self.TLS_DEFAULT_CIPHERS
@@ -1161,13 +1168,23 @@ class SAPHDBTLSConnection(SAPHDBConnection):
         plain_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         plain_socket.settimeout(10)
 
-        # TLS/SSL Context
+        # Create the TLS/SSL Context. We first set the options as specified.
         context = ssl.SSLContext(self.tls_protocol)
         context.options |= self.tls_options
         if self.tls_ciphers:
             context.set_ciphers(self.tls_ciphers)
-        context.verify_mode = ssl.CERT_NONE
-        context.set_default_verify_paths()
+
+        # Then set the certificate validation and the path to the certificate(s) if required.
+        if self.tls_cert_trust:
+            context.verify_mode = ssl.CERT_NONE
+        else:
+            context.verify_mode = ssl.CERT_REQUIRED
+            context.check_hostname = self.tls_check_hostname
+
+        if self.tls_cert_file:
+            context.load_verify_locations(cafile=self.tls_cert_file)
+        else:
+            context.set_default_verify_paths()
 
         # Wrap the plain socket in a TLS/SSL one
         tls_socket = context.wrap_socket(plain_socket, server_hostname=self.host)
