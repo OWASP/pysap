@@ -31,9 +31,10 @@ jobs:
 
   test:
     name: Run unit tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest]
         python-version: [2.7]
     steps:
       - name: Checkout pysap
@@ -42,6 +43,11 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install openssl pandoc libdnet libpcap
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -63,10 +69,16 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get install pandoc texlive-base
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-docs.txt
+      - name: Install the library
+        run: |
+          python setup.py install
       - name: Pre-run documentation notebooks
         run: |
           python setup.py notebooks
