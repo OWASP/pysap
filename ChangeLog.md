@@ -6,6 +6,7 @@ v0.1.18 - 2020-XX-XX
 --------------------
 
 - Using Sphinx 1.8.5 for documentation.
+- Replaced Travis builds with GitHub Actions.
 - Added `cryptography` as required library instead of optional requirement.
 - Replaced used of deprecated `optparse` module for `argparse` across all tools and examples. 
 - `pysap/SAPCAR.py`: Added signature manifest file type.
