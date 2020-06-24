@@ -483,10 +483,10 @@ class SAPHDBPartConnectOptions(SAPHDBOptionPartRow):
         19: "Use Transaction Flags Only",
         20: "Row and Column Optimized Format",
         21: "Ignore Unknown Parts",
-        22: "Table Output Parameter",
+        22: "Table Output Parameter",               # This is set to True in SAPR3 mode
         23: "Data Format Version 2",
         24: "ITAB Parameter",
-        25: "Describe Table Output Parameter",
+        25: "Describe Table Output Parameter",      # This is set to True in SAPR3 mode
         26: "Columnar Result Set",
         27: "Scrollable Result Set",
         28: "Client Info NULL Value Supported",

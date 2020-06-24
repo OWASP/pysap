@@ -60,11 +60,11 @@ def parse_options():
 
     tls = parser.add_argument_group("TLS")
     tls.add_argument("--tls", dest="tls", action="store_true",
-                     help="Use TLS/SSL")
+                     help="Use TLS")
     tls.add_argument("--tls-no-trust-cert", dest="tls_cert_trust", action="store_false",
                      help="Do not trust the TLS certificate and validate it")
     tls.add_argument("--tls-cert-file", dest="tls_cert_file",
-                     help="Path to the certificate file to use when validating server's TLS certificate")
+                     help="Path to the certificate file to use when validating server's TLS certificate.")
     tls.add_argument("--tls-check-hostname", dest="tls_check_hostname", action="store_true",
                      help="Validate the hostname provided in the TLS certificate")
 
