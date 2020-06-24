@@ -1,0 +1,75 @@
+# GitHub Action workflow to build and test the library
+#
+
+name: Build and test pysap
+
+on: [push, pull_request]
+
+jobs:
+  health:
+    name: Code health
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [2.7]
+    steps:
+      - name: Checkout pysap
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 six
+          pip install -r requirements.txt
+      - name: Run flake8 tests
+        run: |
+          flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  test:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [2.7]
+    steps:
+      - name: Checkout pysap
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run unit tests
+        run: |
+          python setup.py test
+
+  docs:
+    name: Builds documentation
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [2.7]
+    steps:
+      - name: Checkout pysap
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-docs.txt
+      - name: Pre-run documentation notebooks
+        run: |
+          python setup.py notebooks
+      - name: Build documentation
+        run: |
+          python setup.py doc
