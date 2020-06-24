@@ -38,6 +38,13 @@ from pysap.utils.fields import (PacketNoPadded, AdjustableFieldLenField, LESigne
                                 LESignedShortField, LESignedLongField)
 
 
+hdb_packetoptions_values = {
+    0: "Uncompressed",
+    2: "Compressed",
+}
+"""SAP HDB Packet Options Values"""
+
+
 hdb_segmentkind_values = {
     0: "Invalid",
     1: "Request",
@@ -734,7 +741,7 @@ class SAPHDB(Packet):
         FieldLenField("varpartlength", None, length_of="segments", fmt="<I"),
         LEIntField("varpartsize", 2**17 - 32),
         FieldLenField("noofsegm", None, count_of="segments", fmt="<h"),
-        SignedByteField("packetoptions", 0),
+        EnumField("packetoptions", 0, hdb_packetoptions_values, fmt="b"),
         ByteField("reserved1", None),
         LEIntField("compressionvarpartlength", 0),
         IntField("reserved2", None),
