@@ -50,8 +50,16 @@ def parse_options():
                         help="Remote port [%(default)d]")
     target.add_argument("--route-string", dest="route_string",
                         help="Route string for connecting through a SAP Router")
-    target.add_argument("--tls", dest="tls", action="store_true",
-                        help="Use TLS/SSL")
+
+    tls = parser.add_argument_group("TLS")
+    tls.add_argument("--tls", dest="tls", action="store_true",
+                     help="Use TLS")
+    tls.add_argument("--tls-no-trust-cert", dest="tls_cert_trust", action="store_false",
+                     help="Do not trust the TLS certificate and validate it")
+    tls.add_argument("--tls-cert-file", dest="tls_cert_file",
+                     help="Path to the certificate file to use when validating server's TLS certificate.")
+    tls.add_argument("--tls-check-hostname", dest="tls_check_hostname", action="store_true",
+                     help="Validate the hostname provided in the TLS certificate")
 
     discovery = parser.add_mutually_exclusive_group()
     discovery.add_argument("-t", "--tenants", dest="tenants", default="SYSTEMDB",
@@ -79,11 +87,6 @@ def main():
         level = logging.DEBUG
     logging.basicConfig(level=level, format='%(message)s')
 
-    # Initiate the connection
-    connection_class = SAPHDBConnection
-    if options.tls:
-        connection_class = SAPHDBTLSConnection
-
     # Build the list of tenants to try
     if options.dictionary:
         with open(options.dictionary, 'r') as fd:
@@ -92,9 +95,19 @@ def main():
         tenants = options.tenants.split(",")
 
     # Create the connection
+    connection_class = SAPHDBConnection
+    kwargs = {"route": options.route_string,
+              "pid": options.pid,
+              "hostname": options.hostname}
+    if options.tls:
+        connection_class = SAPHDBTLSConnection
+        kwargs.update({"tls_cert_trust": options.tls_cert_trust,
+                       "tls_cert_file": options.tls_cert_file,
+                       "tls_check_hostname": options.tls_check_hostname})
+
     hdb = connection_class(options.remote_host,
                            options.remote_port,
-                           route=options.route_string)
+                           **kwargs)
 
     try:
         for tenant in tenants:
