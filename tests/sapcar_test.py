@@ -19,7 +19,7 @@
 
 # Standard imports
 import unittest
-from os import unlink
+from os import unlink, rmdir
 from os.path import basename, exists
 # External imports
 # Custom imports
@@ -46,6 +46,8 @@ class PySAPCARTest(unittest.TestCase):
         for filename in [self.test_filename, self.test_archive_file]:
             if exists(filename):
                 unlink(filename)
+        if exists("test"):
+            rmdir("test")
 
     def check_sapcar_archive(self, filename, version):
         """Test SAP CAR archive file"""

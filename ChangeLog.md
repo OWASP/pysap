@@ -6,7 +6,13 @@ v0.1.18 - 2020-XX-XX
 --------------------
 
 - Using Sphinx 1.8.5 for documentation.
-- Added `cryptography` library as requirement.
+- Replaced AppVeyor and Travis builds with GitHub Actions.
+- Added `cryptography` as required library instead of optional requirement.
+- Replaced used of deprecated `optparse` module for `argparse` across all tools and examples. 
+- `pysap/SAPCAR.py`: Added signature manifest file type.
+- `examples/diag_login_brute_force.py`: Handling valid users (e.g. no dialog users) vs valid passwords. Thanks fabhap!
+- `examples/diag_login_brute_force.py`: Fixed discovery with right message match ("Client does not exist").
+- `examples/default_sap_credentials`: Added a couple of default credentials from trial versions.
 
 
 v0.1.17 - 2019-11-05

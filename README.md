@@ -1,8 +1,7 @@
 pysap - Python library for crafting SAP's network protocols packets
 ===================================================================
 
-[![Build Status](https://travis-ci.org/SecureAuthCorp/pysap.svg?branch=master)](https://travis-ci.org/SecureAuthCorp/pysap)
-[![Build status](https://ci.appveyor.com/api/projects/status/pg7cajkr1iuhmmh1?svg=true)](https://ci.appveyor.com/project/martingalloar/pysap)
+[![Build and test pysap](https://github.com/SecureAuthCorp/pysap/workflows/Build%20and%20test%20pysap/badge.svg)](https://github.com/SecureAuthCorp/pysap/actions?query=workflow%3A%22Build+and+test+pysap%22)
 [![Latest Version](https://img.shields.io/pypi/v/pysap.svg)](https://pypi.python.org/pypi/pysap/)
 [![Documentation Status](http://readthedocs.org/projects/pysap/badge/?version=latest)](http://pysap.readthedocs.io/en/latest/?badge=latest)
 
@@ -47,7 +46,7 @@ Features
 
 * Client interfaces for handling the following file formats:
 
-    * SAP `SAR` archive files
+    * SAP [`SAR` archive files](https://www.iana.org/assignments/media-types/application/vnd.sar)
     * SAP Personal Security Environment (`PSE`) files
     * SAP SSO Credential (`Credv2`) files
 
@@ -115,6 +114,7 @@ Contributions made by:
   * [@cclauss](https://github.com/cclauss)
   * [@okuuva](https://github.com/okuuva)
   * Dmitry Chastuhin ([@_chipik](https://twitter.com/_chipik))
+  * fabhap
 
 
 Contact
