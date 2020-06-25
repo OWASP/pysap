@@ -46,7 +46,6 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          brew update
           brew install openssl libdnet libpcap
       - name: Install dependencies
         run: |
