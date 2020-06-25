@@ -7,7 +7,7 @@ on: [push, pull_request]
 
 jobs:
   health:
-    name: Code health
+    name: Check code health
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -30,7 +30,7 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
   test:
-    name: Run unit tests
+    name: Run unit tests and build wheel
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -56,23 +56,17 @@ jobs:
         run: |
           python setup.py test
 
-      - name: Build artifacts
+      - name: Build wheel artifact
         run: |
-          python setup.py sdist
           python setup.py bdist_wheel
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v2
         with:
           name: packages
           path: dist/*.whl
-      - name: Upload source artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: packages
-          path: dist/*.tar.gz
 
   docs:
-    name: Builds documentation
+    name: Build documentation and source package
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -100,3 +94,12 @@ jobs:
       - name: Build documentation
         run: |
           python setup.py doc
+
+      - name: Build source artifact
+        run: |
+          python setup.py sdist
+      - name: Upload source artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: packages
+          path: dist/*.tar.gz
