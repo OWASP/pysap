@@ -32,10 +32,16 @@ jobs:
   test:
     name: Run unit tests and build wheel
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: [2.7]
+        experimental: [false]
+        include:
+          - os: windows-latest
+            python-version: 2.7
+            experimental: true
     steps:
       - name: Checkout pysap
         uses: actions/checkout@v2
