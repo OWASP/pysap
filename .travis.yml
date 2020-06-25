@@ -23,7 +23,7 @@ addons:
     apt:
         packages:
             - pandoc
-            - texlive-base
+            - texlive-latex-base
     homebrew:
         packages:
             - openssl
