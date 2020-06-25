@@ -381,7 +381,7 @@ class SAPHDBPartError(PacketNoPadded):
         FieldLenField("error_text_length", None, length_of="error_text", fmt="<i"),
         EnumField("error_level", 0, hdb_error_level_vals, fmt="<b"),
         StrFixedLenField("sql_state", "HY000", 5),
-        PadField(StrFixedLenField("error_text", None, length_from=lambda pkt: pkt.error_text_length), 8),
+        PadField(StrFixedLenField("error_text", "", length_from=lambda pkt: pkt.error_text_length), 8),
     ]
 
 

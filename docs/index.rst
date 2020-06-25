@@ -12,12 +12,12 @@ Overview
 building and integrating SAP business applications. Communication between components
 uses different network protocols and some services and tools make use of custom file
 formats as well. While some of them are standard and well-known protocols, others
-are proprietaries and public information is not available.
+are proprietaries and public information is generally not available.
 
 `pysap <https://www.secureauth.com/labs/open-source-tools/pysap>`_
 is an open source Python library that provides modules for crafting and sending packets
-using SAP's ``NI``, ``Diag``, ``Enqueue``, ``Router``, ``MS``, ``SNC``, ``IGS``
-and ``RFC`` protocols. In addition, support for creating and parsing different proprietary
+using SAP's ``NI``, ``Diag``, ``Enqueue``, ``Router``, ``MS``, ``SNC``, ``IGS``, ``RFC``
+and ``HDB`` protocols. In addition, support for creating and parsing different proprietary
 file formats is included. The modules are built on top of `Scapy <https://scapy.net/>`_ and
 are based on information acquired at researching the different protocols, file formats
 and services.
@@ -36,6 +36,7 @@ Features
     * SAP Secure Network Connection (``SNC``)
     * SAP Internet Graphic Server (``IGS``)
     * SAP Remote Function Call (``RFC``)
+    * SAP HANA SQL Command Network (``HDB``)
 
 * Client interfaces for handling the following file formats:
 
