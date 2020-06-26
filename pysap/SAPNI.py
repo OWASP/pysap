@@ -22,6 +22,7 @@ import sys
 import logging
 from select import select
 from struct import unpack
+from errno import ENETDOWN
 from threading import Event
 from SocketServer import BaseRequestHandler, ThreadingMixIn, TCPServer
 # External imports
@@ -465,11 +466,20 @@ class SAPNIServerHandler(BaseRequestHandler):
                             self.client_address)
 
             # Receive and store the packet
-            self.packet = self.request.recv()
+            try:
+                self.packet = self.request.recv()
 
-            log_sapni.debug("SAPNIServerHandler: Request received")
-            # Pass the control to the handle_data function
-            self.handle_data()
+                log_sapni.debug("SAPNIServerHandler: Request received")
+                # Pass the control to the handle_data function
+                self.handle_data()
+
+            except socket.error as e:
+                errno, message = e.message
+                if errno == ENETDOWN:
+                    log_sapni.debug("SAPNIServerHandler: Client %s disconnected",
+                                    self.client_address)
+                    break
+                log_sapni.debug("SAPNIServerHandler: Error handling data, %s", e)
 
     def handle_data(self):
         """Handle the data coming from the client. The :class:`SAPNI` packet is stored
