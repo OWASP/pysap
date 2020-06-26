@@ -101,7 +101,7 @@ class SAPNIStreamSocket(StreamSocket):
         :type packet: Packet
         """
         # Add the NI layer and send
-        log_sapni.debug("To send %d bytes", len(packet) + 4)
+        log_sapni.debug("To send %d bytes data + 4 bytes NI header", len(packet))
         return StreamSocket.send(self, SAPNI() / packet)
 
     def recv(self):
@@ -121,7 +121,7 @@ class SAPNIStreamSocket(StreamSocket):
         if len(nidata) == 0:
             raise socket.error((100, "Underlying stream socket tore down"))
         (nilength, ) = unpack("!I", nidata)
-        log_sapni.debug("To receive %d bytes", nilength)
+        log_sapni.debug("Received 4 bytes NI header, to receive %d bytes data", nilength)
 
         # Receive the whole NI packet (length+payload)
         nidata = ''
@@ -140,7 +140,7 @@ class SAPNIStreamSocket(StreamSocket):
                 return self.recv()
 
         # Build the SAPNI packet with the received data
-        log_sapni.debug("Received %d bytes", nilength)
+        log_sapni.debug("Received %d bytes data", nilength)
 
         # Decode the packet payload according to the base class defined
         packet = SAPNI(nidata)
