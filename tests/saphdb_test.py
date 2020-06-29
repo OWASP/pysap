@@ -18,6 +18,7 @@
 # ==============
 
 # Standard imports
+import sys
 import socket
 import unittest
 from struct import unpack
@@ -33,7 +34,8 @@ class SAPHDBServerTestHandler(BaseRequestHandler):
     """Basic SAP HDB server that performs initialization."""
 
     def handle_data(self):
-        pass
+        self.request.recv(14)
+        self.request.send("\x00" * 8)
 
 
 class PySAPHDBConnectionTest(unittest.TestCase):
@@ -41,32 +43,30 @@ class PySAPHDBConnectionTest(unittest.TestCase):
     test_port = 30017
     test_address = "127.0.0.1"
 
-    def start_server(self, handler_cls):
-        self.server = ThreadingTCPServer((self.test_address, self.test_port),
+    def start_server(self, address, port, handler_cls):
+        self.server = ThreadingTCPServer((address, port),
                                          handler_cls,
                                          bind_and_activate=False)
         self.server.allow_reuse_address = True
         self.server.server_bind()
         self.server.server_activate()
         self.server_thread = Thread(target=self.server.serve_forever)
+        self.server_thread.daemon = True
         self.server_thread.start()
 
     def stop_server(self):
         self.server.shutdown()
         self.server.server_close()
-        self.server_thread.join()
+        self.server_thread.join(1)
 
     def test_saphdbconnection_initialize(self):
         """Test HDB Connection initialize"""
-        self.start_server(SAPHDBServerTestHandler)
-
-        sock = socket.socket()
-        sock.connect((self.test_address, self.test_port))
+        self.start_server(self.test_address, self.test_port, SAPHDBServerTestHandler)
 
         client = SAPHDBConnection(self.test_address, self.test_port)
+        client.connect()
         client.initialize()
 
-        client.close()
         self.stop_server()
 
 
@@ -78,4 +78,6 @@ def test_suite():
 
 
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=2).run(test_suite())
+    test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
+    result = test_runner.run(test_suite())
+    sys.exit(not result.wasSuccessful())
