@@ -181,7 +181,7 @@ def main():
         logging.debug("[*] HANA database version %d/protocol version %d" % (hdb.product_version,
                                                                             hdb.protocol_version))
         hdb.authenticate()
-        logging.debug("[*] Authenticated against HANA database server")
+        logging.info("[*] Successfully authenticated against HANA database server")
 
         hdb.close()
         logging.debug("[*] Connection with HANA database server closed")
