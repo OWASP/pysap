@@ -18,6 +18,7 @@
 # ==============
 
 # Standard imports
+import sys
 import socket
 import unittest
 from struct import unpack
@@ -254,4 +255,6 @@ def test_suite():
 
 
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=2).run(test_suite())
+    test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
+    result = test_runner.run(test_suite())
+    sys.exit(not result.wasSuccessful())
