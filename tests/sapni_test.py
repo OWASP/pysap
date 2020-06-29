@@ -90,8 +90,8 @@ class SAPNITestHandlerKeepAlive(SAPNITestHandler):
     """Basic SAP NI keep alive server"""
 
     def handle(self):
-        self.request.sendall("\x00\x00\x00\x08NI_PING\x00")
         SAPNITestHandler.handle(self)
+        self.request.sendall("\x00\x00\x00\x08NI_PING\x00")
 
 
 class SAPNITestHandlerClose(SAPNITestHandler):
@@ -115,7 +115,7 @@ class PySAPNIStreamSocketTest(PySAPBaseServerTest):
         sock.connect((self.test_address, self.test_port))
 
         self.client = SAPNIStreamSocket(sock)
-        packet = self.client.sr(self.test_string)
+        packet = self.client.sr(Raw(self.test_string))
         packet.decode_payload_as(Raw)
         self.client.close()
 
@@ -136,7 +136,7 @@ class PySAPNIStreamSocketTest(PySAPBaseServerTest):
         sock.connect((self.test_address, self.test_port))
 
         self.client = SAPNIStreamSocket(sock, base_cls=SomeClass)
-        packet = self.client.sr(self.test_string)
+        packet = self.client.sr(Raw(self.test_string))
         self.client.close()
 
         self.assertIn(SAPNI, packet)
@@ -153,7 +153,7 @@ class PySAPNIStreamSocketTest(PySAPBaseServerTest):
         self.client = SAPNIStreamSocket.get_nisocket(self.test_address,
                                                      self.test_port)
 
-        packet = self.client.sr(self.test_string)
+        packet = self.client.sr(Raw(self.test_string))
         packet.decode_payload_as(Raw)
         self.client.close()
 
@@ -171,15 +171,22 @@ class PySAPNIStreamSocketTest(PySAPBaseServerTest):
         sock.connect((self.test_address, self.test_port))
 
         self.client = SAPNIStreamSocket(sock, keep_alive=False)
-        packet = self.client.sr(self.test_string)
+        packet = self.client.sr(Raw(self.test_string))
         packet.decode_payload_as(Raw)
-        self.client.close()
 
-        # We should receive a PING instead of our packet
+        # We should receive our packet first
+        self.assertIn(SAPNI, packet)
+        self.assertEqual(packet[SAPNI].length, len(self.test_string))
+        self.assertEqual(packet.payload.load, self.test_string)
+
+        # Then we should get a we should receive a PING
+        packet = self.client.recv()
+
         self.assertIn(SAPNI, packet)
         self.assertEqual(packet[SAPNI].length, len(SAPNI.SAPNI_PING))
         self.assertEqual(packet.payload.load, SAPNI.SAPNI_PING)
 
+        self.client.close()
         self.stop_server()
 
     def test_sapnistreamsocket_with_keep_alive(self):
@@ -190,16 +197,20 @@ class PySAPNIStreamSocketTest(PySAPBaseServerTest):
         sock.connect((self.test_address, self.test_port))
 
         self.client = SAPNIStreamSocket(sock, keep_alive=True)
-        packet = self.client.sr(self.test_string)
-        packet.decode_payload_as(Raw)
-        self.client.close()
+        self.client.send(Raw(self.test_string))
 
-        # We should receive our packet, the PING should be handled by the
-        # stream socket
+        packet = self.client.recv()
+        packet.decode_payload_as(Raw)
+
+        # We should receive our packet first
         self.assertIn(SAPNI, packet)
         self.assertEqual(packet[SAPNI].length, len(self.test_string))
         self.assertEqual(packet.payload.load, self.test_string)
 
+        # Then we should get a connection reset if we try to receive from the server
+        self.assertRaises(socket.error, self.client.recv)
+
+        self.client.close()
         self.stop_server()
 
     def test_sapnistreamsocket_close(self):
@@ -212,7 +223,7 @@ class PySAPNIStreamSocketTest(PySAPBaseServerTest):
         self.client = SAPNIStreamSocket(sock, keep_alive=False)
 
         with self.assertRaises(socket.error):
-            self.client.sr(self.test_string)
+            self.client.sr(Raw(self.test_string))
 
         self.stop_server()
 
@@ -284,12 +295,14 @@ class PySAPNIProxyTest(PySAPBaseServerTest):
         sock.connect((self.test_address, self.test_proxyport))
         sock.sendall(pack("!I", len(self.test_string)) + self.test_string)
 
-        response = sock.recv(1024)
+        response = sock.recv(4)
+        self.assertEqual(len(response), 4)
+        ni_length, = unpack("!I", response)
+        self.assertEqual(ni_length, len(self.test_string) + 4)
 
-        self.assertEqual(len(response), len(self.test_string) + 8)
-        self.assertEqual(unpack("!I", response[:4]), (len(self.test_string) + 4, ))
-        self.assertEqual(unpack("!I", response[4:8]), (len(self.test_string), ))
-        self.assertEqual(response[8:], self.test_string)
+        response = sock.recv(ni_length)
+        self.assertEqual(unpack("!I", response[:4]), (len(self.test_string), ))
+        self.assertEqual(response[4:], self.test_string)
 
         sock.close()
         self.stop_sapniproxy()
