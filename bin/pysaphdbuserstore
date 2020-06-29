@@ -54,7 +54,7 @@ class PySAPHDBUserStore(object):
         parser = ArgumentParser(usage=pysaphdbuserstore_usage, description=description, epilog=pysap.epilog)
 
         # Commands
-        parser.add_argument("-c", dest="command", help="Command", type="choice", choices=self.commands)
+        parser.add_argument("-c", dest="command", help="Command", choices=self.commands)
         parser.add_argument("-k", dest="key_filename", help="SSFS Key filename", metavar="FILE")
         parser.add_argument("-d", dest="data_filename", help="SSFS Data filename", metavar="FILE")
 
@@ -66,7 +66,7 @@ class PySAPHDBUserStore(object):
         misc = parser.add_argument_group("Misc options")
         misc.add_argument("-v", dest="verbose", action="store_true", help="Verbose output")
 
-        options, args = parser.parse_args()
+        options, args = parser.parse_known_args()
 
         return options, args
 
