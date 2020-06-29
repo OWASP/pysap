@@ -310,6 +310,13 @@ def hdb_register_part_kind(cls):
     return cls
 
 
+def hdb_get_part_kind_option(part, key):
+    for option in part.buffer:
+        if hasattr(option, "key") and option.key == key:
+            return option.value
+    return None
+
+
 class SAPHDBOptionPartRow(PacketNoPadded):
     """SAP HANA SQL Command Network Protocol Option Part Row
 
