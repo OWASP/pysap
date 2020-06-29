@@ -100,7 +100,7 @@ class PySAPNIStreamSocketTest(unittest.TestCase):
     def stop_server(self):
         self.server.shutdown()
         self.server.server_close()
-        self.server_thread.join()
+        self.server_thread.join(1)
 
     def test_sapnistreamsocket(self):
         """Test SAPNIStreamSocket"""
@@ -234,11 +234,13 @@ class PySAPNIServerTest(unittest.TestCase):
         self.server.server_bind()
         self.server.server_activate()
         self.server_thread = Thread(target=self.server.serve_forever)
+        self.server_thread.daemon = True
         self.server_thread.start()
 
     def tearDown(self):
         self.server.shutdown()
         self.server.server_close()
+        self.server_thread.join(1)
 
     def test_sapniserver(self):
         """Test SAPNIServer"""
@@ -273,17 +275,20 @@ class PySAPNIProxyTest(unittest.TestCase):
         self.server.server_bind()
         self.server.server_activate()
         self.server_thread = Thread(target=self.server.serve_forever)
+        self.server_thread.daemon = True
         self.server_thread.start()
 
     def tearDown(self):
         self.server.shutdown()
         self.server.server_close()
+        self.server_thread.join(1)
 
     def start_sapniproxy(self, handler_cls):
         self.proxy = SAPNIProxy(self.test_address, self.test_proxyport,
                                 self.test_address, self.test_serverport,
                                 handler=handler_cls)
         self.proxy_thread = Thread(target=self.handle_sapniproxy)
+        self.proxy_thread.daemon = True
         self.proxy_thread.start()
 
     def handle_sapniproxy(self):
