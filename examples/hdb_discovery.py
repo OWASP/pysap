@@ -20,6 +20,8 @@
 
 # Standard imports
 import logging
+from json import dump
+from sys import stdout
 from argparse import ArgumentParser
 from socket import error as SocketError
 # External imports
@@ -27,7 +29,8 @@ from scapy.config import conf
 # Custom imports
 import pysap
 from pysap.SAPHDB import (SAPHDBConnection, SAPHDBTLSConnection, SAPHDBConnectionError,
-                          SAPHDBOptionPartRow, SAPHDBPart, SAPHDBSegment, SAPHDB)
+                          SAPHDBOptionPartRow, SAPHDBPartDBConnectInfo,
+                          hdb_get_part_kind_option, SAPHDBPart, SAPHDBSegment, SAPHDB)
 
 
 # Set the verbosity to 0
@@ -67,6 +70,10 @@ def parse_options():
     discovery.add_argument("--dictionary", dest="dictionary", metavar="FILE",
                            help="File to read the list of tenants to try")
 
+    output = parser.add_argument_group("Output")
+    output.add_argument("-o", "--output", dest="output", default="-",
+                        help="File to write the results in JSON format [stdout]")
+
     misc = parser.add_argument_group("Misc options")
     misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
 
@@ -96,23 +103,25 @@ def main():
 
     # Create the connection
     connection_class = SAPHDBConnection
-    kwargs = {"route": options.route_string,
-              "pid": options.pid,
-              "hostname": options.hostname}
+    kwargs = {"route": options.route_string}
     if options.tls:
         connection_class = SAPHDBTLSConnection
         kwargs.update({"tls_cert_trust": options.tls_cert_trust,
                        "tls_cert_file": options.tls_cert_file,
                        "tls_check_hostname": options.tls_check_hostname})
 
-    hdb = connection_class(options.remote_host,
-                           options.remote_port,
-                           **kwargs)
-
+    results = {}
     try:
         for tenant in tenants:
+            results[tenant] = {"Database": tenant}
+
             logging.info("[*] Discovering tenant '{}'".format(tenant))
             try:
+
+                hdb = connection_class(options.remote_host,
+                                       options.remote_port,
+                                       **kwargs)
+
                 hdb.connect()
                 logging.debug("[*] Connected to HANA database %s:%d" % (options.remote_host, options.remote_port))
                 hdb.initialize()
@@ -128,19 +137,25 @@ def main():
 
                 # Check if it's an error response
                 if hdb_dbconnectinfo_response.segments[0].segmentkind == 5:
-                    logging.error("[-] Tenant '%s' exist but is not connected" % tenant)
+                    results[tenant]["Found"] = False
+                    logging.debug("[-] Tenant '%s' exist but is not connected" % tenant)
                     continue
+                else:
+                    results[tenant]["Found"] = True
 
-                hdb_dbconnectinfo_response_part = hdb_dbconnectinfo_response.segments[0].parts[0].buffer[0]
-                for option_row in hdb_dbconnectinfo_response.segments[0].parts[0].buffer:
-                    logging.debug(option_row.show(True))
+                # List the values in the returned DBConnectInfo part
+                hdb_dbconnectinfo_response_part = hdb_dbconnectinfo_response.segments[0].parts[0]
+                for key, name in SAPHDBPartDBConnectInfo.option_keys.items():
+                    value = hdb_get_part_kind_option(hdb_dbconnectinfo_response_part, key)
+                    if value is not None:
+                        results[tenant][name] = value
+                    logging.debug("[*]\t{}:\t{}".format(name, value))
 
                 # Is Connected?
-                if hdb_dbconnectinfo_response_part.key == 4 and hdb_dbconnectinfo_response_part.value:
-                    logging.info("[+] Tenant '%s' is connected" % tenant)
+                if hdb_get_part_kind_option(hdb_dbconnectinfo_response_part, 4):
+                    logging.debug("[+] Tenant '%s' is connected" % tenant)
                 else:
                     logging.debug("[-] Tenant '%s' is not connected" % tenant)
-                    hdb_dbconnectinfo_response_part.show()
 
                 hdb.close()
                 logging.debug("[*] Connection with HANA database server closed")
@@ -152,6 +167,15 @@ def main():
 
     except KeyboardInterrupt:
         logging.info("[-] Connection canceled")
+
+    # Write the output of the discovery
+    if options.output:
+        if options.output == "-":
+            fd = stdout
+        else:
+            fd = open(options.output, "w")
+        dump(results, fd, indent=2)
+        fd.close()
 
 
 if __name__ == "__main__":
