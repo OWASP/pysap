@@ -365,8 +365,7 @@ class SAPCredv2Cred(ASN1_Packet):
     ASN1_codec = ASN1_Codecs.BER
     ASN1_root = ASN1F_CHOICE_SAFE("cred", SAPCredv2_Cred(),
                                   SAPCredv2_Cred,
-                                  SAPCredv2_Cred_LPS,
-    )
+                                  SAPCredv2_Cred_LPS)
 
 
 class SAPCredv2(ASN1_Packet):

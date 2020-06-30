@@ -46,19 +46,19 @@ _filemode_table = (
 
     ((stat.S_IRUSR,         "r"),),
     ((stat.S_IWUSR,         "w"),),
-    ((stat.S_IXUSR|stat.S_ISUID, "s"),
+    ((stat.S_IXUSR | stat.S_ISUID, "s"),
      (stat.S_ISUID,         "S"),
      (stat.S_IXUSR,         "x")),
 
     ((stat.S_IRGRP,         "r"),),
     ((stat.S_IWGRP,         "w"),),
-    ((stat.S_IXGRP|stat.S_ISGID, "s"),
+    ((stat.S_IXGRP | stat.S_ISGID, "s"),
      (stat.S_ISGID,         "S"),
      (stat.S_IXGRP,         "x")),
 
     ((stat.S_IROTH,         "r"),),
     ((stat.S_IWOTH,         "w"),),
-    ((stat.S_IXOTH|stat.S_ISVTX, "t"),
+    ((stat.S_IXOTH | stat.S_ISVTX, "t"),
      (stat.S_ISVTX,         "T"),
      (stat.S_IXOTH,         "x"))
 )

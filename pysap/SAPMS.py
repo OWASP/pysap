@@ -1112,11 +1112,11 @@ class SAPMS(Packet):
 
         # Dispatcher info
         ConditionalField(ByteField("dp_version", 0x0), lambda pkt:pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)),
-        ConditionalField(PacketLenField("dp_info1", SAPDPInfo1(), SAPDPInfo1, length_from=lambda x: 507), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0d), # 745 kernel
+        ConditionalField(PacketLenField("dp_info1", SAPDPInfo1(), SAPDPInfo1, length_from=lambda x: 507), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0d),  # 745 kernel
 
-        ConditionalField(PacketLenField("dp_info2", SAPDPInfo2(), SAPDPInfo2, length_from=lambda x: 203), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0b), # 720 kernel
+        ConditionalField(PacketLenField("dp_info2", SAPDPInfo2(), SAPDPInfo2, length_from=lambda x: 203), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0b),  # 720 kernel
 
-        ConditionalField(PacketLenField("dp_info3", SAPDPInfo3(), SAPDPInfo3, length_from=lambda x: 179), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0e), # 749 kernel
+        ConditionalField(PacketLenField("dp_info3", SAPDPInfo3(), SAPDPInfo3, length_from=lambda x: 179), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0e),  # 749 kernel
 
         # MS ADM layer
         ConditionalField(StrFixedLenField("adm_eyecatcher", "AD-EYECATCH\x00", 12), lambda pkt: pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
