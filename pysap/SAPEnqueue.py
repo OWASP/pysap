@@ -208,8 +208,8 @@ class SAPEnqueue(PacketNoPadded):
     def post_build(self, pkt, pay):
         """Adjust the len and len_frags fields after the build of the whole
         packet. """
-        l = struct.pack("!I", len(pkt) + len(pay))
-        pkt = pkt[:8] + l + l + pkt[16:]
+        length = struct.pack("!I", len(pkt) + len(pay))
+        pkt = pkt[:8] + length + length + pkt[16:]
         return pkt + pay
 
 

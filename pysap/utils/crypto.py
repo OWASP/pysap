@@ -22,9 +22,9 @@ import os
 import math
 # External imports
 from cryptography.exceptions import InvalidKey
-from cryptography.hazmat.primitives import constant_time, padding
 from cryptography.hazmat.primitives.hashes import Hash
-from cryptography.hazmat.primitives.ciphers import Cipher, modes
+from cryptography.hazmat.primitives.ciphers import Cipher
+from cryptography.hazmat.primitives import constant_time, padding
 
 
 def dpapi_decrypt_blob(blob, entropy=None):
