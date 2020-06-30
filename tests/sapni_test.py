@@ -327,13 +327,16 @@ class PySAPNIProxyTest(PySAPBaseServerTest):
         sock.connect((self.test_address, self.test_proxyport))
         sock.sendall(pack("!I", len(self.test_string)) + self.test_string)
 
-        response = sock.recv(1024)
-
         expected_reponse = self.test_string + "Client" + "Server"
-        self.assertEqual(len(response), len(expected_reponse) + 8)
-        self.assertEqual(unpack("!I", response[:4]), (len(expected_reponse) + 4, ))
-        self.assertEqual(unpack("!I", response[4:8]), (len(self.test_string) + 6, ))
-        self.assertEqual(response[8:], expected_reponse)
+
+        response = sock.recv(4)
+        self.assertEqual(len(response), 4)
+        ni_length, = unpack("!I", response)
+        self.assertEqual(ni_length, len(expected_reponse) + 4)
+
+        response = sock.recv(ni_length)
+        self.assertEqual(unpack("!I", response[:4]), (len(self.test_string) + 6, ))
+        self.assertEqual(response[4:], expected_reponse)
 
         sock.close()
         self.stop_sapniproxy()
