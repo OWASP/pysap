@@ -43,6 +43,7 @@ class PySAPBaseServerTest(unittest.TestCase):
         self.server.server_bind()
         self.server.server_activate()
         self.server_thread = Thread(target=self.server.serve_forever)
+        self.server_thread.daemon = True
         self.server_thread.start()
 
     def stop_server(self):
