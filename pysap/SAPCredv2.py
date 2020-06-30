@@ -20,7 +20,6 @@
 
 # Standard imports
 import logging
-from zlib import crc32
 from binascii import unhexlify
 # External imports
 from scapy.packet import Packet
@@ -34,7 +33,7 @@ from scapy.asn1fields import (ASN1F_SEQUENCE, ASN1F_SEQUENCE_OF, ASN1F_BIT_STRIN
 from scapy.asn1.mib import conf  # noqa: F401
 
 # Custom imports
-from pysap.SAPLPS import SAP_LPS_Cipher
+from pysap.SAPLPS import SAPLPSCipher
 from pysap.utils.fields import ASN1F_CHOICE_SAFE
 from pysap.utils.crypto import dpapi_decrypt_blob
 # External imports
@@ -318,8 +317,8 @@ class SAPCredv2_Cred_LPS(ASN1_Packet):
 
     @property
     def lps_type_str(self):
-        if self.lps_type in SAP_LPS_Cipher.lps_types:
-            lps = SAP_LPS_Cipher.lps_types[self.lps_type]
+        if self.lps_type in SAPLPSCipher.lps_types:
+            lps = SAPLPSCipher.lps_types[self.lps_type]
         else:
             lps = "OFF"
         return lps
@@ -345,7 +344,7 @@ class SAPCredv2_Cred_LPS(ASN1_Packet):
         :rtype: SAPCredv2_Cred_Plain
         """
 
-        cipher = SAP_LPS_Cipher(self.cipher.val_readable)
+        cipher = SAPLPSCipher(self.cipher.val_readable)
         log_cred.debug("Obtained LPS cipher object (version={}, lps={})".format(cipher.version,
                                                                                 cipher.lps_type))
         plain = cipher.decrypt()

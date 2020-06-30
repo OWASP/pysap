@@ -33,7 +33,7 @@ from scapy.layers.x509 import (X509_SubjectPublicKeyInfo, X509_Cert, X509_Direct
 from scapy.asn1.mib import conf  # noqa: F401
 
 # Custom imports
-from pysap.SAPLPS import SAP_LPS_Cipher
+from pysap.SAPLPS import SAPLPSCipher
 from pysap.utils.crypto import PKCS12_PBES1
 from pysap.utils.fields import ASN1F_CHOICE_SAFE
 # External imports
@@ -280,7 +280,7 @@ class SAPPSEFile(ASN1_Packet):
         """
 
         # Decrypt the encryption key using the LPS method
-        cipher = SAP_LPS_Cipher(self.enc_cont.encrypted_pin.val)
+        cipher = SAPLPSCipher(self.enc_cont.encrypted_pin.val)
         log_pse.debug("Obtained LPS cipher object (version={}, lps={})".format(cipher.version,
                                                                                cipher.lps_type))
         key = cipher.decrypt()
