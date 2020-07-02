@@ -474,12 +474,9 @@ class SAPNIServerHandler(BaseRequestHandler):
                 self.handle_data()
 
             except socket.error as e:
-                errno, message = e.message
-                if errno == ENETDOWN:
-                    log_sapni.debug("SAPNIServerHandler: Client %s disconnected",
-                                    self.client_address)
-                    break
-                log_sapni.debug("SAPNIServerHandler: Error handling data, %s", e)
+                log_sapni.debug("SAPNIServerHandler: Error handling data or client %s disconnected, %s (errno %d)",
+                                self.client_address, e.message, e.errno)
+                break
 
     def handle_data(self):
         """Handle the data coming from the client. The :class:`SAPNI` packet is stored
