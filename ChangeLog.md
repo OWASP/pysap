@@ -8,8 +8,12 @@ v0.1.18 - 2020-XX-XX
 - Using Sphinx 1.8.5 for documentation.
 - Replaced AppVeyor and Travis builds with GitHub Actions.
 - Added `cryptography` as required library instead of optional requirement.
-- Replaced used of deprecated `optparse` module for `argparse` across all tools and examples. 
+- Replaced the use of deprecated `optparse` module for `argparse` across all tools and examples.
 - `pysap/SAPCAR.py`: Added signature manifest file type.
+- `pysap/SAPHDB`: New module for SAP HANA SQL Command Network protocol packets, authentication methods and connection classes.
+- `pysap/utils/crypto`: Added implementation of SCRAM algorithms for use in HDB authentication.
+- `examples/hdb_auth.py`: New example script to illustrate the use of the different authentication methods in HDB.
+- `examples/hdb_discovery.py`: New example script to perform discovery of HANA database tenants. 
 - `examples/diag_login_brute_force.py`: Handling valid users (e.g. no dialog users) vs valid passwords. Thanks fabhap!
 - `examples/diag_login_brute_force.py`: Fixed discovery with right message match ("Client does not exist").
 - `examples/default_sap_credentials`: Added a couple of default credentials from trial versions.
