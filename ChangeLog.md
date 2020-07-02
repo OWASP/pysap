@@ -9,15 +9,19 @@ v0.1.18 - 2020-XX-XX
 - Replaced AppVeyor and Travis builds with GitHub Actions.
 - Added `cryptography` as required library instead of optional requirement.
 - Replaced the use of deprecated `optparse` module for `argparse` across all tools and examples.
+- Fixed some PEP8 warnings across modules and example scripts.
 - `pysap/SAPCAR.py`: Added signature manifest file type.
-- `pysap/SAPHDB`: New module for SAP HANA SQL Command Network protocol packets, authentication methods and connection classes.
+- `pysap/SAPHDB.py`: New module for SAP HANA SQL Command Network protocol packets, authentication methods and connection classes.
+- `pysap/SAPNI.py`: Disconnect clients in SAPNIServer if socket errors are catched. 
 - `pysap/utils/crypto`: Added implementation of SCRAM algorithms for use in HDB authentication.
 - `examples/hdb_auth.py`: New example script to illustrate the use of the different authentication methods in HDB.
 - `examples/hdb_discovery.py`: New example script to perform discovery of HANA database tenants. 
 - `examples/diag_login_brute_force.py`: Handling valid users (e.g. no dialog users) vs valid passwords. Thanks fabhap!
 - `examples/diag_login_brute_force.py`: Fixed discovery with right message match ("Client does not exist").
 - `examples/default_sap_credentials`: Added a couple of default credentials from trial versions.
-
+- `tests/crypto_test.py`: Testing output of SCRAM algorithms.
+- `tests/saphdb_test.py`: Basic unit tests for the HDB protocol.
+- `tests/sapni_test.py`: Arranged and fixed a couple of tests that were failing on macOS and Windows.
 
 v0.1.17 - 2019-11-05
 --------------------
