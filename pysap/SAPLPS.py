@@ -40,11 +40,11 @@ cred_key_lps_fallback = "\xe7\x6a\xd2\xce\x4b\xa7\xc7\x9e\xf9\x79\x5f\xa8\x2e\x6
 """Fixed key embedded in CommonCryptoLib for encrypted credentials using LPS in fallback mode"""
 
 
-class SAP_LPS_Decryption_Error(Exception):
+class SAPLPSDecryptionError(Exception):
     pass
 
 
-class SAP_LPS_Cipher(Packet):
+class SAPLPSCipher(Packet):
     """SAP LPS cipher packet. This is the data stored inside an LPS encrypted blob
     (credential or PSE file). It contains all the required data to decrypt and validate
     the stored context.
@@ -93,14 +93,14 @@ class SAP_LPS_Cipher(Packet):
         :return: decrypted object
         :rtype: string
 
-        :raise NotImplemented: if the LPS method is not implemented
+        :raise NotImplementedError: if the LPS method is not implemented
         :raise SAP_LPS_Decryption_Error: if there's an error decrypting the object
         """
 
         # Validate supported version
         if self.version != 2:
             log_lps.error("Version not supported")
-            raise SAP_LPS_Decryption_Error("Version not supported")
+            raise SAPLPSDecryptionError("Version not supported")
 
         # TODO: Calculate and validate CRC32
 
@@ -109,7 +109,7 @@ class SAP_LPS_Cipher(Packet):
             encryption_key = lps_encryption_key_decryptor[self.lps_type](self)
         else:
             log_lps.error("Invalid LPS decryption method")
-            raise SAP_LPS_Decryption_Error("Invalid LPS decryption method")
+            raise SAPLPSDecryptionError("Invalid LPS decryption method")
 
         # Decrypt the cipher text with the encryption key
         iv = "\x00" * 16
@@ -163,12 +163,12 @@ class SAP_LPS_Cipher(Packet):
         :rtype: string
         """
         log_lps.error("LPS TPM decryption not implemented")
-        raise NotImplemented("LPS TPM decryption not implemented")
+        raise NotImplementedError("LPS TPM decryption not implemented")
 
 
 lps_encryption_key_decryptor = {
-    SAP_LPS_Cipher.LPS_FALLBACK: SAP_LPS_Cipher.decrypt_encryption_key_fallback,
-    SAP_LPS_Cipher.LPS_DPAPI: SAP_LPS_Cipher.decrypt_encryption_key_dpapi,
-    SAP_LPS_Cipher.LPS_TPM: SAP_LPS_Cipher.decrypt_encryption_key_tpm,
+    SAPLPSCipher.LPS_FALLBACK: SAPLPSCipher.decrypt_encryption_key_fallback,
+    SAPLPSCipher.LPS_DPAPI: SAPLPSCipher.decrypt_encryption_key_dpapi,
+    SAPLPSCipher.LPS_TPM: SAPLPSCipher.decrypt_encryption_key_tpm,
 }
 """LPS encryption key decryptor functions"""

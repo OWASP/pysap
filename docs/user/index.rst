@@ -88,9 +88,11 @@ the Python's ``setuptools`` script provided:
 Scapy installation
 ~~~~~~~~~~~~~~~~~~
 
-- For installing `Scapy`_ on Mac OSX, see some guidance `here <http://scapy.readthedocs.io/en/latest/installation.html#mac-os-x>`_.
+- For installing `Scapy`_, see the official `installation documentation <https://scapy.readthedocs.io/en/latest/installation.html>`_ for each platform:
 
-- For installing `Scapy`_ on Windows, see some guidance `here <https://scapy.readthedocs.io/en/latest/installation.html#windows>`_.
+  - `Linux <https://scapy.readthedocs.io/en/latest/installation.html#installing-scapy-v2-x>`_.
+  - `macOS <http://scapy.readthedocs.io/en/latest/installation.html#mac-os-x>`_.
+  - `Windows <https://scapy.readthedocs.io/en/latest/installation.html#windows>`_.
 
 
 References

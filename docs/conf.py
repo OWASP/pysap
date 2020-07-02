@@ -6,6 +6,8 @@
 # full list see the documentation:
 # http://www.sphinx-doc.org/en/master/config
 
+import pysap
+
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -18,7 +20,6 @@ sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
-import pysap
 
 
 project = u'pysap'
@@ -136,7 +137,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'pysap.tex', u'pysap Documentation',
-    author, 'manual'),
+     author, 'manual'),
 ]
 
 
