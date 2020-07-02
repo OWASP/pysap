@@ -118,3 +118,25 @@ jobs:
         with:
           name: packages
           path: dist/*.tar.gz
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [test, docs]
+    env:
+       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'v') }}
+    steps:
+       - name: Download artifacts
+         uses: actions/download-artifact@v2
+         with:
+            name: packages
+            path: dist
+       - name: Create release and upload assets
+         uses: meeDamian/github-release@2.0
+         with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+            name: SAP Plug-in for Wireshark ${{ github.ref }}
+            draft: true
+            files: dist/
+            gzip: folders
