@@ -46,6 +46,7 @@ class SAPDiagUserConnect(Packet):
                    IntField("code_page", 1100),
                    IntField("ws_type", 5001)]
 
+
 bind_diagitem(SAPDiagUserConnect, "APPL", 0x04, 0x02)
 
 user_connect_compressed = \
@@ -65,6 +66,7 @@ user_connect_uncompressed = \
 class SAPDiagStep(Packet):
     name = "SAP Diag Dialog Step"
     fields_desc = [IntField("step", 0)]
+
 
 bind_diagitem(SAPDiagStep, "APPL", 0x04, 0x26)
 
@@ -309,6 +311,7 @@ class SAPDiagSupportBits(Packet):
 
         BitField("padding_bits", 0, 48), ]
 
+
 bind_diagitem(SAPDiagSupportBits, "APPL", 0x04, 0x0b)
 bind_diagitem(SAPDiagSupportBits, "APPL", 0x06, 0x11)
 
@@ -472,6 +475,7 @@ class SAPDiagDyntAtom(Packet):
         PacketListField("items", None, SAPDiagDyntAtomItem)
     ]
 
+
 bind_diagitem(SAPDiagDyntAtom, "APPL", 0x09, 0x02)
 bind_diagitem(SAPDiagDyntAtom, "APPL", 0x09, 0x10)
 
@@ -485,6 +489,7 @@ class SAPDiagAreaSize(PacketNoPadded):
         IntField("area_height", 0),
         IntField("area_width", 0)
     ]
+
 
 bind_diagitem(SAPDiagAreaSize, "APPL", 0x0c, 0x07)
 
@@ -546,6 +551,7 @@ class SAPDiagMenuEntries(Packet):
     fields_desc = [
         PacketListField("entries", None, SAPDiagMenuEntry)
     ]
+
 
 bind_diagitem(SAPDiagMenuEntries, "APPL", 0x0b, 0x01)
 bind_diagitem(SAPDiagMenuEntries, "APPL", 0x0b, 0x02)
@@ -653,5 +659,6 @@ class SAPDiagSES(PacketNoPadded):
         ByteField("dim_row", 0),
         ByteField("dim_col", 0)
     ]
+
 
 bind_diagitem(SAPDiagSES, 0x01)

@@ -88,9 +88,11 @@ the Python's ``setuptools`` script provided:
 Scapy installation
 ~~~~~~~~~~~~~~~~~~
 
-- For installing `Scapy`_ on Mac OSX, see some guidance `here <http://scapy.readthedocs.io/en/latest/installation.html#mac-os-x>`_.
+- For installing `Scapy`_, see the official `installation documentation <https://scapy.readthedocs.io/en/latest/installation.html>`_ for each platform:
 
-- For installing `Scapy`_ on Windows, see some guidance `here <https://scapy.readthedocs.io/en/latest/installation.html#windows>`_.
+  - `Linux <https://scapy.readthedocs.io/en/latest/installation.html#installing-scapy-v2-x>`_.
+  - `macOS <http://scapy.readthedocs.io/en/latest/installation.html#mac-os-x>`_.
+  - `Windows <https://scapy.readthedocs.io/en/latest/installation.html#windows>`_.
 
 
 References
@@ -148,3 +150,6 @@ Initial research about the ``IGS`` protocol was performed by Yvan Genuer and pub
 
 Additional research about the Message Server (``MS``) and Remote Function Call (``RFC``) protocols was performed by
 Dmitry Chastuhin and Mathieu Geli and published in `(SAP) Gateway to Heaven <https://github.com/comaeio/OPCDE/tree/master/2019/Emirates/(SAP)%20Gateway%20to%20Heaven%20-%20Dmitry%20Chastuhin%2C%20Mathieu%20Geli>`_.
+
+The specifications of the ``HDB`` protocol are published in the `SAP HANA SQL Command Network Protocol Reference <https://help.sap.com/viewer/7e4aba181371442d9e4395e7ff71b777/2.0.03/en-US>`_
+guide.

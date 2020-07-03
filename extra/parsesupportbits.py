@@ -96,11 +96,13 @@ def main():
 
         wireshark_hf += 'static int hf_SAPDIAG_SUPPORT_BIT_%s = -1;\n' % name
 
-        wireshark_parse += 'proto_tree_add_item(tree, hf_SAPDIAG_SUPPORT_BIT_%s, tvb, offset, 1, ENC_BIG_ENDIAN);  /* %d%s */\n' % (name, bit, notice)
+        wireshark_parse += 'proto_tree_add_item(tree, hf_SAPDIAG_SUPPORT_BIT_%s, tvb, offset, 1, ENC_BIG_ENDIAN);' \
+                           '  /* %d%s */\n' % (name, bit, notice)
 
         wireshark_module += '{ &hf_SAPDIAG_SUPPORT_BIT_%s,\n\t{ "Support Bit %s", ' \
                             '"sapdiag.diag.supportbits.%s", FT_BOOLEAN, 8, NULL, ' \
-                            'SAPDIAG_SUPPORT_BIT_%s, "SAP Diag Support Bit %s",\n\tHFILL }},\n' % (name, name, name, name, name)
+                            'SAPDIAG_SUPPORT_BIT_%s, "SAP Diag Support Bit %s",\n\tHFILL }},\n' % (name, name, name,
+                                                                                                   name, name)
     for bit, bitfield in enumerate(bitfields):
         if (bit % 8) == 0 and bit != 0:
             pysap += '\n'

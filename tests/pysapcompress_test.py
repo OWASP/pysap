@@ -18,6 +18,7 @@
 # ==============
 
 # Standard imports
+import sys
 import unittest
 # Custom imports
 from tests.utils import read_data_file
@@ -26,7 +27,8 @@ from tests.utils import read_data_file
 class PySAPCompressTest(unittest.TestCase):
 
     test_string_plain = "TEST" * 70
-    test_string_compr_lzc = '\x18\x01\x00\x00\x11\x1f\x9d\x8dT\x8aL\xa1\x12p`A\x82\x02\x11\x1aLx\xb0!\xc3\x87\x0b#*\x9c\xe8PbE\x8a\x101Z\xccx\xb1#\xc7\x8f\x1bCj\x1c\xe9QdI\x92 Q\x9aLy\xf2 '
+    test_string_compr_lzc = '\x18\x01\x00\x00\x11\x1f\x9d\x8dT\x8aL\xa1\x12p`A\x82\x02\x11\x1aLx\xb0!\xc3\x87\x0b#*\x9c\xe8' \
+                            'PbE\x8a\x101Z\xccx\xb1#\xc7\x8f\x1bCj\x1c\xe9QdI\x92 Q\x9aLy\xf2 '
     test_string_compr_lzh = '\x18\x01\x00\x00\x12\x1f\x9d\x02]\x88kpH\xc8(\xc6\xc0\x00\x00'
 
     def test_import(self):
@@ -47,7 +49,8 @@ class PySAPCompressTest(unittest.TestCase):
         from pysapcompress import decompress, DecompressError
         self.assertRaisesRegexp(DecompressError, "invalid input length", decompress, "", 1)
         self.assertRaisesRegexp(DecompressError, "input not compressed", decompress, "AAAAAAAA", 1)
-        self.assertRaisesRegexp(DecompressError, "unknown algorithm", decompress, "\x0f\x00\x00\x00\xff\x1f\x9d\x00\x00\x00\x00", 1)
+        self.assertRaisesRegexp(DecompressError, "unknown algorithm", decompress,
+                                "\x0f\x00\x00\x00\xff\x1f\x9d\x00\x00\x00\x00", 1)
 
     def test_lzc(self):
         """Test compression and decompression using LZC algorithm"""
@@ -154,7 +157,10 @@ class PySAPCompressTest(unittest.TestCase):
 
         test_case = read_data_file('invalid_write_testcase.data', False)
 
-        self.assertRaisesRegexp(DecompressError, "stack overflow in decomp", decompress, test_case, 6716)
+        try:
+            decompress(test_case, 6716)
+        except Exception as e:
+            self.assertIsInstance(e, DecompressError)
 
     def test_invalid_read(self):
         """Test invalid read vulnerability in LZH code (CVE-2015-2278)"""
@@ -177,4 +183,6 @@ def test_suite():
 
 
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=2).run(test_suite())
+    test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
+    result = test_runner.run(test_suite())
+    sys.exit(not result.wasSuccessful())
