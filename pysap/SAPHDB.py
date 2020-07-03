@@ -300,17 +300,33 @@ def hdb_register_part_kind(cls):
     """Helper function to use as a decorator when defining Part classes. It will register
     the class with the proper Part Kind so dissection can find it. It will also register
     the keys for the options defined in each Part Kind.
+
+    :param cls: Part class to register
+    :type cls: type
+
+    :return: Registered Part class
+    :rtype: type
     """
-    if cls.part_kind:
+    if hasattr(cls, "part_kind") and cls.part_kind:
         hdb_part_kind_classes[cls.part_kind] = cls
-    if hasattr(cls, "option_part") and cls.option_part:
-        hdb_option_part_key_vals[cls.part_kind] = cls.option_keys
-    elif hasattr(cls, "multi_option_part") and cls.multi_option_part:
-        hdb_multi_option_part_key_vals[cls.part_kind] = cls.option_keys
+        if hasattr(cls, "option_keys") and hasattr(cls, "option_part") and cls.option_part:
+            hdb_option_part_key_vals[cls.part_kind] = cls.option_keys
+        elif hasattr(cls, "option_keys") and hasattr(cls, "multi_option_part") and cls.multi_option_part:
+            hdb_multi_option_part_key_vals[cls.part_kind] = cls.option_keys
     return cls
 
 
 def hdb_get_part_kind_option(part, key):
+    """Helper function to obtain the value of an Option Part kind
+
+    :param part: part kind object
+    :type part: :class:`SAPHDBOptionPartRow`
+
+    :param key: key to look at
+    :type key: int
+
+    :return: value from the Option Part kind
+    """
     for option in part.buffer:
         if hasattr(option, "key") and option.key == key:
             return option.value
@@ -361,6 +377,8 @@ class SAPHDBMultiLineOptionPartRow(PacketNoPadded):
 
 @hdb_register_part_kind
 class SAPHDBPartCommand(PacketNoPadded):
+    """SAP HANA SQL Command Network Protocol Command Part
+    """
     part_kind = 3
     name = "SAP HANA SQL Command Network Protocol Command Part"
     fields_desc = [
@@ -394,8 +412,10 @@ class SAPHDBPartError(PacketNoPadded):
 
 @hdb_register_part_kind
 class SAPHDBPartTopologyInformation(SAPHDBMultiLineOptionPartRow):
+    """SAP HANA SQL Command Network Protocol Topology Information Part
+    """
     part_kind = 15
-    name = "SAP HANA SQL Command Network Protocol Topology Information"
+    name = "SAP HANA SQL Command Network Protocol Topology Information Part"
     option_keys = {
         1: "Host Name",
         2: "Host Port Number",
@@ -415,8 +435,10 @@ class SAPHDBPartTopologyInformation(SAPHDBMultiLineOptionPartRow):
 
 @hdb_register_part_kind
 class SAPHDBPartCommandInfo(SAPHDBOptionPartRow):
+    """SAP HANA SQL Command Network Protocol Command Information Part
+    """
     part_kind = 27
-    name = "SAP HANA SQL Command Network Protocol Command Information"
+    name = "SAP HANA SQL Command Network Protocol Command Information Part"
     option_keys = {
         1: "Line Number",
         2: "Source Module",
@@ -425,8 +447,10 @@ class SAPHDBPartCommandInfo(SAPHDBOptionPartRow):
 
 @hdb_register_part_kind
 class SAPHDBPartClientContext(SAPHDBOptionPartRow):
+    """SAP HANA SQL Command Network Protocol Client Context Part
+    """
     part_kind = 29
-    name = "SAP HANA SQL Command Network Protocol Client Context"
+    name = "SAP HANA SQL Command Network Protocol Client Context Part"
     option_keys = {
         1: "Client Version",
         2: "Client Type",
@@ -436,8 +460,10 @@ class SAPHDBPartClientContext(SAPHDBOptionPartRow):
 
 @hdb_register_part_kind
 class SAPHDBPartSessionContext(SAPHDBOptionPartRow):
+    """SAP HANA SQL Command Network Protocol Session Context Part
+    """
     part_kind = 34
-    name = "SAP HANA SQL Command Network Protocol Session Context"
+    name = "SAP HANA SQL Command Network Protocol Session Context Part"
     option_keys = {
         1: "Primary Connection ID",
         2: "Primary Host Name",
@@ -450,7 +476,7 @@ class SAPHDBPartSessionContext(SAPHDBOptionPartRow):
 
 @hdb_register_part_kind
 class SAPHDBPartClientId(PacketNoPadded):
-    """SAP HANA SQL Command Network Protocol Client ID
+    """SAP HANA SQL Command Network Protocol Client ID Part
     """
     part_kind = 35
     name = "SAP HANA SQL Command Network Protocol Client ID Part"
@@ -461,8 +487,10 @@ class SAPHDBPartClientId(PacketNoPadded):
 
 @hdb_register_part_kind
 class SAPHDBPartStatementContext(SAPHDBOptionPartRow):
+    """SAP HANA SQL Command Network Protocol Statement Context Part
+    """
     part_kind = 39
-    name = "SAP HANA SQL Command Network Protocol Statement Context"
+    name = "SAP HANA SQL Command Network Protocol Statement Context Part"
     option_keys = {
         1: "Statement Sequence Info",
         2: "Server Processing Time",
@@ -473,8 +501,10 @@ class SAPHDBPartStatementContext(SAPHDBOptionPartRow):
 
 @hdb_register_part_kind
 class SAPHDBPartConnectOptions(SAPHDBOptionPartRow):
+    """SAP HANA SQL Command Network Protocol Connect Options Part
+    """
     part_kind = 42
-    name = "SAP HANA SQL Command Network Protocol Connect Options"
+    name = "SAP HANA SQL Command Network Protocol Connect Options Part"
     option_keys = {
         1: "Connection ID",
         2: "Complete Array Execution",
@@ -537,8 +567,10 @@ class SAPHDBPartConnectOptions(SAPHDBOptionPartRow):
 
 @hdb_register_part_kind
 class SAPHDBPartCommitOptions(SAPHDBOptionPartRow):
+    """SAP HANA SQL Command Network Protocol Commit Options Part
+    """
     part_kind = 43
-    name = "SAP HANA SQL Command Network Protocol Commit Options"
+    name = "SAP HANA SQL Command Network Protocol Commit Options Part"
     option_keys = {
         1: "Hold Cursors Over Commit",
     }
@@ -546,8 +578,10 @@ class SAPHDBPartCommitOptions(SAPHDBOptionPartRow):
 
 @hdb_register_part_kind
 class SAPHDBPartFetchOptions(SAPHDBOptionPartRow):
+    """SAP HANA SQL Command Network Protocol Fetch Options Part
+    """
     part_kind = 44
-    name = "SAP HANA SQL Command Network Protocol Fetch Options"
+    name = "SAP HANA SQL Command Network Protocol Fetch Options Part"
     option_keys = {
         1: "Result Set Pos",
     }
@@ -555,8 +589,10 @@ class SAPHDBPartFetchOptions(SAPHDBOptionPartRow):
 
 @hdb_register_part_kind
 class SAPHDBPartTransactionFlags(SAPHDBOptionPartRow):
+    """SAP HANA SQL Command Network Protocol Transaction Flags Part
+    """
     part_kind = 64
-    name = "SAP HANA SQL Command Network Protocol Transaction Flags"
+    name = "SAP HANA SQL Command Network Protocol Transaction Flags Part"
     option_keys = {
         0: "Rolled Back",
         1: "Commited",
@@ -570,8 +606,10 @@ class SAPHDBPartTransactionFlags(SAPHDBOptionPartRow):
 
 @hdb_register_part_kind
 class SAPHDBPartDBConnectInfo(SAPHDBOptionPartRow):
+    """SAP HANA SQL Command Network Protocol DB Connect Information Part
+    """
     part_kind = 67
-    name = "SAP HANA SQL Command Network Protocol DB Connect Information"
+    name = "SAP HANA SQL Command Network Protocol DB Connect Information Part"
     option_keys = {
         1: "Database Name",
         2: "Host",
@@ -579,10 +617,13 @@ class SAPHDBPartDBConnectInfo(SAPHDBOptionPartRow):
         4: "Is Connected",
     }
 
+
 @hdb_register_part_kind
 class SAPHDBPartLOBFlags(SAPHDBOptionPartRow):
+    """SAP HANA SQL Command Network Protocol LOB Flags Part
+    """
     part_kind = 68
-    name = "SAP HANA SQL Command Network Protocol LOB Flags"
+    name = "SAP HANA SQL Command Network Protocol LOB Flags Part"
     option_keys = {
         0: "Implicit Streaming",
     }
@@ -607,7 +648,7 @@ class SAPHDBPartAuthentication(PacketNoPadded):
     This packet represents an Authentication Part. The Authentication part consists of a count value and then
     a number of key/value pairs expressed with field values.
 
-    Authentication methods documented are:
+    Authentication methods documented in the specification are:
         - "GSS" - Provides GSS/Kerberos authentication.
         - "PLAINPASSWORD" - Reserved. Do not use.
         - "SAML" - Provides SAML authentication.
@@ -622,52 +663,51 @@ class SAPHDBPartAuthentication(PacketNoPadded):
         - "X509Internal"
 
     Known authentication key values are:
-
-    - GSS Authentication:
-        - USERNAME - User name
-        - METHODNAME - Method name
-        - CLIENTCHALLENGE - Client challenge
-            - KRB5OID - KRB5 object ID
-            - TYPEOID - Type object ID
-            - CLIENTGSSNAME - Client GSS Name
-        - SERVERTOKEN - Server-specific Kerberos tokens
-        - CLIENTOKEN - Client-specific Kerberos tokens
-    - LDAP Authentication:
-        - USERNAME - User name
-        - METHODNAME - Method name ("LDAP")
-        - CLIENTCHALLENGE - Client challenge
-        - SERVERCHALLENGE - Server Challenge
-            - CLIENTNONCE - Specifies the client nonce that was sent in the initial request.
-            - SERVERNONCE - Specifies the server nonce.
-            - SERVERPUBLICKEY - Specifies the server public key.
-            - CAPABILITYRESULT - Specifies the capability, chosen by the server, from the client request.
-        - CLIENTPROOF - Specifies the client proof.
-            - ENCRYPTEDSESSKEY - Specifies the encrypted session key. This is specified as: RSAEncrypt(public key, SESSIONKEY + SERVERNONCE).
-            - ENCRYPTEDPASSWORD - Specifies the encrypted password. This is specified as: AES256Encrypt(SESSIONKEY, PASSWORD + SERVERNONCE).
-        - SERVERPROOF - Specifies the authentication result from the LDAP server. This is specified as either SUCCESS or FAIL.
-    - SAML Authentication:
-        - USERNAME - Specifies the user name (always empty user name).
-        - METHODNAME - Specifies the method name.
-        - SAMLASSERTION - Specifies the SAML assertion.
-        - SAMLUSER - Specifies the user name associated with the SAML assertion.
-        - FINALDATA - Specifies the final data (this is empty).
-        - SESSIONCOOKIE - Specifies the session cookie used for the reconnect.
-    - SCRAMSHA256 Authentication:
-        - USERNAME - Specifies the user name.
-        - METHODNAME - Specifies the method name.
-        - CLIENTCHALLENGE - Specifies the client challenge. (64 bytes)
-        - SERVERCHALLENGEDATA - Specifies the server challenge.
-            - SALT - Specifies the password salt.
-            - SERVERCHALLENGE - Specifies the server challenge.
-        - CLIENTPROOF - Specifies the client proof. (35 bytes)
-            - SCRAMMESSAGE - Specifies the SCRAM HMAC message, the actual Client Proof that is sent to the server. (32 bytes)
-        - SERVERPROOF - Specifies the server proof.
-    - Session Cookie Authentication:
-        - USERNAME - Specifies the user name.
-        - METHODNAME - Specifies the method name.
-        - SESSIONCOOKIE - Specifies the session cookie, process ID, and hostname.
-        - SERVERREPLY - Specifies the server reply (this is empty).
-        - FINALDATA - Specifies the final data (this is empty).
+        - GSS Authentication:
+            - USERNAME - User name
+            - METHODNAME - Method name
+            - CLIENTCHALLENGE - Client challenge
+                - KRB5OID - KRB5 object ID
+                - TYPEOID - Type object ID
+                - CLIENTGSSNAME - Client GSS Name
+            - SERVERTOKEN - Server-specific Kerberos tokens
+            - CLIENTOKEN - Client-specific Kerberos tokens
+        - LDAP Authentication:
+            - USERNAME - User name
+            - METHODNAME - Method name ("LDAP")
+            - CLIENTCHALLENGE - Client challenge
+            - SERVERCHALLENGE - Server Challenge
+                - CLIENTNONCE - Specifies the client nonce that was sent in the initial request.
+                - SERVERNONCE - Specifies the server nonce.
+                - SERVERPUBLICKEY - Specifies the server public key.
+                - CAPABILITYRESULT - Specifies the capability, chosen by the server, from the client request.
+            - CLIENTPROOF - Specifies the client proof.
+                - ENCRYPTEDSESSKEY - Specifies the encrypted session key. This is specified as: RSAEncrypt(public key, SESSIONKEY + SERVERNONCE).
+                - ENCRYPTEDPASSWORD - Specifies the encrypted password. This is specified as: AES256Encrypt(SESSIONKEY, PASSWORD + SERVERNONCE).
+            - SERVERPROOF - Specifies the authentication result from the LDAP server. This is specified as either SUCCESS or FAIL.
+        - SAML Authentication:
+            - USERNAME - Specifies the user name (always empty user name).
+            - METHODNAME - Specifies the method name.
+            - SAMLASSERTION - Specifies the SAML assertion.
+            - SAMLUSER - Specifies the user name associated with the SAML assertion.
+            - FINALDATA - Specifies the final data (this is empty).
+            - SESSIONCOOKIE - Specifies the session cookie used for the reconnect.
+        - SCRAMSHA256 Authentication:
+            - USERNAME - Specifies the user name.
+            - METHODNAME - Specifies the method name.
+            - CLIENTCHALLENGE - Specifies the client challenge. (64 bytes)
+            - SERVERCHALLENGEDATA - Specifies the server challenge.
+                - SALT - Specifies the password salt.
+                - SERVERCHALLENGE - Specifies the server challenge.
+            - CLIENTPROOF - Specifies the client proof. (35 bytes)
+                - SCRAMMESSAGE - Specifies the SCRAM HMAC message, the actual Client Proof that is sent to the server. (32 bytes)
+            - SERVERPROOF - Specifies the server proof.
+        - Session Cookie Authentication:
+            - USERNAME - Specifies the user name.
+            - METHODNAME - Specifies the method name.
+            - SESSIONCOOKIE - Specifies the session cookie, process ID, and hostname.
+            - SERVERREPLY - Specifies the server reply (this is empty).
+            - FINALDATA - Specifies the final data (this is empty).
     """
     part_kind = 33
     name = "SAP HANA SQL Command Network Protocol Authentication Part"
@@ -796,10 +836,29 @@ class SAPHDBAuthMethod(object):
     METHOD = None
 
     def __init__(self, username):
+        """Initialize the authentication method.
+
+        All `AUTHENTICATION` Parts require a field with the username, even if it's empty and not used such as in
+        `SAML`, so it needs to be provided.
+
+        :param username: username
+        :type username: string
+        """
         self.username = username
 
     def craft_authentication_request(self, value=None, connection=None):
-        """Craft the initial authentication request"""
+        """Craft the initial authentication request and returns the packet to send. If a connection is
+        provided, it will include the Client Context part from it (e.g. application name).
+
+        :param value: value to include in the authentication request
+        :type value: string
+
+        :param connection: `HDB` connection to get client context values if required
+        :type connection: :class:`SAPHDBConnection`
+
+        :return: the initial authentication request
+        :rtype: :class:`SAPHDB`
+        """
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
                                                             SAPHDBPartAuthenticationField(value=value)])
@@ -812,13 +871,25 @@ class SAPHDBAuthMethod(object):
         return SAPHDB(segments=[auth_segm])
 
     def craft_authentication_response_part(self, auth_response_part, value=None):
+        """Craft the `AUTHENTICATION` Part to use as response during the authentication process.
+
+        :param auth_response_part: Part obtained from the initial authentication response
+        :type auth_response_part: :class:`SAPHDBPartAuthentication`
+
+        :param value: value to include in the authentication response
+        :type value: string
+
+        :return: the authentication response part
+        :rtype: :class:`SAPHDBPart`
+        """
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
                                                             SAPHDBPartAuthenticationField(value=value)])
         return SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
 
     def authenticate(self, connection):
-        """Method to authenticate the client connection.
+        """Method to authenticate the client connection. It performs the round trip with the server as required
+        by the method implemented, and returns the `AUTHENTICATION` Part.
 
         :param connection: connection to the server
         :type connection: :class:`SAPHDBConnection`
@@ -857,6 +928,9 @@ class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
         self.client_key = self.scram = None
 
     def obtain_client_proof(self, scram, client_key, auth_response_part):
+        """Calculates the client proof with the salt and server key obtained from the authentication
+        response part.
+        """
         # Obtain the salt and the server key from the response
         method_parts = SAPHDBPartAuthentication(auth_response_part.auth_fields[1].value)
         salt = method_parts.auth_fields[0].value
@@ -1014,6 +1088,9 @@ class SAPHDBConnection(object):
     def client_id(self):
         """Returns the Client Id to use when authenticating and connecting to the
         server. If the PID and the hostname are not specified, by default uses 'pysap@<hostname>'.
+
+        :return: Client ID string
+        :rtype: string
         """
         pid = self.pid
         hostname = self.hostname
@@ -1023,6 +1100,9 @@ class SAPHDBConnection(object):
         """Crafts the client context part that is sent to the server. It contains the
         information about the client version, type and application name.
         If those values are not specified, by default uses pysap's version.
+
+        :return: Client Context Part
+        :rtype: :class:`SAPHDBPart`
         """
         client_context = [SAPHDBPartClientContext(key=1, type=29, value=self.client_version),
                           SAPHDBPartClientContext(key=2, type=29, value=self.client_type),
@@ -1032,6 +1112,8 @@ class SAPHDBConnection(object):
     def connect(self):
         """Creates a :class:`SAPNIStreamSocket` connection to the host/port. If a route
         was specified, connect to the target HANA server through the SAP Router.
+
+        :raises: SAPHDBConnectionError
         """
         try:
             self._stream_socket = SAPRoutedStreamSocket.get_nisocket(self.host,
@@ -1043,20 +1125,36 @@ class SAPHDBConnection(object):
             raise SAPHDBConnectionError("Error connecting to the server (%s)" % e)
 
     def is_connected(self):
+        """Returns if the underlying socket is connected.
+
+        :return: If the underlying socket is connected.
+        :rtype: bool
+        """
         return self._stream_socket is not None
 
     def send(self, message):
+        """Sends a packet to the server
+        """
         if not self.is_connected():
             raise SAPHDBConnectionError("Socket not ready")
         self._stream_socket.send(message)
 
     def sr(self, message):
+        """Sends a packet to the server and receives a response."""
         if not self.is_connected():
             raise SAPHDBConnectionError("Socket not ready")
         self.send(message)
         return self.recv()
 
     def recv(self):
+        """Receives a packet from the server.
+
+        As the length of the entire packet is not known, it first tries to get the 32-bytes header and obtain
+        the variable length from it.
+
+        :return: the received packet
+        :rtype: :class:`SAPHDB`
+        """
         if not self.is_connected():
             raise SAPHDBConnectionError("Socket not ready")
         # First we receive the header to obtain the variable length field
@@ -1089,6 +1187,8 @@ class SAPHDBConnection(object):
 
     def authenticate(self):
         """Authenticates the connection against the server using the selected method.
+
+        :raises: SAPHDBAuthenticationError
         """
         if not self.is_connected():
             raise SAPHDBConnectionError("Socket not ready")
@@ -1121,6 +1221,8 @@ class SAPHDBConnection(object):
 
     def close(self):
         """Closes the connection with the server
+
+        :raise: SAPHDBConnectionError
         """
         if not self.is_connected():
             raise SAPHDBConnectionError("Connection already closed")
