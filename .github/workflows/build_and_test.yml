@@ -136,7 +136,7 @@ jobs:
          uses: meeDamian/github-release@2.0
          with:
             token: ${{ secrets.GITHUB_TOKEN }}
-            name: SAP Plug-in for Wireshark ${{ github.ref }}
+            name: pysap ${{ github.ref }}
             draft: true
             files: dist/
             gzip: folders
