@@ -7,7 +7,7 @@ pysap - Python library for crafting SAP's network protocols packets
 
 SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
 
-Version 0.1.18 (July 2020)
+Version 0.1.19.dev0 (XXX 2020)
 
 
 Overview
