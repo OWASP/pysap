@@ -19,7 +19,7 @@
 # ==============
 
 # Standard imports
-from optparse import OptionParser
+from argparse import ArgumentParser
 # Custom imports
 import pysap
 
@@ -30,16 +30,12 @@ def parse_options():
     description = "This script can be used to parse support bits info and generate required info for pysap/wireshark "\
                   "plugin. Input file can be obtained from SAP Gui traces (for example file 'sapguidll_01_0001.trc')."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s -i <input_file>"
 
-    usage = "Usage: %prog -i <input_file>"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
+    parser.add_argument("-i", "--input", dest="input_file", help="Input file")
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
-    parser.add_option("-i", "--input", dest="input_file", help="Input file")
-
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     if not options.input_file:
         parser.error("Input file required")
@@ -100,11 +96,13 @@ def main():
 
         wireshark_hf += 'static int hf_SAPDIAG_SUPPORT_BIT_%s = -1;\n' % name
 
-        wireshark_parse += 'proto_tree_add_item(tree, hf_SAPDIAG_SUPPORT_BIT_%s, tvb, offset, 1, ENC_BIG_ENDIAN);  /* %d%s */\n' % (name, bit, notice)
+        wireshark_parse += 'proto_tree_add_item(tree, hf_SAPDIAG_SUPPORT_BIT_%s, tvb, offset, 1, ENC_BIG_ENDIAN);' \
+                           '  /* %d%s */\n' % (name, bit, notice)
 
         wireshark_module += '{ &hf_SAPDIAG_SUPPORT_BIT_%s,\n\t{ "Support Bit %s", ' \
                             '"sapdiag.diag.supportbits.%s", FT_BOOLEAN, 8, NULL, ' \
-                            'SAPDIAG_SUPPORT_BIT_%s, "SAP Diag Support Bit %s",\n\tHFILL }},\n' % (name, name, name, name, name)
+                            'SAPDIAG_SUPPORT_BIT_%s, "SAP Diag Support Bit %s",\n\tHFILL }},\n' % (name, name, name,
+                                                                                                   name, name)
     for bit, bitfield in enumerate(bitfields):
         if (bit % 8) == 0 and bit != 0:
             pysap += '\n'

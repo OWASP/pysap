@@ -49,19 +49,19 @@ if six.PY2:
 
         ((stat.S_IRUSR,         "r"),),
         ((stat.S_IWUSR,         "w"),),
-        ((stat.S_IXUSR|stat.S_ISUID, "s"),
+        ((stat.S_IXUSR | stat.S_ISUID, "s"),
          (stat.S_ISUID,         "S"),
          (stat.S_IXUSR,         "x")),
 
         ((stat.S_IRGRP,         "r"),),
         ((stat.S_IWGRP,         "w"),),
-        ((stat.S_IXGRP|stat.S_ISGID, "s"),
+        ((stat.S_IXGRP | stat.S_ISGID, "s"),
          (stat.S_ISGID,         "S"),
          (stat.S_IXGRP,         "x")),
 
         ((stat.S_IROTH,         "r"),),
         ((stat.S_IWOTH,         "w"),),
-        ((stat.S_IXOTH|stat.S_ISVTX, "t"),
+        ((stat.S_IXOTH | stat.S_ISVTX, "t"),
          (stat.S_ISVTX,         "T"),
          (stat.S_IXOTH,         "x"))
     )
@@ -166,6 +166,10 @@ SAPCAR_TYPE_LINK = b"LK"
 
 # SAP CAR AS400 save file string
 SAPCAR_TYPE_AS400 = b"SV"
+
+SAPCAR_TYPE_SIGNATURE = "SM"
+"""SAP CAR SIGNATURE.SMF file string"""
+# XXX: Unsure if this file has any particular treatment in latest versions of SAPCAR
 
 # Version strings are unicode instead of byte strings in order to avoid constant .decode() and .encode() calls
 # SAP CAR file format version 2.00 string

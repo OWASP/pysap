@@ -88,9 +88,11 @@ the Python's ``setuptools`` script provided:
 Scapy installation
 ~~~~~~~~~~~~~~~~~~
 
-- For installing `Scapy`_ on Mac OSX, see some guidance `here <http://scapy.readthedocs.io/en/latest/installation.html#mac-os-x>`_.
+- For installing `Scapy`_, see the official `installation documentation <https://scapy.readthedocs.io/en/latest/installation.html>`_ for each platform:
 
-- For installing `Scapy`_ on Windows, see some guidance `here <https://scapy.readthedocs.io/en/latest/installation.html#windows>`_.
+  - `Linux <https://scapy.readthedocs.io/en/latest/installation.html#installing-scapy-v2-x>`_.
+  - `macOS <http://scapy.readthedocs.io/en/latest/installation.html#mac-os-x>`_.
+  - `Windows <https://scapy.readthedocs.io/en/latest/installation.html#windows>`_.
 
 
 References
@@ -111,6 +113,8 @@ Additional information about the protocols and the research can be found at diff
 * `SAPCAR Heap Buffer Overflow: From crash to exploit <https://www.coresecurity.com/blog/sapcar-heap-buffer-overflow-crash-exploit>`_
 
 * `Hunting crypto secrets in SAP systems <https://www.coresecurity.com/publication/hunting-crypto-secrets-sap-systems>`_
+
+* `Revisiting the Old and Looking at New Potential SAP Vulnerabilities <https://www.secureauth.com/blog/revisiting-old-and-looking-new-potential-sap-vulnerabilities>`_
 
 And advisories:
 
@@ -137,11 +141,15 @@ at the `Troopers 2016 Security Conference <https://www.troopers.de/troopers16/ag
 performed by `Hans-Christian Esperer <https://github.com/hce>`_ and published in the
 `Hascar <https://github.com/VirtualForgeGmbH/hascar>`_ tool.
 
-Documentation on the SAP ``SAR`` archive file protocol is available in SAP's `Virus Scan Interface (NW-VSI) <ftp://ftp.sap.com/pub/icc/nw-vsi>`_
-`specification document <ftp://ftp.sap.com/pub/icc/nw-vsi/VSA-Specification.pdf>`_. An example implementation can be
-also found in the `Virus Scan Adapter SDK <ftp://ftp.sap.com/pub/icc/nw-vsi/VSA-SDK-2.0.zip>`_.
+Documentation on the SAP `SAR <https://www.iana.org/assignments/media-types/application/vnd.sar>`_ archive file format
+is available in SAP's `Virus Scan Interface (NW-VSI) <https://archive.sap.com/documents/docs/DOC-7838>`_
+specification document. An example implementation can be also found in the `Virus Scan Adapter SDK`, which is
+available upon request.
 
 Initial research about the ``IGS`` protocol was performed by Yvan Genuer and published in `SAP IGS : The 'vulnerable' forgotten component <https://www.troopers.de/troopers18/agenda/3r38lr/>`_.
 
 Additional research about the Message Server (``MS``) and Remote Function Call (``RFC``) protocols was performed by
 Dmitry Chastuhin and Mathieu Geli and published in `(SAP) Gateway to Heaven <https://github.com/comaeio/OPCDE/tree/master/2019/Emirates/(SAP)%20Gateway%20to%20Heaven%20-%20Dmitry%20Chastuhin%2C%20Mathieu%20Geli>`_.
+
+The specifications of the ``HDB`` protocol are published in the `SAP HANA SQL Command Network Protocol Reference <https://help.sap.com/viewer/7e4aba181371442d9e4395e7ff71b777/2.0.03/en-US>`_
+guide.

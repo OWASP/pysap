@@ -20,7 +20,7 @@
 
 # Standard imports
 import logging
-from optparse import OptionParser, OptionGroup
+from argparse import ArgumentParser
 # External imports
 from scapy.config import conf
 from scapy.packet import bind_layers
@@ -100,34 +100,26 @@ def parse_options():
                   "Application Server and inspect the traffic via the filter_client and filter_server functions.\n" \
                   "The given example grabs input fields sent by the client."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s [options] -d <remote host>"
 
-    usage = "Usage: %prog [options] -d <remote host>"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
+    target = parser.add_argument_group("Target")
+    target.add_argument("-d", "--remote-host", dest="remote_host",
+                        help="Remote host")
+    target.add_argument("-p", "--remote-port", dest="remote_port", type=int, default=3200,
+                        help="Remote port [%(default)d]")
 
-    target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host",
-                      help="Remote host")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int",
-                      help="Remote port [%default]", default=3200)
-    parser.add_option_group(target)
+    local = parser.add_argument_group("Local")
+    local.add_argument("-b", "--local-host", dest="local_host", default="127.0.0.1",
+                       help="Local address [%(default)s]")
+    local.add_argument("-l", "--local-port", dest="local_port", type=int, default=3200,
+                       help="Local port [%(default)d]")
 
-    local = OptionGroup(parser, "Local")
-    local.add_option("-b", "--local-host", dest="local_host",
-                     help="Local address [%default]", default="127.0.0.1")
-    local.add_option("-l", "--local-port", dest="local_port", type="int",
-                     help="Local port [%default]", default=3200)
-    parser.add_option_group(local)
+    misc = parser.add_argument_group("Misc options")
+    misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
 
-    misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true",
-                    default=False, help="Verbose output [%default]")
-    parser.add_option_group(misc)
-
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     if not options.remote_host:
         parser.error("Remote host is required")
@@ -149,7 +141,7 @@ def main():
     proxy = SAPNIProxy(options.local_host, options.local_port,
                        options.remote_host, options.remote_port,
                        SAPDiagProxyHandler)
-    while(True):
+    while True:
         proxy.handle_connection()
 
 

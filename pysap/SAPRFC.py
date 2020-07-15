@@ -619,7 +619,7 @@ class SAPCPIC2(PacketNoPadded):
     fields_desc = [
         StrFixedLenField("cpic_padd015_1", "", length=2),
         ConditionalField(FieldLenField("cpic_some_params_len", None, length_of="some_cpic_params", fmt="!H"), lambda pkt: pkt.cpic_padd015_1 == cpic_padd["cpic_some_params_1_padd"]),
-        ConditionalField(PacketListField("some_cpic_params",None, SAPCPICPARAM, length_from=lambda pkt: pkt.cpic_some_params_len), lambda pkt: pkt.cpic_padd015_1 == cpic_padd["cpic_some_params_1_padd"]),
+        ConditionalField(PacketListField("some_cpic_params", None, SAPCPICPARAM, length_from=lambda pkt: pkt.cpic_some_params_len), lambda pkt: pkt.cpic_padd015_1 == cpic_padd["cpic_some_params_1_padd"]),
 
         StrFixedLenField("cpic_padd016", "", length=4),
         ConditionalField(FieldLenField("cpic_convid_label_len", None, length_of="cpic_convid_label", fmt="!H"), lambda pkt: pkt.cpic_padd016 == cpic_padd["cpic_convid_label_padd"]),
@@ -679,7 +679,7 @@ class SAPCPIC(PacketNoPadded):
     name = "SAP CPIC Packet"
     fields_desc = [
         StrFixedLenField("cpic_start_padd", "", length=4),
-        ConditionalField( ShortField("cpic_cpic_length", None), lambda pkt: pkt.cpic_start_padd == cpic_padd["cpic_start_padd"]),  # don't no what it is
+        ConditionalField(ShortField("cpic_cpic_length", None), lambda pkt: pkt.cpic_start_padd == cpic_padd["cpic_start_padd"]),  # don't no what it is
 
         StrFixedLenField("cpic_padd0003", "", length=4),
         ConditionalField(FieldLenField("cpic_unk02_len", None, length_of="cpic_unk02", fmt="!H"), lambda pkt: pkt.cpic_padd0003 == cpic_padd["cpic_unk02_padd"]),
@@ -698,8 +698,8 @@ class SAPCPIC(PacketNoPadded):
         ConditionalField(StrLenField("cpic_ip", "", length_from=lambda pkt: pkt.cpic_ip_len), lambda pkt: pkt.cpic_padd001 == cpic_padd["cpic_ip_padd"]),
 
         StrFixedLenField("cpic_padd002", "", length=4),
-        ConditionalField(FieldLenField("cpic_ip2_len", None, length_of="cpic_ip2", fmt="!H"),lambda pkt: pkt.cpic_padd002 == cpic_padd["cpic_ip_padd2"]),
-        ConditionalField(StrLenField("cpic_ip2", "", length_from=lambda pkt: pkt.cpic_ip2_len),lambda pkt: pkt.cpic_padd002 == cpic_padd["cpic_ip_padd2"]),
+        ConditionalField(FieldLenField("cpic_ip2_len", None, length_of="cpic_ip2", fmt="!H"), lambda pkt: pkt.cpic_padd002 == cpic_padd["cpic_ip_padd2"]),
+        ConditionalField(StrLenField("cpic_ip2", "", length_from=lambda pkt: pkt.cpic_ip2_len), lambda pkt: pkt.cpic_padd002 == cpic_padd["cpic_ip_padd2"]),
 
         StrFixedLenField("cpic_padd003", "", length=4),
         ConditionalField(FieldLenField("cpic_host_sid_inbr_len", None, length_of="cpic_host_sid_inbr", fmt="!H"), lambda pkt: pkt.cpic_padd003 == cpic_padd["cpic_host_sid_inbr_padd"]),
@@ -753,7 +753,7 @@ class SAPCPIC(PacketNoPadded):
         StrFixedLenField("cpic_padd015_0", "", length=2),  # <---- last packets starts here
         StrFixedLenField("cpic_padd015_1", "", length=2),
         ConditionalField(FieldLenField("cpic_some_params_len", None, length_of="some_cpic_params", fmt="!H"), lambda pkt: pkt.cpic_padd015_1 == cpic_padd["cpic_some_params_1_padd"]),
-        ConditionalField(PacketListField("some_cpic_params",None, SAPCPICPARAM, length_from=lambda pkt: pkt.cpic_some_params_len), lambda pkt: pkt.cpic_padd015_1 == cpic_padd["cpic_some_params_1_padd"]),
+        ConditionalField(PacketListField("some_cpic_params", None, SAPCPICPARAM, length_from=lambda pkt: pkt.cpic_some_params_len), lambda pkt: pkt.cpic_padd015_1 == cpic_padd["cpic_some_params_1_padd"]),
 
         StrFixedLenField("cpic_padd016", "", length=4),
         ConditionalField(FieldLenField("cpic_convid_label_len", None, length_of="cpic_convid_label", fmt="!H"), lambda pkt: pkt.cpic_padd016 == cpic_padd["cpic_convid_label_padd"]),

@@ -1,4 +1,4 @@
-Sphinx==1.7.9
+Sphinx==1.8.5
 ipykernel
 nbsphinx
 pyx==0.12.1; python_version < '3.2'

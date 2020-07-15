@@ -6,6 +6,8 @@
 # full list see the documentation:
 # http://www.sphinx-doc.org/en/master/config
 
+import pysap
+
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -18,7 +20,6 @@ sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
-import pysap
 
 
 project = u'pysap'
@@ -136,7 +137,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'pysap.tex', u'pysap Documentation',
-    author, 'manual'),
+     author, 'manual'),
 ]
 
 
@@ -164,27 +165,18 @@ texinfo_documents = [
 
 # Automatically build API docs
 def run_apidoc(_):
-    ignore_paths = [
-    ]
-
+    ignore_paths = []
     argv = [
-        "-f",
-        "-T",
-        "-e",
-        "-M",
-        "-o", "api/",
-        "../pysap"
+        "-f",           # Force
+        "-T",           # No TOC
+        "-e",           # Each module on its own page
+        "-M",           # Module first
+        "-o", "api/",   # Output on "api/"
+        "../pysap"      # Only document pysap module
     ] + ignore_paths
 
-    try:
-        # Sphinx 1.7+
-        from sphinx.ext import apidoc
-        apidoc.main(argv)
-    except ImportError:
-        # Sphinx 1.6 (and earlier)
-        from sphinx import apidoc
-        argv.insert(0, apidoc.__file__)
-        apidoc.main(argv)
+    from sphinx.ext import apidoc
+    apidoc.main(argv)
 
 
 def setup(app):

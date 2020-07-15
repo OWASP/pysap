@@ -69,14 +69,10 @@ class PySAPCAR(object):
     def parse_options():
         """Parses command-line options.
         """
-
         description = "Basic and experimental implementation of SAPCAR archive format."
 
-        epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                             "url": pysap.__url__,
-                                                             "repo": pysap.__repo__}
-
-        parser = ArgumentParser(usage=pysapcar_usage, description=description, epilog=epilog)
+        parser = ArgumentParser(usage=pysapcar_usage, description=description, epilog=pysap.epilog)
+        parser.add_argument("--version", action="version", version="%(prog)s {}".format(pysap.__version__))
 
         # Commands
         parser.add_argument("-c", dest="create", action="store_true", help="Create archive with specified files")
@@ -87,7 +83,7 @@ class PySAPCAR(object):
         parser.add_argument("-o", dest="outdir", help="Path to directory where to extract files")
 
         misc = parser.add_argument_group("Misc options")
-        misc.add_argument("-v", dest="verbose", action="count", help="Verbose output")
+        misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
         misc.add_argument("-e", "--enforce-checksum", dest="enforce_checksum", action="store_true",
                           help="Whether the checksum validation is enforced. A file with an invalid checksum won't be "
                                "extracted. When not set, only a warning would be thrown if checksum is invalid.")
@@ -103,8 +99,8 @@ class PySAPCAR(object):
         """Sets the logger of the cli tool.
         """
         if self._logger is None:
-            self._logger = logging.getLogger("pysapcar")
-            self._logger.setLevel(self.log_level + 1)
+            self._logger = logging.getLogger("pysap.pysapcar")
+            self._logger.setLevel(logging.DEBUG if self.verbose else logging.INFO)
             self._logger.addHandler(logging.StreamHandler())
         return self._logger
 
@@ -114,7 +110,7 @@ class PySAPCAR(object):
         options, args = self.parse_options()
 
         # Set the verbosity
-        self.log_level = options.verbose or 0
+        self.verbose = options.verbose
 
         self.logger.info("pysapcar version: %s", pysap.__version__)
 
@@ -129,10 +125,11 @@ class PySAPCAR(object):
             self.mode = "r"
 
         # Opens the input/output file
+        self.archive_fd = None
         if options.filename:
             try:
                 self.archive_fd = open(options.filename, self.mode)
-            except (OSError, IOError) as e:
+            except IOError as e:
                 self.logger.error("pysapcar: error opening '%s' (%s)" % (options.filename, e.strerror))
                 return
         else:
@@ -153,15 +150,12 @@ class PySAPCAR(object):
         """Opens the archive file to work with it and returns
         the SAP Car Archive object.
         """
-        if not self.archive_fd:
-            self.logger.critical("pysapcar: Trying to open archive file before setting it, should not happen")
-            return
         try:
             sapcar = SAPCARArchive(self.archive_fd, mode=self.mode)
             self.logger.info("pysapcar: Processing archive '%s' (version %s)", self.archive_fd.name, sapcar.version)
         except Exception as e:
-            self.logger.error("pysapcar: Error processing archive '%s' (%s)", self.archive_fd.name, e)
-            return
+            self.logger.error("pysapcar: Error processing archive '%s' (%s)", self.archive_fd.name, e.message)
+            return None
         return sapcar
 
     @staticmethod
@@ -222,7 +216,7 @@ class PySAPCAR(object):
         # Print the info of each file
         for filename in self.target_files(sapcar.files_names, args):
             fil = sapcar.files[filename]
-            self.logger.info("%s  %10d    %s %s", fil.permissions, fil.size, fil.timestamp, fil.filename)
+            self.logger.info("{}  {:>10}    {} {}".format(fil.permissions, fil.size, fil.timestamp, fil.filename))
 
     def extract(self, options, args):
         """Extract files from the archive file.
@@ -274,7 +268,7 @@ class PySAPCAR(object):
             elif fil.is_file():
                 # If the file references a directory that is not there, create it first
                 file_dirname = path.dirname(filename)
-                if file_dirname:
+                if file_dirname and not path.exists(file_dirname):
                     # mkdir barfs if archive contains /foo/bar/bash but not /foo/bar directory.
                     # makedirs creates intermediate directories as well
                     try:
@@ -294,7 +288,7 @@ class PySAPCAR(object):
                 try:
                     data = fil.open(enforce_checksum=options.enforce_checksum).read()
                 except (SAPCARInvalidFileException, DecompressError) as e:
-                    self.logger.error("pysapcar: Invalid SAP CAR file '%s' (%s)", self.archive_fd.name, e)
+                    self.logger.error("pysapcar: Invalid SAP CAR file '%s' (%s)", self.archive_fd.name, e.message)
                     if options.break_on_error:
                         flag = STOP
                     else:
@@ -327,8 +321,14 @@ class PySAPCAR(object):
                     if options.break_on_error:
                         self.logger.info("pysapcar: Stopping extraction")
                         break
-                    self.logger.info("pysapcar: Skipping extraction of file '%s'", fil.filename)
-                    continue
+
+                # Set the timestamp
+                utime(filename, (fil.timestamp_raw, fil.timestamp_raw))
+
+                # If this path is reached and checksum is not valid, means checksum is not enforced, so we should warn
+                # only.
+                if not fil.check_checksum():
+                    self.logger.warning("pysapcar: checksum error in '%s' !", filename)
 
                 self.logger.info("d %s", filename)
                 no += 1

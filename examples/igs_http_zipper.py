@@ -22,13 +22,13 @@
 
 # Standard imports
 import logging
-from optparse import OptionParser, OptionGroup
+from argparse import ArgumentParser
 # External imports
 from scapy.config import conf
 # Custom imports
 import pysap
 from pysap.SAPIGS import SAPIGS
-from pysap.SAPRouter import SAPRoutedStreamSocket
+from pysap.SAPRouter import SAPRoutedStreamSocket, ROUTER_TALK_MODE_NI_RAW_IO
 
 # Set the verbosity to 0
 conf.verb = 0
@@ -38,38 +38,30 @@ conf.verb = 0
 def parse_options():
 
     description = "This example script send provided file to IGS ZIPPER interpreter " \
-                  "using HTTP Listener " \
+                  "using HTTP Listener"
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s [options] -d <remote host>"
 
-    usage = "Usage: %prog [options] -d <remote host>"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
+    target = parser.add_argument_group("Target")
+    target.add_argument("-d", "--remote-host", dest="remote_host",
+                        help="Remote host")
+    target.add_argument("-p", "--remote-port", dest="remote_port", type=int, default=40080,
+                        help="Remote port [%(default)d]")
+    target.add_argument("--route-string", dest="route_string",
+                        help="Route string for connecting through a SAP Router")
 
-    target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host",
-                      help="Remote host")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=40080,
-                      help="Remote port [%default]")
-    target.add_option("--route-string", dest="route_string",
-                      help="Route string for connecting through a SAP Router")
-    parser.add_option_group(target)
+    param = parser.add_argument_group("Parameters")
+    param.add_argument("-i", dest="file_input", default='poc.txt', metavar="FILE",
+                       help="File to zip [%(default)s]")
+    param.add_argument("-a", dest="file_path", default='',
+                       help="Path in zip file [%(default)s]")
 
-    param = OptionGroup(parser, "Parameters")
-    param.add_option("-i", dest="file_input", default='poc.txt', metavar="FILE",
-                    help="File to zip [%default]")
-    param.add_option("-a", dest="file_path", default='',
-                    help="Path in zip file [%default]")
-    parser.add_option_group(param)
+    misc = parser.add_argument_group("Misc options")
+    misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
 
-    misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
-                    help="Verbose output [%default]")
-    parser.add_option_group(misc)
-
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     if not (options.remote_host or options.route_string):
         parser.error("Remote host or route string is required")
@@ -98,7 +90,7 @@ def main():
     conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
                                               options.remote_port,
                                               options.route_string,
-                                              talk_mode=1)
+                                              talk_mode=ROUTER_TALK_MODE_NI_RAW_IO)
 
     # the xml request for zipper interpreter
     xml = '<?xml version="1.0"?><REQUEST><COMPRESS type="zip"><FILES>'

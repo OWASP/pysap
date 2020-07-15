@@ -20,7 +20,7 @@
 __title__ = 'pysap'
 """The title of the library"""
 
-__version__ = '0.1.18.dev0'
+__version__ = '0.1.19.dev0'
 """The version of pysap"""
 
 __url__ = "https://www.secureauth.com/labs/open-source-tools/pysap"
@@ -31,3 +31,8 @@ __repo__ = "https://github.com/SecureAuthCorp/pysap"
 
 __license__ = "GNU General Public License v2 or later (GPLv2+)"
 """The license governing the use and distribution of pysap"""
+
+epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": __version__,
+                                                     "url": __url__,
+                                                     "repo": __repo__}
+"""Epilog to use in example and tools to print out version numbers"""

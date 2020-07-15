@@ -18,6 +18,7 @@
 # ==============
 
 # Standard imports
+import sys
 import socket
 import unittest
 from struct import unpack
@@ -133,12 +134,13 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
         self.server.server_bind()
         self.server.server_activate()
         self.server_thread = Thread(target=self.server.serve_forever)
+        self.server_thread.daemon = True
         self.server_thread.start()
 
     def stop_server(self):
         self.server.shutdown()
         self.server.server_close()
-        self.server_thread.join()
+        self.server_thread.join(1)
 
     def test_saproutedstreamsocket(self):
         """Test SAPRoutedStreamSocket"""
@@ -254,4 +256,6 @@ def test_suite():
 
 
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=2).run(test_suite())
+    test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
+    result = test_runner.run(test_suite())
+    sys.exit(not result.wasSuccessful())

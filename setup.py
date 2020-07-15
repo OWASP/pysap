@@ -74,17 +74,21 @@ class PreExecuteNotebooksCommand(Command):
             system("jupyter nbconvert --inplace --to notebook --execute {}".format(notebook))
 
 
+sapcompress_macros = [
+    # Enable this macro if you want some debugging information on the (de)compression functions
+    # ('DEBUG', None),
+    # Enable this macro if you want detailed debugging information (hexdumps) on the (de)compression functions
+    # ('DEBUG_TRACE', None),
+]
+
+
 sapcompress = Extension('pysapcompress',
                         ['pysapcompress/pysapcompress.cpp',
                          'pysapcompress/vpa105CsObjInt.cpp',
                          'pysapcompress/vpa106cslzc.cpp',
                          'pysapcompress/vpa107cslzh.cpp',
                          'pysapcompress/vpa108csulzh.cpp'],
-                        define_macros=[  # Enable this macro if you want some debugging information on the (de)compression functions
-                                       #('DEBUG', None),
-                                         # Enable this macro if you want detailed debugging information (hexdumps) on the (de)compression functions
-                                       #('DEBUG_TRACE', None),
-                        ])
+                        define_macros=sapcompress_macros)
 
 
 with open("README.md", "r") as fh:

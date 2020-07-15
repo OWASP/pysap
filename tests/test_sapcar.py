@@ -20,8 +20,9 @@
 # Standard imports
 from __future__ import unicode_literals
 import six
+import sys
 import unittest
-from os import unlink, path
+from os import unlink, rmdir, path
 # External imports
 # Custom imports
 from tests.utils import data_filename
@@ -47,6 +48,8 @@ class PySAPCARTest(unittest.TestCase):
         for filename in [self.test_filename, self.test_archive_file]:
             if path.exists(filename):
                 unlink(filename)
+        if path.exists("test"):
+            rmdir("test")
 
     def check_sapcar_archive(self, filename, version):
         """Test SAP CAR archive file"""
@@ -277,4 +280,6 @@ def test_suite():
 
 
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=2).run(test_suite())
+    test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
+    result = test_runner.run(test_suite())
+    sys.exit(not result.wasSuccessful())

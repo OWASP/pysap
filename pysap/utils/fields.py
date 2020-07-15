@@ -291,6 +291,35 @@ class PacketListStopField(PacketListField):
         return remain + ret, lst
 
 
+class AdjustableFieldLenField(Field):
+    __slots__ = ["length_of", "count_of", "adjust"]
+
+    def __init__(self, name, default, length_of=None):
+        Field.__init__(self, name, default, ">H")
+        self.length_of = length_of
+
+    def i2m(self, pkt, x):
+        if x is None:
+            fld, fval = pkt.getfield_and_val(self.length_of)
+            x = fld.i2len(pkt, fval)
+        return x
+
+    def addfield(self, pkt, s, val):
+        i2m = self.i2m(pkt, val)
+        fmt = "B"
+        padd = ""
+        if i2m > 0xf0:
+            fmt = ">H"
+            padd = struct.pack("B", 0xff)
+        return s + padd + struct.pack(fmt, i2m)
+
+    def getfield(self, pkt, s):
+        if struct.unpack("B", s[:1])[0] == 0xff:
+            return s[3:], self.m2i(pkt, struct.unpack(">H", s[1:3])[0])
+        else:
+            return s[1:], self.m2i(pkt, struct.unpack("B", s[:1])[0])
+
+
 class ASN1F_CHOICE_SAFE(ASN1F_CHOICE):
     def __init__(self, name, default, *args, **kwargs):
         if "implicit_tag" in kwargs:
@@ -322,3 +351,18 @@ class ASN1F_CHOICE_SAFE(ASN1F_CHOICE):
             except (ASN1_Error, ASN1F_badsequence, BER_Decoding_Error):
                 pass
         raise ASN1_Error
+
+
+class LESignedByteField(Field):
+    def __init__(self, name, default):
+        Field.__init__(self, name, default, "<b")
+
+
+class LESignedShortField(Field):
+    def __init__(self, name, default):
+        Field.__init__(self, name, default, "<h")
+
+
+class LESignedLongField(Field):
+    def __init__(self, name, default):
+        Field.__init__(self, name, default, "<q")

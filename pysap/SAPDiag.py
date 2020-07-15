@@ -74,6 +74,7 @@ class SAPDiagDP(Packet):
         ByteField("unused9", 0x01),
         StrFixedLenField("unused10", "\x00" * 57, 57)]
 
+
 # Diag Item Types
 diag_item_types = {
     0x01: "SES",
@@ -458,6 +459,7 @@ class SAPDiagItems(Packet):
     """
     name = "SAP Diag Items"
     fields_desc = [PacketListField("message", None, SAPDiagItem)]
+
 
 # Compression Flag values
 diag_compress_values = {0: "Compression switched off",

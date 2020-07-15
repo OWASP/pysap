@@ -116,11 +116,14 @@ router_adm_commands = {
 """Router Administration Command values"""
 
 
+ROUTER_TALK_MODE_NI_MSG_IO = 0
+ROUTER_TALK_MODE_NI_RAW_IO = 1
+ROUTER_TALK_MODE_NI_ROUT_IO = 2
 # Router NI Talk mode values
 router_ni_talk_mode_values = {
-    0: "NI_MSG_IO",
-    1: "NI_RAW_IO",
-    2: "NI_ROUT_IO",
+    ROUTER_TALK_MODE_NI_MSG_IO: "NI_MSG_IO",
+    ROUTER_TALK_MODE_NI_RAW_IO: "NI_RAW_IO",
+    ROUTER_TALK_MODE_NI_ROUT_IO: "NI_ROUT_IO",
 }
 """Router NI Talk mode values"""
 
@@ -433,7 +436,7 @@ class SAPRouter(Packet):
         # Route packets
         ConditionalField(ByteField("route_ni_version", SAPROUTER_DEFAULT_VERSION), router_is_route),
         ConditionalField(ByteField("route_entries", 0), router_is_route),
-        ConditionalField(ByteEnumKeysField("route_talk_mode", 0, router_ni_talk_mode_values), router_is_route),
+        ConditionalField(ByteEnumKeysField("route_talk_mode", ROUTER_TALK_MODE_NI_MSG_IO, router_ni_talk_mode_values), router_is_route),
         ConditionalField(ShortField("route_padd", 0), router_is_route),
         ConditionalField(ByteField("route_rest_nodes", 0), router_is_route),
         ConditionalField(FieldLenField("route_length", 0, length_of="route_string", fmt="I"), router_is_route),
@@ -569,7 +572,7 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
             or the SAP Router returned an error
         """
         # Build the route request packet
-        talk_mode = talk_mode or 0
+        talk_mode = talk_mode or ROUTER_TALK_MODE_NI_MSG_IO
         router_strings = list(map(str, route))
         target = "%s:%d" % (route[-1].hostname, int(route[-1].port))
         router_strings_lens = list(map(len, router_strings))
@@ -610,7 +613,7 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         # If we're working on native mode and the route was accepted, we don't
         # need the NI layer anymore. Just use the plain socket inside the
         # NIStreamSockets.
-        if self.routed and self.talk_mode == 1:
+        if self.routed and self.talk_mode == ROUTER_TALK_MODE_NI_RAW_IO:
             return StreamSocket.recv(self)
         # If the route was not accepted yet or we're working on non-native talk
         # mode, we need the NI layer.
@@ -627,7 +630,7 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         # If we're working on native mode and the route was accepted, we don't
         # need the NI layer anymore. Just use the plain socket inside the
         # NIStreamSockets.
-        if self.routed and self.talk_mode == 1:
+        if self.routed and self.talk_mode == ROUTER_TALK_MODE_NI_RAW_IO:
             return StreamSocket.send(self, packet)
         # If the route was not accepted yet or we're working on non-native talk
         # mode, we need the NI layer.
@@ -676,10 +679,11 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         if route is None:
             # If talk mode is raw, create a new StreamSocket and get rid of the
             # NI layer completely and force the base class to Raw.
-            if talk_mode == 1:
+            if talk_mode == ROUTER_TALK_MODE_NI_RAW_IO:
                 sock = socket.create_connection((host, port))
                 if "base_cls" in kwargs:
-                    kwargs["base_cls"] = Raw
+                    kwargs["basecls"] = Raw
+                    del(kwargs["base_cls"])
                 return StreamSocket(sock, **kwargs)
 
             # Otherwise use the standard SAPNIStreamSocket get_nisocket method
@@ -727,7 +731,7 @@ class SAPRouterNativeProxy(SAPNIProxy):
 
     def __init__(self, bind_address, bind_port, remote_address, remote_port,
                  handler, target_address, target_port, target_pass=None,
-                 talk_mode=0, backlog=5, keep_alive=True, options=None):
+                 talk_mode=ROUTER_TALK_MODE_NI_MSG_IO, backlog=5, keep_alive=True, options=None):
         """Create the proxy binding a socket in the giving port, requesting the
         route to the target address/port and setting the handler for the
         incoming connections.

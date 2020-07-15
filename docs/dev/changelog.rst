@@ -3,5 +3,5 @@
 Release and version history
 ===========================
 
-.. include:: ../../ChangeLog.md
+.. mdinclude:: ../../ChangeLog.md
    :start-line: 2

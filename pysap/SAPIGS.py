@@ -137,7 +137,7 @@ class SAPIGSTable(Packet):
                                table_column=format(t_column, ">43"),
                                column_name=format(c_name, ">43"),
                                column_width=format(c_width, ">43")
-                              )
+                               )
         return NewEntry
 
 

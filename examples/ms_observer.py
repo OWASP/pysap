@@ -20,8 +20,8 @@
 
 # Standard imports
 import logging
+from argparse import ArgumentParser
 from socket import error as SocketError
-from optparse import OptionParser, OptionGroup
 # External imports
 from scapy.config import conf
 # Custom imports
@@ -40,33 +40,26 @@ def parse_options():
     description = "This example script connects with the Message Server service of a SAP Netweaver Application Server "\
                   "and monitors the clients to identify new application servers. Similar to SAP's msprot tool."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s [options] -d <remote host>"
 
-    usage = "Usage: %prog [options] -d <remote host>"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
+    target = parser.add_argument_group("Target")
+    target.add_argument("-d", "--remote-host", dest="remote_host",
+                        help="Remote host")
+    target.add_argument("-p", "--remote-port", dest="remote_port", type=int, default=3900,
+                        help="Remote port [%(default)d]")
+    target.add_argument("--route-string", dest="route_string",
+                        help="Route string for connecting through a SAP Router")
+    target.add_argument("--domain", dest="domain", default="ABAP",
+                        help="Domain to connect to (ABAP, J2EE or JSTARTUP) [%(default)s]")
 
-    target = OptionGroup(parser, "Target")
-    target.add_option("-d", "--remote-host", dest="remote_host",
-                      help="Remote host")
-    target.add_option("-p", "--remote-port", dest="remote_port", type="int", default=3900,
-                      help="Remote port [%default]")
-    target.add_option("--route-string", dest="route_string",
-                      help="Route string for connecting through a SAP Router")
-    target.add_option("--domain", dest="domain", default="ABAP",
-                      help="Domain to connect to (ABAP, J2EE or JSTARTUP) [%default]")
-    parser.add_option_group(target)
+    misc = parser.add_argument_group("Misc options")
+    misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
+    misc.add_argument("-c", "--client", dest="client", default="pysap's-observer",
+                      help="Client name [%(default)s]")
 
-    misc = OptionGroup(parser, "Misc options")
-    misc.add_option("-c", "--client", dest="client", default="pysap's-observer",
-                    help="Client name [%default]")
-    misc.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
-                    help="Verbose output [%default]")
-    parser.add_option_group(misc)
-
-    (options, _) = parser.parse_args()
+    options = parser.parse_args()
 
     if not (options.remote_host or options.route_string):
         parser.error("Remote host or route string is required")
@@ -166,6 +159,7 @@ def main():
                                                                       client.host.strip(),
                                                                       client.service.strip(),
                                                                       client.servno))
+
 
 if __name__ == "__main__":
     main()

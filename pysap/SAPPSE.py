@@ -27,11 +27,13 @@ from scapy.asn1fields import (ASN1F_SEQUENCE, ASN1F_PACKET, ASN1F_INTEGER, ASN1F
                               ASN1F_CHOICE, ASN1F_OID, ASN1F_optional, ASN1F_enum_INTEGER,
                               ASN1F_BIT_STRING, ASN1F_SET_OF, ASN1F_PRINTABLE_STRING,
                               ASN1F_GENERALIZED_TIME, ASN1_Class_UNIVERSAL)
+from scapy.layers.x509 import (X509_SubjectPublicKeyInfo, X509_Cert, X509_DirectoryName, X509_Validity,
+                               X509_AlgorithmIdentifier)
 # Import needed to initialize conf.mib
 from scapy.asn1.mib import conf  # noqa: F401
 
 # Custom imports
-from pysap.SAPLPS import SAP_LPS_Cipher
+from pysap.SAPLPS import SAPLPSCipher
 from pysap.utils.crypto import PKCS12_PBES1
 from pysap.utils.fields import ASN1F_CHOICE_SAFE
 # External imports
@@ -137,10 +139,6 @@ sappse_obj_oid = {
 }
 
 
-from scapy.layers.x509 import (X509_SubjectPublicKeyInfo, X509_Cert, X509_DirectoryName, X509_Validity,
-                               X509_AlgorithmIdentifier)
-
-
 class SAPPSE_Root_Key(ASN1_Packet):
     """SAP PSEv2 Root Key definition"""
     ASN1_codec = ASN1_Codecs.BER
@@ -192,20 +190,20 @@ class SAPPSE_Obj(ASN1_Packet):
         ASN1F_GENERALIZED_TIME("created", None),
         ASN1F_OID("object_type", sappse_obj_oid["PKRoot"]),
         ASN1F_CHOICE_SAFE("object_value", None,
-                     X509_SubjectPublicKeyInfo,               # SKnew, SKold, DECSKnew, DECSKold, SignSK
-                     X509_Cert,                               # Cert, SignCert, EncCert
-                     SAPPSE_Obj_PKRoot,                       # PKRoot
-                     SAPPSE_Obj_CertList,                     # CertList, CSet, SignCSet, EncCSet
-                     #ASN1F_SET_OF("cert_pairs", None, X509_CertPair),       # CrossCSet
-                     #ASN1F_SEQUENCE_OF("forward_certification_path", None,  # FCPath
-                     #                  ASN1F_SET_OF("cross_certs", None,
-                     #                               X509_Cert)),
-                     #ASN1F_SET_OF("pklist", SAPPSE_Obj_PKList(), SAPPSE_Obj_PKList),  # PKList, EKList, PCAList
-                     #ASN1F_SET_OF("crlset", SAPPSE_Obj_CRLSet(), SAPPSE_Obj_CRLSet),  # CRLSet
-                     #ASN1F_STRING("serial_number"),           # SerialNumber
-                     #ASN1F_STRING("quipu_password"),          # QuipuPWD
-                     #SAPPSE_Obj_EDBKey,                       # EDBKey
-                     )
+                          X509_SubjectPublicKeyInfo,               # SKnew, SKold, DECSKnew, DECSKold, SignSK
+                          X509_Cert,                               # Cert, SignCert, EncCert
+                          SAPPSE_Obj_PKRoot,                       # PKRoot
+                          SAPPSE_Obj_CertList,                     # CertList, CSet, SignCSet, EncCSet
+                          # ASN1F_SET_OF("cert_pairs", None, X509_CertPair),       # CrossCSet
+                          # ASN1F_SEQUENCE_OF("forward_certification_path", None,  # FCPath
+                          #                   ASN1F_SET_OF("cross_certs", None,
+                          #                                X509_Cert)),
+                          # ASN1F_SET_OF("pklist", SAPPSE_Obj_PKList(), SAPPSE_Obj_PKList),  # PKList, EKList, PCAList
+                          # ASN1F_SET_OF("crlset", SAPPSE_Obj_CRLSet(), SAPPSE_Obj_CRLSet),  # CRLSet
+                          # ASN1F_STRING("serial_number"),           # SerialNumber
+                          # ASN1F_STRING("quipu_password"),          # QuipuPWD
+                          # SAPPSE_Obj_EDBKey,                       # EDBKey
+                          )
     )
 
 
@@ -282,14 +280,14 @@ class SAPPSEFile(ASN1_Packet):
         """
 
         # Decrypt the encryption key using the LPS method
-        cipher = SAP_LPS_Cipher(self.enc_cont.encrypted_pin.val)
+        cipher = SAPLPSCipher(self.enc_cont.encrypted_pin.val)
         log_pse.debug("Obtained LPS cipher object (version={}, lps={})".format(cipher.version,
                                                                                cipher.lps_type))
         key = cipher.decrypt()
 
         # Choose the proper algorithms and values according to the algorithm ID
         if self.enc_cont.algorithm_identifier.alg_id == NIST_ALGORITHM_AES_256_CBC:
-            salt = self.enc_cont.algorithm_identifier.parameters.salt.val
+            salt = self.enc_cont.algorithm_identifier.parameters.salt.val  # XXX: Salt is not in use
             algorithm = algorithms.AES
             mode = modes.CBC
             key, iv = key[:32], key[32:]

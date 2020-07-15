@@ -19,9 +19,10 @@
 # ==============
 
 # Standard imports
+from os import path
 from sys import stdout
 from binascii import hexlify
-from optparse import OptionParser
+from argparse import ArgumentParser
 # Custom imports
 import pysap
 from pysap.SAPPSE import (SAPPSEFile, PKCS12_ALGORITHM_PBE1_SHA_3DES_CBC)
@@ -33,24 +34,20 @@ def parse_options():
     description = "This script can be used to parse PSE files and extract encrypted material and data in a format that" \
                   "John the Ripper or other cracking tools can use to look for the decryption PIN."
 
-    epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": pysap.__version__,
-                                                         "url": pysap.__url__,
-                                                         "repo": pysap.__repo__}
+    usage = "%(prog)s <input_file>"
 
-    usage = "Usage: %prog <input_file>"
+    parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
+    parser.add_argument("-o", "--output", help="Filename to write the output to [stdout]")
 
-    parser = OptionParser(usage=usage, description=description, epilog=epilog)
-    parser.add_option("-o", "--output", help="Filename to write the output to [stdout]")
-
-    options, args = parser.parse_args()
+    options, args = parser.parse_known_args()
 
     return options, args
 
 
 def parse_pse(filename):
     """Parses a PSE file and produces """
-    with open(filename, "rb") as f:
-        data = f.read()
+    with open(filename, "rb") as fp:
+        data = fp.read()
 
     pse_file = SAPPSEFile(data)
 
@@ -68,8 +65,8 @@ def parse_pse(filename):
     encrypted_pin_length = len(pse_file.enc_cont.encrypted_pin.val)
 
     return "{}:$pse${}${}${}${}${}${}${}${}:::::\n".format(
-        filename, pbe_algo, iterations, salt_size, salt, iv_size, iv, encrypted_pin_length, encrypted_pin,
-    )
+        path.basename(filename), pbe_algo, iterations, salt_size, salt, iv_size, iv,
+        encrypted_pin_length, encrypted_pin)
 
 
 if __name__ == "__main__":
