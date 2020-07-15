@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-v0.1.18 - 2020-XX-XX
+v0.1.18 - 2020-07-15
 --------------------
 
 - Using Sphinx 1.8.5 for documentation.
