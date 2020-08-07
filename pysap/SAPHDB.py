@@ -903,6 +903,11 @@ class SAPHDBAuthMethod(object):
         auth_request = self.craft_authentication_request(connection=connection)
 
         auth_response = connection.sr(auth_request)
+
+        # Check if the response is an error
+        if auth_response.segments[0].segmentkind == 5:  # If is Error segment kind
+            raise SAPHDBAuthenticationError("Authentication failed")
+
         auth_response_part = auth_response.segments[0].parts[0].buffer[0]
 
         # Check the method replied by the server
