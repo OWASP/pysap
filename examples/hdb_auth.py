@@ -117,23 +117,20 @@ def parse_options():
     return options
 
 
-# Main function
-def main():
-    options = parse_options()
+def craft_auth_method(options):
+    """Obtain the corresponding Authentication method according to the command line options provided.
+    """
 
-    level = logging.INFO
-    if options.verbose:
-        level = logging.DEBUG
-    logging.basicConfig(level=level, format='%(message)s')
-
-    # Select the desired authentication method
     logging.debug("[*] Using authentication method %s" % options.method)
     auth_method_cls = saphdb_auth_methods[options.method]
+    auth_method = None
+
     if options.method == "SAML":
         # If SAML was specified, read the SAML signed assertion from a file and pass it to the auth method
         # Note that the username is not specified and instead read by the server from the SAML assertion
         with open(options.saml_assertion, 'r') as saml_assertion_fd:
             auth_method = auth_method_cls("", saml_assertion_fd.read())
+
     elif options.method == "JWT":
         # If JWT from file was specified, read the signed JWT from a file and pass it to the auth method
         if options.jwt_file:
@@ -150,11 +147,28 @@ def main():
                            }
                 jwt_signed = py_jwt.encode(jwt_raw, jwt_cert_fd.read(), algorithm="RS256")
                 auth_method = auth_method_cls(options.username, jwt_signed)
+
     elif options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"]:
         auth_method = auth_method_cls(options.username, options.password)
+
     elif options.method == "SessionCookie":
         auth_method = auth_method_cls(options.username, options.session_cookie)
-    else:
+
+    return auth_method
+
+
+# Main function
+def main():
+    options = parse_options()
+
+    level = logging.INFO
+    if options.verbose:
+        level = logging.DEBUG
+    logging.basicConfig(level=level, format='%(message)s')
+
+    # Select the desired authentication method
+    auth_method = craft_auth_method(options)
+    if auth_method is None:
         logging.error("[-] Unsupported authentication method")
         return
 
