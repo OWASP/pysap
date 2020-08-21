@@ -859,6 +859,7 @@ class SAPHDBAuthMethod(object):
         :return: the initial authentication request
         :rtype: :class:`SAPHDB`
         """
+        value = value or ""
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
                                                             SAPHDBPartAuthenticationField(value=value)])
@@ -1206,13 +1207,13 @@ class SAPHDBConnection(object):
         # Craft the CONNECT packet
         clientcontext_part = SAPHDBPart(partkind=29)
         clientid_part = SAPHDBPart(partkind=35, buffer=SAPHDBPartClientId(clientid=self.client_id))
-        auth_segm = SAPHDBSegment(messagetype=66, parts=[clientcontext_part, auth_part, clientid_part])
-        auth_request = SAPHDB(segments=[auth_segm])
+        connect_segm = SAPHDBSegment(messagetype=66, parts=[clientcontext_part, auth_part, clientid_part])
+        connect_request = SAPHDB(segments=[connect_segm])
 
         # Send connect packet
-        auth_response = self.sr(auth_request)
+        connect_response = self.sr(connect_request)
 
-        if auth_response.segments[0].segmentkind == 5:  # If is Error segment kind
+        if connect_response.segments[0].segmentkind == 5:  # If is Error segment kind
             self.close_socket()
             raise SAPHDBAuthenticationError("Authentication failed")
 
