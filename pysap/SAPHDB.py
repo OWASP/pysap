@@ -1036,7 +1036,17 @@ class SAPHDBAuthSAMLMethod(SAPHDBAuthMethod):
         self.saml_assertion = saml_assertion
 
     def craft_authentication_request(self, value=None, connection=None):
+        """The initial authentication request should be performed as usual in other methods,
+        with an empty username and the entire SAML Assertion or SAML Response as the value.
+        """
         return super(SAPHDBAuthSAMLMethod, self).craft_authentication_request(self.saml_assertion, connection)
+
+    def craft_authentication_response_part(self, auth_response_part, value=None):
+        """In SAML, the first round trip with the server returns the SAML username to use when
+        authentication, so we must set it at this point.
+        """
+        self.username = auth_response_part.auth_fields[1].value
+        return super(SAPHDBAuthSAMLMethod, self).craft_authentication_response_part(auth_response_part, value or "")
 
 
 saphdb_auth_methods = {
