@@ -83,7 +83,7 @@ def parse_options():
     auth.add_argument("--saml-assertion", dest="saml_assertion", metavar="FILE",
                       help="File to read a signed SAML 2.0 bearer assertion from")
     auth.add_argument("--session-cookie", dest="session_cookie", help="Session Cookie")
-    auth.add_argument("--pid", dest="pid", default="pysap", help="Process ID [%(default)s]")
+    auth.add_argument("--pid", dest="pid", default="0", help="Process ID [%(default)s]")
     auth.add_argument("--hostname", dest="hostname", help="Hostname")
 
     misc = parser.add_argument_group("Misc options")
