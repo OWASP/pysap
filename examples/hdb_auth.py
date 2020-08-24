@@ -197,6 +197,9 @@ def main():
         hdb.authenticate()
         logging.info("[*] Successfully authenticated against HANA database server")
 
+        if hasattr(hdb.auth_method, "session_cookie"):
+            logging.info("[*] Session cookie assigned to this session: %s" % hdb.auth_method.session_cookie)
+
         hdb.close()
         logging.debug("[*] Connection with HANA database server closed")
 

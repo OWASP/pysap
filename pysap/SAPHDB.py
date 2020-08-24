@@ -27,9 +27,8 @@ from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers, Raw
 from scapy.supersocket import SSLStreamSocket
 from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField, YesNoByteField,
-                          IntField, PacketListField, SignedByteField, LongField, PadField,
-                          LEIntField, LESignedIntField, StrFixedLenField, ShortField,
-                          MultipleTypeField, StrField, MultiEnumField, Field)
+                          IntField, PacketListField, LongField, PadField, LEIntField, LESignedIntField,
+                          StrFixedLenField, ShortField, MultipleTypeField, StrField, MultiEnumField, Field)
 # Custom imports
 import pysap
 from pysap.SAPRouter import SAPRoutedStreamSocket
@@ -859,10 +858,9 @@ class SAPHDBAuthMethod(object):
         :return: the initial authentication request
         :rtype: :class:`SAPHDB`
         """
-        value = value or ""
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
-                                                            SAPHDBPartAuthenticationField(value=value)])
+                                                            SAPHDBPartAuthenticationField(value=value or "")])
         auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
         auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
 
@@ -885,7 +883,7 @@ class SAPHDBAuthMethod(object):
         """
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
-                                                            SAPHDBPartAuthenticationField(value=value)])
+                                                            SAPHDBPartAuthenticationField(value=value or "")])
         return SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
 
     def authenticate(self, connection):
@@ -917,6 +915,11 @@ class SAPHDBAuthMethod(object):
 
         # Craft authentication part and return it
         return self.craft_authentication_response_part(auth_response_part)
+
+    def process_connect_response(self, connect_reponse, connection=None):
+        """Process the final response from the authentication process when needed, according to the authentication
+        method.
+        """
 
 
 class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
@@ -1034,6 +1037,7 @@ class SAPHDBAuthSAMLMethod(SAPHDBAuthMethod):
     def __init__(self, username, saml_assertion):
         super(SAPHDBAuthSAMLMethod, self).__init__(username)
         self.saml_assertion = saml_assertion
+        self.session_cookie = None
 
     def craft_authentication_request(self, value=None, connection=None):
         """The initial authentication request should be performed as usual in other methods,
@@ -1046,7 +1050,18 @@ class SAPHDBAuthSAMLMethod(SAPHDBAuthMethod):
         authentication, so we must set it at this point.
         """
         self.username = auth_response_part.auth_fields[1].value
-        return super(SAPHDBAuthSAMLMethod, self).craft_authentication_response_part(auth_response_part, value or "")
+        return super(SAPHDBAuthSAMLMethod, self).craft_authentication_response_part(auth_response_part, value)
+
+    def process_connect_response(self, connect_reponse, connection=None):
+        """The response to the final connect packet contains the session cookie created for this
+        connection, so we extract it and save it in case it needs to be re-used.
+        """
+        if len(connect_reponse.segments) and len(connect_reponse.segments[0].parts) and \
+           connect_reponse.segments[0].parts[0].partkind == 33 and \
+           len(connect_reponse.segments[0].parts[0].buffer) and \
+           len(connect_reponse.segments[0].parts[0].buffer[0].auth_fields) and \
+           connect_reponse.segments[0].parts[0].buffer[0].auth_fields[0].value == self.METHOD:
+            self.session_cookie = connect_reponse.segments[0].parts[0].buffer[0].auth_fields[1].value
 
 
 saphdb_auth_methods = {
@@ -1091,7 +1106,7 @@ class SAPHDBConnection(object):
         self.port = port
         self.auth_method = auth_method
         self.route = route
-        self.pid = pid or "pysap"
+        self.pid = pid or "0"
         self.hostname = hostname or socket.gethostname()
         self.client_version = client_version or pysap.__version__
         self.client_type = client_type or "SQLODBC"
@@ -1103,7 +1118,7 @@ class SAPHDBConnection(object):
     @property
     def client_id(self):
         """Returns the Client Id to use when authenticating and connecting to the
-        server. If the PID and the hostname are not specified, by default uses 'pysap@<hostname>'.
+        server. If the PID and the hostname are not specified, by default uses '0@<hostname>'.
 
         :return: Client ID string
         :rtype: string
@@ -1226,6 +1241,9 @@ class SAPHDBConnection(object):
         if connect_response.segments[0].segmentkind == 5:  # If is Error segment kind
             self.close_socket()
             raise SAPHDBAuthenticationError("Authentication failed")
+
+        # Process the connect response
+        self.auth_method.process_connect_response(connect_response, connection=self)
 
     def connect_authenticate(self):
         """Connects to the server, performs initialization and authenticates the client.
