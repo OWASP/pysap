@@ -75,7 +75,7 @@ def parse_options():
     auth.add_argument("--password", dest="password", help="Password")
     auth.add_argument("--jwt-file", dest="jwt_file", metavar="FILE",
                       help="File to read a signed JWT from")
-    auth.add_argument("--jwt-cert", dest="jwt_cert", metavar="FILE",
+    auth.add_argument("--jwt-key", dest="jwt_key", metavar="FILE",
                       help="File to read the private key to sign the JWT")
     auth.add_argument("--jwt-issuer", dest="jwt_issuer", help="JWT signature issuer")
     auth.add_argument("--jwt-claim", dest="jwt_claim", default="user_name",
@@ -100,9 +100,9 @@ def parse_options():
         parser.error("Username needs to be provided")
 
     if options.method == "JWT":
-        if not (options.jwt_file or (options.jwt_cert and options.jwt_issuer)):
-            parser.error("JWT file or a signing certificate and issuer need to be provided for JWT authentication")
-        if options.jwt_cert and not py_jwt:
+        if not (options.jwt_file or (options.jwt_key and options.jwt_issuer)):
+            parser.error("JWT file or a signing private key and issuer need to be provided for JWT authentication")
+        if options.jwt_key and not py_jwt:
             parser.error("JWT crafting requires the PyJWT library installed")
 
     if options.method == "SAML" and not options.saml_assertion:
@@ -138,14 +138,14 @@ def craft_auth_method(options):
                 auth_method = auth_method_cls(options.username, jwt_fd.read())
         # Otherwise if a JWT certificate was specified, we'll try to create and sign a new JWT and pass it
         # Note that this requires the PyJWT library
-        elif options.jwt_cert:
-            with open(options.jwt_cert, 'r') as jwt_cert_fd:
+        elif options.jwt_key:
+            with open(options.jwt_key, 'r') as jwt_key_fd:
                 jwt_raw = {options.jwt_claim: options.username,
                            "iss": options.jwt_issuer,
                            "nbf": datetime.datetime.utcnow() - datetime.timedelta(seconds=30),
                            "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=30),
                            }
-                jwt_signed = py_jwt.encode(jwt_raw, jwt_cert_fd.read(), algorithm="RS256")
+                jwt_signed = py_jwt.encode(jwt_raw, jwt_key_fd.read(), algorithm="RS256")
                 auth_method = auth_method_cls(options.username, jwt_signed)
 
     elif options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"]:
