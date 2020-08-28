@@ -844,6 +844,7 @@ class SAPHDBAuthMethod(object):
         :type username: string
         """
         self.username = username
+        self.session_cookie = None
 
     def craft_authentication_request(self, value=None, connection=None):
         """Craft the initial authentication request and returns the packet to send. If a connection is
@@ -920,6 +921,12 @@ class SAPHDBAuthMethod(object):
         """Process the final response from the authentication process when needed, according to the authentication
         method.
         """
+        if len(connect_reponse.segments) and len(connect_reponse.segments[0].parts) and \
+           connect_reponse.segments[0].parts[0].partkind == 33 and \
+           len(connect_reponse.segments[0].parts[0].buffer) and \
+           len(connect_reponse.segments[0].parts[0].buffer[0].auth_fields) and \
+           connect_reponse.segments[0].parts[0].buffer[0].auth_fields[0].value == self.METHOD:
+            self.session_cookie = connect_reponse.segments[0].parts[0].buffer[0].auth_fields[1].value
 
 
 class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
@@ -1023,6 +1030,7 @@ class SAPHDBAuthJWTMethod(SAPHDBAuthMethod):
     def __init__(self, username, jwt):
         super(SAPHDBAuthJWTMethod, self).__init__(username)
         self.jwt = jwt
+        self.session_cookie = None
 
     def craft_authentication_request(self, value=None, connection=None):
         return super(SAPHDBAuthJWTMethod, self).craft_authentication_request(self.jwt, connection)
@@ -1051,17 +1059,6 @@ class SAPHDBAuthSAMLMethod(SAPHDBAuthMethod):
         """
         self.username = auth_response_part.auth_fields[1].value
         return super(SAPHDBAuthSAMLMethod, self).craft_authentication_response_part(auth_response_part, value)
-
-    def process_connect_response(self, connect_reponse, connection=None):
-        """The response to the final connect packet contains the session cookie created for this
-        connection, so we extract it and save it in case it needs to be re-used.
-        """
-        if len(connect_reponse.segments) and len(connect_reponse.segments[0].parts) and \
-           connect_reponse.segments[0].parts[0].partkind == 33 and \
-           len(connect_reponse.segments[0].parts[0].buffer) and \
-           len(connect_reponse.segments[0].parts[0].buffer[0].auth_fields) and \
-           connect_reponse.segments[0].parts[0].buffer[0].auth_fields[0].value == self.METHOD:
-            self.session_cookie = connect_reponse.segments[0].parts[0].buffer[0].auth_fields[1].value
 
 
 saphdb_auth_methods = {
