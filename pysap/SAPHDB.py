@@ -1061,7 +1061,67 @@ class SAPHDBAuthSAMLMethod(SAPHDBAuthMethod):
         return super(SAPHDBAuthSAMLMethod, self).craft_authentication_response_part(auth_response_part, value)
 
 
+class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
+    """SAP HDB Authentication using GSS.
+    """
+
+    METHOD = "GSS"
+
+    KRB5OID_KERBEROS5 = "1.2.840.113554.1.2.2"
+    TYPEOID_GSS_KRB5_NT_PRINCIPAL_NAME = "1.2.840.113554.1.2.2.1"
+    TYPEOID_GSS_KRB5_NT_PRINCIPAL_NAME_pre_RFC_1964 = "1.2.840.113554.1.2.2.2"
+
+    def __init__(self, username, krb5oid=None, commtype=None, typeoid=None):
+        super(SAPHDBAuthGSSMethod, self).__init__(username)
+        self.krb5oid = krb5oid or self.KRB5OID_KERBEROS5
+        self.commtype = commtype or "\x01"
+        self.typeoid = typeoid or self.TYPEOID_GSS_KRB5_NT_PRINCIPAL_NAME
+        self.session_cookie = None
+
+    def craft_authentication_request(self, value=None, connection=None):
+        """The initial authentication request contains the method, and a client
+        challenge.
+
+        This GSS client challenge includes:
+         * krb5oid: GSS mechs to use
+         * commtype: communication type
+         * typeoid: type of the client GSS name
+         * gssname: the client GSS name (e.g. UPN)
+        """
+        gss_value = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.krb5oid),
+                                                          SAPHDBPartAuthenticationField(value=self.commtype),
+                                                          SAPHDBPartAuthenticationField(value=self.typeoid),
+                                                          SAPHDBPartAuthenticationField(value=self.username)])
+
+        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=""),
+                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
+                                                            SAPHDBPartAuthenticationField(value=gss_value)])
+        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
+        auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
+
+        if connection:
+            auth_segm.parts.insert(0, connection.craft_client_context_part())
+
+        return SAPHDB(segments=[auth_segm])
+
+    def craft_authentication_response_part(self, auth_response_part, value=None):
+        """In GSS, the first round trip with the server returns a token with the "negotiated"
+        mechanism and a server-specific token.
+
+        For Kerberos, this token includes:
+         * krb5oid: GSS mechs to use
+         * commtype: communication type
+         * typeoid: type of the client GSS name
+         * spn: SPN to ask the KDC the ticket for
+         * username: database username mapped from the UPN
+        """
+        gss_token = SAPHDBPartAuthentication(auth_response_part.auth_fields[1].value)
+        gss_token.show()
+        return super(SAPHDBAuthGSSMethod, self).craft_authentication_response_part(auth_response_part, value)
+
+
 saphdb_auth_methods = {
+    "GSS": SAPHDBAuthGSSMethod,
     "JWT": SAPHDBAuthJWTMethod,
     "SAML": SAPHDBAuthSAMLMethod,
     "SCRAMSHA256": SAPHDBAuthScramSHA256Method,
