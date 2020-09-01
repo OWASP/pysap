@@ -1071,12 +1071,11 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
     TYPEOID_GSS_KRB5_NT_PRINCIPAL_NAME = "1.2.840.113554.1.2.2.1"
     TYPEOID_GSS_KRB5_NT_PRINCIPAL_NAME_pre_RFC_1964 = "1.2.840.113554.1.2.2.2"
 
-    def __init__(self, username, krb5ticket=None, krb5ticket_callback=None, krb5oid=None, commtype=None, typeoid=None):
+    def __init__(self, username, krb5ticket=None, krb5ticket_callback=None, krb5oid=None, typeoid=None):
         super(SAPHDBAuthGSSMethod, self).__init__(username)
         self.krb5ticket = krb5ticket
         self.krb5ticket_callback = krb5ticket_callback
         self.krb5oid = krb5oid or self.KRB5OID_KERBEROS5
-        self.commtype = commtype or "\x01"
         self.typeoid = typeoid or self.TYPEOID_GSS_KRB5_NT_PRINCIPAL_NAME
         self.session_cookie = None
 
@@ -1110,7 +1109,7 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
         # gss_token_response = SAPHDBPartAuthentication(auth_response_part.auth_fields[1].value)
 
         last_gss_token = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.krb5oid),
-                                                               SAPHDBPartAuthenticationField(value=self.commtype)])
+                                                               SAPHDBPartAuthenticationField(value="\x05")])
         return super(SAPHDBAuthGSSMethod, self).craft_authentication_response_part(auth_response_part, last_gss_token)
 
     def authenticate(self, connection):
@@ -1128,11 +1127,11 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
 
         # The initial GSS token includes the NegTokenInit structure:
         #  * krb5oid: GSS mechs to use
-        #  * commtype: communication type
+        #  * commtype: communication type ("\x01")
         #  * typeoid: type of the client GSS name
         #  * gssname: the client GSS name (e.g. UPN)
         first_gss_token = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.krb5oid),
-                                                                SAPHDBPartAuthenticationField(value=self.commtype),
+                                                                SAPHDBPartAuthenticationField(value="\x01"),
                                                                 SAPHDBPartAuthenticationField(value=self.typeoid),
                                                                 SAPHDBPartAuthenticationField(value=self.username)])
         first_auth_request = self.craft_authentication_request(first_gss_token, connection=connection)
@@ -1149,7 +1148,7 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
 
         # The initial response from the server includes the NegTokenResp structure:
         #  * krb5oid: GSS mechs to use
-        #  * commtype: communication type
+        #  * commtype: communication type ("\x02")
         #  * typeoid: type of the client GSS name
         #  * spn: SPN to ask the KDC the ticket for
         #  * username: database username mapped from the UPN
@@ -1168,10 +1167,10 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
 
         # The second GSS token includes the AP-REQ structure:
         #  * krb5oid: GSS mechs to use
-        #  * commtype: communication type
+        #  * commtype: communication type ("\x03")
         #  * krb5ticket: the Kerberos AP-REQ structure to use
         second_gss_value = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.krb5oid),
-                                                                 SAPHDBPartAuthenticationField(value=self.commtype),
+                                                                 SAPHDBPartAuthenticationField(value="\x03"),
                                                                  SAPHDBPartAuthenticationField(value=krb5ticket)])
         second_auth_request = self.craft_authentication_request(second_gss_value, connection=connection)
         second_auth_response = connection.sr(second_auth_request)
@@ -1188,6 +1187,22 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
 
         # Craft authentication part and return it
         return self.craft_authentication_response_part(second_auth_response_part)
+
+    def process_connect_response(self, connect_reponse, connection=None):
+        """Process the final response from the authentication process when needed, according to the authentication
+        method.
+        """
+        super(SAPHDBAuthGSSMethod, self).process_connect_response(connect_reponse, connection)
+        if self.session_cookie is not None:
+            # The final response from the server includes the SessionCookie established:
+            #  * krb5oid: GSS mechs to use
+            #  * commtype: communication type ("\x07")
+            #  * session cookie: the SessionCookie established for the connection
+            gss_token = SAPHDBPartAuthentication(self.session_cookie)
+            if gss_token.auth_fields[1].value == "\x07":
+                self.session_cookie = gss_token.auth_fields[2].value
+            else:
+                self.session_cookie = None
 
 
 saphdb_auth_methods = {
