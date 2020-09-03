@@ -95,7 +95,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 
-setup(name=pysap.__title__,   # Package information
+setup(name=pysap.__title__,  # Package information
       version=pysap.__version__,
       author='Martin Gallo',
       author_email='mgallo@secureauth.com',
@@ -135,5 +135,5 @@ setup(name=pysap.__title__,   # Package information
 
       # Optional requirements for docs and some examples
       extras_require={"docs": open('requirements-docs.txt').read().splitlines(),
-                      "examples": open('requirements-optional.txt').read().splitlines()},
+                      "examples": open('requirements-examples.txt').read().splitlines()},
       )

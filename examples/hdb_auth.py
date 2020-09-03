@@ -75,7 +75,7 @@ def parse_options():
     auth.add_argument("--password", dest="password", help="Password")
     auth.add_argument("--jwt-file", dest="jwt_file", metavar="FILE",
                       help="File to read a signed JWT from")
-    auth.add_argument("--jwt-cert", dest="jwt_cert", metavar="FILE",
+    auth.add_argument("--jwt-key", dest="jwt_key", metavar="FILE",
                       help="File to read the private key to sign the JWT")
     auth.add_argument("--jwt-issuer", dest="jwt_issuer", help="JWT signature issuer")
     auth.add_argument("--jwt-claim", dest="jwt_claim", default="user_name",
@@ -83,7 +83,7 @@ def parse_options():
     auth.add_argument("--saml-assertion", dest="saml_assertion", metavar="FILE",
                       help="File to read a signed SAML 2.0 bearer assertion from")
     auth.add_argument("--session-cookie", dest="session_cookie", help="Session Cookie")
-    auth.add_argument("--pid", dest="pid", default="pysap", help="Process ID [%(default)s]")
+    auth.add_argument("--pid", dest="pid", default="0", help="Process ID [%(default)s]")
     auth.add_argument("--hostname", dest="hostname", help="Hostname")
 
     misc = parser.add_argument_group("Misc options")
@@ -100,9 +100,9 @@ def parse_options():
         parser.error("Username needs to be provided")
 
     if options.method == "JWT":
-        if not (options.jwt_file or (options.jwt_cert and options.jwt_issuer)):
-            parser.error("JWT file or a signing certificate and issuer need to be provided for JWT authentication")
-        if options.jwt_cert and not py_jwt:
+        if not (options.jwt_file or (options.jwt_key and options.jwt_issuer)):
+            parser.error("JWT file or a signing private key and issuer need to be provided for JWT authentication")
+        if options.jwt_key and not py_jwt:
             parser.error("JWT crafting requires the PyJWT library installed")
 
     if options.method == "SAML" and not options.saml_assertion:
@@ -117,6 +117,46 @@ def parse_options():
     return options
 
 
+def craft_auth_method(options):
+    """Obtain the corresponding Authentication method according to the command line options provided.
+    """
+
+    logging.debug("[*] Using authentication method %s" % options.method)
+    auth_method_cls = saphdb_auth_methods[options.method]
+    auth_method = None
+
+    if options.method == "SAML":
+        # If SAML was specified, read the SAML signed assertion from a file and pass it to the auth method
+        # Note that the username is not specified and instead read by the server from the SAML assertion
+        with open(options.saml_assertion, 'r') as saml_assertion_fd:
+            auth_method = auth_method_cls("", saml_assertion_fd.read())
+
+    elif options.method == "JWT":
+        # If JWT from file was specified, read the signed JWT from a file and pass it to the auth method
+        if options.jwt_file:
+            with open(options.jwt_file, 'r') as jwt_fd:
+                auth_method = auth_method_cls(options.username, jwt_fd.read())
+        # Otherwise if a JWT certificate was specified, we'll try to create and sign a new JWT and pass it
+        # Note that this requires the PyJWT library
+        elif options.jwt_key:
+            with open(options.jwt_key, 'r') as jwt_key_fd:
+                jwt_raw = {options.jwt_claim: options.username,
+                           "iss": options.jwt_issuer,
+                           "nbf": datetime.datetime.utcnow() - datetime.timedelta(seconds=30),
+                           "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=30),
+                           }
+                jwt_signed = py_jwt.encode(jwt_raw, jwt_key_fd.read(), algorithm="RS256")
+                auth_method = auth_method_cls(options.username, jwt_signed)
+
+    elif options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"]:
+        auth_method = auth_method_cls(options.username, options.password)
+
+    elif options.method == "SessionCookie":
+        auth_method = auth_method_cls(options.username, options.session_cookie)
+
+    return auth_method
+
+
 # Main function
 def main():
     options = parse_options()
@@ -127,34 +167,8 @@ def main():
     logging.basicConfig(level=level, format='%(message)s')
 
     # Select the desired authentication method
-    logging.debug("[*] Using authentication method %s" % options.method)
-    auth_method_cls = saphdb_auth_methods[options.method]
-    if options.method == "SAML":
-        # If SAML was specified, read the SAML signed assertion from a file and pass it to the auth method
-        # Note that the username is not specified and instead read by the server from the SAML assertion
-        with open(options.saml_assertion, 'r') as saml_assertion_fd:
-            auth_method = auth_method_cls("", saml_assertion_fd.read())
-    elif options.method == "JWT":
-        # If JWT from file was specified, read the signed JWT from a file and pass it to the auth method
-        if options.jwt_file:
-            with open(options.jwt_file, 'r') as jwt_fd:
-                auth_method = auth_method_cls(options.username, jwt_fd.read())
-        # Otherwise if a JWT certificate was specified, we'll try to create and sign a new JWT and pass it
-        # Note that this requires the PyJWT library
-        elif options.jwt_cert:
-            with open(options.jwt_cert, 'r') as jwt_cert_fd:
-                jwt_raw = {options.jwt_claim: options.username,
-                           "iss": options.jwt_issuer,
-                           "nbf": datetime.datetime.utcnow() - datetime.timedelta(seconds=30),
-                           "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=30),
-                           }
-                jwt_signed = py_jwt.encode(jwt_raw, jwt_cert_fd.read(), algorithm="RS256")
-                auth_method = auth_method_cls(options.username, jwt_signed)
-    elif options.method in ["SCRAMSHA256", "SCRAMPBKDF2SHA256"]:
-        auth_method = auth_method_cls(options.username, options.password)
-    elif options.method == "SessionCookie":
-        auth_method = auth_method_cls(options.username, options.session_cookie)
-    else:
+    auth_method = craft_auth_method(options)
+    if auth_method is None:
         logging.error("[-] Unsupported authentication method")
         return
 
@@ -182,6 +196,9 @@ def main():
                                                                             hdb.protocol_version))
         hdb.authenticate()
         logging.info("[*] Successfully authenticated against HANA database server")
+
+        if hdb.auth_method.session_cookie is not None:
+            logging.info("[*] Session cookie assigned to this session: %s" % hdb.auth_method.session_cookie)
 
         hdb.close()
         logging.debug("[*] Connection with HANA database server closed")
