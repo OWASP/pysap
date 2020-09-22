@@ -1101,7 +1101,7 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
         """In GSS, the final round trip with the server returns a GSS token that is mech specific.
 
         In the case of Kerberos, the reply to the final roundtrip before the CONNECT contains an
-        AP-REP structure. At this stage we're not parsing nor validating it.
+        GSSAPI KRB5 AP-REP structure. At this stage we're not parsing nor validating it.
 
         The part to include in the CONNECT message is just a confirmation of the authentication handled.
         Note that this CONNECT packet has the username specified as in all other auth mechanisms.
@@ -1154,21 +1154,22 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
         #  * username: database username mapped from the UPN
         initial_gss_token = SAPHDBPartAuthentication(first_auth_response_part.auth_fields[1].value)
 
-        # We either assume the Krb5 AP-REQ structure was already provided, or use a callback
-        # to obtain it based on the SPN and the database username mapped by the server.
+        # We either assume the GSSAPI KRB5 AP-REQ structure was already provided, or use a callback
+        # to obtain it based on the SPN, the UPN and the database username mapped by the server.
         if self.krb5ticket:
             krb5ticket = self.krb5ticket
         else:
             try:
                 krb5ticket = self.krb5ticket_callback(initial_gss_token.auth_fields[3].value,
+                                                      self.username,
                                                       initial_gss_token.auth_fields[4].value)
             except Exception:
                 raise SAPHDBAuthenticationError("Unable to obtain a Kerberos ticket to authenticate")
 
-        # The second GSS token includes the AP-REQ structure:
+        # The second GSS token includes the GSSAPI KRB5 AP-REQ structure:
         #  * krb5oid: GSS mechs to use
         #  * commtype: communication type ("\x03")
-        #  * krb5ticket: the Kerberos AP-REQ structure to use
+        #  * krb5ticket: the GSSAPI KRB5 AP-REQ structure to use
         second_gss_value = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.krb5oid),
                                                                  SAPHDBPartAuthenticationField(value="\x03"),
                                                                  SAPHDBPartAuthenticationField(value=krb5ticket)])
