@@ -31,6 +31,25 @@ from pysap.SAPSSFS import SAPSSFSKey, SAPSSFSData
 
 pysaphdbuserstore_usage = """
 
+list command:
+-------------
+
+- list all records in a SSFS data file
+
+  pysaphdbuserstore -c list -[v][d <ssfs.dat>]
+
+
+get command:
+-------------------
+
+- get information about a key value
+
+  pysaphdbuserstore -c get -[v][d <ssfs.dat>] [-k <ssfs.key>]
+
+- decrypt a key value
+
+  pysaphdbuserstore -c get -[v][d <ssfs.dat>] [-k <ssfs.key>] --decrypt
+
 """
 
 
@@ -169,10 +188,10 @@ class PySAPHDBUserStore(object):
                 ssfs_record = ssfs_data.get_record(arg)
                 self.logger.info("Checksum OK  : %s", ssfs_record.is_valid)
                 self.logger.info("Record Key   : %s", ssfs_record.key_name)
-                #self.logger.info("Record Value : %s", ssfs_record.plain_data)
                 self.logger.info("Time Stamp   : %s", ssfs_record.timestamp)
                 self.logger.info("Host Name    : %s", ssfs_record.host)
                 self.logger.info("OS-User      : %s", ssfs_record.user)
+                self.logger.info("Record Value : %s", ssfs_record.plain_data)
             else:
                 self.logger.info("Record with key %s not found in data file.", arg)
 

@@ -170,13 +170,13 @@ class SAPSSFSData(Packet):
         return None
 
     def get_value(self, key_name):
-        """Returns the record with the given key name.
+        """Returns the value with the given key name.
 
         :param key_name: the name of the key to look for
         :type key_name: string
 
-        :return: the record with key_name
-        :rtype: SAPSSFSDataRecord
+        :return: the value with key_name
+        :rtype: bytes
         """
         try:
             return self.get_record(key_name).plain_data
