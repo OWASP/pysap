@@ -139,15 +139,15 @@ not found in the database:
 
 In this case, as the information contained in the error messages wasn't found in the database,
 the script output contains the steps and information required to incorporate that version in the
-database as a new record. This can be done by using the ``--add-fingerprint`` option on the script
-and providing the ``json`` record.
+database as a new record. This can be done by using the ``--add-fingerprint`` or ``-a`` option on the script
+and providing the ``json`` record with the option ``--new-fingerprints-file``.
 
 The following example command line options can be used to add the missing version number to the
 database:
 
 .. code-block:: none
 
-    $ ./router_fingerprint.py -a saprouter_new_fingerprints.json -i '{
+    $ ./router_fingerprint.py -a --new-fingerprints-file saprouter_new_fingerprints.json -i '{
     >     "comment": "A new comment to add to the fingerprint",
     >     "submitted_by": "email or contact of the submitter",
     >     "update_level": "update level",
