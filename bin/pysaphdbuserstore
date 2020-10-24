@@ -48,7 +48,7 @@ get command:
 
 - decrypt a key value
 
-  pysaphdbuserstore -c get -[v][d <ssfs.dat>] [-k <ssfs.key>] --decrypt
+  pysaphdbuserstore -c get -[v][d <ssfs.dat>] [-k <ssfs.key>] [--decrypt] [<key name>]
 
 """
 
@@ -191,7 +191,7 @@ class PySAPHDBUserStore(object):
                 self.logger.info("Time Stamp   : %s", ssfs_record.timestamp)
                 self.logger.info("Host Name    : %s", ssfs_record.host)
                 self.logger.info("OS-User      : %s", ssfs_record.user)
-                self.logger.info("Record Value : %s", ssfs_record.plain_data)
+                self.logger.info("Record Value : %s", ssfs_record.get_plain_data(ssfs_key))
             else:
                 self.logger.info("Record with key %s not found in data file.", arg)
 

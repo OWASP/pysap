@@ -108,11 +108,15 @@ class SAPSSFSDataRecord(PacketNoPadded):
         StrFixedLenField("data", None, length_from=lambda pkt: pkt.length - 176),
     ]
 
-    @property
-    def plain_data(self):
+    def get_plain_data(self, key=None):
         if self.is_stored_as_plaintext:
             return self.data
-        raise NotImplementedError("Decryption not yet implemented")
+        if not key:
+            raise KeyError("Key need to be provided to get the plain data")
+        return self.decrypt_data(key)
+
+    def decrypt_data(self, key):
+        raise NotImplementedError("Decryption not yet implemented!")
 
     @property
     def is_valid(self):
@@ -169,16 +173,19 @@ class SAPSSFSData(Packet):
                 return record
         return None
 
-    def get_value(self, key_name):
+    def get_value(self, key_name, key=None):
         """Returns the value with the given key name.
 
         :param key_name: the name of the key to look for
         :type key_name: string
 
+        :param key: the encryption key
+        :type key: SAPSSFSKey
+
         :return: the value with key_name
         :rtype: bytes
         """
         try:
-            return self.get_record(key_name).plain_data
+            return self.get_record(key_name).get_plain_data(key)
         except AttributeError:
             return None
