@@ -119,7 +119,7 @@ class SAPSSFSDataRecord(PacketNoPadded):
         raise NotImplementedError("Decryption not yet implemented!")
 
     @property
-    def is_valid(self):
+    def valid(self):
         """Returns whether the HMAC-SHA1 value is valid for the given payload"""
 
         # Calculate the HMAC-SHA1
@@ -133,6 +133,11 @@ class SAPSSFSDataRecord(PacketNoPadded):
             return True
         except InvalidSignature:
             return False
+
+    @property
+    def deleted(self):
+        """Returns whether the HMAC-SHA1 value has been deleted"""
+        return self.is_deleted == 1
 
 
 class SAPSSFSData(Packet):
@@ -159,8 +164,8 @@ class SAPSSFSData(Packet):
                 return True
         return False
 
-    def get_record(self, key_name):
-        """Returns the record with the given key name.
+    def get_records(self, key_name):
+        """Generator to retrieve records with the given key name.
 
         :param key_name: the name of the key to look for
         :type key_name: string
@@ -170,8 +175,18 @@ class SAPSSFSData(Packet):
         """
         for record in self.records:
             if record.key_name.rstrip(" ") == key_name:
-                return record
-        return None
+                yield record
+
+    def get_record(self, key_name):
+        """Returns the first record with the given key name.
+
+        :param key_name: the name of the key to look for
+        :type key_name: string
+
+        :return: the record with key_name
+        :rtype: SAPSSFSDataRecord
+        """
+        return next(self.get_records(key_name), None)
 
     def get_value(self, key_name, key=None):
         """Returns the value with the given key name.

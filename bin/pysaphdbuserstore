@@ -185,13 +185,14 @@ class PySAPHDBUserStore(object):
 
         for arg in args:
             if ssfs_data.has_record(arg):
-                ssfs_record = ssfs_data.get_record(arg)
-                self.logger.info("Checksum OK  : %s", ssfs_record.is_valid)
-                self.logger.info("Record Key   : %s", ssfs_record.key_name)
-                self.logger.info("Time Stamp   : %s", ssfs_record.timestamp)
-                self.logger.info("Host Name    : %s", ssfs_record.host)
-                self.logger.info("OS-User      : %s", ssfs_record.user)
-                self.logger.info("Record Value : %s", ssfs_record.get_plain_data(ssfs_key))
+                for ssfs_record in ssfs_data.get_records(arg):
+                    self.logger.info("Is Deleted   : %s", ssfs_record.deleted)
+                    self.logger.info("Is Valid     : %s", ssfs_record.valid)
+                    self.logger.info("Record Key   : %s", ssfs_record.key_name)
+                    self.logger.info("Time Stamp   : %s", ssfs_record.timestamp)
+                    self.logger.info("Host Name    : %s", ssfs_record.host)
+                    self.logger.info("OS-User      : %s", ssfs_record.user)
+                    self.logger.info("Record Value : %s", ssfs_record.get_plain_data(ssfs_key))
             else:
                 self.logger.info("Record with key %s not found in data file.", arg)
 

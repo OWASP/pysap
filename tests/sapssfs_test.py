@@ -98,28 +98,28 @@ class PySAPSSFSDataTest(unittest.TestCase):
         data = SAPSSFSData(s)
 
         for record in data.records:
-            self.assertTrue(record.is_valid)
+            self.assertTrue(record.valid)
 
             # Now tamper with the header
             original_user = record.user
             record.user = "NewUser"
-            self.assertFalse(record.is_valid)
+            self.assertFalse(record.valid)
             record.user = original_user
-            self.assertTrue(record.is_valid)
+            self.assertTrue(record.valid)
 
             # Now tamper with the data
             orginal_data = record.data
             record.data = orginal_data + "AddedDataBytes"
-            self.assertFalse(record.is_valid)
+            self.assertFalse(record.valid)
             record.data = orginal_data
-            self.assertTrue(record.is_valid)
+            self.assertTrue(record.valid)
 
             # Now tamper with the HMAC
             orginal_hmac = record.hmac
             record.hmac = orginal_hmac[:-1] + "A"
-            self.assertFalse(record.is_valid)
+            self.assertFalse(record.valid)
             record.hmac = orginal_hmac
-            self.assertTrue(record.is_valid)
+            self.assertTrue(record.valid)
 
 
 class PySAPSSFSDataDecryptTest(unittest.TestCase):
