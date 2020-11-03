@@ -326,3 +326,24 @@ class SCRAM_PBKDF2SHA256(SCRAM_SHA256):
     def salt_key(self, password, salt, rounds):
         pbkdf2 = PBKDF2HMAC(self.ALGORITHM(), self.CLIENT_PROOF_SIZE, salt, rounds, self.backend)
         return pbkdf2.derive(password)
+
+
+def rsecdecrypt(blob, key):
+    """Decrypts a blob of data using SAP's RSEC decryption algorithm. The algorithm is based on
+    the TripleDES.
+
+    The decryption method is used in SSFS but also as part of other encryption schemes (e.g. RSECTAB),
+    hence implemented in the crypto library instead of the particular layer.
+
+    :param blob: encrypted blob to decrypt
+    :type blob: bytes
+
+    :param key: key to use to decrypt
+    :type key: bytes
+
+    :return: decrypted blob
+    :rtype: bytes
+
+    :raise Exception: if decryption failed
+    """
+    raise NotImplementedError("Decryption not yet implemented!")

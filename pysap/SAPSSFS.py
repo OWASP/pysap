@@ -25,9 +25,10 @@ from scapy.packet import Packet
 from scapy.fields import (ByteField, YesNoByteField, LenField, StrFixedLenField, PacketListField)
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.hmac import HMAC
-from cryptography.hazmat.primitives.hashes import SHA1
+from cryptography.hazmat.primitives.hashes import Hash, SHA1
 from cryptography.hazmat.backends import default_backend
 # Custom imports
+from pysap.utils.crypto import rsecdecrypt
 from pysap.utils.fields import PacketNoPadded, StrFixedLenPaddedField, TimestampField
 
 
@@ -80,6 +81,37 @@ class SAPSSFSKey(Packet):
     ]
 
 
+class SAPSSFSDecryptedPayload(PacketNoPadded):
+    """SAP SSFS Decrypted Payload.
+
+    This represents a payload after decryption.
+    """
+    name = "SAP SSFS Decrypted Payload"
+
+    fields_desc = [
+        # Record Header
+        StrFixedLenField("preamble", "\x00"*8, 8),
+        LenField("length", 0, fmt="I"),  # Max record length supported is 0x18150
+        StrFixedLenField("hash", None, 20),
+        # Data Header
+        StrFixedLenField("data", None, length_from=lambda pkt: pkt.length),
+    ]
+
+    @property
+    def valid(self):
+        """Returns whether the SHA1 value is valid for the given payload"""
+        blob = str(self)
+
+        digest = Hash(SHA1(), backend=default_backend())
+        digest.update(blob[:8])
+        digest.update(blob[8:4])
+        if self.length:
+            digest.update(blob[0x20:self.length])
+        if len(blob) > self.length + 0x20:
+            digest.update(blob[0x20 + self.length:])
+        return digest.finalize() == self.hash
+
+
 class SAPSSFSDataRecord(PacketNoPadded):
     """SAP SSFS Data Record.
 
@@ -116,7 +148,11 @@ class SAPSSFSDataRecord(PacketNoPadded):
         return self.decrypt_data(key)
 
     def decrypt_data(self, key):
-        raise NotImplementedError("Decryption not yet implemented!")
+        decrypted_data = rsecdecrypt(self.data, key.key)
+        p = SAPSSFSDecryptedPayload(decrypted_data)
+        p.show()
+        print(p.valid)
+        return decrypted_data
 
     @property
     def valid(self):
