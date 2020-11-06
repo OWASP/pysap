@@ -346,4 +346,21 @@ def rsecdecrypt(blob, key):
 
     :raise Exception: if decryption failed
     """
-    raise NotImplementedError("Decryption not yet implemented!")
+    from binascii import hexlify
+    from scapy.utils import hexdump
+    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+    from cryptography.hazmat.backends import default_backend
+
+    print("Key:")
+    hexdump(key)
+    print(hexlify(key))
+    print("Data:")
+    hexdump(blob)
+    print(hexlify(blob))
+    iv = "\x00" * 8
+    decryptor = Cipher(algorithms.TripleDES(key), modes.ECB(), backend=default_backend()).decryptor()
+    decrypted_data = decryptor.update(blob) + decryptor.finalize()
+
+    print("Plain:")
+    hexdump(decrypted_data)
+    return decrypted_data
