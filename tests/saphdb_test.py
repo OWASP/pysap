@@ -19,13 +19,9 @@
 
 # Standard imports
 import sys
-import socket
 import unittest
-from struct import unpack
 from threading import Thread
 from SocketServer import BaseRequestHandler, ThreadingTCPServer
-# External imports
-
 # Custom imports
 from pysap.SAPHDB import SAPHDBConnection
 

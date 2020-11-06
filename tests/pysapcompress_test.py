@@ -34,7 +34,7 @@ class PySAPCompressTest(unittest.TestCase):
     def test_import(self):
         """Test import of the pysapcompress library"""
         try:
-            import pysapcompress  # @UnusedImport
+            import pysapcompress  # @UnusedImport # noqa: F401
         except ImportError as e:
             self.Fail(str(e))
 

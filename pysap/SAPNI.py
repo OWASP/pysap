@@ -22,7 +22,6 @@ import sys
 import logging
 from select import select
 from struct import unpack
-from errno import ENETDOWN
 from threading import Event
 from SocketServer import BaseRequestHandler, ThreadingMixIn, TCPServer
 # External imports

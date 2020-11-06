@@ -287,7 +287,6 @@ class SAPPSEFile(ASN1_Packet):
 
         # Choose the proper algorithms and values according to the algorithm ID
         if self.enc_cont.algorithm_identifier.alg_id == NIST_ALGORITHM_AES_256_CBC:
-            salt = self.enc_cont.algorithm_identifier.parameters.salt.val  # XXX: Salt is not in use
             algorithm = algorithms.AES
             mode = modes.CBC
             key, iv = key[:32], key[32:]

@@ -267,7 +267,7 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     # Create the connection to the SAP Netweaver server
-    print("[*] Connecting to %s port %d" % (options.remote_host, "port", options.remote_port))
+    print("[*] Connecting to %s port %d" % (options.remote_host, options.remote_port))
     connection = SAPDiagConnection(options.remote_host,
                                    options.remote_port,
                                    terminal=options.terminal,
