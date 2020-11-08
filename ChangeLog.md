@@ -2,9 +2,10 @@ Changelog
 =========
 
 
-v0.1.19 - 2020-XX-XX
+v0.2.1 - 2020-XX-XX
 --------------------
 
+- Python 2/3 compatible codebase
 - Using Scapy version 2.4.4.
 - `requirements-examples.txt`: Renamed to match `setup.py`'s extra. 
 - `pysap/SAPHDB.py`: Implementation of GSS-based auth method with Kerberos 5.
