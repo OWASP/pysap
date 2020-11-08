@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [2.7]
+        python-version: [2.7, 3.6, 3.7, 3.8]
     steps:
       - name: Checkout pysap
         uses: actions/checkout@v2
@@ -21,7 +21,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python2 -m pip install --upgrade pip wheel
+          python -m pip install --upgrade pip wheel
           pip install flake8 six
           pip install -r requirements.txt
       - name: Run flake8 tests
@@ -37,11 +37,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: [2.7]
+        python-version: [2.7, 3.6, 3.7, 3.8]
         experimental: [false]
         include:
           - os: windows-latest
             python-version: 2.7
+            experimental: true
+          - os: windows-latest
+            python-version: 3.8
             experimental: true
     steps:
       - name: Checkout pysap
@@ -83,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [2.7]
+        python-version: [2.7, 3.6, 3.7, 3.8]
     steps:
       - name: Checkout pysap
         uses: actions/checkout@v2
@@ -96,22 +99,22 @@ jobs:
           sudo apt-get install pandoc texlive-latex-base
       - name: Install Python dependencies
         run: |
-          python2 -m pip install --upgrade pip wheel
+          python -m pip install --upgrade pip wheel
           pip install -r requirements-docs.txt
       - name: Install the library
         run: |
-          python2 setup.py install
+          python setup.py install
       - name: Pre-run documentation notebooks
         run: |
-          python2 setup.py notebooks
+          python setup.py notebooks
 
       - name: Build source artifact
         run: |
-          python2 setup.py sdist
+          python setup.py sdist
 
       - name: Build documentation
         run: |
-          python2 setup.py doc
+          python setup.py doc
 
       - name: Upload source artifact
         uses: actions/upload-artifact@v2
