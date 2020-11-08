@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
 # SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
-# the SecureAuth Labs team.
+# the SecureAuth's Innovation Labs team.
 #
 # Example script by Yvan Genuer.
 #
@@ -75,7 +75,7 @@ def parse_options():
 
 
 # Main
-#------
+# -----
 def main():
     options = parse_options()
 
@@ -128,10 +128,10 @@ def main():
                     value = respond.adm_records[0].parameter.replace(respond.adm_records[0].parameter.split('=')[0] +
                                                                      '=', '')
 
+                    status = '[ ]'
                     # Verify if value match with expected value
                     if value == '':
                         value = 'NOT_EXIST'
-                        status = '[ ]'
                     elif check_type == 'EQUAL':
                         if value.upper() == str(value2c).upper():
                             status = '[+]'
@@ -147,8 +147,6 @@ def main():
                     elif check_type == 'INF':
                         if float(value) <= float(value2c):
                             status = '[+]'
-                    else:
-                            status = '[ ]'
 
                     # display result
                     print ("%s %s = %s" % (status, param2c, value))

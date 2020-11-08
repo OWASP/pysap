@@ -4,7 +4,7 @@
 # SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
-# the SecureAuth Labs team.
+# the SecureAuth's Innovation Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -36,7 +36,7 @@ class PySAPCompressTest(unittest.TestCase):
     def test_import(self):
         """Test import of the pysapcompress library"""
         try:
-            import pysapcompress  # @UnusedImport
+            import pysapcompress  # @UnusedImport # noqa: F401
         except ImportError as e:
             self.fail(six.text_type(e))
 

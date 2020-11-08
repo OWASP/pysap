@@ -4,7 +4,7 @@
 # SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
-# the SecureAuth Labs team.
+# the SecureAuth's Innovation Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -19,13 +19,9 @@
 
 # Standard imports
 import sys
-import socket
 import unittest
-from struct import unpack
 from threading import Thread
 from SocketServer import BaseRequestHandler, ThreadingTCPServer
-# External imports
-
 # Custom imports
 from pysap.SAPHDB import SAPHDBConnection
 

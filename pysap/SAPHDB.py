@@ -4,7 +4,7 @@
 # SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
-# the SecureAuth Labs team.
+# the SecureAuth's Innovation Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -27,9 +27,8 @@ from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers, Raw
 from scapy.supersocket import SSLStreamSocket
 from scapy.fields import (ByteField, ConditionalField, EnumField, FieldLenField, YesNoByteField,
-                          IntField, PacketListField, SignedByteField, LongField, PadField,
-                          LEIntField, LESignedIntField, StrFixedLenField, ShortField,
-                          MultipleTypeField, StrField, MultiEnumField, Field)
+                          IntField, PacketListField, LongField, PadField, LEIntField, LESignedIntField,
+                          StrFixedLenField, ShortField, MultipleTypeField, StrField, MultiEnumField, Field)
 # Custom imports
 import pysap
 from pysap.SAPRouter import SAPRoutedStreamSocket
@@ -845,6 +844,7 @@ class SAPHDBAuthMethod(object):
         :type username: string
         """
         self.username = username
+        self.session_cookie = None
 
     def craft_authentication_request(self, value=None, connection=None):
         """Craft the initial authentication request and returns the packet to send. If a connection is
@@ -861,7 +861,7 @@ class SAPHDBAuthMethod(object):
         """
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
-                                                            SAPHDBPartAuthenticationField(value=value)])
+                                                            SAPHDBPartAuthenticationField(value=value or "")])
         auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
         auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
 
@@ -884,7 +884,7 @@ class SAPHDBAuthMethod(object):
         """
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
-                                                            SAPHDBPartAuthenticationField(value=value)])
+                                                            SAPHDBPartAuthenticationField(value=value or "")])
         return SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
 
     def authenticate(self, connection):
@@ -903,6 +903,11 @@ class SAPHDBAuthMethod(object):
         auth_request = self.craft_authentication_request(connection=connection)
 
         auth_response = connection.sr(auth_request)
+
+        # Check if the response is an error
+        if auth_response.segments[0].segmentkind == 5:  # If is Error segment kind
+            raise SAPHDBAuthenticationError("Authentication failed")
+
         auth_response_part = auth_response.segments[0].parts[0].buffer[0]
 
         # Check the method replied by the server
@@ -911,6 +916,17 @@ class SAPHDBAuthMethod(object):
 
         # Craft authentication part and return it
         return self.craft_authentication_response_part(auth_response_part)
+
+    def process_connect_response(self, connect_reponse, connection=None):
+        """Process the final response from the authentication process when needed, according to the authentication
+        method.
+        """
+        if len(connect_reponse.segments) and len(connect_reponse.segments[0].parts) and \
+           connect_reponse.segments[0].parts[0].partkind == 33 and \
+           len(connect_reponse.segments[0].parts[0].buffer) and \
+           len(connect_reponse.segments[0].parts[0].buffer[0].auth_fields) and \
+           connect_reponse.segments[0].parts[0].buffer[0].auth_fields[0].value == self.METHOD:
+            self.session_cookie = connect_reponse.segments[0].parts[0].buffer[0].auth_fields[1].value
 
 
 class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
@@ -1014,6 +1030,7 @@ class SAPHDBAuthJWTMethod(SAPHDBAuthMethod):
     def __init__(self, username, jwt):
         super(SAPHDBAuthJWTMethod, self).__init__(username)
         self.jwt = jwt
+        self.session_cookie = None
 
     def craft_authentication_request(self, value=None, connection=None):
         return super(SAPHDBAuthJWTMethod, self).craft_authentication_request(self.jwt, connection)
@@ -1028,12 +1045,169 @@ class SAPHDBAuthSAMLMethod(SAPHDBAuthMethod):
     def __init__(self, username, saml_assertion):
         super(SAPHDBAuthSAMLMethod, self).__init__(username)
         self.saml_assertion = saml_assertion
+        self.session_cookie = None
 
     def craft_authentication_request(self, value=None, connection=None):
+        """The initial authentication request should be performed as usual in other methods,
+        with an empty username and the entire SAML Assertion or SAML Response as the value.
+        """
         return super(SAPHDBAuthSAMLMethod, self).craft_authentication_request(self.saml_assertion, connection)
+
+    def craft_authentication_response_part(self, auth_response_part, value=None):
+        """In SAML, the first round trip with the server returns the SAML username to use when
+        authentication, so we must set it at this point.
+        """
+        self.username = auth_response_part.auth_fields[1].value
+        return super(SAPHDBAuthSAMLMethod, self).craft_authentication_response_part(auth_response_part, value)
+
+
+class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
+    """SAP HDB Authentication using GSS.
+    """
+
+    METHOD = "GSS"
+
+    KRB5OID_KERBEROS5 = "1.2.840.113554.1.2.2"
+    TYPEOID_GSS_KRB5_NT_PRINCIPAL_NAME = "1.2.840.113554.1.2.2.1"
+    TYPEOID_GSS_KRB5_NT_PRINCIPAL_NAME_pre_RFC_1964 = "1.2.840.113554.1.2.2.2"
+
+    def __init__(self, username, krb5ticket=None, krb5ticket_callback=None, krb5oid=None, typeoid=None):
+        super(SAPHDBAuthGSSMethod, self).__init__(username)
+        self.krb5ticket = krb5ticket
+        self.krb5ticket_callback = krb5ticket_callback
+        self.krb5oid = krb5oid or self.KRB5OID_KERBEROS5
+        self.typeoid = typeoid or self.TYPEOID_GSS_KRB5_NT_PRINCIPAL_NAME
+        self.session_cookie = None
+
+    def craft_authentication_request(self, value=None, connection=None):
+        """The authentication requests contains an empty username, the method, and a GSS token.
+
+        In most of the cases this GSS token is a SPNego structure, although the HANA implementation
+        doesn't use the standard ASN.1 encoding and instead leverage the same Authentication Field
+        format.
+        """
+        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=""),
+                                                            SAPHDBPartAuthenticationField(value=self.METHOD),
+                                                            SAPHDBPartAuthenticationField(value=value)])
+        auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
+        auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
+
+        if connection:
+            auth_segm.parts.insert(0, connection.craft_client_context_part())
+
+        return SAPHDB(segments=[auth_segm])
+
+    def craft_authentication_response_part(self, auth_response_part, value=None):
+        """In GSS, the final round trip with the server returns a GSS token that is mech specific.
+
+        In the case of Kerberos, the reply to the final roundtrip before the CONNECT contains an
+        GSSAPI KRB5 AP-REP structure. At this stage we're not parsing nor validating it.
+
+        The part to include in the CONNECT message is just a confirmation of the authentication handled.
+        Note that this CONNECT packet has the username specified as in all other auth mechanisms.
+        """
+        # gss_token_response = SAPHDBPartAuthentication(auth_response_part.auth_fields[1].value)
+
+        last_gss_token = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.krb5oid),
+                                                               SAPHDBPartAuthenticationField(value="\x05")])
+        return super(SAPHDBAuthGSSMethod, self).craft_authentication_response_part(auth_response_part, last_gss_token)
+
+    def authenticate(self, connection):
+        """Method to authenticate the client connection. It performs the round trip with the server as required
+        by the method implemented, and returns the `AUTHENTICATION` Part.
+
+        :param connection: connection to the server
+        :type connection: :class:`SAPHDBConnection`
+
+        :return: authentication part to use in Connect packet
+        :rtype: SAPHDBPart
+
+        :raise: SAPHDBAuthenticationError
+        """
+
+        # The initial GSS token includes the NegTokenInit structure:
+        #  * krb5oid: GSS mechs to use
+        #  * commtype: communication type ("\x01")
+        #  * typeoid: type of the client GSS name
+        #  * gssname: the client GSS name (e.g. UPN)
+        first_gss_token = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.krb5oid),
+                                                                SAPHDBPartAuthenticationField(value="\x01"),
+                                                                SAPHDBPartAuthenticationField(value=self.typeoid),
+                                                                SAPHDBPartAuthenticationField(value=self.username)])
+        first_auth_request = self.craft_authentication_request(first_gss_token, connection=connection)
+        first_auth_response = connection.sr(first_auth_request)
+
+        # Check if the response is an error
+        if first_auth_response.segments[0].segmentkind == 5:  # If is Error segment kind
+            raise SAPHDBAuthenticationError("Authentication failed")
+
+        first_auth_response_part = first_auth_response.segments[0].parts[0].buffer[0]
+        # Check the method replied by the server
+        if self.METHOD != first_auth_response_part.auth_fields[0].value:
+            raise SAPHDBAuthenticationError("Authentication method not supported on server")
+
+        # The initial response from the server includes the NegTokenResp structure:
+        #  * krb5oid: GSS mechs to use
+        #  * commtype: communication type ("\x02")
+        #  * typeoid: type of the client GSS name
+        #  * spn: SPN to ask the KDC the ticket for
+        #  * username: database username mapped from the UPN
+        initial_gss_token = SAPHDBPartAuthentication(first_auth_response_part.auth_fields[1].value)
+
+        # We either assume the GSSAPI KRB5 AP-REQ structure was already provided, or use a callback
+        # to obtain it based on the SPN, the UPN and the database username mapped by the server.
+        if self.krb5ticket:
+            krb5ticket = self.krb5ticket
+        else:
+            try:
+                krb5ticket = self.krb5ticket_callback(initial_gss_token.auth_fields[3].value,
+                                                      self.username,
+                                                      initial_gss_token.auth_fields[4].value)
+            except Exception:
+                raise SAPHDBAuthenticationError("Unable to obtain a Kerberos ticket to authenticate")
+
+        # The second GSS token includes the GSSAPI KRB5 AP-REQ structure:
+        #  * krb5oid: GSS mechs to use
+        #  * commtype: communication type ("\x03")
+        #  * krb5ticket: the GSSAPI KRB5 AP-REQ structure to use
+        second_gss_value = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.krb5oid),
+                                                                 SAPHDBPartAuthenticationField(value="\x03"),
+                                                                 SAPHDBPartAuthenticationField(value=krb5ticket)])
+        second_auth_request = self.craft_authentication_request(second_gss_value, connection=connection)
+        second_auth_response = connection.sr(second_auth_request)
+
+        # Check if the response is an error
+        if second_auth_response.segments[0].segmentkind == 5:  # If is Error segment kind
+            raise SAPHDBAuthenticationError("Authentication failed")
+
+        second_auth_response_part = second_auth_response.segments[0].parts[0].buffer[0]
+
+        # Check the method replied by the server
+        if self.METHOD != second_auth_response_part.auth_fields[0].value:
+            raise SAPHDBAuthenticationError("Authentication method not supported on server")
+
+        # Craft authentication part and return it
+        return self.craft_authentication_response_part(second_auth_response_part)
+
+    def process_connect_response(self, connect_reponse, connection=None):
+        """Process the final response from the authentication process when needed, according to the authentication
+        method.
+        """
+        super(SAPHDBAuthGSSMethod, self).process_connect_response(connect_reponse, connection)
+        if self.session_cookie is not None:
+            # The final response from the server includes the SessionCookie established:
+            #  * krb5oid: GSS mechs to use
+            #  * commtype: communication type ("\x07")
+            #  * session cookie: the SessionCookie established for the connection
+            gss_token = SAPHDBPartAuthentication(self.session_cookie)
+            if gss_token.auth_fields[1].value == "\x07":
+                self.session_cookie = gss_token.auth_fields[2].value
+            else:
+                self.session_cookie = None
 
 
 saphdb_auth_methods = {
+    "GSS": SAPHDBAuthGSSMethod,
     "JWT": SAPHDBAuthJWTMethod,
     "SAML": SAPHDBAuthSAMLMethod,
     "SCRAMSHA256": SAPHDBAuthScramSHA256Method,
@@ -1075,7 +1249,7 @@ class SAPHDBConnection(object):
         self.port = port
         self.auth_method = auth_method
         self.route = route
-        self.pid = pid or "pysap"
+        self.pid = pid or "0"
         self.hostname = hostname or socket.gethostname()
         self.client_version = client_version or pysap.__version__
         self.client_type = client_type or "SQLODBC"
@@ -1087,7 +1261,7 @@ class SAPHDBConnection(object):
     @property
     def client_id(self):
         """Returns the Client Id to use when authenticating and connecting to the
-        server. If the PID and the hostname are not specified, by default uses 'pysap@<hostname>'.
+        server. If the PID and the hostname are not specified, by default uses '0@<hostname>'.
 
         :return: Client ID string
         :rtype: string
@@ -1201,15 +1375,18 @@ class SAPHDBConnection(object):
         # Craft the CONNECT packet
         clientcontext_part = SAPHDBPart(partkind=29)
         clientid_part = SAPHDBPart(partkind=35, buffer=SAPHDBPartClientId(clientid=self.client_id))
-        auth_segm = SAPHDBSegment(messagetype=66, parts=[clientcontext_part, auth_part, clientid_part])
-        auth_request = SAPHDB(segments=[auth_segm])
+        connect_segm = SAPHDBSegment(messagetype=66, parts=[clientcontext_part, auth_part, clientid_part])
+        connect_request = SAPHDB(segments=[connect_segm])
 
         # Send connect packet
-        auth_response = self.sr(auth_request)
+        connect_response = self.sr(connect_request)
 
-        if auth_response.segments[0].segmentkind == 5:  # If is Error segment kind
+        if connect_response.segments[0].segmentkind == 5:  # If is Error segment kind
             self.close_socket()
             raise SAPHDBAuthenticationError("Authentication failed")
+
+        # Process the connect response
+        self.auth_method.process_connect_response(connect_response, connection=self)
 
     def connect_authenticate(self):
         """Connects to the server, performs initialization and authenticates the client.

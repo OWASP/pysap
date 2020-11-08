@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # ===========
 #
 # pysap - Python library for crafting SAP's network protocols packets
@@ -6,7 +6,7 @@
 # SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
-# the SecureAuth Labs team.
+# the SecureAuth's Innovation Labs team.
 #
 # Modifications for screen text elements parsing + tech info
 # Copyright (C) 2016-2017 by Mathieu Geli, ERPScan
@@ -47,56 +47,58 @@ bind_layers(SAPDiagDP, SAPDiag,)
 bind_layers(SAPDiag, SAPDiagItem,)
 bind_layers(SAPDiagItem, SAPDiagItem,)
 
-gui_lang = {"0": "Serbian",
-            "1": "Chinese",
-            "2": "Thai",
-            "3": "Korean",
-            "4": "Romanian",
-            "5": "Slovenian",
-            "6": "Croatian",
-            "7": "Malaysian",
-            "8": "Ukrainian",
-            "9": "Estonian",
-            "A": "Arabic",
-            "B": "Hebrew",
-            "C": "Czech",
-            "D": "German",
-            "E": "English",
-            "F": "French",
-            "G": "Greek",
-            "H": "Hungarian",
-            "I": "Italian",
-            "J": "Japanese",
-            "K": "Danish",
-            "L": "Polish",
-            "M": "trad.",
-            "N": "Dutch",
-            "O": "Norwegian",
-            "P": "Portuguese",
-            "Q": "Slovakian",
-            "R": "Russian",
-            "S": "Spanish",
-            "T": "Turkish",
-            "U": "Finnish",
-            "V": "Swedish",
-            "W": "Bulgarian",
-            "X": "Lithuanian",
-            "Y": "Latvian",
-            "Z": "reserve",
-            "a": "Afrikaans",
-            "b": "Icelandic",
-            "c": "Catalan",
-            "d": "(Latin)",
-            "i": "Indonesian",
+gui_lang = {
+    "0": "Serbian",
+    "1": "Chinese",
+    "2": "Thai",
+    "3": "Korean",
+    "4": "Romanian",
+    "5": "Slovenian",
+    "6": "Croatian",
+    "7": "Malaysian",
+    "8": "Ukrainian",
+    "9": "Estonian",
+    "A": "Arabic",
+    "B": "Hebrew",
+    "C": "Czech",
+    "D": "German",
+    "E": "English",
+    "F": "French",
+    "G": "Greek",
+    "H": "Hungarian",
+    "I": "Italian",
+    "J": "Japanese",
+    "K": "Danish",
+    "L": "Polish",
+    "M": "trad.",
+    "N": "Dutch",
+    "O": "Norwegian",
+    "P": "Portuguese",
+    "Q": "Slovakian",
+    "R": "Russian",
+    "S": "Spanish",
+    "T": "Turkish",
+    "U": "Finnish",
+    "V": "Swedish",
+    "W": "Bulgarian",
+    "X": "Lithuanian",
+    "Y": "Latvian",
+    "Z": "reserve",
+    "a": "Afrikaans",
+    "b": "Icelandic",
+    "c": "Catalan",
+    "d": "(Latin)",
+    "i": "Indonesian",
 }
 
-serv_info = {'DBNAME': lambda s: s,
-             'CPUNAME': lambda s: s,
-             'CLIENT': lambda s: s,
-             'LANGUAGE': lambda s: gui_lang.get(s, 'Language unkonwn (%s)'% s),
-             'SESSION_ICON': lambda s: s,
-             'SESSION_TITLE': lambda s: s,
-             'KERNEL_VERSION': lambda s: '.'.join(s[:-1].split('\x00')),
+serv_info = {
+    'DBNAME': lambda s: s,
+    'CPUNAME': lambda s: s,
+    'CLIENT': lambda s: s,
+    'LANGUAGE': lambda s: gui_lang.get(s, 'Language unknown (%s)' % s),
+    'SESSION_ICON': lambda s: s,
+    'SESSION_TITLE': lambda s: s,
+    'KERNEL_VERSION': lambda s: '.'.join(s[:-1].split('\x00')),
 }
 
 key_len = 20

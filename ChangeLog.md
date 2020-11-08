@@ -5,6 +5,11 @@ Changelog
 v0.1.19 - 2020-XX-XX
 --------------------
 
+- Using Scapy version 2.4.4.
+- `requirements-examples.txt`: Renamed to match `setup.py`'s extra. 
+- `pysap/SAPHDB.py`: Implementation of GSS-based auth method with Kerberos 5.
+- `pysap/SAPHDB.py`: Handling of Session Cookie values when found in the `CONNECT` response.
+
 
 v0.1.18 - 2020-07-15
 --------------------

@@ -4,7 +4,7 @@
 # SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
-# the SecureAuth Labs team.
+# the SecureAuth's Innovation Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,7 +22,6 @@ import sys
 import logging
 from select import select
 from struct import unpack
-from errno import ENETDOWN
 from threading import Event
 from six.moves.socketserver import BaseRequestHandler, ThreadingMixIn, TCPServer
 # External imports

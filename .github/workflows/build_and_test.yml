@@ -21,13 +21,13 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip wheel
+          python2 -m pip install --upgrade pip wheel
           pip install flake8 six
           pip install -r requirements.txt
       - name: Run flake8 tests
         run: |
           flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          flake8 . --count --ignore=E501 --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
   test:
     name: Run unit tests and build wheel
@@ -96,22 +96,22 @@ jobs:
           sudo apt-get install pandoc texlive-latex-base
       - name: Install Python dependencies
         run: |
-          python -m pip install --upgrade pip wheel
+          python2 -m pip install --upgrade pip wheel
           pip install -r requirements-docs.txt
       - name: Install the library
         run: |
-          python setup.py install
+          python2 setup.py install
       - name: Pre-run documentation notebooks
         run: |
-          python setup.py notebooks
+          python2 setup.py notebooks
 
       - name: Build source artifact
         run: |
-          python setup.py sdist
+          python2 setup.py sdist
 
       - name: Build documentation
         run: |
-          python setup.py doc
+          python2 setup.py doc
 
       - name: Upload source artifact
         uses: actions/upload-artifact@v2

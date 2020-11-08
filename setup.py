@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
 # SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
-# the SecureAuth Labs team.
+# the SecureAuth's Innovation Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -95,7 +95,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 
-setup(name=pysap.__title__,   # Package information
+setup(name=pysap.__title__,  # Package information
       version=pysap.__version__,
       author='Martin Gallo',
       author_email='mgallo@secureauth.com',
@@ -138,5 +138,5 @@ setup(name=pysap.__title__,   # Package information
 
       # Optional requirements for docs and some examples
       extras_require={"docs": open('requirements-docs.txt').read().splitlines(),
-                      "examples": open('requirements-optional.txt').read().splitlines()},
+                      "examples": open('requirements-examples.txt').read().splitlines()},
       )
