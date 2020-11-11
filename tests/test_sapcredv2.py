@@ -30,11 +30,11 @@ from pysap.SAPCredv2 import (SAPCredv2, SAPCredv2_Cred_Plain,
 class PySAPCredV2Test(unittest.TestCase):
 
     decrypt_username = "username"
-    decrypt_pin = "1234567890"
-    cert_name = "CN=PSEOwner"
-    common_name = "PSEOwner"
-    pse_path = "/secudir/pse-v2-noreq-DSA-1024-SHA1.pse"
-    pse_path_win = "C:\\secudir\\pse-v2-noreq-DSA-1024-SHA1.pse"
+    decrypt_pin = b"1234567890"
+    cert_name = b"CN=PSEOwner"
+    common_name = b"PSEOwner"
+    pse_path = b"/secudir/pse-v2-noreq-DSA-1024-SHA1.pse"
+    pse_path_win = b"C:\\secudir\\pse-v2-noreq-DSA-1024-SHA1.pse"
 
     def test_cred_v2_lps_off_3des(self):
         """Test parsing of a 3DES encrypted credential with LPS off"""
@@ -53,9 +53,9 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(cred.cipher_algorithm, CIPHER_ALGORITHM_3DES)
 
         self.assertEqual(cred.cert_name, self.cert_name)
-        self.assertEqual(cred.unknown1, "")
+        self.assertEqual(cred.unknown1, b"")
         self.assertEqual(cred.pse_path, self.pse_path)
-        self.assertEqual(cred.unknown2, "")
+        self.assertEqual(cred.unknown2, b"")
 
     def test_cred_v2_lps_off_3des_decrypt(self):
         """Test decryption of a 3DES encrypted credential with LPS off"""
@@ -84,9 +84,9 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(cred.cipher_algorithm, CIPHER_ALGORITHM_3DES)
 
         self.assertEqual(cred.cert_name, self.cert_name)
-        self.assertEqual(cred.unknown1, "")
+        self.assertEqual(cred.unknown1, b"")
         self.assertEqual(cred.pse_path, self.pse_path_win)
-        self.assertEqual(cred.unknown2, "")
+        self.assertEqual(cred.unknown2, b"")
 
     def test_cred_v2_lps_off_dp_3des_decrypt(self):
         """Test decryption of a 3DES encrypted credential with LPS off using DP (Windows)"""
@@ -115,9 +115,9 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(cred.cipher_algorithm, CIPHER_ALGORITHM_AES256)
 
         self.assertEqual(cred.cert_name, self.cert_name)
-        self.assertEqual(cred.unknown1, "")
+        self.assertEqual(cred.unknown1, b"")
         self.assertEqual(cred.pse_path, self.pse_path)
-        self.assertEqual(cred.unknown2, "")
+        self.assertEqual(cred.unknown2, b"")
 
     def test_cred_v2_lps_off_aes256_decrypt(self):
         """Test decryption of a AES256 encrypted credential with LPS off"""

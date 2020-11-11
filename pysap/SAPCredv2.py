@@ -22,6 +22,7 @@
 import logging
 from binascii import unhexlify
 # External imports
+import six
 from scapy.packet import Packet
 from scapy.asn1packet import ASN1_Packet
 from scapy.fields import (ByteField, ByteEnumField, ShortField, StrField, StrFixedLenField)
@@ -98,7 +99,7 @@ class SAPCredv2_Cred_Plain(ASN1_Packet):
         entropy = cred.pse_path
         return dpapi_decrypt_blob(unhexlify(plain.blob.val), entropy)
 
-    PROVIDER_MSCryptProtect = "MSCryptProtect"
+    PROVIDER_MSCryptProtect = b"MSCryptProtect"
     """Provider for Windows hosts using DPAPI"""
 
     providers = {
@@ -168,14 +169,14 @@ class SAPCredv2_Cred(ASN1_Packet):
     @property
     def cipher_format_version(self):
         cipher = self.cipher.val_readable
-        if len(cipher) >= 36 and ord(cipher[0]) in [0, 1]:
-            return ord(cipher[0])
+        if len(cipher) >= 36 and six.byte2int(cipher) in [0, 1]:
+            return six.byte2int(cipher)
         return 0
 
     @property
     def cipher_algorithm(self):
         if self.cipher_format_version == 1:
-            return ord(self.cipher.val_readable[1])
+            return six.indexbytes(self.cipher.val_readable, 1)
         return 0
 
     def decrypt(self, username):
@@ -209,9 +210,9 @@ class SAPCredv2_Cred(ASN1_Packet):
         blob = self.cipher.val_readable
 
         # Construct the key using the key format and the username
-        key = (cred_key_fmt % username)[:24]
+        key = six.b((cred_key_fmt % username)[:24])
         # Set empty IV
-        iv = "\x00" * 8
+        iv = b"\x00" * 8
 
         # Decrypt the cipher text with the derived key and IV
         decryptor = Cipher(algorithms.TripleDES(key), modes.CBC(iv), backend=default_backend()).decryptor()
@@ -252,11 +253,14 @@ class SAPCredv2_Cred(ASN1_Packet):
             """XOR a given string using a fixed key and a starting number."""
             key = 0x15a4e35
             x = start
-            y = ""
+            y = b""
             for c in string:
                 x *= key
                 x += 1
-                y += chr(ord(c) ^ (x & 0xff))
+                if six.PY2:
+                    y += chr(ord(c) ^ (x & 0xff))
+                elif six.PY3:
+                    y += six.int2byte(c ^ (x & 0xff))
             return y
 
         def derive_key(key, header, salt, username):
@@ -267,14 +271,14 @@ class SAPCredv2_Cred(ASN1_Packet):
             digest.update(key)
             digest.update(header)
             digest.update(salt)
-            digest.update(xor(username, ord(salt[0])))
-            digest.update("" * 0x20)
+            digest.update(xor(username, six.byte2int(salt)))
+            digest.update(b"" * 0x20)
             hashed = digest.finalize()
-            derived_key = xor(hashed, ord(salt[1]))
+            derived_key = xor(hashed, six.indexbytes(salt, 1))
             return derived_key
 
         # Derive the key using SAP's algorithm
-        key = derive_key(cred_key_fmt, blob[0:4], header.salt, username)
+        key = derive_key(six.b(cred_key_fmt), blob[0:4], header.salt, six.b(username))
 
         # Decrypt the cipher text with the derived key and IV
         decryptor = Cipher(algorithm(key), modes.CBC(header.iv), backend=default_backend()).decryptor()
@@ -313,7 +317,7 @@ class SAPCredv2_Cred_LPS(ASN1_Packet):
 
     @property
     def lps_type(self):
-        return ord(self.cipher.val_readable[1])
+        return six.indexbytes(self.cipher.val_readable, 1)
 
     @property
     def lps_type_str(self):
@@ -325,7 +329,7 @@ class SAPCredv2_Cred_LPS(ASN1_Packet):
 
     @property
     def cipher_format_version(self):
-        return ord(self.cipher.val_readable[0])
+        return six.byte2int(self.cipher.val_readable)
 
     @property
     def cipher_algorithm(self):
@@ -350,7 +354,7 @@ class SAPCredv2_Cred_LPS(ASN1_Packet):
         plain = cipher.decrypt()
 
         # Get the pin from the raw data
-        plain_size = ord(plain[0])
+        plain_size = six.byte2int(plain)
         pin = plain[plain_size + 1:]
 
         # Create a plain credential container
