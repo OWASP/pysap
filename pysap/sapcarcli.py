@@ -62,7 +62,7 @@ class PySAPCAR(object):
 
         # Instance attributes
         self.mode = None
-        self.log_level = 0
+        self.verbose = False
         self.archive_fd = None
 
     @staticmethod
@@ -130,7 +130,7 @@ class PySAPCAR(object):
             try:
                 self.archive_fd = open(options.filename, self.mode)
             except IOError as e:
-                self.logger.error("pysapcar: error opening '%s' (%s)" % (options.filename, str(e))
+                self.logger.error("pysapcar: error opening '%s' (%s)" % (options.filename, str(e)))
                 return
         else:
             self.archive_fd = stdin
@@ -154,7 +154,7 @@ class PySAPCAR(object):
             sapcar = SAPCARArchive(self.archive_fd, mode=self.mode)
             self.logger.info("pysapcar: Processing archive '%s' (version %s)", self.archive_fd.name, sapcar.version)
         except Exception as e:
-            self.logger.error("pysapcar: Error processing archive '%s' (%s)", self.archive_fd.name, str(e))
+            self.logger.error("pysapcar: Error processing archive '%s' (%s)", self.archive_fd, str(e))
             return None
         return sapcar
 

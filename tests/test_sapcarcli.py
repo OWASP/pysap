@@ -125,12 +125,12 @@ class PySAPCARCLITest(unittest.TestCase):
             self.cli.list(None, None)
             messages = ("{}  {:>10}    {} {}".format(fil.permissions, fil.size, fil.timestamp, fil.filename)
                         for fil in archive_attrs["files"].values())
-            logs = (("pysapcar", "INFO", message) for message in messages)
+            logs = (("pysap.pysapcar", "INFO", message) for message in messages)
             self.log.check_present(*logs, order_matters=False)
 
     def test_append_no_args(self):
         self.cli.append(None, [])
-        self.log.check_present(("pysapcar", "ERROR", "pysapcar: no files specified for appending"))
+        self.log.check_present(("pysap.pysapcar", "ERROR", "pysapcar: no files specified for appending"))
 
     def test_append_open_fails(self):
         with mock.patch.object(self.cli, "open_archive", return_value=None):
@@ -146,8 +146,8 @@ class PySAPCARCLITest(unittest.TestCase):
         # it's pretty in it's obscurity. And because someone (probably future me) will probably bang one's head
         # against the same wall I just did before coming to the same realization I just did, so here's a little
         # something for the next poor soul. May it make your head-against-the-wall session shorter than mine was.
-        # debugs = (("pysapcar", "DEBUG", str(names[i + 1:])) for i in range(len(names)))
-        infos = (("pysapcar", "INFO", "d {}".format(name)) for name in names)
+        # debugs = (("pysap.pysapcar", "DEBUG", str(names[i + 1:])) for i in range(len(names)))
+        infos = (("pysap.pysapcar", "INFO", "d {}".format(name)) for name in names)
         calls = [mock.call.add_file(name, archive_filename=name) for name in names]
         calls.append(mock.call.write())
         with mock.patch.object(self.cli, "open_archive", return_value=mock_sar):
@@ -162,9 +162,9 @@ class PySAPCARCLITest(unittest.TestCase):
         names = ["test", "/n", "blah", "test", "test", "/n", "blah2"]
         archive_names = [("test", "blah"), ("test", "blah2")]
         # List instead of generator, as we need to insert one line
-        infos = [("pysapcar", "INFO", "d {} (original name {})".format(archive_name, name))
+        infos = [("pysap.pysapcar", "INFO", "d {} (original name {})".format(archive_name, name))
                  for name, archive_name in archive_names]
-        infos.insert(1, ("pysapcar", "INFO", "d {}".format("test")))
+        infos.insert(1, ("pysap.pysapcar", "INFO", "d {}".format("test")))
         mock_sar = mock.Mock(spec=SAPCARArchive)
         calls = [mock.call.add_file(name, archive_filename=archive_name) for name, archive_name in archive_names]
         calls.insert(1, mock.call.add_file("test", archive_filename="test"))
@@ -184,7 +184,7 @@ class PySAPCARCLITest(unittest.TestCase):
         with mock.patch.object(self.cli, "open_archive", return_value=self.mock_archive):
             with mock.patch.object(self.cli, "target_files", return_value=[]):
                 self.cli.extract(None, None)
-                self.log.check(("pysapcar", "INFO", "pysapcar: 0 file(s) processed"))
+                self.log.check(("pysap.pysapcar", "INFO", "pysapcar: 0 file(s) processed"))
 
     def test_extract_invalid_file_type(self):
         key = self.mock_file.filename
@@ -195,8 +195,8 @@ class PySAPCARCLITest(unittest.TestCase):
                 key = key.replace("\x00", "")
                 self.cli.extract(mock.MagicMock(outdir=False), None)
                 self.log.check(
-                    ("pysapcar", "WARNING", "pysapcar: Invalid file type '{}'".format(key)),
-                    ("pysapcar", "INFO", "pysapcar: 0 file(s) processed")
+                    ("pysap.pysapcar", "WARNING", "pysapcar: Invalid file type '{}'".format(key)),
+                    ("pysap.pysapcar", "INFO", "pysapcar: 0 file(s) processed")
                 )
 
     @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, chmod=mock.DEFAULT,
@@ -212,8 +212,8 @@ class PySAPCARCLITest(unittest.TestCase):
                 chmod.assert_not_called()
                 utime.assert_not_called()
                 self.log.check(
-                    ("pysapcar", "INFO", "d {}".format(key)),
-                    ("pysapcar", "INFO", "pysapcar: 1 file(s) processed")
+                    ("pysap.pysapcar", "INFO", "d {}".format(key)),
+                    ("pysap.pysapcar", "INFO", "pysapcar: 1 file(s) processed")
                 )
 
     @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, chmod=mock.DEFAULT,
@@ -229,10 +229,10 @@ class PySAPCARCLITest(unittest.TestCase):
                 chmod.assert_not_called()
                 utime.assert_not_called()
                 self.log.check(
-                    ("pysapcar", "ERROR", "pysapcar: Could not create directory '{}' ([Errno 13] Unit test error)"
+                    ("pysap.pysapcar", "ERROR", "pysapcar: Could not create directory '{}' ([Errno 13] Unit test error)"
                      .format(key)),
-                    ("pysapcar", "INFO", "pysapcar: Stopping extraction"),
-                    ("pysapcar", "INFO", "pysapcar: 0 file(s) processed")
+                    ("pysap.pysapcar", "INFO", "pysapcar: Stopping extraction"),
+                    ("pysap.pysapcar", "INFO", "pysapcar: 0 file(s) processed")
                 )
 
     @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, chmod=mock.DEFAULT,
@@ -247,8 +247,8 @@ class PySAPCARCLITest(unittest.TestCase):
                 chmod.assert_called_once_with(key, self.mock_dir.perm_mode)
                 utime.assert_called_once_with(key, (self.mock_dir.timestamp_raw, self.mock_dir.timestamp_raw))
                 self.log.check(
-                    ("pysapcar", "INFO", "d {}".format(key)),
-                    ("pysapcar", "INFO", "pysapcar: 1 file(s) processed")
+                    ("pysap.pysapcar", "INFO", "d {}".format(key)),
+                    ("pysap.pysapcar", "INFO", "pysapcar: 1 file(s) processed")
                 )
 
     @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, fchmod=mock.DEFAULT,
@@ -270,8 +270,8 @@ class PySAPCARCLITest(unittest.TestCase):
                     fchmod.assert_called_once_with(1337, "-rw-rw-r--")
                     utime.assert_called_once_with(key, (7, 7))
                     self.log.check(
-                        ("pysapcar", "INFO", "d {}".format(key)),
-                        ("pysapcar", "INFO", "pysapcar: 1 file(s) processed")
+                        ("pysap.pysapcar", "INFO", "d {}".format(key)),
+                        ("pysap.pysapcar", "INFO", "pysapcar: 1 file(s) processed")
                     )
 
     @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, fchmod=mock.DEFAULT,
@@ -288,10 +288,10 @@ class PySAPCARCLITest(unittest.TestCase):
                 fchmod.assert_not_called()
                 utime.assert_not_called()
                 self.log.check(
-                    ("pysapcar", "ERROR", "pysapcar: Could not create intermediate directory '{}' for '{}' "
+                    ("pysap.pysapcar", "ERROR", "pysapcar: Could not create intermediate directory '{}' for '{}' "
                                           "(Unit test error)".format(dirname, key)),
-                    ("pysapcar", "INFO", "pysapcar: Stopping extraction"),
-                    ("pysapcar", "INFO", "pysapcar: 0 file(s) processed")
+                    ("pysap.pysapcar", "INFO", "pysapcar: Stopping extraction"),
+                    ("pysap.pysapcar", "INFO", "pysapcar: 0 file(s) processed")
                 )
 
     @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, fchmod=mock.DEFAULT,
@@ -309,9 +309,9 @@ class PySAPCARCLITest(unittest.TestCase):
                     fchmod.assert_called_once_with(1337, "-rw-rw-r--")
                     utime.assert_called_once_with(key, (7, 7))
                     self.log.check(
-                        ("pysapcar", "INFO", "d {}".format(dirname)),
-                        ("pysapcar", "INFO", "d {}".format(key)),
-                        ("pysapcar", "INFO", "pysapcar: 1 file(s) processed")
+                        ("pysap.pysapcar", "INFO", "d {}".format(dirname)),
+                        ("pysap.pysapcar", "INFO", "d {}".format(key)),
+                        ("pysap.pysapcar", "INFO", "pysapcar: 1 file(s) processed")
                     )
 
     @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, fchmod=mock.DEFAULT)
@@ -324,10 +324,10 @@ class PySAPCARCLITest(unittest.TestCase):
                 fchmod.assert_not_called()
                 utime.assert_not_called()
                 self.log.check(
-                    ("pysapcar", "ERROR", "pysapcar: Invalid SAP CAR file '{}' (Unit test error)"
+                    ("pysap.pysapcar", "ERROR", "pysapcar: Invalid SAP CAR file '{}' (Unit test error)"
                      .format(self.cli.archive_fd.name)),
-                    ("pysapcar", "INFO", "pysapcar: Skipping extraction of file '{}'".format(key)),
-                    ("pysapcar", "INFO", "pysapcar: 0 file(s) processed")
+                    ("pysap.pysapcar", "INFO", "pysapcar: Skipping extraction of file '{}'".format(key)),
+                    ("pysap.pysapcar", "INFO", "pysapcar: 0 file(s) processed")
                 )
 
     @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, fchmod=mock.DEFAULT)
@@ -340,10 +340,10 @@ class PySAPCARCLITest(unittest.TestCase):
                 fchmod.assert_not_called()
                 utime.assert_not_called()
                 self.log.check(
-                    ("pysapcar", "ERROR", "pysapcar: Invalid checksum found for file '{}'"
+                    ("pysap.pysapcar", "ERROR", "pysapcar: Invalid checksum found for file '{}'"
                      .format(key)),
-                    ("pysapcar", "INFO", "pysapcar: Stopping extraction"),
-                    ("pysapcar", "INFO", "pysapcar: 0 file(s) processed")
+                    ("pysap.pysapcar", "INFO", "pysapcar: Stopping extraction"),
+                    ("pysap.pysapcar", "INFO", "pysapcar: 0 file(s) processed")
                 )
 
     @mock.patch.multiple("pysap.sapcarcli", autospec=True, utime=mock.DEFAULT, fchmod=mock.DEFAULT)
@@ -358,10 +358,11 @@ class PySAPCARCLITest(unittest.TestCase):
                     fchmod.assert_not_called()
                     utime.assert_not_called()
                     self.log.check(
-                        ("pysapcar", "ERROR", "pysapcar: Failed to extract file '{}', (Unit test error)".format(key)),
-                        ("pysapcar", "INFO", "pysapcar: Stopping extraction"),
-                        ("pysapcar", "INFO", "pysapcar: 0 file(s) processed")
+                        ("pysap.pysapcar", "ERROR", "pysapcar: Failed to extract file '{}', ([Errno 13] Unit test error)".format(key)),
+                        ("pysap.pysapcar", "INFO", "pysapcar: Stopping extraction"),
+                        ("pysap.pysapcar", "INFO", "pysapcar: 0 file(s) processed")
                     )
+
 
 def test_suite():
     loader = unittest.TestLoader()
