@@ -141,7 +141,7 @@ class PySAPGenPSE(object):
         """
 
         try:
-            with open(filename) as f:
+            with open(filename, 'rb') as f:
                 obj = cls(f.read())
             self.logger.info("pysapgenpse: Reading {} file '{}'".format(type, filename))
         except IOError as e:
