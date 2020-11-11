@@ -21,6 +21,8 @@
 import os
 import math
 # External imports
+from six import b
+from six.moves import xrange
 from cryptography.exceptions import InvalidKey
 from cryptography.hazmat.primitives.hmac import HMAC
 from cryptography.hazmat.primitives.ciphers import Cipher
@@ -139,7 +141,7 @@ class PKCS12_PBKDF1(object):
         def to_int(value):
             if value == b'':
                 return 0
-            return long(value.encode("hex"), 16)
+            return int(value.encode("hex"), 16)
 
         def to_bytes(value):
             value = "%x" % value
@@ -272,7 +274,7 @@ class SCRAM(object):
         return os.urandom(self.CLIENT_KEY_SIZE)
 
     def salt_key(self, password, salt, rounds):
-        hmac = HMAC(password, self.ALGORITHM(), self.backend)
+        hmac = HMAC(b(password), self.ALGORITHM(), self.backend)
         hmac.update(salt)
         return hmac.finalize()
 
@@ -325,4 +327,4 @@ class SCRAM_PBKDF2SHA256(SCRAM_SHA256):
 
     def salt_key(self, password, salt, rounds):
         pbkdf2 = PBKDF2HMAC(self.ALGORITHM(), self.CLIENT_PROOF_SIZE, salt, rounds, self.backend)
-        return pbkdf2.derive(password)
+        return pbkdf2.derive(b(password))

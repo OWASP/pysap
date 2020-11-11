@@ -21,7 +21,8 @@
 import sys
 import unittest
 from threading import Thread
-from SocketServer import BaseRequestHandler, ThreadingTCPServer
+# External imports
+from six.moves.socketserver import BaseRequestHandler, ThreadingTCPServer
 # Custom imports
 from pysap.SAPHDB import SAPHDBConnection
 
