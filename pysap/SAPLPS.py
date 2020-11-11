@@ -36,7 +36,7 @@ from cryptography.hazmat.primitives.hmac import HMAC
 log_lps = logging.getLogger("pysap.lps")
 
 
-cred_key_lps_fallback = "\xe7\x6a\xd2\xce\x4b\xa7\xc7\x9e\xf9\x79\x5f\xa8\x2e\x6e\xaa\x1d\x76\x02\x2e\xcd\xd7\x74\x38\x51"
+cred_key_lps_fallback = b"\xe7\x6a\xd2\xce\x4b\xa7\xc7\x9e\xf9\x79\x5f\xa8\x2e\x6e\xaa\x1d\x76\x02\x2e\xcd\xd7\x74\x38\x51"
 """Fixed key embedded in CommonCryptoLib for encrypted credentials using LPS in fallback mode"""
 
 
@@ -91,7 +91,7 @@ class SAPLPSCipher(Packet):
         Validation of the checksum and HMAC is not implemented.
 
         :return: decrypted object
-        :rtype: string
+        :rtype: bytes
 
         :raise NotImplementedError: if the LPS method is not implemented
         :raise SAP_LPS_Decryption_Error: if there's an error decrypting the object
@@ -112,7 +112,7 @@ class SAPLPSCipher(Packet):
             raise SAPLPSDecryptionError("Invalid LPS decryption method")
 
         # Decrypt the cipher text with the encryption key
-        iv = "\x00" * 16
+        iv = b"\x00" * 16
         decryptor = Cipher(algorithms.AES(encryption_key), modes.CBC(iv), backend=default_backend()).decryptor()
         plain = decryptor.update(self.encrypted_data) + decryptor.finalize()
 
@@ -125,7 +125,7 @@ class SAPLPSCipher(Packet):
         the DP API without any additional entropy.
 
         :return: Encryption key decrypted
-        :rtype: string
+        :rtype: bytes
         """
         log_lps.debug("Obtaining encryption key with DPAPI LPS mode")
 
@@ -138,7 +138,7 @@ class SAPLPSCipher(Packet):
         encrypt the actual encryption key used in the file with the AES cipher.
 
         :return: Encryption key decrypted
-        :rtype: string
+        :rtype: bytes
         """
         log_lps.debug("Obtaining encryption key with FALLBACK LPS mode")
 
@@ -150,7 +150,7 @@ class SAPLPSCipher(Packet):
         hmac.update(self.context)
         default_key = hmac.finalize()[:16]
 
-        iv = "\x00" * 16
+        iv = b"\x00" * 16
         decryptor = Cipher(algorithms.AES(default_key), modes.CBC(iv), backend=default_backend()).decryptor()
         encryption_key = decryptor.update(self.encrypted_key) + decryptor.finalize()
 
@@ -160,7 +160,7 @@ class SAPLPSCipher(Packet):
         """Decrypts the encryption key using the TPM method.
 
         :return: Encryption key decrypted
-        :rtype: string
+        :rtype: bytes
         """
         log_lps.error("LPS TPM decryption not implemented")
         raise NotImplementedError("LPS TPM decryption not implemented")

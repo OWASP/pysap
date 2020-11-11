@@ -19,9 +19,10 @@
 
 # Standard imports
 from __future__ import unicode_literals
-import six
 import sys
 import unittest
+# External imports
+from six import assertRaisesRegex
 # Custom imports
 from tests.utils import read_data_file
 
@@ -43,15 +44,15 @@ class PySAPCompressTest(unittest.TestCase):
     def test_compress_input(self):
         """Test compress function input"""
         from pysapcompress import compress, CompressError
-        six.assertRaisesRegex(self, CompressError, "invalid input length", compress, b"")
-        six.assertRaisesRegex(self, CompressError, "unknown algorithm", compress, b"TestString", algorithm=999)
+        assertRaisesRegex(self, CompressError, "invalid input length", compress, b"")
+        assertRaisesRegex(self, CompressError, "unknown algorithm", compress, b"TestString", algorithm=999)
 
     def test_decompress_input(self):
         """Test decompress function input"""
         from pysapcompress import decompress, DecompressError
-        six.assertRaisesRegex(self, DecompressError, "invalid input length", decompress, b"", 1)
-        six.assertRaisesRegex(self, DecompressError, "input not compressed", decompress, b"AAAAAAAA", 1)
-        six.assertRaisesRegex(self, DecompressError, "unknown algorithm", decompress,
+        assertRaisesRegex(self, DecompressError, "invalid input length", decompress, b"", 1)
+        assertRaisesRegex(self, DecompressError, "input not compressed", decompress, b"AAAAAAAA", 1)
+        assertRaisesRegex(self, DecompressError, "unknown algorithm", decompress,
                               b"\x0f\x00\x00\x00\xff\x1f\x9d\x00\x00\x00\x00", 1)
 
     def test_lzc(self):

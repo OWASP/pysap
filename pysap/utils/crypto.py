@@ -41,7 +41,7 @@ def dpapi_decrypt_blob(blob, entropy=None):
     :type entropy: string
 
     :return: decrypted blob
-    :rtype: string
+    :rtype: bytes
 
     :raise Exception: if the platform is not Windows or the decryption failed
     """
@@ -152,7 +152,7 @@ class PKCS12_PBKDF1(object):
         a = b'\x00' * (c * u)
         for n in range(1, c + 1):
 
-            a2 = digest(d + i)
+            a2 = digest(d.encode('latin-1') + i)
             for _ in range(2, self._iterations + 1):
                 a2 = digest(a2)
 
@@ -162,7 +162,7 @@ class PKCS12_PBKDF1(object):
                 while len(b) < v:
                     b += a2
 
-                b = to_int(b[:v]) + 1
+                b = to_int(str(b)[:v]) + 1
 
                 # Step 6.C
                 for n2 in range(0, len(i) // v):
