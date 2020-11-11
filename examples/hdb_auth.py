@@ -204,9 +204,9 @@ def main():
         logging.debug("[*] Connection with HANA database server closed")
 
     except SAPHDBAuthenticationError as e:
-        logging.error("[-] Authentication error: %s" % e.message)
+        logging.error("[-] Authentication error: %s" % str(e))
     except SAPHDBConnectionError as e:
-        logging.error("[-] Connection error: %s" % e.message)
+        logging.error("[-] Connection error: %s" % str(e))
     except KeyboardInterrupt:
         logging.info("[-] Connection canceled")
 

@@ -163,7 +163,7 @@ def main():
             except SocketError:
                 logging.error("[-] Tenant '%s' doesn't exist" % tenant)
             except SAPHDBConnectionError as e:
-                logging.error("[-] Connection error: %s" % e.message)
+                logging.error("[-] Connection error: %s" % str(e))
 
     except KeyboardInterrupt:
         logging.info("[-] Connection canceled")

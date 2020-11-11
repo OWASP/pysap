@@ -145,7 +145,7 @@ class PySAPGenPSE(object):
                 obj = cls(f.read())
             self.logger.info("pysapgenpse: Reading {} file '{}'".format(type, filename))
         except IOError as e:
-            self.logger.error("pysapgenpse: Error reading {} file '{}' ({})".format(type, filename, e.message))
+            self.logger.error("pysapgenpse: Error reading {} file '{}' ({})".format(type, filename, str(e)))
             return None
 
         return obj
@@ -231,7 +231,7 @@ class PySAPGenPSE(object):
                     self.decrypt_cred(cred, options.username, options.output, options.decrypt_provider)
                 except Exception as e:
                     self.logger.error("pysapgenpse: Error trying to decrypt with username '{}'".format(options.username))
-                    self.logger.error(e)
+                    self.logger.error(str(e))
 
             i += 1
 
@@ -260,7 +260,7 @@ class PySAPGenPSE(object):
                 pin = plain.decrypt_provider(cred)
             except Exception as e:
                 self.logger.error("pysapgenpse: Unable to decrypt using the provider {} ({}), writing plain blob".format(
-                    plain.option1.val, e.message))
+                    plain.option1.val, str(e)))
                 pin = plain.pin.val
         else:
             pin = plain.pin.val

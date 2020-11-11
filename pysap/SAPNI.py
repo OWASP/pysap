@@ -473,8 +473,9 @@ class SAPNIServerHandler(BaseRequestHandler):
                 self.handle_data()
 
             except socket.error as e:
+                errno, message = e.args
                 log_sapni.debug("SAPNIServerHandler: Error handling data or client %s disconnected, %s (errno %d)",
-                                self.client_address, e.message, e.errno)
+                                self.client_address, message, errno)
                 break
 
     def handle_data(self):

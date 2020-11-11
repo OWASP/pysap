@@ -130,7 +130,7 @@ class PySAPCAR(object):
             try:
                 self.archive_fd = open(options.filename, self.mode)
             except IOError as e:
-                self.logger.error("pysapcar: error opening '%s' (%s)" % (options.filename, e.strerror))
+                self.logger.error("pysapcar: error opening '%s' (%s)" % (options.filename, str(e))
                 return
         else:
             self.archive_fd = stdin
@@ -154,7 +154,7 @@ class PySAPCAR(object):
             sapcar = SAPCARArchive(self.archive_fd, mode=self.mode)
             self.logger.info("pysapcar: Processing archive '%s' (version %s)", self.archive_fd.name, sapcar.version)
         except Exception as e:
-            self.logger.error("pysapcar: Error processing archive '%s' (%s)", self.archive_fd.name, e.message)
+            self.logger.error("pysapcar: Error processing archive '%s' (%s)", self.archive_fd.name, str(e))
             return None
         return sapcar
 
@@ -288,7 +288,7 @@ class PySAPCAR(object):
                 try:
                     data = fil.open(enforce_checksum=options.enforce_checksum).read()
                 except (SAPCARInvalidFileException, DecompressError) as e:
-                    self.logger.error("pysapcar: Invalid SAP CAR file '%s' (%s)", self.archive_fd.name, e.message)
+                    self.logger.error("pysapcar: Invalid SAP CAR file '%s' (%s)", self.archive_fd.name, str(e))
                     if options.break_on_error:
                         flag = STOP
                     else:
@@ -317,7 +317,7 @@ class PySAPCAR(object):
                         # Set the timestamp
                         utime(filename, (fil.timestamp_raw, fil.timestamp_raw))
                 except (IOError, OSError) as e:
-                    self.logger.error("pysapcar: Failed to extract file '%s', (%s)", filename, e.strerror)
+                    self.logger.error("pysapcar: Failed to extract file '%s', (%s)", filename, str(e))
                     if options.break_on_error:
                         self.logger.info("pysapcar: Stopping extraction")
                         break
