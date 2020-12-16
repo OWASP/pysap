@@ -20,6 +20,8 @@
 # Standard imports
 import os
 import math
+# Custom imports
+from rsec import rsec_decode, rsec_encode
 # External imports
 from cryptography.exceptions import InvalidKey
 from cryptography.hazmat.primitives.hmac import HMAC
@@ -346,21 +348,26 @@ def rsecdecrypt(blob, key):
 
     :raise Exception: if decryption failed
     """
-    from binascii import hexlify
     from scapy.utils import hexdump
-    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-    from cryptography.hazmat.backends import default_backend
 
-    print("Key:")
-    hexdump(key)
-    print(hexlify(key))
-    print("Data:")
-    hexdump(blob)
-    print(hexlify(blob))
-    iv = "\x00" * 8
-    decryptor = Cipher(algorithms.TripleDES(key), modes.ECB(), backend=default_backend()).decryptor()
-    decrypted_data = decryptor.update(blob) + decryptor.finalize()
+    #from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+    #from cryptography.hazmat.backends import default_backend
+    #decryptor = Cipher(algorithms.TripleDES(key), modes.ECB(), backend=default_backend()).decryptor()
+    #decrypted_data = decryptor.update(blob) + decryptor.finalize()
+    #hexdump(decrypted_data)
 
-    print("Plain:")
+    from pyDes import triple_des
+    tresdes = triple_des(key)
+    decrypted_data = tresdes.decrypt(blob)
     hexdump(decrypted_data)
+
+    #key1 = key[0:8]
+    #key2 = key[8:16]
+    #key3 = key[16:24]
+
+    #round_1 = rsec_decode(blob, key3, len(blob))
+    #round_2 = rsec_encode(round_1, key2, len(round_1))
+    #round_3 = rsec_decode(round_2, key1, len(round_2))
+    #decrypted_data = round_3
+
     return decrypted_data
