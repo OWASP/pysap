@@ -2,7 +2,7 @@
 # ===========
 # pysapcompress - SAP Compression library wrapper for Python
 #
-# SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
+# SECUREAUTH LABS. Copyright (C) 2021 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
 # the SecureAuth's Innovation Labs team.

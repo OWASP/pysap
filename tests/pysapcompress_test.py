@@ -1,7 +1,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
+# SECUREAUTH LABS. Copyright (C) 2021 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
 # the SecureAuth's Innovation Labs team.
@@ -34,7 +34,7 @@ class PySAPCompressTest(unittest.TestCase):
     def test_import(self):
         """Test import of the pysapcompress library"""
         try:
-            import pysapcompress  # @UnusedImport
+            import pysapcompress  # @UnusedImport # noqa: F401
         except ImportError as e:
             self.Fail(str(e))
 

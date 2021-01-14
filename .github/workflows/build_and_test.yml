@@ -8,7 +8,7 @@ on: [push, pull_request]
 jobs:
   health:
     name: Check code health
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     strategy:
       matrix:
         python-version: [2.7]
@@ -27,7 +27,7 @@ jobs:
       - name: Run flake8 tests
         run: |
           flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          flake8 . --count --ignore=E501 --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
   test:
     name: Run unit tests and build wheel
@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-18.04, macos-latest]
         python-version: [2.7]
         experimental: [false]
         include:
@@ -62,16 +62,16 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          python2 -m pip install --upgrade pip wheel
+          python -m pip install --upgrade pip wheel
           pip install -r requirements.txt
 
       - name: Run unit tests
         run: |
-          python2 setup.py test
+          python setup.py test
 
       - name: Build wheel artifact
         run: |
-          python2 setup.py bdist_wheel
+          python setup.py bdist_wheel
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v2
         with:
@@ -80,7 +80,7 @@ jobs:
 
   docs:
     name: Build documentation and source package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     strategy:
       matrix:
         python-version: [2.7]
@@ -121,7 +121,7 @@ jobs:
 
   release:
     name: Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: [test, docs]
     env:
        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

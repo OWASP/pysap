@@ -2,7 +2,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
+# SECUREAUTH LABS. Copyright (C) 2021 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
 # the SecureAuth's Innovation Labs team.
@@ -119,7 +119,7 @@ def main():
 
     # total size of packet
     # total_size need to be a multiple of 1024
-    total_size = offset + 244 # 244 IGS header size
+    total_size = offset + 244  # 244 IGS header size
     total_size += 1023
     total_size -= (total_size % 1024)
 

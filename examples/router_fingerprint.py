@@ -2,7 +2,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
+# SECUREAUTH LABS. Copyright (C) 2021 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
 # the SecureAuth's Innovation Labs team.
@@ -28,7 +28,7 @@ from scapy.packet import bind_layers, Raw
 # Custom imports
 import pysap
 from pysap.SAPNI import SAPNIStreamSocket, SAPNI
-from pysap.SAPRouter import SAPRouter, SAPRouterRouteHop, SAPRouterError
+from pysap.SAPRouter import SAPRouter, SAPRouterRouteHop
 
 
 # Bind the SAPRouter layer
@@ -123,7 +123,7 @@ fingerprint_targets = {
                                           route_offset=3,
                                           route_string=[SAPRouterRouteHop(), SAPRouterRouteHop()]),
     # Set an empty route with a null offset
-    "Empty route null offset": SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,route_entries=2,
+    "Empty route null offset": SAPRouter(type=SAPRouter.SAPROUTER_ROUTE, route_entries=2,
                                          route_rest_nodes=1,
                                          route_length=6,
                                          route_offset=0,

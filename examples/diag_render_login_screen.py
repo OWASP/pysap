@@ -2,7 +2,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
+# SECUREAUTH LABS. Copyright (C) 2021 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
 # the SecureAuth's Innovation Labs team.
@@ -267,7 +267,7 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     # Create the connection to the SAP Netweaver server
-    print("[*] Connecting to %s port %d" % (options.remote_host, "port", options.remote_port))
+    print("[*] Connecting to %s port %d" % (options.remote_host, options.remote_port))
     connection = SAPDiagConnection(options.remote_host,
                                    options.remote_port,
                                    terminal=options.terminal,

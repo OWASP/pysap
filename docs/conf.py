@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 
 project = u'pysap'
-copyright = u'SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.'
+copyright = u'SECUREAUTH LABS. Copyright (C) 2021 SecureAuth Corporation. All rights reserved.'
 author = u'Martin Gallo, SecureAuth Corporation'
 
 # The short X.Y version
