@@ -40,7 +40,7 @@ ssfs_hmac_key_unobscured = "\xe3\xa0\x61\x11\x85\x41\x68\x99\xf3\x0e\xda\x87\x7a
 """Fixed key embedded in rsecssfx binaries for validating integrity of records"""
 
 
-class RSecSSFsLKY(Packet):
+class SAPSSFSLKY(Packet):
     """SAP SSFS LKY file format packet.
 
     """
