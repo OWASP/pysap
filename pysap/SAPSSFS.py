@@ -22,7 +22,7 @@
 import logging
 # External imports
 from scapy.packet import Packet
-from scapy.fields import (ByteField, YesNoByteField, LenField, StrFixedLenField, PacketListField)
+from scapy.fields import (ByteField, YesNoByteField, LenField, StrFixedLenField, StrField, PacketListField)
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.hmac import HMAC
 from cryptography.hazmat.primitives.hashes import Hash, SHA1
@@ -95,6 +95,7 @@ class SAPSSFSDecryptedPayload(PacketNoPadded):
         StrFixedLenField("hash", None, 20),
         # Data Header
         StrFixedLenField("data", None, length_from=lambda pkt: pkt.length),
+        StrField("padd", None),
     ]
 
     @property
@@ -109,7 +110,8 @@ class SAPSSFSDecryptedPayload(PacketNoPadded):
             digest.update(blob[0x20:self.length])
         if len(blob) > self.length + 0x20:
             digest.update(blob[0x20 + self.length:])
-        return digest.finalize() == self.hash
+        blob_hash = digest.finalize()
+        return blob_hash == self.hash
 
 
 class SAPSSFSDataRecord(PacketNoPadded):
@@ -148,11 +150,11 @@ class SAPSSFSDataRecord(PacketNoPadded):
         return self.decrypt_data(key)
 
     def decrypt_data(self, key):
+        log_ssfs.debug("Decrypting record {}".format(self.key_name))
         decrypted_data = rsec_decrypt(self.data, key.key)
-        p = SAPSSFSDecryptedPayload(decrypted_data)
-        p.show()
-        print(p.valid)
-        return decrypted_data
+        decrypted_payload = SAPSSFSDecryptedPayload(decrypted_data)
+        log_ssfs.warn("Decrypted payload validity is {}".format(decrypted_payload.valid))
+        return decrypted_payload.data
 
     @property
     def valid(self):

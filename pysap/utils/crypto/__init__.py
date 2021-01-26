@@ -30,6 +30,11 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import constant_time, padding
 from cryptography.hazmat.primitives.hashes import Hash, SHA256, MD5
 
+# Standard imports
+from binascii import hexlify
+# External imports
+from scapy.utils import hexdump
+
 
 def dpapi_decrypt_blob(blob, entropy=None):
     """Decrypts a blob of data using DPAPI.
@@ -348,6 +353,8 @@ def rsec_decrypt(blob, key):
 
     :raise Exception: if decryption failed
     """
+    blob = [ord(i) for i in blob]
+    key = [ord(i) for i in key]
     key1 = key[0:8]
     key2 = key[8:16]
     key3 = key[16:24]
@@ -356,4 +363,4 @@ def rsec_decrypt(blob, key):
     round_2 = rsec_encode(round_1, key2, len(round_1))
     round_3 = rsec_decode(round_2, key1, len(round_2))
 
-    return round_3
+    return ''.join([chr(i) for i in round_3])
