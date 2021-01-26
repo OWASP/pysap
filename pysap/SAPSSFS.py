@@ -28,7 +28,7 @@ from cryptography.hazmat.primitives.hmac import HMAC
 from cryptography.hazmat.primitives.hashes import Hash, SHA1
 from cryptography.hazmat.backends import default_backend
 # Custom imports
-from pysap.utils.crypto import rsecdecrypt
+from pysap.utils.crypto import rsec_decrypt
 from pysap.utils.fields import PacketNoPadded, StrFixedLenPaddedField, TimestampField
 
 
@@ -148,7 +148,7 @@ class SAPSSFSDataRecord(PacketNoPadded):
         return self.decrypt_data(key)
 
     def decrypt_data(self, key):
-        decrypted_data = rsecdecrypt(self.data, key.key)
+        decrypted_data = rsec_decrypt(self.data, key.key)
         p = SAPSSFSDecryptedPayload(decrypted_data)
         p.show()
         print(p.valid)

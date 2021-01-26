@@ -330,7 +330,7 @@ class SCRAM_PBKDF2SHA256(SCRAM_SHA256):
         return pbkdf2.derive(password)
 
 
-def rsecdecrypt(blob, key):
+def rsec_decrypt(blob, key):
     """Decrypts a blob of data using SAP's RSEC decryption algorithm. The algorithm is based on
     the TripleDES.
 
@@ -348,26 +348,12 @@ def rsecdecrypt(blob, key):
 
     :raise Exception: if decryption failed
     """
-    from scapy.utils import hexdump
+    key1 = key[0:8]
+    key2 = key[8:16]
+    key3 = key[16:24]
 
-    #from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-    #from cryptography.hazmat.backends import default_backend
-    #decryptor = Cipher(algorithms.TripleDES(key), modes.ECB(), backend=default_backend()).decryptor()
-    #decrypted_data = decryptor.update(blob) + decryptor.finalize()
-    #hexdump(decrypted_data)
+    round_1 = rsec_decode(blob, key3, len(blob))
+    round_2 = rsec_encode(round_1, key2, len(round_1))
+    round_3 = rsec_decode(round_2, key1, len(round_2))
 
-    from pyDes import triple_des
-    tresdes = triple_des(key)
-    decrypted_data = tresdes.decrypt(blob)
-    hexdump(decrypted_data)
-
-    #key1 = key[0:8]
-    #key2 = key[8:16]
-    #key3 = key[16:24]
-
-    #round_1 = rsec_decode(blob, key3, len(blob))
-    #round_2 = rsec_encode(round_1, key2, len(round_1))
-    #round_3 = rsec_decode(round_2, key1, len(round_2))
-    #decrypted_data = round_3
-
-    return decrypted_data
+    return round_3
