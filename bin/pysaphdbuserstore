@@ -95,7 +95,7 @@ class PySAPHDBUserStore(object):
         """Sets the logger of the cli tool.
         """
         if self._logger is None:
-            self._logger = logging.getLogger("pysap.pysaphdbuserstore")
+            self._logger = logging.getLogger("pysap")
             self._logger.setLevel(logging.DEBUG if self.verbose else logging.INFO)
             self._logger.addHandler(logging.StreamHandler())
         return self._logger
