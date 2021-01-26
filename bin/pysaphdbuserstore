@@ -83,6 +83,7 @@ class PySAPHDBUserStore(object):
         get.add_argument("--decrypt", dest="decrypt", action="store_false", help="Whether to try to decrypt the value")
 
         misc = parser.add_argument_group("Misc options")
+        misc.add_argument("--deleted", dest="deleted", action="store_true", help="Show deleted records")
         misc.add_argument("-v", dest="verbose", action="store_true", help="Verbose output")
 
         options, args = parser.parse_known_args()
@@ -155,15 +156,15 @@ class PySAPHDBUserStore(object):
         # Parse the data file
         try:
             ssfs_data = self.open_file(options.data_filename, SAPSSFSData, "SSFS Data")
-            ssfs_data.show()
         except Exception:
             self.logger.error("pysaphdbuserstore: Unable to read data in file {}\n".format(options.data_filename))
 
         for ssfs_record in ssfs_data.records:
-            self.logger.info("%s\t%s\t%s",
-                             ssfs_record.key_name.rstrip(" "),
-                             "Plaintext" if ssfs_record.is_stored_as_plaintext else "Encrypted",
-                             ssfs_record.timestamp)
+            if options.deleted or not ssfs_record.deleted:
+                self.logger.info("%s\t%s\t%s",
+                                 ssfs_record.key_name.rstrip(" "),
+                                 "Plaintext" if ssfs_record.is_stored_as_plaintext else "Encrypted",
+                                 ssfs_record.timestamp)
 
     def get(self, options, args):
         """Get a record value in a SSFS Data file
@@ -172,27 +173,26 @@ class PySAPHDBUserStore(object):
         # Parse the key file
         try:
             ssfs_key = self.open_file(options.key_filename, SAPSSFSKey, "SSFS Key")
-            ssfs_key.show()
         except Exception:
             self.logger.error("pysaphdbuserstore: Unable to read key in file {}\n".format(options.key_filename))
 
         # Parse the data file
         try:
             ssfs_data = self.open_file(options.data_filename, SAPSSFSData, "SSFS Data")
-            ssfs_data.show()
         except Exception:
             self.logger.error("pysaphdbuserstore: Unable to read data in file {}\n".format(options.data_filename))
 
         for arg in args:
             if ssfs_data.has_record(arg):
                 for ssfs_record in ssfs_data.get_records(arg):
-                    self.logger.info("Is Deleted   : %s", ssfs_record.deleted)
-                    self.logger.info("Is Valid     : %s", ssfs_record.valid)
-                    self.logger.info("Record Key   : %s", ssfs_record.key_name)
-                    self.logger.info("Time Stamp   : %s", ssfs_record.timestamp)
-                    self.logger.info("Host Name    : %s", ssfs_record.host)
-                    self.logger.info("OS-User      : %s", ssfs_record.user)
-                    self.logger.info("Record Value : %s", ssfs_record.get_plain_data(ssfs_key))
+                    if options.deleted or not ssfs_record.deleted:
+                        self.logger.info("Is Deleted   : %s", ssfs_record.deleted)
+                        self.logger.info("Is Valid     : %s", ssfs_record.valid)
+                        self.logger.info("Record Key   : %s", ssfs_record.key_name)
+                        self.logger.info("Time Stamp   : %s", ssfs_record.timestamp)
+                        self.logger.info("Host Name    : %s", ssfs_record.host)
+                        self.logger.info("OS-User      : %s", ssfs_record.user)
+                        self.logger.info("Record Value : %s", ssfs_record.get_plain_data(ssfs_key))
             else:
                 self.logger.info("Record with key %s not found in data file.", arg)
 
