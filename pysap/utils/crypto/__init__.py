@@ -21,7 +21,7 @@
 import os
 import math
 # Custom imports
-from rsec import rsec_decode, rsec_encode
+from rsec import RSECCipher
 # External imports
 from cryptography.exceptions import InvalidKey
 from cryptography.hazmat.primitives.hmac import HMAC
@@ -353,14 +353,18 @@ def rsec_decrypt(blob, key):
 
     :raise Exception: if decryption failed
     """
+    if len(key) != 24:
+        raise Exception("Wrong key length")
+
     blob = [ord(i) for i in blob]
     key = [ord(i) for i in key]
     key1 = key[0:8]
     key2 = key[8:16]
     key3 = key[16:24]
 
-    round_1 = rsec_decode(blob, key3, len(blob))
-    round_2 = rsec_encode(round_1, key2, len(round_1))
-    round_3 = rsec_decode(round_2, key1, len(round_2))
+    cipher = RSECCipher()
+    round_1 = cipher.crypt(RSECCipher.MODE_DECODE, blob, key3, len(blob))
+    round_2 = cipher.crypt(RSECCipher.MODE_ENCODE, round_1, key2, len(round_1))
+    round_3 = cipher.crypt(RSECCipher.MODE_DECODE, round_2, key1, len(round_2))
 
     return ''.join([chr(i) for i in round_3])
