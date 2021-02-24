@@ -31,6 +31,7 @@ from pysap.SAPNI import SAPNI
 from pysap.SAPRouter import (SAPRouter, SAPRouteException,
                              SAPRouterNativeProxy,
                              SAPRouterNativeRouterHandler,
+                             SAPRouterRouteHop,
                              ROUTER_TALK_MODE_NI_RAW_IO, ROUTER_TALK_MODE_NI_MSG_IO)
 
 
@@ -71,11 +72,23 @@ def parse_options():
     target.add_argument("--talk-mode", dest="talk_mode", default="raw",
                         help="Talk mode to use when requesting the route (raw or ni) [%(default)s]")
 
+    target.add_argument("--route-string", dest="target_route_string",
+                        help="Route String for connecting through a SAP Router")
     misc = parser.add_argument_group("Misc options")
     misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
 
     options = parser.parse_args()
 
+    if options.target_route_string and ( options.remote_host or options.target_host):
+        print("[!] Route String specified, Remote and Target host ignored")
+        route = SAPRouterRouteHop.from_string(options.target_route_string)
+        options.remote_host = route[0].hostname
+        options.remote_port = 3299
+        if route[0].port and route[0].port.isdigit(): options.remote_port = int(route[0].port)
+        options.target_host = route[-1].hostname
+        options.target_port = 3299
+        if route[-1].port and route[-1].port.isdigit(): options.target_port = int(route[-1].port)
+        del route
     if not options.remote_host:
         parser.error("Remote host is required")
     if not options.target_host:
@@ -108,6 +121,8 @@ def main():
                                                                                                    options.remote_port,
                                                                                                    options.talk_mode))
 
+    if options.target_route_string:
+    	logging.info("[*] using Route String %s" % (options.target_route_string))
     options.talk_mode = {"raw": ROUTER_TALK_MODE_NI_RAW_IO, "ni": ROUTER_TALK_MODE_NI_MSG_IO}[options.talk_mode]
 
     proxy = SAPRouterNativeProxy(options.local_host, options.local_port,
