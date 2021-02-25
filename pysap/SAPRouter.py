@@ -823,13 +823,13 @@ class SAPRouterNativeProxy(SAPNIProxy):
 
         # Build the Route request packet
         if self.options.target_route_string is None:
-        	router_string = [SAPRouterRouteHop(hostname=remote_address,
-                	                           port=remote_port),
-                        	 SAPRouterRouteHop(hostname=self.target_address,
-                                	           port=self.target_port,
-                                        	   password=self.target_pass)]
+            router_string = [SAPRouterRouteHop(hostname=remote_address,
+                                               port=remote_port),
+                             SAPRouterRouteHop(hostname=self.target_address,
+                                               port=self.target_port,
+                                               password=self.target_pass)]
         else:
-        	router_string = SAPRouterRouteHop.from_string(self.options.target_route_string)
+            router_string = SAPRouterRouteHop.from_string(self.options.target_route_string)
         router_string_lens = list(map(len, list(map(str, router_string))))
         p = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
                       route_entries=len(router_string),
