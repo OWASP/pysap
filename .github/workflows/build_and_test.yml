@@ -8,7 +8,7 @@ on: [push, pull_request]
 jobs:
   health:
     name: Check code health
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     strategy:
       matrix:
         python-version: [2.7]
@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-18.04, macos-latest]
         python-version: [2.7]
         experimental: [false]
         include:
@@ -80,7 +80,7 @@ jobs:
 
   docs:
     name: Build documentation and source package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     strategy:
       matrix:
         python-version: [2.7]
@@ -121,7 +121,7 @@ jobs:
 
   release:
     name: Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: [test, docs]
     env:
        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

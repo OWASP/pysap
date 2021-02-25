@@ -1,7 +1,7 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# SECUREAUTH LABS. Copyright (C) 2020 SecureAuth Corporation. All rights reserved.
+# SECUREAUTH LABS. Copyright (C) 2021 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
 # the SecureAuth's Innovation Labs team.
@@ -140,8 +140,8 @@ class SAPRouterRouteHop(PacketNoPadded):
     ]
 
     regex = re.compile(r"""
-        (/[hH]/(?P<hostname>[\w\.]+)              # Hostname, FQDN or IP addresss
-        (/[sS]/(?P<port>[\w]+))?                  # Optional port/service
+        (/[hH]/(?P<hostname>[\w\.\-]+)           # Hostname, FQDN or IP addresss
+        (/[sS]/(?P<port>[\w]+))?                 # Optional port/service
         (/[pwPW]/(?P<password>[\w.]+))?          # Optional password
         )
     """, re.VERBOSE)
@@ -822,11 +822,14 @@ class SAPRouterNativeProxy(SAPNIProxy):
                                                 keep_alive=self.keep_alive)
 
         # Build the Route request packet
-        router_string = [SAPRouterRouteHop(hostname=remote_address,
-                                           port=remote_port),
-                         SAPRouterRouteHop(hostname=self.target_address,
-                                           port=self.target_port,
-                                           password=self.target_pass)]
+        if self.options.target_route_string is None:
+            router_string = [SAPRouterRouteHop(hostname=remote_address,
+                                               port=remote_port),
+                             SAPRouterRouteHop(hostname=self.target_address,
+                                               port=self.target_port,
+                                               password=self.target_pass)]
+        else:
+            router_string = SAPRouterRouteHop.from_string(self.options.target_route_string)
         router_string_lens = list(map(len, list(map(str, router_string))))
         p = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
                       route_entries=len(router_string),
