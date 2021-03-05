@@ -120,6 +120,8 @@ Contributions made by:
   * [@okuuva](https://github.com/okuuva)
   * Dmitry Chastuhin ([@_chipik](https://twitter.com/_chipik))
   * fabhap
+  * Andreas Hornig
+  * Jennifer Hornig ([@gloomicious](https://github.com/gloomicious))
 
 
 Contact
