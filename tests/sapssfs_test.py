@@ -144,6 +144,7 @@ class PySAPSSFSDataDecryptTest(unittest.TestCase):
 
             record = data.get_record(name)
             self.assertFalse(record.is_stored_as_plaintext)
+            self.assertTrue(record.valid)
 
 
 def test_suite():
