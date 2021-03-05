@@ -105,9 +105,9 @@ class SAPSSFSDecryptedPayload(PacketNoPadded):
 
         digest = Hash(SHA1(), backend=default_backend())
         digest.update(blob[:8])
-        digest.update(blob[8:4])
+        digest.update(blob[8:8+4])
         if self.length:
-            digest.update(blob[0x20:self.length])
+            digest.update(blob[0x20:0x20 + self.length])
         if len(blob) > self.length + 0x20:
             digest.update(blob[0x20 + self.length:])
         blob_hash = digest.finalize()
