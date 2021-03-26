@@ -355,9 +355,11 @@ class PySAPCARCLITest(unittest.TestCase):
                 with mock.patch("pysap.sapcarcli.open", mock.mock_open()) as mock_open:
                     mock_open.side_effect = OSError(13, "Unit test error")
                     self.cli.extract(mock.MagicMock(outdir=False), None)
+                    dirname = path.dirname(key)
                     fchmod.assert_not_called()
                     utime.assert_not_called()
                     self.log.check(
+                        ("pysap.pysapcar", "INFO", "d {}".format(dirname)),
                         ("pysap.pysapcar", "ERROR", "pysapcar: Failed to extract file '{}', ([Errno 13] Unit test error)".format(key)),
                         ("pysap.pysapcar", "INFO", "pysapcar: Stopping extraction"),
                         ("pysap.pysapcar", "INFO", "pysapcar: 0 file(s) processed")
