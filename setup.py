@@ -124,17 +124,12 @@ setup(name=pysap.__title__,  # Package information
       # Script files
       scripts=['bin/pysapcar', 'bin/pysapgenpse'],
 
-      # Tests command
-      test_suite='tests.test_suite',
-
       # Documentation commands
       cmdclass={'doc': DocumentationCommand,
                 'notebooks': PreExecuteNotebooksCommand},
 
       # Requirements
       install_requires=open('requirements.txt').read().splitlines(),
-
-      tests_require=open('requirements-tests.txt').read().splitlines(),
 
       # Optional requirements for docs and some examples
       extras_require={"docs": open('requirements-docs.txt').read().splitlines(),
