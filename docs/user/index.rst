@@ -20,7 +20,7 @@ The following projects, tools and repositories are known to be using pysap:
 
 * `SAP dissection plug-in for Wireshark <https://github.com/SecureAuthCorp/SAP-Dissection-plug-in-for-Wireshark>`_:
   This Wireshark plugin provides dissection of SAP's ``NI``, Message Server,
-  ``Router``, ``Diag``, ``Enqueue``, ``IGS`` and ``SNC`` protocols. The Wireshark
+  ``Router``, ``Diag``, ``Enqueue``, ``IGS``, ``SNC`` and ``HDB`` protocols. The Wireshark
   plug-in makes use of pysap in order to craft packets used during unit tests.
 
 * `SAP Message Server research <https://github.com/gelim/sap_ms>`_: Exploit proof of
@@ -116,6 +116,14 @@ Additional information about the protocols and the research can be found at diff
 
 * `Revisiting the Old and Looking at New Potential SAP Vulnerabilities <https://www.secureauth.com/blog/revisiting-old-and-looking-new-potential-sap-vulnerabilities>`_
 
+* Exploring the SAP HANA SQL Command Network Protocol Blog post series:
+
+  * `Protocol Basics and Authentication <https://www.secureauth.com/blog/exploring-sap-hana-sql-command-network-protocol-protocol-basics-and-authentication/>`_
+
+  * `Password-based Authentication and TLS <https://www.secureauth.com/blog/exploring-sap-hana-sql-command-network-protocol-password-based-authentication-and-tls/>`_
+
+  * `Federated Authentication <https://www.secureauth.com/blog/exploring-the-sap-hana-sql-command-network-protocol-federated-authentication/>`_
+
 And advisories:
 
 * `SAP Netweaver Dispatcher Multiple Vulnerabilities <https://www.coresecurity.com/content/sap-netweaver-dispatcher-multiple-vulnerabilities>`_
@@ -135,6 +143,10 @@ And advisories:
 * `SAP SAPCAR Heap Based Buffer Overflow Vulnerability <https://www.coresecurity.com/advisories/sap-sapcar-heap-based-buffer-overflow-vulnerability>`_
 
 * `SAP Note Assistant Insecure Handling of SAP Notes Signature Vulnerability <https://www.coresecurity.com/advisories/sap-note-assistant-insecure-handling-sap-notes-signature-vulnerability>`_
+
+* `SAP HANA SAML Assertion Improper Validation Vulnerability <https://www.secureauth.com/advisories/sap-hana-saml-assertion-improper-validation-authentication/>`_
+
+  * `Associated Blog Post SecureAuth uncovers SAML validation weakness in SAP HANA <https://www.secureauth.com/blog/secureauth-uncovers-saml-validation-weakness-in-sap-hana/>`_
 
 Initial research about the SAP CAR file format was performed by Martin Gallo and published in `Deep-dive into SAP archive file formats <https://www.coresecurity.com/corelabs-research/publications/deep-dive-sap-archive-file-formats>`_
 at the `Troopers 2016 Security Conference <https://www.troopers.de/troopers16/agenda/>`_. Additional research was
