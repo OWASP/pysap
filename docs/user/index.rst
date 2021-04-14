@@ -20,7 +20,7 @@ The following projects, tools and repositories are known to be using pysap:
 
 * `SAP dissection plug-in for Wireshark <https://github.com/SecureAuthCorp/SAP-Dissection-plug-in-for-Wireshark>`_:
   This Wireshark plugin provides dissection of SAP's ``NI``, Message Server,
-  ``Router``, ``Diag``, ``Enqueue``, ``IGS`` and ``SNC`` protocols. The Wireshark
+  ``Router``, ``Diag``, ``Enqueue``, ``IGS``, ``SNC`` and ``HDB`` protocols. The Wireshark
   plug-in makes use of pysap in order to craft packets used during unit tests.
 
 * `SAP Message Server research <https://github.com/gelim/sap_ms>`_: Exploit proof of
