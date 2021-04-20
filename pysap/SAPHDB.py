@@ -22,6 +22,7 @@ import ssl
 import socket
 import struct
 # External imports
+from six import b
 from cryptography.hazmat.backends import default_backend
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers, Raw
@@ -802,7 +803,7 @@ class SAPHDBInitializationRequest(Packet):
     """
     name = "SAP HANA SQL Command Network Protocol Initialization Request"
     fields_desc = [
-        StrFixedLenField("initialization", "\xff\xff\xff\xff\x04\x20\x00\x04\x01\x00\x00\x01\x01\x01", 14),
+        StrFixedLenField("initialization", b("\xff\xff\xff\xff\x04\x20\x00\x04\x01\x00\x00\x01\x01\x01"), 14),
     ]
 
 
@@ -851,7 +852,7 @@ class SAPHDBAuthMethod(object):
         provided, it will include the Client Context part from it (e.g. application name).
 
         :param value: value to include in the authentication request
-        :type value: string
+        :type value: bytes
 
         :param connection: `HDB` connection to get client context values if required
         :type connection: :class:`SAPHDBConnection`
@@ -861,7 +862,7 @@ class SAPHDBAuthMethod(object):
         """
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
-                                                            SAPHDBPartAuthenticationField(value=value or "")])
+                                                            SAPHDBPartAuthenticationField(value=value or b(""))])
         auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
         auth_segm = SAPHDBSegment(messagetype=65, parts=[auth_part])
 
@@ -877,14 +878,14 @@ class SAPHDBAuthMethod(object):
         :type auth_response_part: :class:`SAPHDBPartAuthentication`
 
         :param value: value to include in the authentication response
-        :type value: string
+        :type value: bytes
 
         :return: the authentication response part
         :rtype: :class:`SAPHDBPart`
         """
         auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.username),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
-                                                            SAPHDBPartAuthenticationField(value=value or "")])
+                                                            SAPHDBPartAuthenticationField(value=value or b(""))])
         return SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
 
     def authenticate(self, connection):
@@ -955,7 +956,7 @@ class SAPHDBAuthScramMethod(SAPHDBAuthMethod):
         # Calculate the client proof from the password, salt and the server and client key
         # TODO: It might be good to see if this can be moved into a new Packet
         # TODO: We're only considering one server key
-        client_proof = b"\x00\x01" + struct.pack('b', scram.CLIENT_PROOF_SIZE)
+        client_proof = b("\x00\x01") + struct.pack('b', scram.CLIENT_PROOF_SIZE)
         client_proof += scram.scramble_salt(self.password, salt, server_key, client_key)
 
         return client_proof
@@ -1001,7 +1002,7 @@ class SAPHDBAuthScramPBKDF2SHA256Method(SAPHDBAuthScramMethod):
         # Calculate the client proof from the password, salt, rounds and the server and client key
         # TODO: It might be good to see if this can be moved into a new Packet
         # TODO: We're only considering one server key
-        client_proof = b"\x00\x01" + struct.pack('b', scram.CLIENT_PROOF_SIZE)
+        client_proof = b("\x00\x01") + struct.pack('b', scram.CLIENT_PROOF_SIZE)
         client_proof += scram.scramble_salt(self.password, salt, server_key, client_key, rounds)
         return client_proof
 
@@ -1086,7 +1087,7 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
         doesn't use the standard ASN.1 encoding and instead leverage the same Authentication Field
         format.
         """
-        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=""),
+        auth_fields = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=b("")),
                                                             SAPHDBPartAuthenticationField(value=self.METHOD),
                                                             SAPHDBPartAuthenticationField(value=value)])
         auth_part = SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_fields)
@@ -1109,7 +1110,7 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
         # gss_token_response = SAPHDBPartAuthentication(auth_response_part.auth_fields[1].value)
 
         last_gss_token = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.krb5oid),
-                                                               SAPHDBPartAuthenticationField(value="\x05")])
+                                                               SAPHDBPartAuthenticationField(value=b("\x05"))])
         return super(SAPHDBAuthGSSMethod, self).craft_authentication_response_part(auth_response_part, last_gss_token)
 
     def authenticate(self, connection):
@@ -1131,7 +1132,7 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
         #  * typeoid: type of the client GSS name
         #  * gssname: the client GSS name (e.g. UPN)
         first_gss_token = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.krb5oid),
-                                                                SAPHDBPartAuthenticationField(value="\x01"),
+                                                                SAPHDBPartAuthenticationField(value=b("\x01")),
                                                                 SAPHDBPartAuthenticationField(value=self.typeoid),
                                                                 SAPHDBPartAuthenticationField(value=self.username)])
         first_auth_request = self.craft_authentication_request(first_gss_token, connection=connection)
@@ -1171,7 +1172,7 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
         #  * commtype: communication type ("\x03")
         #  * krb5ticket: the GSSAPI KRB5 AP-REQ structure to use
         second_gss_value = SAPHDBPartAuthentication(auth_fields=[SAPHDBPartAuthenticationField(value=self.krb5oid),
-                                                                 SAPHDBPartAuthenticationField(value="\x03"),
+                                                                 SAPHDBPartAuthenticationField(value=b("\x03")),
                                                                  SAPHDBPartAuthenticationField(value=krb5ticket)])
         second_auth_request = self.craft_authentication_request(second_gss_value, connection=connection)
         second_auth_response = connection.sr(second_auth_request)
@@ -1200,7 +1201,7 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
             #  * commtype: communication type ("\x07")
             #  * session cookie: the SessionCookie established for the connection
             gss_token = SAPHDBPartAuthentication(self.session_cookie)
-            if gss_token.auth_fields[1].value == "\x07":
+            if gss_token.auth_fields[1].value == b("\x07"):
                 self.session_cookie = gss_token.auth_fields[2].value
             else:
                 self.session_cookie = None
@@ -1335,8 +1336,8 @@ class SAPHDBConnection(object):
         header_raw = self._stream_socket.ins.recv(32)
         header = SAPHDB(header_raw)
         # Then get the payload
-        payload = ""
-        if header.varpartlength > 0:
+        payload = b("")
+        if header.varpartlength and header.varpartlength > 0:
             payload = self._stream_socket.ins.recv(header.varpartlength)
         # And finally construct the whole packet with header plus payload
         return SAPHDB(header_raw + payload)
@@ -1355,7 +1356,7 @@ class SAPHDBConnection(object):
         self.send(init_request)
 
         # Receive initialization response packet
-        init_reply = SAPHDBInitializationReply(self._stream_socket.recv(8))  # We use the raw socket recv here
+        init_reply = SAPHDBInitializationReply(bytes(self._stream_socket.recv(8)))  # We use the raw socket recv here
         self.product_version = init_reply.product_major
         self.protocol_version = init_reply.protocol_major
 

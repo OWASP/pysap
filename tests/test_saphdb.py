@@ -32,7 +32,7 @@ class SAPHDBServerTestHandler(BaseRequestHandler):
 
     def handle_data(self):
         self.request.recv(14)
-        self.request.send("\x00" * 8)
+        self.request.send(b"\x00" * 8)
 
 
 class PySAPHDBConnectionTest(unittest.TestCase):

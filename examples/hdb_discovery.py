@@ -25,6 +25,7 @@ from sys import stdout
 from argparse import ArgumentParser
 from socket import error as SocketError
 # External imports
+from six import iteritems
 from scapy.config import conf
 # Custom imports
 import pysap
@@ -145,7 +146,7 @@ def main():
 
                 # List the values in the returned DBConnectInfo part
                 hdb_dbconnectinfo_response_part = hdb_dbconnectinfo_response.segments[0].parts[0]
-                for key, name in SAPHDBPartDBConnectInfo.option_keys.items():
+                for key, name in iteritems(SAPHDBPartDBConnectInfo.option_keys):
                     value = hdb_get_part_kind_option(hdb_dbconnectinfo_response_part, key)
                     if value is not None:
                         results[tenant][name] = value
