@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 import sys
 import unittest
 # External imports
-from six import assertRaisesRegex
+from six import assertRaisesRegex, text_type
 # Custom imports
 from tests.utils import read_data_file
 
@@ -39,7 +39,7 @@ class PySAPCompressTest(unittest.TestCase):
         try:
             import pysapcompress  # @UnusedImport # noqa: F401
         except ImportError as e:
-            self.fail(six.text_type(e))
+            self.fail(text_type(e))
 
     def test_compress_input(self):
         """Test compress function input"""
