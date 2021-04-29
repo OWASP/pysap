@@ -5,14 +5,21 @@ Changelog
 v0.2.1 - 2021-XX-XX
 -------------------
 
+
+v0.1.19 - 2021-04-29
+--------------------
+
 - Python 2/3 compatible codebase
 - Using Scapy version 2.4.4.
+- `pysap/SAPSSFS.py`: New module for SAP Secure Store in File System file format.
+- `bin/pysaphdbuserstore`: New script for interacting with `hdbuserstore` SSFS files.
 - `requirements-examples.txt`: Renamed to match `setup.py`'s extra. 
 - `pysap/SAPHDB.py`: Implementation of GSS-based auth method with Kerberos 5.
 - `pysap/SAPHDB.py`: Handling of Session Cookie values when found in the `CONNECT` response.
 - `pysap/SAPRouter.py`: Add support to route string in `SAPRouterNativeProxy`. ([\#33](https://github.com/SecureAuthCorp/pysap/pull/33)) Thanks [@gloomicious](https://github.com/gloomicious)!
 - `examples/router_fingerprints.json`: New fingerprints for SAP Router version 7450.34.25.5091. Thanks [@jvis](https://twitter.com/jvis)!
 - `examples/router_portfw.py`: Add support to route string. ([\#33](https://github.com/SecureAuthCorp/pysap/pull/33)) Thanks [@gloomicious](https://github.com/gloomicious)!
+- `tests/sapssfs_test.py`: Basic unit tests for the SSFS file format.
 
 
 v0.1.18 - 2020-07-15

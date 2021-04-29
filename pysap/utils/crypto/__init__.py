@@ -20,6 +20,8 @@
 # Standard imports
 import os
 import math
+# Custom imports
+from rsec import RSECCipher
 # External imports
 from cryptography.exceptions import InvalidKey
 from cryptography.hazmat.primitives.hmac import HMAC
@@ -27,6 +29,11 @@ from cryptography.hazmat.primitives.ciphers import Cipher
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import constant_time, padding
 from cryptography.hazmat.primitives.hashes import Hash, SHA256, MD5
+
+# Standard imports
+from binascii import hexlify
+# External imports
+from scapy.utils import hexdump
 
 
 def dpapi_decrypt_blob(blob, entropy=None):
@@ -326,3 +333,38 @@ class SCRAM_PBKDF2SHA256(SCRAM_SHA256):
     def salt_key(self, password, salt, rounds):
         pbkdf2 = PBKDF2HMAC(self.ALGORITHM(), self.CLIENT_PROOF_SIZE, salt, rounds, self.backend)
         return pbkdf2.derive(password)
+
+
+def rsec_decrypt(blob, key):
+    """Decrypts a blob of data using SAP's RSEC decryption algorithm. The algorithm is based on
+    the TripleDES.
+
+    The decryption method is used in SSFS but also as part of other encryption schemes (e.g. RSECTAB),
+    hence implemented in the crypto library instead of the particular layer.
+
+    :param blob: encrypted blob to decrypt
+    :type blob: bytes
+
+    :param key: key to use to decrypt
+    :type key: bytes
+
+    :return: decrypted blob
+    :rtype: bytes
+
+    :raise Exception: if decryption failed
+    """
+    if len(key) != 24:
+        raise Exception("Wrong key length")
+
+    blob = [ord(i) for i in blob]
+    key = [ord(i) for i in key]
+    key1 = key[0:8]
+    key2 = key[8:16]
+    key3 = key[16:24]
+
+    cipher = RSECCipher()
+    round_1 = cipher.crypt(RSECCipher.MODE_DECODE, blob, key3, len(blob))
+    round_2 = cipher.crypt(RSECCipher.MODE_ENCODE, round_1, key2, len(round_1))
+    round_3 = cipher.crypt(RSECCipher.MODE_DECODE, round_2, key1, len(round_2))
+
+    return ''.join([chr(i) for i in round_3])

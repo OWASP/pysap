@@ -49,6 +49,7 @@ Features
     * SAP [`SAR` archive files](https://www.iana.org/assignments/media-types/application/vnd.sar)
     * SAP Personal Security Environment (`PSE`) files
     * SAP SSO Credential (`Credv2`) files
+    * SAP Secure Storage in File System (`SSFS`) files
 
 * Library implementing SAP's `LZH` and `LZC` compression algorithms.
 

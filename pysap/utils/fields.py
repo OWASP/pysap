@@ -26,7 +26,7 @@ from scapy.config import conf
 from scapy.packet import Packet
 from scapy.asn1fields import (ASN1F_CHOICE, ASN1F_field, ASN1_Error, ASN1F_badsequence, BER_Decoding_Error)
 from scapy.volatile import (RandNum, RandTermString, RandBin)
-from scapy.fields import (MultiEnumField, StrLenField, Field, StrFixedLenField, StrField, PacketListField)
+from scapy.fields import (MultiEnumField, StrLenField, Field, StrFixedLenField, StrField, PacketListField, LongField)
 
 
 def saptimestamp_to_datetime(timestamp):
@@ -351,6 +351,14 @@ class ASN1F_CHOICE_SAFE(ASN1F_CHOICE):
             except (ASN1_Error, ASN1F_badsequence, BER_Decoding_Error):
                 pass
         raise ASN1_Error
+
+
+class TimestampField(LongField):
+    """Timestamp field"""
+
+    def i2h(self, pkt, x):
+        dt = datetime.utcfromtimestamp(x)
+        return dt.strftime("%Y-%m-%d %H:%M:%S UTC")
 
 
 class LESignedByteField(Field):
