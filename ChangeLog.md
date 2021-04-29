@@ -5,11 +5,12 @@ Changelog
 v0.2.1 - 2021-XX-XX
 -------------------
 
+- Python 2/3 compatible codebase
+
 
 v0.1.19 - 2021-04-29
 --------------------
 
-- Python 2/3 compatible codebase
 - Using Scapy version 2.4.4.
 - `pysap/SAPSSFS.py`: New module for SAP Secure Store in File System file format.
 - `bin/pysaphdbuserstore`: New script for interacting with `hdbuserstore` SSFS files.
