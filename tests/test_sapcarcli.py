@@ -20,21 +20,21 @@
 # Standard imports
 from __future__ import unicode_literals, absolute_import
 import unittest
-
+from os import path
 try:
     from unittest import mock
 except ImportError:
     import mock
-
-from os import path
-
+# External imports
 from testfixtures import LogCapture
+# Custom imports
 from tests.utils import data_filename
 from pysap.sapcarcli import PySAPCAR
 from pysap.SAPCAR import SAPCARArchive, SAPCARArchiveFile, SAPCARInvalidFileException, SAPCARInvalidChecksumException
 
 
 class PySAPCARCLITest(unittest.TestCase):
+
     def setUp(self):
         self.mock_file = mock.Mock(
             spec=SAPCARArchiveFile,
