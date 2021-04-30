@@ -124,6 +124,8 @@ Additional information about the protocols and the research can be found at diff
 
   * `Federated Authentication <https://www.secureauth.com/blog/exploring-the-sap-hana-sql-command-network-protocol-federated-authentication/>`_
 
+* `SecureAuth Innovation Labs Sheds Light on Protecting Credentials in SAP HANA: The Client Secure User Store <https://www.secureauth.com/blog/secureauth-innovation-labs-sheds-light-on-protecting-credentials-in-sap-hana-the-client-secure-user-store/>`_
+
 And advisories:
 
 * `SAP Netweaver Dispatcher Multiple Vulnerabilities <https://www.coresecurity.com/content/sap-netweaver-dispatcher-multiple-vulnerabilities>`_
@@ -165,3 +167,9 @@ Dmitry Chastuhin and Mathieu Geli and published in `(SAP) Gateway to Heaven <htt
 
 The specifications of the ``HDB`` protocol are published in the `SAP HANA SQL Command Network Protocol Reference <https://help.sap.com/viewer/7e4aba181371442d9e4395e7ff71b777/2.0.03/en-US>`_
 guide.
+
+Initial research about the ``SSFS`` file formats and encryption, and the Client Secure Store was performed by Dmitr
+Chastuhin and Vladimir Egorov and published in a series of blogpost now unavailable, and shared by Dmitry at the
+Confidence Security Conference 2014 Edition session
+"`All your SAP Passwords belong to us <https://erpscan.io/wp-content/uploads/presentations/2014-Confidence-All-your-SAP-Passwords-belong-to-us.pdf>`_".
+Additional research was also shared by Yvan Genuer and published in "`The security of ‘SAP Secure Storage. <https://www.cert-devoteam.fr/en/the-security-of-sap-secure-storage/>`_".

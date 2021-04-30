@@ -7,7 +7,7 @@ pysap - Python library for crafting SAP's network protocols packets
 
 SECUREAUTH LABS. Copyright (C) 2021 SecureAuth Corporation. All rights reserved.
 
-Version 0.1.19.dev0 (XXX 2021)
+Version 0.1.20.dev0 (XXX 2021)
 
 
 Overview
@@ -49,6 +49,7 @@ Features
     * SAP [`SAR` archive files](https://www.iana.org/assignments/media-types/application/vnd.sar)
     * SAP Personal Security Environment (`PSE`) files
     * SAP SSO Credential (`Credv2`) files
+    * SAP Secure Storage in File System (`SSFS`) files
 
 * Library implementing SAP's `LZH` and `LZC` compression algorithms.
 
