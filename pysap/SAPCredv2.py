@@ -24,12 +24,16 @@ from binascii import unhexlify
 # External imports
 import six
 from scapy.packet import Packet
+from scapy.compat import plain_str
 from scapy.asn1packet import ASN1_Packet
 from scapy.fields import (ByteField, ByteEnumField, ShortField, StrField, StrFixedLenField)
-from scapy.asn1.asn1 import ASN1_IA5_STRING, ASN1_Codecs
+from scapy.layers.x509 import (X509_RDN, X509_AttributeTypeAndValue,
+                               _attrName_mapping, _attrName_specials)
+from scapy.asn1.asn1 import (ASN1_IA5_STRING, ASN1_Codecs, ASN1_PRINTABLE_STRING,
+                             ASN1_OID)
 from scapy.asn1fields import (ASN1F_SEQUENCE, ASN1F_SEQUENCE_OF, ASN1F_BIT_STRING,
-                              ASN1F_IA5_STRING, ASN1F_INTEGER, ASN1F_SET, ASN1F_OID,
-                              ASN1F_PRINTABLE_STRING, ASN1F_UTF8_STRING, ASN1F_optional)
+                              ASN1F_IA5_STRING, ASN1F_INTEGER, ASN1F_UTF8_STRING,
+                              ASN1F_optional)
 # Import needed to initialize conf.mib
 from scapy.asn1.mib import conf  # noqa: F401
 
@@ -290,26 +294,52 @@ class SAPCredv2_Cred(ASN1_Packet):
         return SAPCredv2_Cred_Plain(plain)
 
 
+_default_subject = [
+    X509_RDN(),
+    X509_RDN(
+        rdn=[X509_AttributeTypeAndValue(
+            type=ASN1_OID("2.5.4.10"),
+            value=ASN1_PRINTABLE_STRING("pysap"))]),
+    X509_RDN(
+        rdn=[X509_AttributeTypeAndValue(
+            type=ASN1_OID("2.5.4.3"),
+            value=ASN1_PRINTABLE_STRING("pysap Default Subject"))])
+]
+
+
 class SAPCredv2_Cred_LPS(ASN1_Packet):
     """SAP Credv2 Credential with LPS definition"""
     ASN1_codec = ASN1_Codecs.BER
     ASN1_root = ASN1F_SEQUENCE(
         ASN1F_INTEGER("version", 2),
-        ASN1F_SEQUENCE(
-            ASN1F_SET(
-                ASN1F_SEQUENCE(
-                    ASN1F_OID("oid", "2.5.4.3"),
-                    ASN1F_PRINTABLE_STRING("value", None)
-                )
-            )
-        ),
+        ASN1F_SEQUENCE_OF("subject", _default_subject, X509_RDN),
         ASN1F_UTF8_STRING("pse_path", None),
         ASN1F_BIT_STRING("cipher", None),
     )
 
+    def get_subject(self):
+        attrs = self.subject
+        attrsDict = {}
+        for attr in attrs:
+            # we assume there is only one name in each rdn ASN1_SET
+            attrsDict[attr.rdn[0].type.oidname] = plain_str(attr.rdn[0].value.val)  # noqa: E501
+        return attrsDict
+
     @property
     def common_name(self):
-        return self.value.val
+        """This reassembles the issuer construction from Scapy's X.509 Certificate class.
+        """
+        name_str = ""
+        attrsDict = self.get_subject()
+        for attrType, attrSymbol in _attrName_mapping:
+            if attrType in attrsDict:
+                name_str += "/" + attrSymbol + "="
+                name_str += attrsDict[attrType]
+        for attrType in sorted(attrsDict):
+            if attrType not in _attrName_specials:
+                name_str += "/" + attrType + "="
+                name_str += attrsDict[attrType]
+        return name_str
 
     @property
     def pse_file_path(self):
