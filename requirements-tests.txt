@@ -1,4 +1,4 @@
 testfixtures==6.17.1
 mock==3.0.5; python_version < '3'
-tox==3.23.0
+tox==3.23.1
 pytest
