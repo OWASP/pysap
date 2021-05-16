@@ -106,7 +106,6 @@ class SAPRouterServerTestHandler(SAPNIServerHandler):
 
         self.packet.decode_payload_as(SAPRouter)
         route_request = self.packet[SAPRouter]
-        route_request.show()
 
         if router_is_route(route_request):
             if route_request.route_string[1].hostname == "10.0.0.1" and \

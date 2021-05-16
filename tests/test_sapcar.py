@@ -48,6 +48,8 @@ class PySAPCARTest(unittest.TestCase):
         for filename in [self.test_filename, self.test_archive_file]:
             if path.exists(filename):
                 unlink(filename)
+        if path.exists(path.join("test", "blah")):
+            unlink(path.join("test", "blah"))
         if path.exists("test"):
             rmdir("test")
 
