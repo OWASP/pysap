@@ -45,10 +45,10 @@ class PySAPCredV2Test(unittest.TestCase):
     pse_path = "/secudir/pse-v2-noreq-DSA-1024-SHA1.pse"
     pse_path_win = "C:\\secudir\\pse-v2-noreq-DSA-1024-SHA1.pse"
 
-    def test_cred_v2_lps_off_3des(self):
-        """Test parsing of a 3DES encrypted credential with LPS off"""
+    def test_cred_v2_lps_off_v0_3des(self):
+        """Test parsing of a version 0 3DES encrypted credential with LPS off"""
 
-        with open(data_filename("cred_v2_lps_off_3des"), "rb") as fd:
+        with open(data_filename("cred_v2_lps_off_v0_3des"), "rb") as fd:
             s = fd.read()
 
         creds = SAPCredv2(s).creds
@@ -66,20 +66,20 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(cred.pse_path, self.pse_path)
         self.assertEqual(cred.unknown2, "")
 
-    def test_cred_v2_lps_off_3des_decrypt(self):
-        """Test decryption of a 3DES encrypted credential with LPS off"""
+    def test_cred_v2_lps_off_v0_3des_decrypt(self):
+        """Test decryption of a version 0 3DES encrypted credential with LPS off"""
 
-        with open(data_filename("cred_v2_lps_off_3des"), "rb") as fd:
+        with open(data_filename("cred_v2_lps_off_v0_3des"), "rb") as fd:
             s = fd.read()
 
         cred = SAPCredv2(s).creds[0].cred
         plain = cred.decrypt(self.decrypt_username)
         self.assertEqual(plain.pin.val, self.decrypt_pin)
 
-    def test_cred_v2_lps_off_dp_3des(self):
-        """Test parsing of a 3DES encrypted credential with LPS off using DP (Windows)"""
+    def test_cred_v2_lps_off_v0_dp_3des(self):
+        """Test parsing of a version 0 3DES encrypted credential with LPS off using DP (Windows)"""
 
-        with open(data_filename("cred_v2_lps_off_dp_3des"), "rb") as fd:
+        with open(data_filename("cred_v2_lps_off_v0_dp_3des"), "rb") as fd:
             s = fd.read()
 
         creds = SAPCredv2(s).creds
@@ -97,20 +97,20 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(cred.pse_path, self.pse_path_win)
         self.assertEqual(cred.unknown2, "")
 
-    def test_cred_v2_lps_off_dp_3des_decrypt(self):
-        """Test decryption of a 3DES encrypted credential with LPS off using DP (Windows)"""
+    def test_cred_v2_lps_off_v0_dp_3des_decrypt(self):
+        """Test decryption of a version 0 3DES encrypted credential with LPS off using DP (Windows)"""
 
-        with open(data_filename("cred_v2_lps_off_dp_3des"), "rb") as fd:
+        with open(data_filename("cred_v2_lps_off_v0_dp_3des"), "rb") as fd:
             s = fd.read()
 
         cred = SAPCredv2(s).creds[0].cred
         plain = cred.decrypt(self.decrypt_username)
         self.assertEqual(plain.option1, SAPCredv2_Cred_Plain.PROVIDER_MSCryptProtect)
 
-    def test_cred_v2_lps_off_aes256(self):
-        """Test parsing of a AES256 encrypted credential with LPS off"""
+    def test_cred_v2_lps_off_v1_aes256(self):
+        """Test parsing of a version 1 AES256 encrypted credential with LPS off"""
 
-        with open(data_filename("cred_v2_lps_off_aes256"), "rb") as fd:
+        with open(data_filename("cred_v2_lps_off_v1_aes256"), "rb") as fd:
             s = fd.read()
 
         creds = SAPCredv2(s).creds
@@ -128,20 +128,20 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(cred.pse_path, self.pse_path)
         self.assertEqual(cred.unknown2, "")
 
-    def test_cred_v2_lps_off_aes256_decrypt(self):
-        """Test decryption of a AES256 encrypted credential with LPS off"""
+    def test_cred_v2_lps_off_v1_aes256_decrypt(self):
+        """Test decryption of a version 1 AES256 encrypted credential with LPS off"""
 
-        with open(data_filename("cred_v2_lps_off_aes256"), "rb") as fd:
+        with open(data_filename("cred_v2_lps_off_v1_aes256"), "rb") as fd:
             s = fd.read()
 
         cred = SAPCredv2(s).creds[0].cred
         plain = cred.decrypt(self.decrypt_username)
         self.assertEqual(plain.pin.val, self.decrypt_pin)
 
-    def test_cred_v2_lps_on_int_aes256(self):
-        """Test parsing of a AES256 encrypted credential with LPS on, INT type"""
+    def test_cred_v2_lps_on_v2_int_aes256(self):
+        """Test parsing of a version 2 AES256 encrypted credential with LPS on, INT type"""
 
-        with open(data_filename("cred_v2_lps_on_int_aes256"), "rb") as fd:
+        with open(data_filename("cred_v2_lps_on_v2_int_aes256"), "rb") as fd:
             s = fd.read()
 
         creds = SAPCredv2(s).creds
@@ -159,20 +159,20 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(cred.version.val, 2)
         self.assertEqual(cred.pse_path, self.pse_path)
 
-    def test_cred_v2_lps_on_int_aes256_decrypt(self):
-        """Test decryption of a AES256 encrypted credential with LPS on, INT type"""
+    def test_cred_v2_lps_on_v2_int_aes256_decrypt(self):
+        """Test decryption of a version 2 AES256 encrypted credential with LPS on, INT type"""
 
-        with open(data_filename("cred_v2_lps_on_int_aes256"), "rb") as fd:
+        with open(data_filename("cred_v2_lps_on_v2_int_aes256"), "rb") as fd:
             s = fd.read()
 
         cred = SAPCredv2(s).creds[0].cred
         plain = cred.decrypt()
         self.assertEqual(plain.pin.val, self.decrypt_pin)
 
-    def test_cred_v2_lps_on_dp_aes256(self):
-        """Test parsing of a AES256 encrypted credential with LPS on, DP type"""
+    def test_cred_v2_lps_on_v2_dp_aes256(self):
+        """Test parsing of a version 2 AES256 encrypted credential with LPS on, DP type"""
 
-        with open(data_filename("cred_v2_lps_on_dp_aes256"), "rb") as fd:
+        with open(data_filename("cred_v2_lps_on_v2_dp_aes256"), "rb") as fd:
             s = fd.read()
 
         creds = SAPCredv2(s).creds
@@ -190,12 +190,12 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(cred.version.val, 2)
         self.assertEqual(cred.pse_path, self.pse_path_win)
 
-    def test_cred_v2_lps_on_int_aes256_composed_subject(self):
-        """Test parsing of a AES256 encrypted credential with LPS on, INT type, and
-        pointing to a PSE with a composed subject
+    def test_cred_v2_lps_on_v2_int_aes256_composed_subject(self):
+        """Test parsing of a version 2 AES256 encrypted credential with LPS on, INT type,
+        and pointing to a PSE with a composed subject
         """
 
-        with open(data_filename("cred_v2_lps_on_int_aes256_composed_subject"), "rb") as fd:
+        with open(data_filename("cred_v2_lps_on_v2_int_aes256_composed_subject"), "rb") as fd:
             s = fd.read()
 
         c = SAPCredv2(s)
