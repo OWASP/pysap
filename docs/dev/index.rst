@@ -33,7 +33,7 @@ For example, installation on a Ubuntu box would require the following commands::
 
 Python packages can be installed using ::
 
-    $ pip install pysap[docs]
+    $ python -m pip install pysap[docs]
 
 
 Notebooks
