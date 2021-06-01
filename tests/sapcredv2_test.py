@@ -217,8 +217,8 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(cred.lps_type, 0)
         self.assertEqual(cred.cipher_format_version, 2)
         self.assertEqual(cred.version.val, 2)
-        self.assertEqual(cred.pse_file_path, "/home/martin/sec/test.pse")
-        self.assertEqual(cred.pse_path, "/home/martin/sec/test.pse")
+        self.assertEqual(cred.pse_file_path, self.pse_path)
+        self.assertEqual(cred.pse_path, self.pse_path)
 
         self.validate_credv2_plain(cred)
 
