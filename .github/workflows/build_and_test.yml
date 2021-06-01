@@ -22,8 +22,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip wheel
-          pip install flake8 six
-          pip install -r requirements.txt
+          python -m pip install flake8 six
+          python -m pip install -r requirements.txt
       - name: Run flake8 tests
         run: |
           flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
@@ -58,13 +58,16 @@ jobs:
       - name: Install Windows dependencies
         if: runner.os == 'Windows'
         run: |
-          choco install vcpython27 -f -y
+          choco install vcredist2008 -f -y
+          choco install dotnet3.5 -f -y
+          (New-Object System.Net.WebClient).DownloadFile("https://web.archive.org/web/20200803210206if_/https://download.microsoft.com/download/7/9/6/796EF2E4-801B-4FC4-AB28-B59FBF6D907B/VCForPython27.msi", "VCForPython27.msi")
+          msiexec.exe /i VCForPython27.msi ALLUSERS=1 /qn /norestart
 
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -r requirements.txt
-          pip install -r requirements-tests.txt
+          python -m pip install -r requirements.txt
+          python -m pip install -r requirements-tests.txt
 
       - name: Run unit tests
         run: |
@@ -98,7 +101,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -r requirements-docs.txt
+          python -m pip install -r requirements-docs.txt
 
       - name: Install the library
         run: |

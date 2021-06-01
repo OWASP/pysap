@@ -65,7 +65,7 @@ Installation
 
 To install pysap simply run:
 
-    $ pip install pysap
+    $ python -m pip install pysap
 
 pysap is compatible and tested with Python 2.7. A Python 2/3 compatible version
 is [in the workings](https://github.com/SecureAuthCorp/pysap/tree/python2-3) but
