@@ -65,16 +65,16 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          python2 -m pip install --upgrade pip wheel
-          python2 -m pip install -r requirements.txt
+          python -m pip install --upgrade pip wheel
+          python -m pip install -r requirements.txt
 
       - name: Run unit tests
         run: |
-          python2 setup.py test
+          python setup.py test
 
       - name: Build wheel artifact
         run: |
-          python2 setup.py bdist_wheel
+          python setup.py bdist_wheel
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v2
         with:
