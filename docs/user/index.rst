@@ -52,13 +52,12 @@ Installation with pip
 Installing pysap is simple with `pip <https://pip.pypa.io/>`_, just run the
 following command on a terminal::
 
-    $ pip install pysap
+    $ python -m pip install pysap
 
 Some example scripts has additional required libraries:
 
 - ``tabulate``
 - ``netaddr``
-- ``cryptography``
 - ``requests``
 - `wxPython <https://www.wxpython.org/>`_
 - `fau_timer <https://github.com/seecurity/mona-timing-lib>`_
@@ -66,7 +65,7 @@ Some example scripts has additional required libraries:
 Some of those extra libraries can be installed with `pip`_ running the following
 command::
 
-    $ pip install pysap[examples]
+    $ python -m pip install pysap[examples]
 
 
 Manual installation
@@ -75,7 +74,7 @@ Manual installation
 The tool relays on the `Scapy <https://scapy.net/>`_ library for crafting
 packets. To install the required libraries use::
 
-    $ pip install -r requirements.txt
+    $ python -m pip install -r requirements.txt
 
 Once you have downloaded pysap's sources, you can install it easily using
 the Python's ``setuptools`` script provided:
