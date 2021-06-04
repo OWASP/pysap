@@ -495,6 +495,10 @@ class SAPHDBPartStatementContext(SAPHDBOptionPartRow):
         2: "Server Processing Time",
         3: "Schema Name",
         4: "Flag Set",
+        5: "Query Time Out",
+        6: "Client Reconnection Wait Timeout",
+        7: "Server CPU Time",
+        8: "Server Memory Usage",
     }
 
 
