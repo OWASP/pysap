@@ -61,8 +61,8 @@ class SAPSSFSLock(Packet):
         ByteField("file_type", 0),
         ByteField("type", 0),
         TimestampField("timestamp", None),
-        StrFixedLenPaddedField("user", None, 24, padd=" "),
-        StrFixedLenPaddedField("host", None, 24, padd=" "),
+        StrFixedLenPaddedField("user", None, 24, padd=b(" ")),
+        StrFixedLenPaddedField("host", None, 24, padd=b(" ")),
     ]
 
 
@@ -77,8 +77,8 @@ class SAPSSFSKey(Packet):
         ByteField("type", 1),
         StrFixedLenField("key", None, 24),
         TimestampField("timestamp", None),
-        StrFixedLenPaddedField("user", None, 24, padd=" "),
-        StrFixedLenPaddedField("host", None, 24, padd=" "),
+        StrFixedLenPaddedField("user", None, 24, padd=b(" ")),
+        StrFixedLenPaddedField("host", None, 24, padd=b(" ")),
     ]
 
 
@@ -102,7 +102,7 @@ class SAPSSFSDecryptedPayload(PacketNoPadded):
     @property
     def valid(self):
         """Returns whether the SHA1 value is valid for the given payload"""
-        blob = str(self)
+        blob = bytes(self)
 
         digest = Hash(SHA1(), backend=default_backend())
         digest.update(blob[:8])
@@ -130,10 +130,10 @@ class SAPSSFSDataRecord(PacketNoPadded):
         ByteField("type", 1),   # Record type "1" supported
         StrFixedLenField("filler1", None, 7),
         # Data Header
-        StrFixedLenPaddedField("key_name", None, 64, padd=" "),
+        StrFixedLenPaddedField("key_name", None, 64, padd=b(" ")),
         TimestampField("timestamp", None),
-        StrFixedLenPaddedField("user", None, 24, padd=" "),
-        StrFixedLenPaddedField("host", None, 24, padd=" "),
+        StrFixedLenPaddedField("user", None, 24, padd=b(" ")),
+        StrFixedLenPaddedField("host", None, 24, padd=b(" ")),
         YesNoByteField("is_deleted", 0),
         YesNoByteField("is_stored_as_plaintext", 0),
         YesNoByteField("is_binary_data", 0),
@@ -154,7 +154,7 @@ class SAPSSFSDataRecord(PacketNoPadded):
         log_ssfs.debug("Decrypting record {}".format(self.key_name))
         decrypted_data = rsec_decrypt(self.data, key.key)
         decrypted_payload = SAPSSFSDecryptedPayload(decrypted_data)
-        log_ssfs.warn("Decrypted payload integrity is {}".format(decrypted_payload.valid))
+        log_ssfs.warning("Decrypted payload integrity is {}".format(decrypted_payload.valid))
         return decrypted_payload.data
 
     @property
@@ -192,7 +192,7 @@ class SAPSSFSData(Packet):
         """Returns if the data file contains a record with a given key name.
 
         :param key_name: the name of the key to look for
-        :type key_name: string
+        :type key_name: bytes
 
         :return: if the data file contains the record with key_name
         :rtype: bool
@@ -206,7 +206,7 @@ class SAPSSFSData(Packet):
         """Generator to retrieve records with the given key name.
 
         :param key_name: the name of the key to look for
-        :type key_name: string
+        :type key_name: bytes
 
         :return: the record with key_name
         :rtype: SAPSSFSDataRecord
@@ -219,7 +219,7 @@ class SAPSSFSData(Packet):
         """Returns the first record with the given key name.
 
         :param key_name: the name of the key to look for
-        :type key_name: string
+        :type key_name: bytes
 
         :return: the record with key_name
         :rtype: SAPSSFSDataRecord
@@ -230,7 +230,7 @@ class SAPSSFSData(Packet):
         """Returns the value with the given key name.
 
         :param key_name: the name of the key to look for
-        :type key_name: string
+        :type key_name: bytes
 
         :param key: the encryption key
         :type key: SAPSSFSKey

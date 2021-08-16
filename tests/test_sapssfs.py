@@ -23,7 +23,7 @@ import unittest
 from six import b
 # Custom imports
 from tests.utils import data_filename
-from pysap.SAPSSFS import (SAPSSFSKey, SAPSSFSData, SAPSSFSLock)
+from pysap.SAPSSFS import (SAPSSFSKey, SAPSSFSData)
 
 
 class PySAPSSFSKeyTest(unittest.TestCase):
@@ -103,22 +103,21 @@ class PySAPSSFSDataTest(unittest.TestCase):
 
             # Now tamper with the header
             original_user = record.user
-            record.user = "NewUser"
-            record.show()
+            record.user = b("NewUser")
             self.assertFalse(record.valid)
             record.user = original_user
             self.assertTrue(record.valid)
 
             # Now tamper with the data
             orginal_data = record.data
-            record.data = orginal_data + "AddedDataBytes"
+            record.data = orginal_data + b("AddedDataBytes")
             self.assertFalse(record.valid)
             record.data = orginal_data
             self.assertTrue(record.valid)
 
             # Now tamper with the HMAC
             orginal_hmac = record.hmac
-            record.hmac = orginal_hmac[:-1] + "A"
+            record.hmac = orginal_hmac[:-1] + b("A")
             self.assertFalse(record.valid)
             record.hmac = orginal_hmac
             self.assertTrue(record.valid)
