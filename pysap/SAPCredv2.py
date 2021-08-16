@@ -1,10 +1,6 @@
-# ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
 # SECUREAUTH LABS. Copyright (C) 2021 SecureAuth Corporation. All rights reserved.
-#
-# The library was designed and developed by Martin Gallo from
-# the SecureAuth's Innovation Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -15,8 +11,10 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# ==============
-
+#
+# Author:
+#   Martin Gallo (@martingalloar) from SecureAuth's Innovation Labs team.
+#
 
 # Standard imports
 import logging
@@ -224,6 +222,38 @@ class SAPCredv2_Cred(ASN1_Packet):
 
         return SAPCredv2_Cred_Plain(plain)
 
+    def xor(self, string, start):
+        """XOR a given string using a fixed key and a starting number."""
+        key = 0x15a4e35
+        x = start
+        y = ""
+        for c in string:
+            x *= key
+            x += 1
+            y += chr(ord(c) ^ (x & 0xff))
+        return y
+
+    def derive_key(self, key, blob, header, username):
+        """Derive a key using SAP's algorithm. The key is derived using SHA256 and xor from an
+        initial key, a header, salt and username.
+        """
+        digest = Hash(SHA256(), backend=default_backend())
+        digest.update(key)
+        digest.update(blob[0:4])
+        digest.update(header.salt)
+        digest.update(self.xor(username, ord(header.salt[0])))
+        digest.update(b"" * 0x20)
+        hashed = digest.finalize()
+        derived_key = self.xor(hashed, ord(header.salt[1]))
+
+        # Validate and select proper algorithm
+        if header.algorithm == CIPHER_ALGORITHM_3DES:
+            return algorithms.TripleDES, derived_key[:24], header.iv[:8], header.iv[8:] + header.cipher_text
+        elif header.algorithm == CIPHER_ALGORITHM_AES256:
+            return algorithms.AES, derived_key, header.iv, header.cipher_text
+        else:
+            raise SAPCredv2_Decryption_Error("Algorithm not supported")
+
     def decrypt_with_header(self, username):
         """Decrypt a credential file using the header. It handles 3DES and AES256 algorithms.
         Tries to parse the decrypted object into a plain credential object type. If it fails,
@@ -245,51 +275,15 @@ class SAPCredv2_Cred(ASN1_Packet):
         if header.version != 1:
             raise SAPCredv2_Decryption_Error("Version not supported")
 
-        # Validate and select proper algorithm
-        if header.algorithm == CIPHER_ALGORITHM_3DES:
-            algorithm = algorithms.TripleDES
-        elif header.algorithm == CIPHER_ALGORITHM_AES256:
-            algorithm = algorithms.AES
-        else:
-            raise SAPCredv2_Decryption_Error("Algorithm not supported")
-
-        def xor(string, start):
-            """XOR a given string using a fixed key and a starting number."""
-            key = 0x15a4e35
-            x = start
-            y = b""
-            for c in string:
-                x *= key
-                x += 1
-                if six.PY2:
-                    y += chr(ord(c) ^ (x & 0xff))
-                elif six.PY3:
-                    y += six.int2byte(c ^ (x & 0xff))
-            return y
-
-        def derive_key(key, header, salt, username):
-            """Derive a key using SAP's algorithm. The key is derived using SHA256 and xor from an
-            initial key, a header, salt and username.
-            """
-            digest = Hash(SHA256(), backend=default_backend())
-            digest.update(key)
-            digest.update(header)
-            digest.update(salt)
-            digest.update(xor(username, six.byte2int(salt)))
-            digest.update(b"" * 0x20)
-            hashed = digest.finalize()
-            derived_key = xor(hashed, six.indexbytes(salt, 1))
-            return derived_key
-
-        # Derive the key using SAP's algorithm
-        key = derive_key(six.b(cred_key_fmt), blob[0:4], header.salt, six.b(username))
+        # Derive the key according to SAP's algorithm
+        algorithm, key, iv, cipher_text = self.derive_key(cred_key_fmt, blob, header, username)
 
         # Decrypt the cipher text with the derived key and IV
-        decryptor = Cipher(algorithm(key), modes.CBC(header.iv), backend=default_backend()).decryptor()
-        plain = decryptor.update(header.cipher_text) + decryptor.finalize()
+        decryptor = Cipher(algorithm(key), modes.CBC(iv), backend=default_backend()).decryptor()
+        plain = decryptor.update(cipher_text) + decryptor.finalize()
 
         # Perform a final xor over the decrypted content with a fixed key
-        plain = xor(plain, 0x64FB914E)
+        plain = self.xor(plain, 0x64FB914E)
 
         return SAPCredv2_Cred_Plain(plain)
 

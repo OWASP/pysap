@@ -2,6 +2,8 @@
 include ChangeLog.md
 include COPYING
 include README.md
+include SECURITY.md
+
 include requirements.txt
 include requirements-docs.txt
 include requirements-examples.txt

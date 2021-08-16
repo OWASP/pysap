@@ -1,5 +1,4 @@
 #!/usr/bin/env python2
-# ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
 # SECUREAUTH LABS. Copyright (C) 2021 SecureAuth Corporation. All rights reserved.
@@ -16,7 +15,10 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# ==============
+#
+# Author:
+#   Martin Gallo (@martingalloar) from SecureAuth's Innovation Labs team.
+#
 
 # Standard imports
 import re

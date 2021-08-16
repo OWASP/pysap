@@ -80,19 +80,8 @@ Documentation is available at [Read the Docs](https://pysap.readthedocs.io/en/la
 License
 -------
 
-This library is distributed under the GPLv2 license. Check the `COPYING` file for
-more details.
-
-
-Disclaimer
-----------
-
-The spirit of this open source initiative is hopefully to help the community to
-alleviate some of the hindrances associated with the implementation of
-networking protocols and stacks, aiming at speeding up research and educational
-activities. By no means this package is meant to be used in production
-environments / commercial products. If so, we would advise to include it into a
-proper SDLC process.
+This library is distributed under the GPLv2 license. Check the [COPYING](COPYING)
+file for more details.
 
 
 Authors
@@ -124,10 +113,28 @@ Contributions made by:
   * Andreas Hornig
   * Jennifer Hornig ([@gloomicious](https://github.com/gloomicious))
 
+Disclaimer
+----------
 
-Contact
--------
+The spirit of this Open Source initiative is to help security researchers,
+and the community, speed up research and educational activities related to
+the implementation of networking protocols and stacks.
 
-Whether you want to report a bug or give some suggestions on this package, drop
-us a few lines at `oss@secureauth.com` or contact the author email
-`mgallo@secureauth.com`.
+The information in this repository is for research and educational purposes
+only and is not intended to be used in production environments and/or as part
+of commercial products.
+
+If you desire to use this tool or some part of it for your own uses, we
+recommend applying proper security development life cycle and secure coding
+practices, as well as generate and track the respective indicators of
+compromise according to your needs.
+
+
+Contact Us
+----------
+
+Whether you want to report a bug, send a patch, or give some suggestions
+on this package, drop us a few lines at oss@secureauth.com.
+
+For security-related questions check our [security policy](SECURITY.md).
+
