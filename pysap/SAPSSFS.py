@@ -21,6 +21,7 @@
 # Standard imports
 import logging
 # External imports
+from six import b
 from scapy.packet import Packet
 from scapy.fields import (ByteField, YesNoByteField, LenField, StrFixedLenField, StrField, PacketListField)
 from cryptography.exceptions import InvalidSignature
@@ -36,7 +37,7 @@ from pysap.utils.fields import PacketNoPadded, StrFixedLenPaddedField, Timestamp
 log_ssfs = logging.getLogger("pysap.ssfs")
 
 
-ssfs_hmac_key_unobscured = "\xe3\xa0\x61\x11\x85\x41\x68\x99\xf3\x0e\xda\x87\x7a\x80\xcc\x69"
+ssfs_hmac_key_unobscured = b("\xe3\xa0\x61\x11\x85\x41\x68\x99\xf3\x0e\xda\x87\x7a\x80\xcc\x69")
 """Fixed key embedded in rsecssfx binaries for validating integrity of records"""
 
 
@@ -159,10 +160,9 @@ class SAPSSFSDataRecord(PacketNoPadded):
     @property
     def valid(self):
         """Returns whether the HMAC-SHA1 value is valid for the given payload"""
-
         # Calculate the HMAC-SHA1
         h = HMAC(ssfs_hmac_key_unobscured, SHA1(), backend=default_backend())
-        h.update(str(self)[24:156])  # Entire Data header without the HMAC field
+        h.update(bytes(self)[24:156])  # Entire Data header without the HMAC field
         h.update(self.data)
 
         # Validate the signature
@@ -198,7 +198,7 @@ class SAPSSFSData(Packet):
         :rtype: bool
         """
         for record in self.records:
-            if record.key_name.rstrip(" ") == key_name:
+            if record.key_name.rstrip(b(" ")) == key_name:
                 return True
         return False
 
@@ -212,7 +212,7 @@ class SAPSSFSData(Packet):
         :rtype: SAPSSFSDataRecord
         """
         for record in self.records:
-            if record.key_name.rstrip(" ") == key_name:
+            if record.key_name.rstrip(b(" ")) == key_name:
                 yield record
 
     def get_record(self, key_name):

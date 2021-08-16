@@ -21,7 +21,7 @@
 import os
 import math
 # Custom imports
-from rsec import RSECCipher
+from .rsec import RSECCipher
 # External imports
 from six import b
 from six.moves import xrange
@@ -358,8 +358,14 @@ def rsec_decrypt(blob, key):
     if len(key) != 24:
         raise Exception("Wrong key length")
 
-    blob = [ord(i) for i in blob]
-    key = [ord(i) for i in key]
+    try:
+        blob = [ord(i) for i in blob]
+    except TypeError:
+        blob = [i for i in blob]
+    try:
+        key = [ord(i) for i in key]
+    except TypeError:
+        key = [i for i in key]
     key1 = key[0:8]
     key2 = key[8:16]
     key3 = key[16:24]
