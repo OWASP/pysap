@@ -1,9 +1,10 @@
 Changelog
 =========
 
-v0.1.20 - 2021-XX-XX
---------------------
+v0.2.1 - 2022-XX-XX
+-------------------
 
+- Python 2/3 compatible codebase
 - `pysap/SAPCredv2.py`: Added subject fields instead of commonName for LPS-enabled credentials ([\#35](https://github.com/SecureAuthCorp/pysap/issues/35)). Thanks [@rstenet](https://github.com/rstenet)!
 - `pysap/SAPCredv2.py`: Add support for cipher format version 1 with 3DES ([\#35](https://github.com/SecureAuthCorp/pysap/issues/35) and [\#37](https://github.com/SecureAuthCorp/pysap/pull/37)). Thanks [@rstenet](https://github.com/rstenet)!
 - `pysap/SAPHDB.py`: Added missing `StatementContextOption` values (see [\#22](https://github.com/SecureAuthCorp/SAP-Dissection-plug-in-for-Wireshark/issues/22)).

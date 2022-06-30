@@ -5,9 +5,9 @@ pysap - Python library for crafting SAP's network protocols packets
 [![Latest Version](https://img.shields.io/pypi/v/pysap.svg)](https://pypi.python.org/pypi/pysap/)
 [![Documentation Status](http://readthedocs.org/projects/pysap/badge/?version=latest)](http://pysap.readthedocs.io/en/latest/?badge=latest)
 
-SECUREAUTH LABS. Copyright (C) 2021 SecureAuth Corporation. All rights reserved.
+SECUREAUTH LABS. Copyright (C) 2022 SecureAuth Corporation. All rights reserved.
 
-Version 0.1.20.dev0 (XXX 2021)
+Version 0.2.1.dev0 (XXX 2022)
 
 
 Overview
@@ -21,7 +21,7 @@ formats as well. While some of them are standard and well-known protocols, other
 are proprietaries and public information is generally not available.
 
 [pysap](https://www.secureauth.com/labs/open-source-tools/pysap)
-is an open source Python 2 library that provides modules for crafting and sending packets
+is an open source Python 2/3 library that provides modules for crafting and sending packets
 using SAP's `NI`, `Diag`, `Enqueue`, `Router`, `MS`, `SNC`, `IGS`, `RFC` and `HDB`
 protocols. In addition, support for creating and parsing different proprietary file
 formats is included. The modules are built on top of [Scapy](https://scapy.net/) and are
@@ -67,9 +67,7 @@ To install pysap simply run:
 
     $ python -m pip install pysap
 
-pysap is compatible and tested with Python 2.7. A Python 2/3 compatible version
-is [in the workings](https://github.com/SecureAuthCorp/pysap/tree/python2-3) but
-it's [not finalized yet](https://github.com/SecureAuthCorp/pysap/projects/1).
+pysap is compatible and tested with Python 2.7/3.8.
 
 Documentation
 -------------
