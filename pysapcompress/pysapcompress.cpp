@@ -21,12 +21,16 @@
 # ==============
 */
 
+/* Python 3.10 requires PY_SSIZE_T_CLEAN macro when using PyArg_ParseTuple() with "s#" format */
+#define PY_SSIZE_T_CLEAN
+
 #include <Python.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <limits.h>
 
 #include "hpa101saptype.h"
 #include "hpa104CsObject.h"
@@ -382,6 +386,7 @@ pysapcompress_compress(PyObject *self, PyObject *args, PyObject *keywds)
     const unsigned char *in = NULL;
     unsigned char *out = NULL;
     int status = 0, in_length = 0, out_length = 0, algorithm = ALG_LZC;
+	Py_ssize_t in_length_arg = 0;
 
     /* Define the keyword list */
     static char kwin[] = "in";
@@ -389,8 +394,15 @@ pysapcompress_compress(PyObject *self, PyObject *args, PyObject *keywds)
     static char* kwlist[] = {kwin, kwalgorithm, NULL};
 
     /* Parse the parameters. We are also interested in the length of the input buffer. */
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, BYTES_FORMAT"|i", kwlist, &in, &in_length, &algorithm))
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, BYTES_FORMAT"|i", kwlist, &in, &in_length_arg, &algorithm))
         return (NULL);
+
+	/* Check the size of length args and convert from Py_ssize_t to int */
+	if (in_length_arg > INT_MAX) {
+		return (PyErr_Format(compression_exception, "Compression error (Input length is larger than INT_MAX)"));
+    }
+
+	in_length = Py_SAFE_DOWNCAST(in_length_arg, Py_ssize_t, int);
 
     /* Call the compression function */
     status = compress_packet(in, in_length, &out, &out_length, algorithm);
@@ -425,10 +437,20 @@ pysapcompress_decompress(PyObject *self, PyObject *args)
     const unsigned char *in = NULL;
     unsigned char *out = NULL;
     int status = 0, in_length = 0, out_length = 0;
+	Py_ssize_t in_length_arg = 0, out_length_arg = 0;
 
     /* Parse the parameters. We are also interested in the length of the input buffer. */
-    if (!PyArg_ParseTuple(args, BYTES_FORMAT"i", &in, &in_length, &out_length))
+    if (!PyArg_ParseTuple(args, BYTES_FORMAT"i", &in, &in_length_arg, &out_length_arg))
         return (NULL);
+
+	/* Check the size of length args and convert from Py_ssize_t to int */
+	if (in_length_arg > INT_MAX)
+		return (PyErr_Format(decompression_exception, "Decompression error (Input length is larger than INT_MAX)"));
+	if (out_length_arg > INT_MAX)
+		return (PyErr_Format(decompression_exception, "Decompression error (Output length is larger than INT_MAX)"));
+
+	in_length = Py_SAFE_DOWNCAST(in_length_arg, Py_ssize_t, int);
+	out_length = Py_SAFE_DOWNCAST(out_length_arg, Py_ssize_t, int);
 
     /* Call the compression function */
     status = decompress_packet(in, in_length, &out, &out_length);
