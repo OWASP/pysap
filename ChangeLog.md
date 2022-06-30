@@ -1,7 +1,7 @@
 Changelog
 =========
 
-v0.1.20 - 2021-XX-XX
+v0.1.20 - 2022-XX-XX
 --------------------
 
 - `pysap/SAPCredv2.py`: Added subject fields instead of commonName for LPS-enabled credentials ([\#35](https://github.com/SecureAuthCorp/pysap/issues/35)). Thanks [@rstenet](https://github.com/rstenet)!
