@@ -96,7 +96,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install Linux dependencies
         run: |
-          sudo apt-get install pandoc texlive-latex-base
+          sudo apt-get install pandoc texlive-latex-base ghostscript
       - name: Install Python dependencies
         run: |
           python2 -m pip install --upgrade pip wheel
