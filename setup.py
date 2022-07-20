@@ -19,8 +19,8 @@
 
 # Standard imports
 from sys import exit
-from os import system
 from glob import glob
+from subprocess import call
 from setuptools import setup, Extension, Command
 # Custom imports
 import pysap
@@ -42,7 +42,7 @@ class DocumentationCommand(Command):
     def run(self):
         """Runs Sphinx
         """
-        exit(system("cd docs && make html"))
+        exit(call("cd docs && make html", shell=True))
 
 
 class PreExecuteNotebooksCommand(Command):
@@ -70,7 +70,7 @@ class PreExecuteNotebooksCommand(Command):
     def run(self):
         """Pre executes notebooks."""
         for notebook in self.notebooks:
-            system("jupyter nbconvert --inplace --to notebook --execute {}".format(notebook))
+            exit(call("jupyter nbconvert --inplace --to notebook --execute {}".format(notebook), shell=True))
 
 
 sapcompress_macros = [
