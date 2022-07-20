@@ -69,8 +69,10 @@ class PreExecuteNotebooksCommand(Command):
 
     def run(self):
         """Pre executes notebooks."""
+        status = 0
         for notebook in self.notebooks:
-            exit(call("jupyter nbconvert --inplace --to notebook --execute {}".format(notebook), shell=True))
+            status |= call("jupyter nbconvert --inplace --to notebook --execute {}".format(notebook), shell=True)
+        exit(status)
 
 
 sapcompress_macros = [
