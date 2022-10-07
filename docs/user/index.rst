@@ -5,7 +5,7 @@ User guide
 ==========
 
 The following parts of the documentation contains some background information about
-`pysap <https://www.secureauth.com/labs/open-source-tools/pysap>`_, as well as some
+`pysap <https://owasp.org/www-project-core-business-application-security/>`_, as well as some
 step-by-step instructions for installing, configuring and using pysap.
 
 
@@ -14,7 +14,7 @@ Projects using pysap
 
 The following projects, tools and repositories are known to be using pysap:
 
-* `HoneySAP <https://github.com/SecureAuthCorp/HoneySAP>`_: HoneySAP is a
+* `HoneySAP <https://github.com/OWASP/HoneySAP>`_: HoneySAP is a
   low-interaction research-focused honeypot specific for SAP services. HoneySAP uses
   pysap as a library in order to craft and parse different protocol network packets.
 

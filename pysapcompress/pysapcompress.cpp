@@ -1,7 +1,6 @@
 /*
-# pysapcompress - SAP Compression library wrapper for Python
-#
-# SECUREAUTH LABS. Copyright (C) 2022 SecureAuth Corporation. All rights reserved.
+# encoding: utf-8
+# pysap - Python library for crafting SAP's network protocols packets
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -14,7 +13,8 @@
 # GNU General Public License for more details.
 #
 # Author:
-#   Martin Gallo (@martingalloar) from SecureAuth's Innovation Labs team.
+#   Martin Gallo (@martingalloar)
+#   Code contributed by SecureAuth to the OWASP CBAS project
 #   Based on the work performed by Dennis Yurichev <dennis@conus.info>
 #
 */

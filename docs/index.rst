@@ -14,7 +14,7 @@ uses different network protocols and some services and tools make use of custom 
 formats as well. While some of them are standard and well-known protocols, others
 are proprietaries and public information is generally not available.
 
-`pysap <https://www.secureauth.com/labs/open-source-tools/pysap>`_
+`pysap <https://owasp.org/www-project-core-business-application-security/>`_
 is an open source Python 2 library that provides modules for crafting and sending packets
 using SAP's ``NI``, ``Diag``, ``Enqueue``, ``Router``, ``MS``, ``SNC``, ``IGS``, ``RFC``
 and ``HDB`` protocols. In addition, support for creating and parsing different proprietary

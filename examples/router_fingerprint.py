@@ -1,7 +1,6 @@
 #!/usr/bin/env python2
+# encoding: utf-8
 # pysap - Python library for crafting SAP's network protocols packets
-#
-# SECUREAUTH LABS. Copyright (C) 2022 SecureAuth Corporation. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -14,7 +13,8 @@
 # GNU General Public License for more details.
 #
 # Author:
-#   Martin Gallo (@martingalloar) from SecureAuth's Innovation Labs team.
+#   Martin Gallo (@martingalloar)
+#   Code contributed by SecureAuth to the OWASP CBAS project
 #
 
 # Standard imports
@@ -296,7 +296,7 @@ def main():
             logging.info("[-] Request: %s" % target)
 
         logging.info("\n[-] Some error values where not found in the fingerprint database. "
-                     "If you want to contribute submit a issue to https://github.com/SecureAuthCorp/pysap "
+                     "If you want to contribute submit a issue to https://github.com/OWASP/pysap/ "
                      "or write an email to mgallo@secureauth.com with the following information along "
                      "with the SAP Router file information and how it was configured.\n")
         options.new_entries = True

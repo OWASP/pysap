@@ -1,11 +1,9 @@
 pysap - Python library for crafting SAP's network protocols packets
 ===================================================================
 
-[![Build and test pysap](https://github.com/SecureAuthCorp/pysap/workflows/Build%20and%20test%20pysap/badge.svg)](https://github.com/SecureAuthCorp/pysap/actions?query=workflow%3A%22Build+and+test+pysap%22)
+[![Build and test pysap](https://github.com/OWASP/pysap/workflows/Build%20and%20test%20pysap/badge.svg)](https://github.com/OWASP/pysap/actions?query=workflow%3A%22Build+and+test+pysap%22)
 [![Latest Version](https://img.shields.io/pypi/v/pysap.svg)](https://pypi.python.org/pypi/pysap/)
 [![Documentation Status](http://readthedocs.org/projects/pysap/badge/?version=latest)](http://pysap.readthedocs.io/en/latest/?badge=latest)
-
-SECUREAUTH LABS. Copyright (C) 2022 SecureAuth Corporation. All rights reserved.
 
 Version 0.1.20.dev0 (XXX 2022)
 
@@ -68,8 +66,8 @@ To install pysap simply run:
     $ python -m pip install pysap
 
 pysap is compatible and tested with Python 2.7. A Python 2/3 compatible version
-is [in the workings](https://github.com/SecureAuthCorp/pysap/tree/python2-3) but
-it's [not finalized yet](https://github.com/SecureAuthCorp/pysap/projects/1).
+is [in the workings](https://github.com/OWASP/pysap/tree/python2-3) but
+it's [not finalized yet](https://github.com/OWASP/pysap/projects/1).
 
 Documentation
 -------------
@@ -87,9 +85,10 @@ file for more details.
 Authors
 -------
 
-The library was designed and developed by Martin Gallo from [SecureAuth's Innovation
-Labs](https://www.secureauth.com/labs/) team, with the help of a large number of
-contributors.
+he tool was initially designed and developed by Martin Gallo wile working at
+[SecureAuth's Innovation Labs](https://www.secureauth.com/labs/) team, with the
+help of many contributors. The code was then contributed by SecureAuth to the
+OWASP CBAS Project in October 2022.
 
 ### Contributors ###
 
@@ -134,7 +133,7 @@ Contact Us
 ----------
 
 Whether you want to report a bug, send a patch, or give some suggestions
-on this package, drop us a few lines at oss@secureauth.com.
+on this package, drop a few lines to
+[OWASP CBAS' project leaders](https://owasp.org/www-project-core-business-application-security/#leaders).
 
 For security-related questions check our [security policy](SECURITY.md).
-

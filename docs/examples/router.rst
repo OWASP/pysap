@@ -120,7 +120,7 @@ not found in the database:
     [-] Request: Empty route null offset
     [-] Request: No route invalid length
 
-    [-] Some error values where not found in the fingerprint database. If you want to contribute submit a issue to https://github.com/SecureAuthCorp/pysap or write an email to mgallo@secureauth.com with the following information along with the SAP Router file information and how it was configured.
+    [-] Some error values where not found in the fingerprint database. If you want to contribute submit a issue to https://github.com/OWASP/pysap or write an email to mgallo@secureauth.com with the following information along with the SAP Router file information and how it was configured.
 
 
     New fingerprint saved to: saprouter_new_fingerprints.json

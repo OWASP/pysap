@@ -54,7 +54,7 @@ Code contributions
 
 When contributing code, follow this checklists:
 
-1. Fork the repository on `GitHub <https://github.com/SecureAuthCorp/pysap/>`_.
+1. Fork the repository on `GitHub <https://github.com/OWASP/pysap/>`_.
 2. Run the tests to check that all current tests pass on the system. If they don't,
    some investigation might be required to determine why they fail. Note that current
    tests are limited and only covers some of the protocols and client interfaces.
@@ -76,7 +76,7 @@ library's core components and example scripts.
 
 When submitting bugs, follow this checklist:
 
-1. Check current `GitHub issues <https://github.com/SecureAuthCorp/pysap/issues>`_ for
+1. Check current `GitHub issues <https://github.com/OWASP/pysap/issues>`_ for
    potential duplicates.
 2. Create a new issue detailing as much information as possible. Packet captures are
    always helpful when dealing with specific packets missing or client interface errors.
