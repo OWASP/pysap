@@ -19,12 +19,15 @@
 #
 */
 
+#define PY_SSIZE_T_CLEAN
+
 #include <Python.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <limits.h>
 
 #include "hpa101saptype.h"
 #include "hpa104CsObject.h"
@@ -364,7 +367,7 @@ static char pysapcompress_compress_doc[] = "Compress a buffer using SAP's compre
                                            ":param str in: input buffer to compress\n\n"
                                            ":param int algorithm: algorithm to use\n\n"
                                            ":return: tuple with return code, output length and output buffer\n"
-                                           ":rtype: tuple of int, int, string\n\n"
+                                           ":rtype: tuple of int, int, bytes\n\n"
                                            ":raises CompressError: if an error occurred during compression\n";
 
 static PyObject *
@@ -373,6 +376,7 @@ pysapcompress_compress(PyObject *self, PyObject *args, PyObject *keywds)
     const unsigned char *in = NULL;
     unsigned char *out = NULL;
     int status = 0, in_length = 0, out_length = 0, algorithm = ALG_LZC;
+    Py_ssize_t in_length_arg = 0;
 
     /* Define the keyword list */
     static char kwin[] = "in";
@@ -380,8 +384,16 @@ pysapcompress_compress(PyObject *self, PyObject *args, PyObject *keywds)
     static char* kwlist[] = {kwin, kwalgorithm, NULL};
 
     /* Parse the parameters. We are also interested in the length of the input buffer. */
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "s#|i", kwlist, &in, &in_length, &algorithm))
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "y#|i", kwlist, &in, &in_length_arg, &algorithm)) {
         return (NULL);
+	}
+
+	/* Check the size of length args and convert from Py_ssize_t to int */
+	if (in_length_arg > INT_MAX) {
+		return (PyErr_Format(compression_exception, "Compression error (Input length is larger than INT_MAX)"));
+	}
+	
+	in_length = Py_SAFE_DOWNCAST(in_length_arg, Py_ssize_t, int);
 
     /* Call the compression function */
     status = compress_packet(in, in_length, &out, &out_length, algorithm);
@@ -398,7 +410,7 @@ pysapcompress_compress(PyObject *self, PyObject *args, PyObject *keywds)
     }
 
     /* It no error was raised, return the compressed buffer and the length */
-	return (Py_BuildValue("iis#", status, out_length, out, out_length));
+	return (Py_BuildValue("iiy#", status, out_length, out, out_length));
 }
 
 
@@ -407,7 +419,7 @@ static char pysapcompress_decompress_doc[] = "Decompress a buffer using SAP's co
                                              ":param str in: input buffer to decompress\n"
                                              ":param int out_length: length of the output to decompress\n"
                                              ":return: tuple of return code, output length and output buffer\n"
-                                             ":rtype: tuple of int, int, string\n\n"
+                                             ":rtype: tuple of int, int, bytes\n\n"
                                              ":raises DecompressError: if an error occurred during decompression\n";
 
 static PyObject *
@@ -416,10 +428,24 @@ pysapcompress_decompress(PyObject *self, PyObject *args)
     const unsigned char *in = NULL;
     unsigned char *out = NULL;
     int status = 0, in_length = 0, out_length = 0;
+	Py_ssize_t in_length_arg = 0, out_length_arg = 0;
 
     /* Parse the parameters. We are also interested in the length of the input buffer. */
-    if (!PyArg_ParseTuple(args, "s#i", &in, &in_length, &out_length))
+	if (!PyArg_ParseTuple(args, "y#i", &in, &in_length_arg, &out_length_arg)) {
         return (NULL);
+	}
+
+	/* Check the size of length args and convert from Py_ssize_t to int */
+	if (in_length_arg > INT_MAX) {
+		return (PyErr_Format(decompression_exception, "Decompression error (Input length is larger than INT_MAX)"));
+	}
+	
+	if (out_length_arg > INT_MAX) {
+		return (PyErr_Format(decompression_exception, "Decompression error (Output length is larger than INT_MAX)"));
+	}
+	
+	in_length = Py_SAFE_DOWNCAST(in_length_arg, Py_ssize_t, int);
+	out_length = Py_SAFE_DOWNCAST(out_length_arg, Py_ssize_t, int);
 
     /* Call the compression function */
     status = decompress_packet(in, in_length, &out, &out_length);
@@ -434,7 +460,7 @@ pysapcompress_decompress(PyObject *self, PyObject *args)
     		return (PyErr_Format(decompression_exception, "Decompression error (%s)", error_string(status)));
     }
     /* It no error was raised, return the uncompressed buffer and the length */
-    return (Py_BuildValue("iis#", status, out_length, out, out_length));
+	return (Py_BuildValue("iiy#", status, out_length, out, out_length));
 }
 
 
@@ -450,12 +476,16 @@ static PyMethodDef pysapcompressMethods[] = {
 static char pysapcompress_module_doc[] = "Library implementing SAP's LZH and LZC compression algorithms.";
 
 /* Module initialization */
-PyMODINIT_FUNC
-initpysapcompress(void)
-{
+PyMODINIT_FUNC PyInit_pysapcompress(void) {
     PyObject *module = NULL;
     /* Create the module and define the methods */
-    module = Py_InitModule3("pysapcompress", pysapcompressMethods, pysapcompress_module_doc);
+	static struct PyModuleDef moduledef = {
+		PyModuleDef_HEAD_INIT, "pysapcompress", pysapcompress_module_doc, -1, pysapcompressMethods,
+	};
+	module = PyModule_Create(&moduledef);
+    if (module == NULL) {
+		return NULL;
+	}
 
     /* Add the algorithm constants */
     PyModule_AddIntConstant(module, "ALG_LZC", ALG_LZC);
@@ -467,5 +497,6 @@ initpysapcompress(void)
 
     decompression_exception = PyErr_NewException(decompression_exception_name, NULL, NULL);
     PyModule_AddObject(module, decompression_exception_short, decompression_exception);
-
+	
+	return module;
 }

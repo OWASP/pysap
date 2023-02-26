@@ -36,7 +36,6 @@ from pysap.SAPLPS import SAPLPSCipher
 from pysap.utils.crypto import PKCS12_PBES1
 from pysap.utils.fields import ASN1F_CHOICE_SAFE
 # External imports
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.hashes import SHA1
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
@@ -293,7 +292,7 @@ class SAPPSEFile(ASN1_Packet):
             raise Exception("Invalid PBE algorithm")
 
         # Decrypt the cipher text with the derived key and IV
-        decryptor = Cipher(algorithm(key), mode(iv), backend=default_backend()).decryptor()
+        decryptor = Cipher(algorithm(key), mode(iv)).decryptor()
         plain = decryptor.update(self.enc_cont.cipher_text.val) + decryptor.finalize()
 
         return plain
@@ -330,7 +329,7 @@ class SAPPSEFile(ASN1_Packet):
             raise Exception("Invalid PBE algorithm")
 
         # Build the PBE class
-        pbes = pbes_cls(salt, iterations, iv, pin, hash_algorithm, enc_algorithm, enc_mode, default_backend())
+        pbes = pbes_cls(salt, iterations, iv, pin, hash_algorithm, enc_algorithm, enc_mode)
 
         # On version 2, we can check that the PIN was valid before decrypting the whole
         # cipher text

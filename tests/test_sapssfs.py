@@ -81,7 +81,7 @@ class PySAPSSFSDataTest(unittest.TestCase):
         self.assertIsNone(data.get_record("HDB/KEYNAME/UNEXISTENT"))
         self.assertIsNone(data.get_value("HDB/KEYNAME/UNEXISTENT"))
 
-        for key, value in self.PLAIN_VALUES.items():
+        for key, value in list(self.PLAIN_VALUES.items()):
             self.assertTrue(data.has_record(key))
             self.assertIsNotNone(data.get_record(key))
             self.assertEqual(data.get_value(key), value)
@@ -136,7 +136,7 @@ class PySAPSSFSDataDecryptTest(unittest.TestCase):
             s = fd.read()
         data = SAPSSFSData(s)
 
-        for name, value in self.ENCRYPTED_VALUES.items():
+        for name, value in list(self.ENCRYPTED_VALUES.items()):
             self.assertTrue(data.has_record(name))
             self.assertIsNotNone(data.get_record(name))
             self.assertEqual(data.get_value(name, key), value)
@@ -146,14 +146,5 @@ class PySAPSSFSDataDecryptTest(unittest.TestCase):
             self.assertTrue(record.valid)
 
 
-def test_suite():
-    loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-    suite.addTest(loader.loadTestsFromTestCase(PySAPSSFSKeyTest))
-    suite.addTest(loader.loadTestsFromTestCase(PySAPSSFSDataTest))
-    suite.addTest(loader.loadTestsFromTestCase(PySAPSSFSDataDecryptTest))
-    return suite
-
-
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=2).run(test_suite())
+    unittest.main(verbosity=1)

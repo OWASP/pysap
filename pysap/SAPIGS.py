@@ -203,7 +203,7 @@ class SAPIGS(Packet):
         # format the request than could be send with SAP NI
         req_format = ('{}\r\n{}\r\n\r\n{}'.format(
                     req.method + ' ' + req.url + ' HTTP/1.1',
-                    '\r\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()),
+                    '\r\n'.join('{}: {}'.format(k, v) for k, v in list(req.headers.items())),
                     req.body)
                  )
         return req_format

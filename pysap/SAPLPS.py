@@ -25,7 +25,6 @@ from scapy.fields import (ByteField, ByteEnumField, ShortField, StrFixedLenField
 # Custom imports
 from pysap.utils.crypto import dpapi_decrypt_blob
 # Optional imports
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.hashes import Hash, SHA1
 from cryptography.hazmat.primitives.hmac import HMAC
@@ -112,7 +111,7 @@ class SAPLPSCipher(Packet):
 
         # Decrypt the cipher text with the encryption key
         iv = "\x00" * 16
-        decryptor = Cipher(algorithms.AES(encryption_key), modes.CBC(iv), backend=default_backend()).decryptor()
+        decryptor = Cipher(algorithms.AES(encryption_key), modes.CBC(iv)).decryptor()
         plain = decryptor.update(self.encrypted_data) + decryptor.finalize()
 
         # TODO: Calculate and validate HMAC
@@ -141,16 +140,16 @@ class SAPLPSCipher(Packet):
         """
         log_lps.debug("Obtaining encryption key with FALLBACK LPS mode")
 
-        digest = Hash(SHA1(), backend=default_backend())
+        digest = Hash(SHA1())
         digest.update(cred_key_lps_fallback)
         hashed_key = digest.finalize()
 
-        hmac = HMAC(hashed_key, SHA1(), backend=default_backend())
+        hmac = HMAC(hashed_key, SHA1())
         hmac.update(self.context)
         default_key = hmac.finalize()[:16]
 
         iv = "\x00" * 16
-        decryptor = Cipher(algorithms.AES(default_key), modes.CBC(iv), backend=default_backend()).decryptor()
+        decryptor = Cipher(algorithms.AES(default_key), modes.CBC(iv)).decryptor()
         encryption_key = decryptor.update(self.encrypted_key) + decryptor.finalize()
 
         return encryption_key

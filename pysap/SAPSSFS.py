@@ -24,7 +24,6 @@ from scapy.fields import (ByteField, YesNoByteField, LenField, StrFixedLenField,
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.hmac import HMAC
 from cryptography.hazmat.primitives.hashes import Hash, SHA1
-from cryptography.hazmat.backends import default_backend
 # Custom imports
 from pysap.utils.crypto import rsec_decrypt
 from pysap.utils.fields import PacketNoPadded, StrFixedLenPaddedField, TimestampField
@@ -101,7 +100,7 @@ class SAPSSFSDecryptedPayload(PacketNoPadded):
         """Returns whether the SHA1 value is valid for the given payload"""
         blob = str(self)
 
-        digest = Hash(SHA1(), backend=default_backend())
+        digest = Hash(SHA1())
         digest.update(blob[:8])
         digest.update(blob[8:8+4])
         if self.length:
@@ -159,7 +158,7 @@ class SAPSSFSDataRecord(PacketNoPadded):
         """Returns whether the HMAC-SHA1 value is valid for the given payload"""
 
         # Calculate the HMAC-SHA1
-        h = HMAC(ssfs_hmac_key_unobscured, SHA1(), backend=default_backend())
+        h = HMAC(ssfs_hmac_key_unobscured, SHA1())
         h.update(str(self)[24:156])  # Entire Data header without the HMAC field
         h.update(self.data)
 

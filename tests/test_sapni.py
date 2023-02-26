@@ -22,7 +22,7 @@ import socket
 import unittest
 from threading import Thread
 from struct import pack, unpack
-from SocketServer import BaseRequestHandler, ThreadingTCPServer
+from socketserver import BaseRequestHandler, ThreadingTCPServer
 # External imports
 from scapy.fields import StrField
 from scapy.packet import Packet, Raw
@@ -342,17 +342,5 @@ class PySAPNIProxyTest(PySAPBaseServerTest):
         self.stop_server()
 
 
-def test_suite():
-    loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-    suite.addTest(loader.loadTestsFromTestCase(PySAPNITest))
-    suite.addTest(loader.loadTestsFromTestCase(PySAPNIStreamSocketTest))
-    suite.addTest(loader.loadTestsFromTestCase(PySAPNIServerTest))
-    suite.addTest(loader.loadTestsFromTestCase(PySAPNIProxyTest))
-    return suite
-
-
 if __name__ == "__main__":
-    test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
-    result = test_runner.run(test_suite())
-    sys.exit(not result.wasSuccessful())
+    unittest.main(verbosity=1)
