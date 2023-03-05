@@ -19,8 +19,7 @@
 # Standard imports
 import sys
 import unittest
-from os import unlink, rmdir
-from os.path import basename, exists
+from os import unlink, rmdir, path
 # External imports
 # Custom imports
 from tests.utils import data_filename
@@ -36,7 +35,7 @@ class PySAPCARTest(unittest.TestCase):
     test_timestamp = "01 Dec 2015 22:48"
     test_perm_mode = 33204
     test_permissions = "-rw-rw-r--"
-    test_string = "The quick brown fox jumps over the lazy dog"
+    test_string = b"The quick brown fox jumps over the lazy dog"
 
     def setUp(self):
         with open(self.test_filename, "wb") as fd:
@@ -44,9 +43,9 @@ class PySAPCARTest(unittest.TestCase):
 
     def tearDown(self):
         for filename in [self.test_filename, self.test_archive_file]:
-            if exists(filename):
+            if path.exists(filename):
                 unlink(filename)
-        if exists("test"):
+        if path.exists("test"):
             rmdir("test")
 
     def check_sapcar_archive(self, filename, version):
@@ -55,7 +54,7 @@ class PySAPCARTest(unittest.TestCase):
         with open(data_filename(filename), "rb") as fd:
             sapcar_archive = SAPCARArchive(fd, mode="r")
 
-            self.assertEqual(filename, basename(sapcar_archive.filename))
+            self.assertEqual(filename, path.basename(sapcar_archive.filename))
             self.assertEqual(version, sapcar_archive.version)
             self.assertEqual(1, len(sapcar_archive.files))
             self.assertEqual(1, len(sapcar_archive.files_names))
@@ -107,7 +106,7 @@ class PySAPCARTest(unittest.TestCase):
         ar.add_file(self.test_filename)
         ar.add_file(self.test_filename, archive_filename=self.test_filename+"two")
 
-        self.assertEqual("2.01", ar.version)
+        self.assertEqual(SAPCAR_VERSION_201, ar.version)
         self.assertEqual(2, len(ar.files))
         self.assertEqual(2, len(ar.files_names))
         self.assertListEqual([self.test_filename, self.test_filename+"two"], ar.files_names)
