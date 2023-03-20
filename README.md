@@ -7,6 +7,8 @@ pysap - Python library for crafting SAP's network protocols packets
 
 Version 0.1.20.dev0 (XXX 2023)
 
+:information_source: [Python 3 port project](#Python3portproject)
+
 
 Overview
 --------
@@ -65,9 +67,25 @@ To install pysap simply run:
 
     $ python -m pip install pysap
 
-pysap is compatible and tested with Python 2.7. A Python 2/3 compatible version
-is [in the workings](https://github.com/OWASP/pysap/tree/python2-3) but
-it's [not finalized yet](https://github.com/OWASP/pysap/projects/1).
+pysap is compatible and tested with Python 2.7.
+
+
+Roadmap
+-------
+
+### Python 3 port project
+
+:warning: For legacy reasons, the project is only Python 2 compatible. There were some [initial efforts](https://github.com/OWASP/pysap/tree/python2-3) to port the project to be Python 2 and 3 compatible, but those were never completed.
+
+As time passed, and Python 2 started to loss relevance, we decided to start a new effort to complete the project and move the project to be Python 3 only compatible. The main reason is to avoid the introduction of backwards compatibility libraries that add complexity to the code and are not relevant in the current state of the Python project.
+
+This project is actively being worked on right now by the OWASP CBAS project as part of the [master-0.2 branch](https://github.com/OWASP/pysap/tree/master-0.2)and tracked as a [project](https://github.com/OWASP/projects/12).
+
+### Further efforts
+
+The document 
+
+
 
 Documentation
 -------------
