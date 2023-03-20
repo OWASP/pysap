@@ -106,7 +106,7 @@ class BaseConsole (Cmd, object):
             self._print("\n".join("\t| ".join([str(col).strip() for col in line]).expandtabs(20) for line in table))
 
     def _print(self, string=""):
-        print(str(string))
+        print((str(string)))
         self._log(string)
 
     def _log(self, string=""):

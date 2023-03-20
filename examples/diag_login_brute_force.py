@@ -132,7 +132,7 @@ def is_duplicate_login(response):
         for item in response[SAPDiag].get_item("APPL4", "DYNT", "DYNT_ATOM"):
             if item.item_value:
                 for atom in item.item_value.items:
-                    if atom.dlg_flag_1 is 0 and atom.dlg_flag_2 is 0 and atom.field2_text:
+                    if atom.dlg_flag_1 == 0 and atom.dlg_flag_2 == 0 and atom.field2_text:
                         if "is already logged on in" in atom.field2_text:
                             return True, atom.field2_text
     return False, ""

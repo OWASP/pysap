@@ -18,8 +18,6 @@
 
 # Standard imports
 import unittest
-# External imports
-from cryptography.hazmat.backends import default_backend
 # Custom imports
 from pysap.utils.crypto import SCRAM_SHA256, SCRAM_PBKDF2SHA256
 
@@ -49,7 +47,7 @@ class PySAPCryptoUtilsTest(unittest.TestCase):
                        b"\x0d\x28\x25\x47\xb5\x4d\xfd\x09\x61\x4d\x44\x37\x4d\xf9\x4f" \
                        b"\x29\x3c\x1a\x02\x0e"
 
-        scram = SCRAM_SHA256(default_backend())
+        scram = SCRAM_SHA256()
         scrambled_salt = scram.scramble_salt(password, salt, server_key, client_key)
         self.assertEqual(len(expected_scrambled_salt), len(scrambled_salt))
         self.assertEqual(expected_scrambled_salt, scrambled_salt)
@@ -67,18 +65,11 @@ class PySAPCryptoUtilsTest(unittest.TestCase):
         client_key = b'\x89\x9c\xb6<\x9e\x8a]gP\xca6\xbf\xd2N\x8e\xcf\xd2\xb0\x9d\x81\x80\x13\x87\x00\x7f\x1a:\xc5\xbc\xd8y\x1ax\xc4"\x8a\x05\x08: $\xf0\xc7~\xa4p@#.f\xff\xf9~\xfa\x18g\xc6\x98!K\x06\xb3\xbb\xe6'
         expected_scrambled_salt = b'\xfd\xb5e\x00\xd6\xde\x19cb\xfd\x8dj&\xff\x10\x99"J\xd3F\x15[G\xdf\xaa$\xf9|\x01\x87\xb0%'
 
-        scram = SCRAM_PBKDF2SHA256(default_backend())
+        scram = SCRAM_PBKDF2SHA256()
         scrambled_salt = scram.scramble_salt(password, salt, server_key, client_key, rounds)
         self.assertEqual(len(expected_scrambled_salt), len(scrambled_salt))
         self.assertEqual(expected_scrambled_salt, scrambled_salt)
 
 
-def test_suite():
-    loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-    suite.addTest(loader.loadTestsFromTestCase(PySAPCryptoUtilsTest))
-    return suite
-
-
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=2).run(test_suite())
+    unittest.main(verbosity=1)

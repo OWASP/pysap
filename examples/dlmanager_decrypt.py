@@ -177,7 +177,7 @@ def parse_config_file(filename, decrypt=False, serial_number=None):
     print("[*] Read %d config values from config file" % len(data))
     for item in data:
         value = ""
-        if isinstance(data[item], basestring):
+        if isinstance(data[item], str):
             value = data[item]
         elif "value" in data[item]:
             value = data[item]["value"]

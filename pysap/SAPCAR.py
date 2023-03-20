@@ -22,7 +22,7 @@ from zlib import crc32
 from struct import pack
 from datetime import datetime
 from os import stat as os_stat
-from cStringIO import StringIO
+from io import StringIO
 # External imports
 from scapy.packet import Packet
 from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
@@ -674,7 +674,7 @@ class SAPCARArchive(object):
         if "b" not in mode:
             mode += "b"
 
-        if isinstance(fil, (basestring, unicode)):
+        if isinstance(fil, str):
             self.filename = fil
             self.fd = open(fil, mode)
         else:
@@ -707,7 +707,7 @@ class SAPCARArchive(object):
         :return: list of file names
         :rtype: L{list} of L{string}
         """
-        return self.files.keys()
+        return list(self.files.keys())
 
     @property
     def version(self):
@@ -731,7 +731,7 @@ class SAPCARArchive(object):
         # If version is different, we should convert each file
         if version != self._sapcar.version:
             fils = []
-            for fil in self.files.values():
+            for fil in list(self.files.values()):
                 new_file = SAPCARArchiveFile.from_archive_file(fil, version=version)
                 fils.append(new_file._file_format)
                 self._files.remove(fil._file_format)

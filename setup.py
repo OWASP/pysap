@@ -124,9 +124,6 @@ setup(name=pysap.__title__,  # Package information
       # Script files
       scripts=['bin/pysapcar', 'bin/pysapgenpse'],
 
-      # Tests command
-      test_suite='tests.test_suite',
-
       # Documentation commands
       cmdclass={'doc': DocumentationCommand,
                 'notebooks': PreExecuteNotebooksCommand},

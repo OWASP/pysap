@@ -41,7 +41,7 @@ ms_domain_values = {
 
 
 # Inverse dictionary for obtaining the value from a given domain name
-ms_domain_values_inv = {v: k for k, v in ms_domain_values.items()}
+ms_domain_values_inv = {v: k for k, v in list(ms_domain_values.items())}
 
 
 # Message Server Flag values

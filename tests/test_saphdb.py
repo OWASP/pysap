@@ -20,7 +20,7 @@
 import sys
 import unittest
 from threading import Thread
-from SocketServer import BaseRequestHandler, ThreadingTCPServer
+from socketserver import BaseRequestHandler, ThreadingTCPServer
 # Custom imports
 from pysap.SAPHDB import SAPHDBConnection
 
@@ -65,14 +65,5 @@ class PySAPHDBConnectionTest(unittest.TestCase):
         self.stop_server()
 
 
-def test_suite():
-    loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-    suite.addTest(loader.loadTestsFromTestCase(PySAPHDBConnectionTest))
-    return suite
-
-
 if __name__ == "__main__":
-    test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
-    result = test_runner.run(test_suite())
-    sys.exit(not result.wasSuccessful())
+    unittest.main(verbosity=1)

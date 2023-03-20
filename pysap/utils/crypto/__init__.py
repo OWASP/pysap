@@ -20,7 +20,7 @@
 import os
 import math
 # Custom imports
-from rsec import RSECCipher
+from .rsec import RSECCipher
 # External imports
 from cryptography.exceptions import InvalidKey
 from cryptography.hazmat.primitives.hmac import HMAC
@@ -91,7 +91,7 @@ def dpapi_decrypt_blob(blob, entropy=None):
 
 
 class PKCS12_PBKDF1(object):
-    def __init__(self, algorithm, length, salt, iterations, id, backend):
+    def __init__(self, algorithm, length, salt, iterations, id):
         self._algorithm = algorithm
         self._length = length
         if not isinstance(salt, bytes):
@@ -99,7 +99,6 @@ class PKCS12_PBKDF1(object):
         self._salt = salt
         self._iterations = iterations
         self._id = id
-        self._backend = backend
 
     def derive(self, password):
         if not isinstance(password, bytes):
@@ -138,14 +137,14 @@ class PKCS12_PBKDF1(object):
         # Step 6
 
         def digest(inp):
-            h = Hash(self._algorithm(), backend=self._backend)
+            h = Hash(self._algorithm())
             h.update(inp)
             return h.finalize()
 
         def to_int(value):
             if value == b'':
                 return 0
-            return long(value.encode("hex"), 16)
+            return int(value.encode("hex"), 16)
 
         def to_bytes(value):
             value = "%x" % value
@@ -195,24 +194,23 @@ class PKCS12_PBKDF1(object):
 
 
 class PBKDF1(object):
-    def __init__(self, algorithm, length, salt, iterations, backend):
+    def __init__(self, algorithm, length, salt, iterations):
         self._algorithm = algorithm
         self._length = length
         if not isinstance(salt, bytes):
             raise TypeError("salt must be bytes.")
         self._salt = salt
         self._iterations = iterations
-        self._backend = backend
 
     def derive(self, key_material):
         if not isinstance(key_material, bytes):
             raise TypeError("key_material must be bytes.")
-        h = Hash(self._algorithm(), backend=self._backend)
+        h = Hash(self._algorithm())
         h.update(key_material)
         h.update(self._salt)
         derived_key = h.finalize()
-        for i in xrange(self._iterations-1):
-            h = Hash(self._algorithm(), backend=self._backend)
+        for i in range(self._iterations-1):
+            h = Hash(self._algorithm())
             h.update(derived_key)
             derived_key = h.finalize()
         return derived_key
@@ -225,18 +223,17 @@ class PBKDF1(object):
 
 class PKCS12_PBES1(object):
 
-    def __init__(self, salt, iterations, iv, password, hash_algorithm, enc_algorithm, enc_mode, backend):
+    def __init__(self, salt, iterations, iv, password, hash_algorithm, enc_algorithm, enc_mode):
         self._hash_algorithm = hash_algorithm
         self._enc_algorithm = enc_algorithm
         self._enc_mode = enc_mode
-        self._backend = backend
         self._derive_key, self._iv = self.derive_key(salt, iterations, password)
 
     def derive_key(self, salt, iterations, password):
-        pkcs12_pbkdf1 = PKCS12_PBKDF1(self._hash_algorithm, 24, salt, iterations, 1, self._backend)
+        pkcs12_pbkdf1 = PKCS12_PBKDF1(self._hash_algorithm, 24, salt, iterations, 1)
         key = pkcs12_pbkdf1.derive(password)
 
-        pkcs12_pbkdf1 = PKCS12_PBKDF1(self._hash_algorithm, 8, salt, iterations, 2, self._backend)
+        pkcs12_pbkdf1 = PKCS12_PBKDF1(self._hash_algorithm, 8, salt, iterations, 2)
         iv = pkcs12_pbkdf1.derive(password)
 
         return key, iv
@@ -245,7 +242,7 @@ class PKCS12_PBES1(object):
         padder = padding.PKCS7(self._hash_algorithm.block_size).padder()
         plain_text = padder.update(plain_text) + padder.finalize()
 
-        encryptor = Cipher(self._enc_algorithm(self._derive_key), self._enc_mode(self._iv), backend=self._backend).encryptor()
+        encryptor = Cipher(self._enc_algorithm(self._derive_key), self._enc_mode(self._iv)).encryptor()
         cipher_text = encryptor.update(plain_text) + encryptor.finalize()
 
         return cipher_text
@@ -254,7 +251,7 @@ class PKCS12_PBES1(object):
         padder = padding.PKCS7(self._hash_algorithm.block_size).padder()
         cipher_text = padder.update(cipher_text) + padder.finalize()
 
-        decryptor = Cipher(self._enc_algorithm(self._derive_key), self._enc_mode(self._iv), backend=self._backend).decryptor()
+        decryptor = Cipher(self._enc_algorithm(self._derive_key), self._enc_mode(self._iv)).decryptor()
         plain_text = decryptor.update(cipher_text) + decryptor.finalize()
 
         return plain_text
@@ -268,17 +265,13 @@ class SCRAM(object):
     CLIENT_KEY_SIZE = 64
     ALGORITHM = None
 
-    def __init__(self, backend):
-        """Initializes the SCRAM scheme"""
-        self.backend = backend
-
     def get_client_key(self):
         """Returns a client key to be used during the handshake.
         """
         return os.urandom(self.CLIENT_KEY_SIZE)
 
     def salt_key(self, password, salt, rounds):
-        hmac = HMAC(password, self.ALGORITHM(), self.backend)
+        hmac = HMAC(password, self.ALGORITHM())
         hmac.update(salt)
         return hmac.finalize()
 
@@ -289,15 +282,15 @@ class SCRAM(object):
 
         hmac_digest = self.salt_key(password, salt, rounds)
 
-        hash = Hash(self.ALGORITHM(), self.backend)
+        hash = Hash(self.ALGORITHM())
         hash.update(hmac_digest)
         hash_digest = hash.finalize()
 
-        key_hash = Hash(self.ALGORITHM(), self.backend)
+        key_hash = Hash(self.ALGORITHM())
         key_hash.update(hash_digest)
         key_hash_digest = key_hash.finalize()
 
-        sig = HMAC(key_hash_digest, self.ALGORITHM(), self.backend)
+        sig = HMAC(key_hash_digest, self.ALGORITHM())
         sig.update(msg)
         sig_digest = sig.finalize()
 
@@ -330,7 +323,7 @@ class SCRAM_PBKDF2SHA256(SCRAM_SHA256):
     """SCRAM scheme using PBKDF2 with SHA256"""
 
     def salt_key(self, password, salt, rounds):
-        pbkdf2 = PBKDF2HMAC(self.ALGORITHM(), self.CLIENT_PROOF_SIZE, salt, rounds, self.backend)
+        pbkdf2 = PBKDF2HMAC(self.ALGORITHM(), self.CLIENT_PROOF_SIZE, salt, rounds)
         return pbkdf2.derive(password)
 
 

@@ -51,7 +51,7 @@ class PySAPPSEv2Test(unittest.TestCase):
             s = fd.read()
 
         pse = SAPPSEFile(s)
-        self.assertRaisesRegexp(ValueError, "Invalid PIN supplied", pse.decrypt, "Some Invalid PIN")
+        self.assertRaisesRegex(ValueError, "Invalid PIN supplied", pse.decrypt, "Some Invalid PIN")
         pse.decrypt(self.decrypt_pin)
 
     def test_pse_v4_lps_off_pbes1_3des_sha1(self):
@@ -67,14 +67,5 @@ class PySAPPSEv2Test(unittest.TestCase):
         self.assertEqual(len(pse.enc_cont.algorithm_identifier.parameters.salt.val), 8)
 
 
-def test_suite():
-    loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-    suite.addTest(loader.loadTestsFromTestCase(PySAPPSEv2Test))
-    return suite
-
-
 if __name__ == "__main__":
-    test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
-    result = test_runner.run(test_suite())
-    sys.exit(not result.wasSuccessful())
+    unittest.main(verbosity=1)
