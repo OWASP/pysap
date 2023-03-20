@@ -18,61 +18,9 @@
 #
 
 # Standard imports
-from sys import exit
-from glob import glob
-from subprocess import call
-from setuptools import setup, Extension, Command
+from setuptools import setup, Extension
 # Custom imports
 import pysap
-
-
-class DocumentationCommand(Command):
-    """Custom command for building the documentation with Sphinx.
-    """
-
-    description = "Builds the documentation using Sphinx"
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        """Runs Sphinx
-        """
-        exit(call("cd docs && make html", shell=True))
-
-
-class PreExecuteNotebooksCommand(Command):
-    """Custom command for pre-executing Jupyther notebooks included in the documentation.
-    """
-
-    description = "Pre-executes Jupyther notebooks included in the documentation"
-    user_options = [
-        ('notebooks=', 'n', "patterns to match (i.e. 'protocols/SAPDiag*')"),
-    ]
-
-    def initialize_options(self):
-        """Initialize options with default values."""
-        self.notebooks = None
-
-    def finalize_options(self):
-        """Check and expand provided values."""
-        base_path = "docs/"
-        if self.notebooks:
-            self.notebooks = glob(base_path + self.notebooks)
-        else:
-            self.notebooks = glob(base_path + "protocols/*.ipynb")
-            self.notebooks.extend(glob(base_path + "fileformats/*.ipynb"))
-
-    def run(self):
-        """Pre executes notebooks."""
-        status = 0
-        for notebook in self.notebooks:
-            status |= call("jupyter nbconvert --inplace --to notebook --execute {}".format(notebook), shell=True)
-        exit(status)
 
 
 sapcompress_macros = [
@@ -123,10 +71,6 @@ setup(name=pysap.__title__,  # Package information
 
       # Script files
       scripts=['bin/pysapcar', 'bin/pysapgenpse'],
-
-      # Documentation commands
-      cmdclass={'doc': DocumentationCommand,
-                'notebooks': PreExecuteNotebooksCommand},
 
       # Requirements
       install_requires=open('requirements.txt').read().splitlines(),
