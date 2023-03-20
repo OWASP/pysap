@@ -19,7 +19,7 @@
 __title__ = 'pysap'
 """The title of the library"""
 
-__version__ = '0.1.20.dev0'
+__version__ = '0.2.1.dev0'
 """The version of pysap"""
 
 __url__ = "https://owasp.org/www-project-core-business-application-security/"

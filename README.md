@@ -1,13 +1,13 @@
 pysap - Python library for crafting SAP's network protocols packets
 ===================================================================
 
-[![Build and test pysap](https://github.com/OWASP/pysap/workflows/Build%20and%20test%20pysap/badge.svg)](https://github.com/OWASP/pysap/actions?query=workflow%3A%22Build+and+test+pysap%22)
+[![Build and test pysap](https://github.com/OWASP/pysap/workflows/build_and_test.yml/badge.svg?branch=master-0.2)](https://github.com/OWASP/pysap/workflows/build_and_test.yml)
 [![Latest Version](https://img.shields.io/pypi/v/pysap.svg)](https://pypi.python.org/pypi/pysap/)
 [![Documentation Status](http://readthedocs.org/projects/pysap/badge/?version=latest)](http://pysap.readthedocs.io/en/latest/?badge=latest)
 
-Version 0.1.20.dev0 (XXX 2023)
+Version 0.2.1.dev0 (XXX 2023)
 
-:information_source: [Python 3 port project](#Python3portproject)
+:information_source: [This is the active branch of the Python 3 port project](#Python3portproject)
 
 
 Overview
@@ -79,12 +79,7 @@ Roadmap
 
 As time passed, and Python 2 started to loss relevance, we decided to start a new effort to complete the project and move the project to be Python 3 only compatible. The main reason is to avoid the introduction of backwards compatibility libraries that add complexity to the code and are not relevant in the current state of the Python project.
 
-This project is actively being worked on right now by the OWASP CBAS project as part of the [master-0.2 branch](https://github.com/OWASP/pysap/tree/master-0.2)and tracked as a [project](https://github.com/OWASP/projects/12).
-
-### Further efforts
-
-The document 
-
+This is the active branch of the porting project being worked on by the OWASP CBAS project and tracked as a [project](https://github.com/OWASP/projects/12).
 
 
 Documentation
