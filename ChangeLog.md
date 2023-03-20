@@ -1,7 +1,7 @@
 Changelog
 =========
 
-v0.1.20 - 2022-XX-XX
+v0.1.20 - 2023-XX-XX
 --------------------
 
 - Project was contributed by SecureAuth to the OWASP CBAS Project in October 2022.
