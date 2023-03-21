@@ -131,7 +131,7 @@ class StrNullFixedLenField(StrFixedLenField):
     def addfield(self, pkt, s, val):
         if self.null_terminated(pkt):
             l = self.length_from(pkt) - 1
-            return s + struct.pack("%is" % l, self.i2m(pkt, val)) + "\x00"
+            return s + struct.pack("%is" % l, self.i2m(pkt, val)) + b"\x00"
         return StrFixedLenField.addfield(self, pkt, s, val)
 
     def randval(self):
