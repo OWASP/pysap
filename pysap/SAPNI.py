@@ -123,7 +123,7 @@ class SAPNIStreamSocket(StreamSocket):
         log_sapni.debug("Received 4 bytes NI header, to receive %d bytes data", nilength)
 
         # Receive the whole NI packet (length+payload)
-        nidata = ''
+        nidata = b''
         while len(nidata) < nilength + 4:
             nidata += self.ins.recv(nilength - len(nidata) + 4)
             if len(nidata) == 0:

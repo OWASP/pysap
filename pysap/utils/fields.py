@@ -90,7 +90,7 @@ class MutablePacketField(StrLenField):
     def i2m(self, pkt, i):
         cls = self.get_class(pkt)
         if cls is not None:
-            return str(i)
+            return bytes(i)
         else:
             return StrLenField.i2m(self, pkt, i)
 
@@ -216,7 +216,7 @@ class IntToStrField(Field):
 class StrEncodedPaddedField(StrField):
     __slots__ = ["remain", "encoding", "padd"]
 
-    def __init__(self, name, default, encoding="utf-16", padd="\x0c",
+    def __init__(self, name, default, encoding="utf-16", padd=b"\x0c",
                  fmt="H", remain=0):
         StrField.__init__(self, name, default, fmt, remain)
         self.encoding = encoding

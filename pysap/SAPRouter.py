@@ -287,7 +287,7 @@ def router_is_route(pkt):
     :return: if the type of the packet is Route
     :rtype: ``bool``
     """
-    return pkt.type == SAPRouter.SAPROUTER_ROUTE
+    return pkt.type.decode('utf-8') == SAPRouter.SAPROUTER_ROUTE
 
 
 def router_is_admin(pkt):
@@ -299,7 +299,7 @@ def router_is_admin(pkt):
     :return: if the type of the packet is Admin
     :rtype: ``bool``
     """
-    return pkt.type == SAPRouter.SAPROUTER_ADMIN
+    return pkt.type.decode('utf-8') == SAPRouter.SAPROUTER_ADMIN
 
 
 def router_is_error(pkt):
@@ -311,7 +311,7 @@ def router_is_error(pkt):
     :return: if the type of the packet is Error
     :rtype: ``bool``
     """
-    return pkt.type == SAPRouter.SAPROUTER_ERROR
+    return pkt.type.decode('utf-8') == SAPRouter.SAPROUTER_ERROR
 
 
 def router_is_control(pkt):
@@ -323,7 +323,7 @@ def router_is_control(pkt):
     :return: if the type of the packet is Control
     :rtype: ``bool``
     """
-    return pkt.type == SAPRouter.SAPROUTER_CONTROL
+    return pkt.type.decode('utf-8') == SAPRouter.SAPROUTER_CONTROL
 
 
 def router_is_pong(pkt):
@@ -335,7 +335,7 @@ def router_is_pong(pkt):
     :return: if the type of the packet is Pong
     :rtype: ``bool``
     """
-    return pkt.type == SAPRouter.SAPROUTER_PONG
+    return pkt.type.decode('utf-8') == SAPRouter.SAPROUTER_PONG
 
 
 def router_is_known_type(pkt):
@@ -348,7 +348,7 @@ def router_is_known_type(pkt):
     :rtype: ``bool``
 
     """
-    return pkt.type in SAPRouter.router_type_values
+    return pkt.type.decode('utf-8') in SAPRouter.router_type_values
 
 
 class SAPRouter(Packet):
@@ -574,13 +574,25 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         router_strings = list(map(str, route))
         target = "%s:%d" % (route[-1].hostname, int(route[-1].port))
         router_strings_lens = list(map(len, router_strings))
+
+        # hex values are counted as 5 characters \\x00
+        hex_pattern = r'\\x[0-9a-fA-F]{2}'
+        hex_count = 0
+        for route_string in router_strings:
+            hex_values= re.findall(hex_pattern, route_string)
+            hex_count += len(hex_values)
+
+        route_len = sum(router_strings_lens) - (hex_count * 4)
+        route_off = router_strings_lens[0] - len(re.findall(hex_pattern, router_strings[0]))*4
+
+
         route_request = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
                                   route_ni_version=self.router_version,
                                   route_entries=len(route),
                                   route_talk_mode=talk_mode,
                                   route_rest_nodes=len(route) - 1,
-                                  route_length=sum(router_strings_lens),
-                                  route_offset=router_strings_lens[0],
+                                  route_length=route_len,
+                                  route_offset=route_off,
                                   route_string=route)
         log_saprouter.debug("Requesting route to %s using mode %d (%s)",
                             target, talk_mode, router_ni_talk_mode_values[talk_mode])
@@ -697,7 +709,7 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         # the route
         if host is not None and port is not None:
             route.append(SAPRouterRouteHop(hostname=host,
-                                           port=port,
+                                           port=str(port),
                                            password=password))
 
         # Connect to the first hop in the route (it should be the SAP Router)
