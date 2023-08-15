@@ -204,7 +204,7 @@ class IntToStrField(Field):
         self.format = "%" + "%d" % length + "d"
 
     def m2i(self, pkt, x):
-        return str(x)
+        return x.encode('utf-8')
 
     def i2m(self, pkt, x):
         return self.format % int(x)
