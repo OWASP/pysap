@@ -28,7 +28,7 @@ from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
                           IntField, StrNullField, PacketListField,
                           FieldLenField, FieldListField, SignedIntEnumField,
                           StrFixedLenField, PacketField, BitField, LongField,
-                          ByteEnumKeysField)
+                          ByteEnumKeysField, MultipleTypeField)
 # Custom imports
 from pysap.SAPSNC import SAPSNCFrame
 from pysap.SAPNI import (SAPNI, SAPNIStreamSocket, SAPNIProxy,
@@ -269,7 +269,7 @@ class SAPRouterError(PacketNoPadded):
         StrNullField("XXX6", ""),
         StrNullField("XXX7", ""),
         StrNullField("XXX8", ""),
-        StrNullField("eyecatcher", "*ERR*"),
+        StrNullField("eyecatcher2", "*ERR*"),
     ]
 
     time_format = "%a %b %d %H:%M:%S %Y"
@@ -450,9 +450,23 @@ class SAPRouter(Packet):
         ConditionalField(StrNullFixedLenField("adm_password", "", 19), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [2]),
 
         # Cancel Route fields
-        ConditionalField(FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="H"), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [6]),
+        #ConditionalField(FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="H"), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [6]),
         # Trace Connection fields
-        ConditionalField(FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="I"), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [12, 13]),
+        #ConditionalField(FieldLenField("adm_client_count2", None, count_of="adm_client_ids", fmt="I"), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [12, 13]),
+
+        MultipleTypeField(
+            [
+                # Cancel Route fields
+                (FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="H"),
+                                 lambda pkt: router_is_admin(pkt) and pkt.adm_command in [6]),
+
+            ],
+            # Trace Connection fields
+            ConditionalField(FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="I"),
+                             lambda pkt: router_is_admin(pkt) and pkt.adm_command in [12, 13])
+        ),
+
+
 
         # Cancel Route or Trace Connection fields
         ConditionalField(FieldListField("adm_client_ids", [0x00], IntField("", 0), count_from=lambda pkt:pkt.adm_client_count), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [6, 12, 13]),
