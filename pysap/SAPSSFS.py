@@ -26,7 +26,7 @@ from cryptography.hazmat.primitives.hmac import HMAC
 from cryptography.hazmat.primitives.hashes import Hash, SHA1
 from cryptography.hazmat.backends import default_backend
 # Custom imports
-from pysap.utils.crypto import rsec_decrypt
+from pysap.utils.crypto import rsec_decrypt, rsec_decrypt_key
 from pysap.utils.fields import PacketNoPadded, StrFixedLenPaddedField, TimestampField
 
 
@@ -78,6 +78,26 @@ class SAPSSFSKey(Packet):
         StrFixedLenPaddedField("host", None, 24, padd=" "),
     ]
 
+class SAPSSFSKeyE(Packet):
+    """SAP SSFS Key (encrypted) file format packet.
+
+    Key file length is 0xbb
+    """
+    name = "SAP SSFS Encrypted Key"
+    fields_desc = [
+        StrFixedLenField("preamble", "RSecSSFsKey", 11),
+        ByteField("type", None),
+        TimestampField("timestamp", None),
+        StrFixedLenPaddedField("user", None, 24, padd=" "),
+        StrFixedLenPaddedField("host", None, 24, padd=" "),
+        # probably kind of check sum or just noise
+        StrFixedLenField("unknown", None, 62),
+        StrFixedLenField("key_enc", None, 57),
+    ]
+
+    @property
+    def key(self):
+        return rsec_decrypt_key(self.key_enc)
 
 class SAPSSFSDecryptedPayload(PacketNoPadded):
     """SAP SSFS Decrypted Payload.
