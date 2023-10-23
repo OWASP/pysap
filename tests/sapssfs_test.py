@@ -21,7 +21,7 @@ import unittest
 # External imports
 # Custom imports
 from tests.utils import data_filename
-from pysap.SAPSSFS import (SAPSSFSKey, SAPSSFSData, SAPSSFSLock)
+from pysap.SAPSSFS import (SAPSSFSKey, SAPSSFSKeyE, SAPSSFSData, SAPSSFSLock)
 
 
 class PySAPSSFSKeyTest(unittest.TestCase):
@@ -133,6 +133,30 @@ class PySAPSSFSDataDecryptTest(unittest.TestCase):
         key = SAPSSFSKey(s)
 
         with open(data_filename("ssfs_hdb_dat"), "rb") as fd:
+            s = fd.read()
+        data = SAPSSFSData(s)
+
+        for name, value in self.ENCRYPTED_VALUES.items():
+            self.assertTrue(data.has_record(name))
+            self.assertIsNotNone(data.get_record(name))
+            self.assertEqual(data.get_value(name, key), value)
+
+            record = data.get_record(name)
+            self.assertFalse(record.is_stored_as_plaintext)
+            self.assertTrue(record.valid)
+
+class PySAPSSFSDataDecryptETest(unittest.TestCase):
+
+    ENCRYPTED_VALUES = {"RS/CIPHERTEXT_VAL": "hellow0rld"}
+
+    def test_ssfs_data_record_decrypt(self):
+        """Test decrypting a record with a given key in a SSFS Data file."""
+
+        with open(data_filename("ssfs_npl_key"), "rb") as fd:
+            s = fd.read()
+        key = SAPSSFSKeyE(s)
+
+        with open(data_filename("ssfs_npl_dat"), "rb") as fd:
             s = fd.read()
         data = SAPSSFSData(s)
 
