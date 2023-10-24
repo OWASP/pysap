@@ -367,3 +367,32 @@ def rsec_decrypt(blob, key):
     round_3 = cipher.crypt(RSECCipher.MODE_DECODE, round_2, key1, len(round_2))
 
     return ''.join([chr(i) for i in round_3])
+
+def rsec_decrypt_key(key_enc):
+    kek = "\x9F\x60\xA6\xDD\x7E\x15\x7D\x07\x0C\xC3\x57\x90\x9A\xA2\x90\xE9\x36\x0E\xEE\x47\x2F\xDA\x47\x72"
+    kek = [ord(i) for i in kek]
+    kek1 = kek[0:8]
+    kek2 = kek[8:16]
+    kek3 = kek[16:24]
+    """ Default Key Encryption Key embedded in rsecssfx/kernel binaries """
+
+    blob = [ord(i) for i in key_enc[:56]]
+    last_key_byte = bytearray(key_enc[56:])
+    """ Last key byte is computed outside DES decryption """
+
+    cipher = RSECCipher()
+    round_1 = cipher.crypt(RSECCipher.MODE_DECODE, blob, kek3, len(blob))
+    round_2 = cipher.crypt(RSECCipher.MODE_ENCODE, round_1, kek2, len(round_1))
+    round_3 = cipher.crypt(RSECCipher.MODE_DECODE, round_2, kek1, len(round_2))
+
+    t1 = [ord(i) for i in key_enc[48:56]]
+    tmp = cipher.crypt(RSECCipher.MODE_ENCODE, t1, kek3, 8)
+    last_key_byte = last_key_byte[0]  ^ tmp[0]
+
+    tmp = cipher.crypt(RSECCipher.MODE_ENCODE, round_2[48:56], kek2, 8)
+    last_key_byte = last_key_byte ^ tmp[0]
+
+    tmp = cipher.crypt(RSECCipher.MODE_ENCODE, round_2[48:56], kek1, 8)
+    last_key_byte = last_key_byte ^ tmp[0]
+
+    return [chr(c) for c in round_3[33:] + [last_key_byte]]
