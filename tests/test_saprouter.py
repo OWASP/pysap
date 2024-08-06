@@ -22,6 +22,7 @@ import socket
 import unittest
 from struct import unpack
 from threading import Thread
+
 # External imports
 
 # Custom imports
@@ -34,60 +35,73 @@ class PySAPRouterTest(unittest.TestCase):
 
     def check_route(self, route_string, route_hops):
         """Check from string to hops and back again"""
+        # Convert route_string to bytes if it's a string
+        if isinstance(route_string, str):
+            route_string = route_string.encode('utf-8')
+
         hops = SAPRouterRouteHop.from_string(route_string)
         self.assertListEqual(hops, route_hops)
 
         string = SAPRouterRouteHop.from_hops(hops)
-        route_string = route_string.replace("/h/", "/H/").replace("/s/", "/S/").replace("/p/", "/P/").replace("/w/", "/W/")
-        self.assertEqual(string, route_string)
+        normalized_route_string = route_string.replace(b"/h/", b"/H/").replace(b"/s/", b"/S/").replace(b"/p/",
+                                                                                                       b"/P/").replace(
+            b"/w/", b"/W/")
+
+        # Convert both strings to the same type for comparison
+        if isinstance(string, str):
+            normalized_route_string = normalized_route_string.decode('utf-8')
+        else:
+            string = string.encode('utf-8')
+
+        self.assertEqual(string, normalized_route_string)
 
     def test_saprouter_route_string(self):
         """Test construction of SAPRouterRouteHop items"""
 
         # Two hops with full details
         self.check_route("/H/host1/S/service1/W/pass1/H/host2/S/service2/W/pass2",
-                         [SAPRouterRouteHop(hostname="host1",
-                                            port="service1",
-                                            password="pass1"),
-                          SAPRouterRouteHop(hostname="host2",
-                                            port="service2",
-                                            password="pass2")])
+                         [SAPRouterRouteHop(hostname=b"host1",
+                                            port=b"service1",
+                                            password=b"pass1"),
+                          SAPRouterRouteHop(hostname=b"host2",
+                                            port=b"service2",
+                                            password=b"pass2")])
 
         # One intermediate hop with service/password
-        self.check_route("/H/host1/H/host2/S/service2/W/pass2/H/host3",
-                         [SAPRouterRouteHop(hostname="host1"),
-                          SAPRouterRouteHop(hostname="host2",
-                                            port="service2",
-                                            password="pass2"),
-                          SAPRouterRouteHop(hostname="host3")])
+        self.check_route(b"/H/host1/H/host2/S/service2/W/pass2/H/host3",
+                         [SAPRouterRouteHop(hostname=b"host1"),
+                          SAPRouterRouteHop(hostname=b"host2",
+                                            port=b"service2",
+                                            password=b"pass2"),
+                          SAPRouterRouteHop(hostname=b"host3")])
 
         # Example in SAP Help
-        self.check_route("/H/sap_rout/H/your_rout/W/pass_to_app/H/yourapp/S/sapsrv",
-                         [SAPRouterRouteHop(hostname="sap_rout"),
-                          SAPRouterRouteHop(hostname="your_rout",
-                                            password="pass_to_app"),
-                          SAPRouterRouteHop(hostname="yourapp",
-                                            port="sapsrv")])
+        self.check_route(b"/H/sap_rout/H/your_rout/W/pass_to_app/H/yourapp/S/sapsrv",
+                         [SAPRouterRouteHop(hostname=b"sap_rout"),
+                          SAPRouterRouteHop(hostname=b"your_rout",
+                                            password=b"pass_to_app"),
+                          SAPRouterRouteHop(hostname=b"yourapp",
+                                            port=b"sapsrv")])
 
         # Hostname with FQDN
-        self.check_route("/H/some.valid.domain.com/S/3299",
-                         [SAPRouterRouteHop(hostname="some.valid.domain.com",
-                                            port="3299")])
+        self.check_route(b"/H/some.valid.domain.com/S/3299",
+                         [SAPRouterRouteHop(hostname=b"some.valid.domain.com",
+                                            port=b"3299")])
 
         # Hostname with IP addresses
-        self.check_route("/H/127.0.0.1/S/3299",
+        self.check_route(b"/H/127.0.0.1/S/3299",
                          [SAPRouterRouteHop(hostname="127.0.0.1",
                                             port="3299")])
 
         # Lowercase hostname and service
-        self.check_route("/h/127.0.0.1/s/3299/w/Password",
+        self.check_route(b"/h/127.0.0.1/s/3299/w/Password",
                          [SAPRouterRouteHop(hostname="127.0.0.1",
                                             port="3299",
-                                            password="Password")])
+                                            password=b"Password")])
 
         # Invalid route strings
-        self.assertListEqual(SAPRouterRouteHop.from_string("/S/service"), [])
-        self.assertListEqual(SAPRouterRouteHop.from_string("/P/password"), [])
+        self.assertListEqual(SAPRouterRouteHop.from_string(b"/S/service"), [])
+        self.assertListEqual(SAPRouterRouteHop.from_string(b"/P/password"), [])
 
 
 class SAPRouterServerTestHandler(SAPNIServerHandler):
@@ -107,7 +121,7 @@ class SAPRouterServerTestHandler(SAPNIServerHandler):
         route_request = self.packet[SAPRouter]
 
         if router_is_route(route_request):
-            if route_request.route_string[1].hostname == "10.0.0.1" and \
+            if route_request.route_string[1].hostname == "127.0.0.1" and \
                route_request.route_string[1].port == "3200":
                 self.routed = True
                 self.request.send(SAPRouter(type=SAPRouter.SAPROUTER_PONG))
@@ -122,7 +136,7 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
 
     test_port = 8005
     test_address = "127.0.0.1"
-    test_string = "TEST" * 10
+    test_string = b"TEST" * 10
 
     def start_server(self, handler_cls):
         self.server = SAPNIServerThreaded((self.test_address, self.test_port),
@@ -148,9 +162,9 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
         sock.connect((self.test_address, self.test_port))
 
         route = [SAPRouterRouteHop(hostname=self.test_address,
-                                   port=self.test_port),
-                 SAPRouterRouteHop(hostname="10.0.0.1",
-                                   port="3200")]
+                                   port=str(self.test_port)),
+                 SAPRouterRouteHop(hostname="127.0.0.1",
+                                   port=3200)]
 
         self.client = SAPRoutedStreamSocket(sock, route=route,
                                             router_version=40)
@@ -158,7 +172,7 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
 
         self.assertIn(SAPNI, packet)
         self.assertEqual(packet[SAPNI].length, len(self.test_string) + 4)
-        self.assertEqual(unpack("!I", packet[SAPNI].payload.load[:4]), (len(self.test_string), ))
+        self.assertEqual(unpack("!I", packet[SAPNI].payload.load[:4]), (len(self.test_string),))
         self.assertEqual(packet[SAPNI].payload.load[4:], self.test_string)
 
         self.client.close()
@@ -172,10 +186,10 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
         sock = socket.socket()
         sock.connect((self.test_address, self.test_port))
 
-        route = [SAPRouterRouteHop(hostname=self.test_address,
-                                   port=self.test_port),
-                 SAPRouterRouteHop(hostname="10.0.0.2",
-                                   port="3200")]
+        route = [SAPRouterRouteHop(hostname=self.test_address.encode(),
+                                   port=str(self.test_port).encode()),
+                 SAPRouterRouteHop(hostname="127.0.0.1",
+                                   port=3200)]
 
         with self.assertRaises(SAPRouteException):
             self.client = SAPRoutedStreamSocket(sock, route=route,
@@ -202,43 +216,42 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
         self.start_server(SAPRouterServerTestHandler)
 
         # Test using a complete route
-        route = [SAPRouterRouteHop(hostname=self.test_address,
-                                   port=self.test_port),
-                 SAPRouterRouteHop(hostname="10.0.0.1",
-                                   port="3200")]
+        route = [SAPRouterRouteHop(hostname=self.test_address.encode(),
+                                   port=str(self.test_port).encode()),
+                 SAPRouterRouteHop(hostname="127.0.0.1",
+                                   port=3200)]
         self.client = SAPRoutedStreamSocket.get_nisocket(route=route,
                                                          router_version=40)
 
         packet = self.client.sr(self.test_string)
         self.assertIn(SAPNI, packet)
         self.assertEqual(packet[SAPNI].length, len(self.test_string) + 4)
-        self.assertEqual(unpack("!I", packet[SAPNI].payload.load[:4]), (len(self.test_string), ))
+        self.assertEqual(unpack("!I", packet[SAPNI].payload.load[:4]), (len(self.test_string),))
         self.assertEqual(packet[SAPNI].payload.load[4:], self.test_string)
 
         # Test using a route and a target host/port
-        route = [SAPRouterRouteHop(hostname=self.test_address,
-                                   port=self.test_port)]
-        self.client = SAPRoutedStreamSocket.get_nisocket("10.0.0.1",
-                                                         "3200",
+        route = [SAPRouterRouteHop(hostname=self.test_address.encode(),
+                                   port=str(self.test_port).encode())]
+        self.client = SAPRoutedStreamSocket.get_nisocket("127.0.0.1",
+                                                         3200,
                                                          route=route,
                                                          router_version=40)
 
         packet = self.client.sr(self.test_string)
         self.assertIn(SAPNI, packet)
         self.assertEqual(packet[SAPNI].length, len(self.test_string) + 4)
-        self.assertEqual(unpack("!I", packet[SAPNI].payload.load[:4]), (len(self.test_string), ))
+        self.assertEqual(unpack("!I", packet[SAPNI].payload.load[:4]), (len(self.test_string),))
         self.assertEqual(packet[SAPNI].payload.load[4:], self.test_string)
 
         # Test using a route string
-        route = "/H/%s/S/%s/H/10.0.0.1/S/3200" % (self.test_address,
-                                                  self.test_port)
-        self.client = SAPRoutedStreamSocket.get_nisocket(route=route,
+        route = f"/H/{self.test_address}/S/{self.test_port}/H/127.0.0.1/S/3200"
+        self.client = SAPRoutedStreamSocket.get_nisocket(route=route.encode(),
                                                          router_version=40)
 
         packet = self.client.sr(self.test_string)
         self.assertIn(SAPNI, packet)
         self.assertEqual(packet[SAPNI].length, len(self.test_string) + 4)
-        self.assertEqual(unpack("!I", packet[SAPNI].payload.load[:4]), (len(self.test_string), ))
+        self.assertEqual(unpack("!I", packet[SAPNI].payload.load[:4]), (len(self.test_string),))
         self.assertEqual(packet[SAPNI].payload.load[4:], self.test_string)
 
         self.client.close()

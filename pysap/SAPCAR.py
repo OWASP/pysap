@@ -28,7 +28,7 @@ from io import BytesIO
 from scapy.packet import Packet
 from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
                           PacketField, StrFixedLenField, PacketListField,
-                          ConditionalField, LESignedIntField, StrField, LELongField)
+                          ConditionalField, LESignedIntField, StrField, LELongField, MultipleTypeField)
 # Custom imports
 from pysap.utils.fields import (PacketNoPadded, StrNullFixedLenField, PacketListStopField)
 from pysapcompress import (decompress, compress, ALG_LZH, CompressError,
@@ -59,9 +59,15 @@ class SAPCARCompressedBlobFormat(PacketNoPadded):
         ByteEnumField("algorithm", 0x12, {0x12: "LZH", 0x10: "LZC"}),
         StrFixedLenField("magic_bytes", b"\x1f\x9d", 2),
         ByteField("special", 2),
-        ConditionalField(StrField("blob", None, remain=4), lambda x: x.compressed_length <= 8),
-        ConditionalField(StrFixedLenField("blob", None, length_from=lambda x: x.compressed_length - 8),
-                         lambda x: x.compressed_length > 8),
+        MultipleTypeField(
+            [
+                (StrField("blob", None, remain=4),
+                 lambda pkt: pkt.compressed_length <= 8),
+                (StrFixedLenField("blob", None, length_from=lambda pkt: pkt.compressed_length - 8),
+                 lambda pkt: pkt.compressed_length > 8),
+            ],
+            StrField("blob", None)
+        )
     ]
 
 
@@ -582,7 +588,7 @@ class SAPCARArchiveFile(object):
 
         # Validate the checksum if required
         if enforce_checksum:
-            if checksum != self.calculate_checksum(out_file.getvalue()):
+            if checksum != self.calculate_checksum(out_file.getvalue().decode()):
                 raise SAPCARInvalidChecksumException("Invalid checksum found")
             out_file.seek(0)
 
@@ -690,7 +696,7 @@ class SAPCARArchive(object):
         if version not in list(sapcar_archive_file_versions.keys()):
             raise ValueError("Invalid version")
         # If version is different, we should convert each file
-        if version != self._sapcar.version.decode():
+        if version != self._sapcar.version:
             fils = []
             for fil in list(self.files.values()):
                 new_file = SAPCARArchiveFile.from_archive_file(fil, version=version)

@@ -62,16 +62,16 @@ class SAPDiagDP(Packet):
         ByteField("new_stat", 0),
         SignedIntField("unused1", -1),
         SignedShortField("rq_id", -1),
-        StrFixedLenField("unused2", "\x20" * 40, 40),
-        StrFixedLenField("terminal", "\x00" * 15, 15),
-        StrFixedLenField("unused3", "\x00" * 10, 10),
-        StrFixedLenField("unused4", "\x20" * 20, 20),
+        StrFixedLenField("unused2", b"\x20" * 40, 40),
+        StrFixedLenField("terminal", b"\x00" * 15, 15),
+        StrFixedLenField("unused3", b"\x00" * 10, 10),
+        StrFixedLenField("unused4", b"\x20" * 20, 20),
         IntField("unused5", 0),
         IntField("unused6", 0),
         SignedIntField("unused7", -1),
         IntField("unused8", 0),
         ByteField("unused9", 0x01),
-        StrFixedLenField("unused10", "\x00" * 57, 57)]
+        StrFixedLenField("unused10", b"\x00" * 57, 57)]
 
 
 # Diag Item Types
@@ -637,7 +637,7 @@ class SAPDiagError(PacketNoPadded):
     name = "SAP Diag Error"
     # TODO: Need to figure out the meaning of the packets
     fields_desc = [
-        StrNullFixedLenField("msg", "**DPTMMSG**", length=12),
+        StrNullFixedLenField("msg", b"**DPTMMSG**", length=12),
         StrField("padd", None),
     ]
 

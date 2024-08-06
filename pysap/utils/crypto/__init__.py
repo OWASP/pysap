@@ -111,15 +111,17 @@ class PKCS12_PBKDF1(object):
         v = self._algorithm.block_size
 
         # Step 1 - Concatenate v/8 copies of ID
-        d = chr(self._id) * v
+        d = bytes([self._id]) * v
 
         def concatenate_string(inp):
+            if isinstance(inp, str):
+                inp = inp.encode('utf-8')
             s = b''
             if inp != b'':
                 s_len = v * int(math.ceil(float(len(inp)) / v))
                 while len(s) < s_len:
                     s += inp
-                s = s[0:s_len]
+                s = s[:s_len]
             return s
 
         # Step 2 - Concatenate copies of the salt
@@ -137,6 +139,8 @@ class PKCS12_PBKDF1(object):
         # Step 6
 
         def digest(inp):
+            if isinstance(inp, str):
+                inp = inp.encode('utf-8')
             h = Hash(self._algorithm())
             h.update(inp)
             return h.finalize()
@@ -144,13 +148,10 @@ class PKCS12_PBKDF1(object):
         def to_int(value):
             if value == b'':
                 return 0
-            return int(value.encode("hex"), 16)
+            return int.from_bytes(value, 'big')
 
         def to_bytes(value):
-            value = "%x" % value
-            if len(value) & 1:
-                value = "0" + value
-            return value.decode("hex")
+            return value.to_bytes((value.bit_length() + 7) // 8, 'big')
 
         a = b'\x00' * (c * u)
         for n in range(1, c + 1):
@@ -258,16 +259,14 @@ class PKCS12_PBES1(object):
 
 
 class SCRAM(object):
-    """Base interface for implementing SCRAM password schemes.
-    """
+    """Base interface for implementing SCRAM password schemes."""
 
     CLIENT_PROOF_SIZE = 32
     CLIENT_KEY_SIZE = 64
     ALGORITHM = None
 
     def get_client_key(self):
-        """Returns a client key to be used during the handshake.
-        """
+        """Returns a client key to be used during the handshake."""
         return os.urandom(self.CLIENT_KEY_SIZE)
 
     def salt_key(self, password, salt, rounds):
@@ -276,8 +275,7 @@ class SCRAM(object):
         return hmac.finalize()
 
     def scramble_salt(self, password, salt, server_key, client_key, rounds=None):
-        """Scrambles a given salt using the specified server key.
-        """
+        """Scrambles a given salt using the specified server key."""
         msg = salt + server_key + client_key
 
         hmac_digest = self.salt_key(password, salt, rounds)
@@ -307,15 +305,12 @@ class SCRAM(object):
 
 
 class SCRAM_SHA256(SCRAM):
-    """SCRAM scheme using SHA256 as the hashing algorithm.
-    """
+    """SCRAM scheme using SHA256 as the hashing algorithm."""
     ALGORITHM = SHA256
 
 
 class SCRAM_MD5(SCRAM):
-    """SCRAM scheme using MD5 as the hashing algorithm.
-    """
-
+    """SCRAM scheme using MD5 as the hashing algorithm."""
     ALGORITHM = MD5
 
 
@@ -335,10 +330,10 @@ def rsec_decrypt(blob, key):
     hence implemented in the crypto library instead of the particular layer.
 
     :param blob: encrypted blob to decrypt
-    :type blob: bytes
+    :type blob: bytes or str
 
     :param key: key to use to decrypt
-    :type key: bytes
+    :type key: bytes or str
 
     :return: decrypted blob
     :rtype: bytes
@@ -348,8 +343,17 @@ def rsec_decrypt(blob, key):
     if len(key) != 24:
         raise Exception("Wrong key length")
 
-    blob = [ord(i) for i in blob]
-    key = [ord(i) for i in key]
+    # Convert input to list of integers if they are strings or bytes
+    if isinstance(blob, str):
+        blob = [ord(i) for i in blob]
+    elif isinstance(blob, bytes):
+        blob = list(blob)
+
+    if isinstance(key, str):
+        key = [ord(i) for i in key]
+    elif isinstance(key, bytes):
+        key = list(key)
+
     key1 = key[0:8]
     key2 = key[8:16]
     key3 = key[16:24]
@@ -359,4 +363,4 @@ def rsec_decrypt(blob, key):
     round_2 = cipher.crypt(RSECCipher.MODE_ENCODE, round_1, key2, len(round_1))
     round_3 = cipher.crypt(RSECCipher.MODE_DECODE, round_2, key1, len(round_2))
 
-    return ''.join([chr(i) for i in round_3])
+    return bytes(round_3)

@@ -33,7 +33,7 @@ from pysap.utils.fields import PacketNoPadded, StrFixedLenPaddedField, Timestamp
 log_ssfs = logging.getLogger("pysap.ssfs")
 
 
-ssfs_hmac_key_unobscured = "\xe3\xa0\x61\x11\x85\x41\x68\x99\xf3\x0e\xda\x87\x7a\x80\xcc\x69"
+ssfs_hmac_key_unobscured = b"\xe3\xa0\x61\x11\x85\x41\x68\x99\xf3\x0e\xda\x87\x7a\x80\xcc\x69"
 """Fixed key embedded in rsecssfx binaries for validating integrity of records"""
 
 
@@ -43,7 +43,7 @@ class SAPSSFSLKY(Packet):
     """
     name = "SAP SSFS LKY"
     fields_desc = [
-        StrFixedLenField("preamble", "RSecSSFsLKY", 11),
+        StrFixedLenField("preamble", b"RSecSSFsLKY", 11),
     ]
 
 
@@ -53,7 +53,7 @@ class SAPSSFSLock(Packet):
     """
     name = "SAP SSFS Lock"
     fields_desc = [
-        StrFixedLenField("preamble", "RSecSSFsLock", 12),
+        StrFixedLenField("preamble", b"RSecSSFsLock", 12),
         ByteField("file_type", 0),
         ByteField("type", 0),
         TimestampField("timestamp", None),
@@ -69,7 +69,7 @@ class SAPSSFSKey(Packet):
     """
     name = "SAP SSFS Key"
     fields_desc = [
-        StrFixedLenField("preamble", "RSecSSFsKey", 11),
+        StrFixedLenField("preamble", b"RSecSSFsKey", 11),
         ByteField("type", 1),
         StrFixedLenField("key", None, 24),
         TimestampField("timestamp", None),
@@ -87,7 +87,7 @@ class SAPSSFSDecryptedPayload(PacketNoPadded):
 
     fields_desc = [
         # Record Header
-        StrFixedLenField("preamble", "\x00"*8, 8),
+        StrFixedLenField("preamble", b"\x00"*8, 8),
         LenField("length", 0, fmt="I"),  # Max record length supported is 0x18150
         StrFixedLenField("hash", None, 20),
         # Data Header
@@ -98,7 +98,7 @@ class SAPSSFSDecryptedPayload(PacketNoPadded):
     @property
     def valid(self):
         """Returns whether the SHA1 value is valid for the given payload"""
-        blob = str(self)
+        blob = self
 
         digest = Hash(SHA1())
         digest.update(blob[:8])
@@ -121,15 +121,15 @@ class SAPSSFSDataRecord(PacketNoPadded):
 
     fields_desc = [
         # Record Header
-        StrFixedLenField("preamble", "RSecSSFsData", 12),
+        StrFixedLenField("preamble", b"RSecSSFsData", 12),
         LenField("length", 0, fmt="I"),  # Max record length supported is 0x18150
         ByteField("type", 1),   # Record type "1" supported
         StrFixedLenField("filler1", None, 7),
         # Data Header
-        StrFixedLenPaddedField("key_name", None, 64, padd=" "),
+        StrFixedLenPaddedField("key_name", b"", 64, padd=" "),
         TimestampField("timestamp", None),
-        StrFixedLenPaddedField("user", None, 24, padd=" "),
-        StrFixedLenPaddedField("host", None, 24, padd=" "),
+        StrFixedLenPaddedField("user", "", 24, padd=" "),
+        StrFixedLenPaddedField("host", "", 24, padd=" "),
         YesNoByteField("is_deleted", 0),
         YesNoByteField("is_stored_as_plaintext", 0),
         YesNoByteField("is_binary_data", 0),
@@ -150,16 +150,20 @@ class SAPSSFSDataRecord(PacketNoPadded):
         log_ssfs.debug("Decrypting record {}".format(self.key_name))
         decrypted_data = rsec_decrypt(self.data, key.key)
         decrypted_payload = SAPSSFSDecryptedPayload(decrypted_data)
-        log_ssfs.warn("Decrypted payload integrity is {}".format(decrypted_payload.valid))
+        log_ssfs.warning("Decrypted payload integrity is {}".format(decrypted_payload.valid))
         return decrypted_payload.data
 
     @property
     def valid(self):
         """Returns whether the HMAC-SHA1 value is valid for the given payload"""
-
         # Calculate the HMAC-SHA1
         h = HMAC(ssfs_hmac_key_unobscured, SHA1())
-        h.update(str(self)[24:156])  # Entire Data header without the HMAC field
+        header = None
+        try:
+            header = bytes(self)[24:156]
+        except:
+            header = str(self)[24:156].encode()
+        h.update(header)
         h.update(self.data)
 
         # Validate the signature
@@ -195,7 +199,7 @@ class SAPSSFSData(Packet):
         :rtype: bool
         """
         for record in self.records:
-            if record.key_name.rstrip(" ") == key_name:
+            if record.key_name.rstrip(b" ") == key_name:
                 return True
         return False
 
@@ -209,7 +213,7 @@ class SAPSSFSData(Packet):
         :rtype: SAPSSFSDataRecord
         """
         for record in self.records:
-            if record.key_name.rstrip(" ") == key_name:
+            if record.key_name.rstrip(b" ") == key_name:
                 yield record
 
     def get_record(self, key_name):

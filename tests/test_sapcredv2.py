@@ -30,19 +30,19 @@ from pysap.SAPCredv2 import (SAPCredv2, SAPCredv2_Cred_Plain,
 
 class PySAPCredV2Test(unittest.TestCase):
 
-    decrypt_username = "username"
-    decrypt_pin = "1234567890"
-    cert_name = "CN=PSEOwner"
-    common_name = "PSEOwner"
-    subject_str = "/CN=PSEOwner"
+    decrypt_username = b"username"
+    decrypt_pin = b"1234567890"
+    cert_name = b"CN=PSEOwner"
+    common_name = b"PSEOwner"
+    subject_str = b"/CN=PSEOwner"
     subject = [
         X509_RDN(rdn=[
             X509_AttributeTypeAndValue(type=ASN1_OID("2.5.4.3"),
                                        value=ASN1_PRINTABLE_STRING(common_name))
         ])
     ]
-    pse_path = "/secudir/pse-v2-noreq-DSA-1024-SHA1.pse"
-    pse_path_win = "C:\\secudir\\pse-v2-noreq-DSA-1024-SHA1.pse"
+    pse_path = b"/secudir/pse-v2-noreq-DSA-1024-SHA1.pse"
+    pse_path_win = b"C:\\secudir\\pse-v2-noreq-DSA-1024-SHA1.pse"
 
     def validate_credv2_lps_off_fields(self, creds, number, lps_type, cipher_format_version,
                                        cipher_algorithm, cert_name=None, pse_path=None):
@@ -56,9 +56,9 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(cred.cipher_algorithm, cipher_algorithm)
 
         self.assertEqual(cred.cert_name, cert_name or self.cert_name)
-        self.assertEqual(cred.unknown1, "")
+        self.assertEqual(cred.unknown1, b"")
         self.assertEqual(cred.pse_path, pse_path or self.pse_path)
-        self.assertEqual(cred.unknown2, "")
+        self.assertEqual(cred.unknown2, b"")
 
     def validate_credv2_plain(self, cred, decrypt_username=None, decrypt_pin=None):
         plain = cred.decrypt(decrypt_username or self.decrypt_username)
@@ -96,7 +96,7 @@ class PySAPCredV2Test(unittest.TestCase):
 
         cred = SAPCredv2(s).creds[0].cred
         plain = cred.decrypt(self.decrypt_username)
-        self.assertEqual(plain.option1, SAPCredv2_Cred_Plain.PROVIDER_MSCryptProtect)
+        self.assertEqual(plain.option1, SAPCredv2_Cred_Plain.PROVIDER_MSCryptProtect.encode())
 
     def test_credv2_lps_off_v1_3des(self):
         """Test parsing of a version 1 3DES encrypted credential with LPS off"""
@@ -143,7 +143,7 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(len(creds), 1)
 
         cred = creds[0].cred
-        self.assertEqual(cred.common_name, self.subject_str)
+        self.assertEqual(cred.common_name.encode(), self.subject_str)
         self.assertEqual(cred.subject, self.subject)
         self.assertEqual(cred.subject[0].rdn[0].type.val, "2.5.4.3")
         self.assertEqual(cred.subject[0].rdn[0].value.val, self.common_name)
@@ -173,7 +173,7 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(len(creds), 1)
 
         cred = creds[0].cred
-        self.assertEqual(cred.common_name, self.subject_str)
+        self.assertEqual(cred.common_name.encode(), self.subject_str)
         self.assertEqual(cred.subject, self.subject)
         self.assertEqual(cred.subject[0].rdn[0].type.val, "2.5.4.3")
         self.assertEqual(cred.subject[0].rdn[0].value.val, self.common_name)
@@ -196,20 +196,20 @@ class PySAPCredV2Test(unittest.TestCase):
         creds = SAPCredv2(s).creds
         self.assertEqual(len(creds), 1)
 
-        subject_str = "/C=AR/CN=PSEOwner"
+        subject_str = b"/C=AR/CN=PSEOwner"
         subject = [
             X509_RDN(rdn=[
                 X509_AttributeTypeAndValue(type=ASN1_OID("2.5.4.6"),
-                                           value=ASN1_PRINTABLE_STRING("AR"))]),
+                                           value=ASN1_PRINTABLE_STRING(b"AR"))]),
             X509_RDN(rdn=[
                 X509_AttributeTypeAndValue(type=ASN1_OID("2.5.4.3"),
                                            value=ASN1_PRINTABLE_STRING(self.common_name))]),
         ]
         cred = creds[0].cred
-        self.assertEqual(cred.common_name, subject_str)
+        self.assertEqual(cred.common_name.encode(), subject_str)
         self.assertEqual(cred.subject, subject)
         self.assertEqual(cred.subject[0].rdn[0].type.val, "2.5.4.6")
-        self.assertEqual(cred.subject[0].rdn[0].value.val, "AR")
+        self.assertEqual(cred.subject[0].rdn[0].value.val, b"AR")
         self.assertEqual(cred.subject[1].rdn[0].type.val, "2.5.4.3")
         self.assertEqual(cred.subject[1].rdn[0].value.val, self.common_name)
 
@@ -220,7 +220,6 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(cred.pse_path, self.pse_path)
 
         self.validate_credv2_plain(cred)
-
 
 if __name__ == "__main__":
     unittest.main(verbosity=1)

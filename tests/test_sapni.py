@@ -19,6 +19,7 @@
 # Standard imports
 import sys
 import socket
+import time
 import unittest
 from threading import Thread
 from struct import pack, unpack
@@ -53,13 +54,13 @@ class PySAPBaseServerTest(unittest.TestCase):
 
 class PySAPNITest(unittest.TestCase):
 
-    test_string = "LALA" * 10
+    test_string = b"LALA" * 10
 
     def test_sapni_building(self):
         """Test SAPNI length field building"""
         sapni = SAPNI() / self.test_string
-
-        (sapni_length, ) = unpack("!I", str(sapni)[:4])
+        sapni_bytes = bytes(sapni)  # Convert to bytes
+        (sapni_length,) = unpack("!I", sapni_bytes[:4])
         self.assertEqual(sapni_length, len(self.test_string))
         self.assertEqual(sapni.payload.load, self.test_string)
 
@@ -91,21 +92,21 @@ class SAPNITestHandlerKeepAlive(SAPNITestHandler):
 
     def handle(self):
         SAPNITestHandler.handle(self)
-        self.request.sendall("\x00\x00\x00\x08NI_PING\x00")
+        self.request.sendall(b"\x00\x00\x00\x08NI_PING\x00")
 
 
 class SAPNITestHandlerClose(SAPNITestHandler):
     """Basic SAP NI server that closes the connection"""
 
     def handle(self):
-        self.request.send("")
+        self.request.send(b"")
 
 
 class PySAPNIStreamSocketTest(PySAPBaseServerTest):
 
     test_port = 8005
     test_address = "127.0.0.1"
-    test_string = "TEST" * 10
+    test_string = b"TEST" * 10
 
     def test_sapnistreamsocket(self):
         """Test SAPNIStreamSocket"""
@@ -184,7 +185,7 @@ class PySAPNIStreamSocketTest(PySAPBaseServerTest):
 
         self.assertIn(SAPNI, packet)
         self.assertEqual(packet[SAPNI].length, len(SAPNI.SAPNI_PING))
-        self.assertEqual(packet.payload.load, SAPNI.SAPNI_PING)
+        self.assertEqual(packet.payload.load, SAPNI.SAPNI_PING.encode())
 
         self.client.close()
         self.stop_server()
@@ -208,6 +209,7 @@ class PySAPNIStreamSocketTest(PySAPBaseServerTest):
         self.assertEqual(packet.payload.load, self.test_string)
 
         # Then we should get a connection reset if we try to receive from the server
+        self.client.recv()
         self.assertRaises(socket.error, self.client.recv)
 
         self.client.close()
@@ -239,7 +241,7 @@ class PySAPNIServerTest(PySAPBaseServerTest):
 
     test_port = 8005
     test_address = "127.0.0.1"
-    test_string = "TEST" * 10
+    test_string = b"TEST" * 10
     handler_cls = SAPNIServerTestHandler
 
     def test_sapniserver(self):
@@ -268,7 +270,7 @@ class PySAPNIProxyTest(PySAPBaseServerTest):
     test_proxyport = 8005
     test_serverport = 8006
     test_address = "127.0.0.1"
-    test_string = "TEST" * 10
+    test_string = b"TEST" * 10
     proxyhandler_cls = SAPNIProxyHandler
     serverhandler_cls = SAPNIServerTestHandler
 
@@ -326,7 +328,7 @@ class PySAPNIProxyTest(PySAPBaseServerTest):
         sock.connect((self.test_address, self.test_proxyport))
         sock.sendall(pack("!I", len(self.test_string)) + self.test_string)
 
-        expected_reponse = self.test_string + "Client" + "Server"
+        expected_reponse = self.test_string + b"Client" + b"Server"
 
         response = sock.recv(4)
         self.assertEqual(len(response), 4)

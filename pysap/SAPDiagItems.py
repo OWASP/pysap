@@ -314,7 +314,6 @@ class SAPDiagSupportBits(Packet):
 bind_diagitem(SAPDiagSupportBits, "APPL", 0x04, 0x0b)
 bind_diagitem(SAPDiagSupportBits, "APPL", 0x06, 0x11)
 
-
 # Support Bits for common SAP Software versions
 #
 # SAPGUI 7.02 Java rev 5:           ff7ffe2ddab737d674087e1305971597eff23f8d0770ff0f0000000000000000
@@ -331,14 +330,22 @@ bind_diagitem(SAPDiagSupportBits, "APPL", 0x06, 0x11)
 # SAP NetWeaver AS ABAP 7.50 SP02:  ff7ffe2dd8b737f674087e9305971597ebf2bf8f4b71ff9f8606000000000000
 # SAP NetWeaver AS ABAP 7.52 SP01:  ff7ffa0d78b737de76186e9325b71597eb73feebdb51fd91ce24010000000000
 
-support_data_sapgui_701_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1593ef73feebdb5501000000000000000000"))
-support_data_sapgui_702_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1593ef73feebdb51ed010000000000000000"))
-support_data_sapgui_730_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed910200000000000000"))
-support_data_sapgui_740_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed91ca00000000000000"))
-support_data_sapgui_750_win = SAPDiagSupportBits(unhex("ff7ffa0d78b737def6196e9325bf1597ef73feebdb51fd91ce2c010000000000"))
-support_data_sapgui_702_java2 = SAPDiagSupportBits(unhex("ff7ffe2ddab737d674087e1305971597eff23f8d0770ff030000000000000000"))
-support_data_sapgui_702_java5 = SAPDiagSupportBits(unhex("ff7ffe2ddab737d674087e1305971597eff23f8d0770ff0f0000000000000000"))
-support_data_sapgui_740_java8 = SAPDiagSupportBits(unhex("ff7ffe2ddab737f674087e9305971597eff2bf8f4f71ff9f8606000000000000"))
+support_data_sapgui_701_win = SAPDiagSupportBits(
+    unhex("ff7ffa0d78b737def6196e9325bf1593ef73feebdb5501000000000000000000"))
+support_data_sapgui_702_win = SAPDiagSupportBits(
+    unhex("ff7ffa0d78b737def6196e9325bf1593ef73feebdb51ed010000000000000000"))
+support_data_sapgui_730_win = SAPDiagSupportBits(
+    unhex("ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed910200000000000000"))
+support_data_sapgui_740_win = SAPDiagSupportBits(
+    unhex("ff7ffa0d78b737def6196e9325bf1597ef73feebdb51ed91ca00000000000000"))
+support_data_sapgui_750_win = SAPDiagSupportBits(
+    unhex("ff7ffa0d78b737def6196e9325bf1597ef73feebdb51fd91ce2c010000000000"))
+support_data_sapgui_702_java2 = SAPDiagSupportBits(
+    unhex("ff7ffe2ddab737d674087e1305971597eff23f8d0770ff030000000000000000"))
+support_data_sapgui_702_java5 = SAPDiagSupportBits(
+    unhex("ff7ffe2ddab737d674087e1305971597eff23f8d0770ff0f0000000000000000"))
+support_data_sapgui_740_java8 = SAPDiagSupportBits(
+    unhex("ff7ffe2ddab737f674087e9305971597eff2bf8f4f71ff9f8606000000000000"))
 support_data_sapnw_701 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737d674087e1305971597ebf22f8d03300f000000000000000000"))
 support_data_sapnw_702 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737d674087e1305971597ebf23f8d0370ff0f0000000000000000"))
 support_data_sapnw_750 = SAPDiagSupportBits(unhex("ff7ffe2dd8b737f674087e9305971597ebf2bf8f4b71ff9f8606000000000000"))
@@ -348,7 +355,6 @@ support_data = SAPDiagItem(item_type="APPL",
                            item_id="ST_USER",
                            item_sid="SUPPORTDATA",
                            item_value=support_data_sapgui_702_java5)
-
 
 # Dynt Atom item types
 diag_atom_etypes = {
@@ -402,61 +408,70 @@ class SAPDiagDyntAtomItem(PacketNoPadded):
         ShortField("col", 0),
         # Attr flags
         BitField("attr_DIAG_BSD_COMBOSTYLE", 0, 1),  # 80
-        BitField("attr_DIAG_BSD_YES3D", 0, 1),       # 40
-        BitField("attr_DIAG_BSD_PROPFONT", 0, 1),    # 20
-        BitField("attr_DIAG_BSD_MATCHCODE", 0, 1),   # 10
-        BitField("attr_DIAG_BSD_JUSTRIGHT", 0, 1),   # 08
-        BitField("attr_DIAG_BSD_INTENSIFY", 0, 1),   # 04
-        BitField("attr_DIAG_BSD_INVISIBLE", 0, 1),   # 02
-        BitField("attr_DIAG_BSD_PROTECTED", 0, 1),   # 01
+        BitField("attr_DIAG_BSD_YES3D", 0, 1),  # 40
+        BitField("attr_DIAG_BSD_PROPFONT", 0, 1),  # 20
+        BitField("attr_DIAG_BSD_MATCHCODE", 0, 1),  # 10
+        BitField("attr_DIAG_BSD_JUSTRIGHT", 0, 1),  # 08
+        BitField("attr_DIAG_BSD_INTENSIFY", 0, 1),  # 04
+        BitField("attr_DIAG_BSD_INVISIBLE", 0, 1),  # 02
+        BitField("attr_DIAG_BSD_PROTECTED", 0, 1),  # 01
 
         # DIAG_DGOTYP_FNAME
-        ConditionalField(StrLenField("name_text", "", length_from=lambda pkt:pkt.atom_length - 13), lambda pkt:pkt.etype == 114),
+        ConditionalField(StrLenField("name_text", "", length_from=lambda pkt: pkt.atom_length - 13),
+                         lambda pkt: pkt.etype == 114),
         # DIAG_DGOTYP_PUSHBUTTON_2 */
-        ConditionalField(ByteField("pushbutton_v_length", 0), lambda pkt:pkt.etype in [115]),
-        ConditionalField(ByteField("pushbutton_v_height", 0), lambda pkt:pkt.etype in [115]),
-        ConditionalField(ShortField("pushbutton_function_code_offset", 0), lambda pkt:pkt.etype in [115]),
-        ConditionalField(ShortField("pushbutton_text_offset", 0), lambda pkt:pkt.etype in [115]),
-        ConditionalField(StrField("pushbutton_text", ""), lambda pkt:pkt.etype in [115]),
-        ConditionalField(StrField("pushbutton_function_code", ""), lambda pkt:pkt.etype in [115]),
+        ConditionalField(ByteField("pushbutton_v_length", 0), lambda pkt: pkt.etype in [115]),
+        ConditionalField(ByteField("pushbutton_v_height", 0), lambda pkt: pkt.etype in [115]),
+        ConditionalField(ShortField("pushbutton_function_code_offset", 0), lambda pkt: pkt.etype in [115]),
+        ConditionalField(ShortField("pushbutton_text_offset", 0), lambda pkt: pkt.etype in [115]),
+        ConditionalField(StrField("pushbutton_text", ""), lambda pkt: pkt.etype in [115]),
+        ConditionalField(StrField("pushbutton_function_code", ""), lambda pkt: pkt.etype in [115]),
         # DIAG_DGOTYP_TABSTRIP_BUTTON
-        ConditionalField(ByteField("tabstripbutton_v_length", 0), lambda pkt:pkt.etype in [116]),
-        ConditionalField(ByteField("tabstripbutton_v_height", 0), lambda pkt:pkt.etype in [116]),
-        ConditionalField(ByteField("tabstripbutton_page_id", 0), lambda pkt:pkt.etype in [116]),
-        ConditionalField(ShortField("tabstripbutton_function_code_offset", 0), lambda pkt:pkt.etype in [116]),
-        ConditionalField(ShortField("tabstripbutton_text_offset", 0), lambda pkt:pkt.etype in [116]),
-        ConditionalField(ShortField("tabstripbutton_id_offset", 0), lambda pkt:pkt.etype in [116]),
-        ConditionalField(StrNullField("tabstripbutton_text", ""), lambda pkt:pkt.etype in [116]),
-        ConditionalField(StrNullField("tabstripbutton_function_code", ""), lambda pkt:pkt.etype in [116]),
-        ConditionalField(StrNullField("tabstripbutton_id", ""), lambda pkt:pkt.etype in [116]),
+        ConditionalField(ByteField("tabstripbutton_v_length", 0), lambda pkt: pkt.etype in [116]),
+        ConditionalField(ByteField("tabstripbutton_v_height", 0), lambda pkt: pkt.etype in [116]),
+        ConditionalField(ByteField("tabstripbutton_page_id", 0), lambda pkt: pkt.etype in [116]),
+        ConditionalField(ShortField("tabstripbutton_function_code_offset", 0), lambda pkt: pkt.etype in [116]),
+        ConditionalField(ShortField("tabstripbutton_text_offset", 0), lambda pkt: pkt.etype in [116]),
+        ConditionalField(ShortField("tabstripbutton_id_offset", 0), lambda pkt: pkt.etype in [116]),
+        ConditionalField(StrNullField("tabstripbutton_text", ""), lambda pkt: pkt.etype in [116]),
+        ConditionalField(StrNullField("tabstripbutton_function_code", ""), lambda pkt: pkt.etype in [116]),
+        ConditionalField(StrNullField("tabstripbutton_id", ""), lambda pkt: pkt.etype in [116]),
         # DIAG_DGOTYP_XMLPROP
-        ConditionalField(StrLenField("xmlprop_text", "", length_from=lambda pkt:pkt.atom_length - 13), lambda pkt:pkt.etype == 120),
+        ConditionalField(StrLenField("xmlprop_text", "", length_from=lambda pkt: pkt.atom_length - 13),
+                         lambda pkt: pkt.etype == 120),
         # DIAG_DGOTYP_EFIELD_1 or DIAG_DGOTYP_OFIELD_1 or DIAG_DGOTYP_KEYWORD_1
-        ConditionalField(ByteField("field1_flag1", 0), lambda pkt:pkt.etype in [121, 122, 123]),
-        ConditionalField(FieldLenField("field1_dlen", None, fmt="B", length_of="field1_text"), lambda pkt:pkt.etype in [121, 122, 123]),
-        ConditionalField(ByteField("field1_mlen", 0), lambda pkt:pkt.etype in [121, 122, 123]),
-        ConditionalField(ShortField("field1_maxnrchars", 0), lambda pkt:pkt.etype in [121, 122, 123]),
-        ConditionalField(StrLenField("field1_text", "", length_from=lambda pkt:pkt.field1_dlen), lambda pkt:pkt.etype in [121, 122, 123]),
+        ConditionalField(ByteField("field1_flag1", 0), lambda pkt: pkt.etype in [121, 122, 123]),
+        ConditionalField(FieldLenField("field1_dlen", None, fmt="B", length_of="field1_text"),
+                         lambda pkt: pkt.etype in [121, 122, 123]),
+        ConditionalField(ByteField("field1_mlen", 0), lambda pkt: pkt.etype in [121, 122, 123]),
+        ConditionalField(ShortField("field1_maxnrchars", 0), lambda pkt: pkt.etype in [121, 122, 123]),
+        ConditionalField(StrLenField("field1_text", "", length_from=lambda pkt: pkt.field1_dlen),
+                         lambda pkt: pkt.etype in [121, 122, 123]),
         # DIAG_DGOTYP_FRAME_1
-        ConditionalField(ShortField("frame_drows", 0), lambda pkt:pkt.etype in [127]),
-        ConditionalField(ShortField("frame_dcols", 0), lambda pkt:pkt.etype in [127]),
-        ConditionalField(StrLenField("frame_text", "", length_from=lambda pkt:pkt.atom_length - 17), lambda pkt:pkt.etype in [127]),
+        ConditionalField(ShortField("frame_drows", 0), lambda pkt: pkt.etype in [127]),
+        ConditionalField(ShortField("frame_dcols", 0), lambda pkt: pkt.etype in [127]),
+        ConditionalField(StrLenField("frame_text", "", length_from=lambda pkt: pkt.atom_length - 17),
+                         lambda pkt: pkt.etype in [127]),
         # DIAG_DGOTYP_RADIOBUTTON_3
-        ConditionalField(ByteField("radiobutton_button", 0), lambda pkt:pkt.etype in [129]),
-        ConditionalField(ShortField("radiobutton_visible_label_length", 0), lambda pkt:pkt.etype in [129]),
-        ConditionalField(ShortField("radiobutton_event_id_off", 0), lambda pkt:pkt.etype in [129]),
-        ConditionalField(ByteField("radiobutton_event_id_len", 0), lambda pkt:pkt.etype in [129]),
-        ConditionalField(ShortField("radiobutton_text_off", 0), lambda pkt:pkt.etype in [129]),
-        ConditionalField(ShortField("radiobutton_text_length", 0), lambda pkt:pkt.etype in [129]),
-        ConditionalField(StrLenField("radiobutton_text", "", length_from=lambda pkt:pkt.radiobutton_event_id_len + pkt.radiobutton_text_length), lambda pkt:pkt.etype in [129]),
+        ConditionalField(ByteField("radiobutton_button", 0), lambda pkt: pkt.etype in [129]),
+        ConditionalField(ShortField("radiobutton_visible_label_length", 0), lambda pkt: pkt.etype in [129]),
+        ConditionalField(ShortField("radiobutton_event_id_off", 0), lambda pkt: pkt.etype in [129]),
+        ConditionalField(ByteField("radiobutton_event_id_len", 0), lambda pkt: pkt.etype in [129]),
+        ConditionalField(ShortField("radiobutton_text_off", 0), lambda pkt: pkt.etype in [129]),
+        ConditionalField(ShortField("radiobutton_text_length", 0), lambda pkt: pkt.etype in [129]),
+        ConditionalField(StrLenField("radiobutton_text", "", length_from=lambda
+            pkt: pkt.radiobutton_event_id_len + pkt.radiobutton_text_length), lambda pkt: pkt.etype in [129]),
         # DIAG_DGOTYP_EFIELD_2 or DIAG_DGOTYP_OFIELD_2 or DIAG_DGOTYP_KEYWORD_2
-        ConditionalField(ShortField("field2_flag1", 0), lambda pkt:pkt.etype in [130, 131, 132]),
-        ConditionalField(FieldLenField("field2_dlen", None, fmt="B", length_of="field2_text"), lambda pkt:pkt.etype in [130, 131, 132]),
-        ConditionalField(ByteField("field2_mlen", 0), lambda pkt:pkt.etype in [130, 131, 132]),
-        ConditionalField(ShortField("field2_maxnrchars", 0), lambda pkt:pkt.etype in [130, 131, 132]),
-        ConditionalField(StrLenField("field2_text", "", length_from=lambda pkt:pkt.field2_dlen), lambda pkt:pkt.etype in [130, 131, 132]),
+        ConditionalField(ShortField("field2_flag1", 0), lambda pkt: pkt.etype in [130, 131, 132]),
+        ConditionalField(FieldLenField("field2_dlen", None, fmt="B", length_of="field2_text"),
+                         lambda pkt: pkt.etype in [130, 131, 132]),
+        ConditionalField(ByteField("field2_mlen", 0), lambda pkt: pkt.etype in [130, 131, 132]),
+        ConditionalField(ShortField("field2_maxnrchars", 0), lambda pkt: pkt.etype in [130, 131, 132]),
+        ConditionalField(StrLenField("field2_text", "", length_from=lambda pkt: pkt.field2_dlen),
+                         lambda pkt: pkt.etype in [130, 131, 132]),
         # Remaining types
-        ConditionalField(StrLenField("value", "", length_from=lambda pkt:pkt.atom_length - 13), lambda pkt:pkt.etype not in [114, 115, 116, 120, 121, 122, 123, 127, 129, 130, 131, 132]),
+        ConditionalField(StrLenField("value", "", length_from=lambda pkt: pkt.atom_length - 13),
+                         lambda pkt: pkt.etype not in [114, 115, 116, 120, 121, 122, 123, 127, 129, 130, 131, 132]),
     ]
 
     def post_build(self, p, pay):
@@ -517,14 +532,14 @@ class SAPDiagMenuEntry(PacketNoPadded):
         ByteField("position_3", 0),
         ByteField("position_4", 0),
         # Menu Entry Flags
-        BitField("flag_TERM_??8", 0, 1),  # 80
-        BitField("flag_TERM_??7", 0, 1),  # 40
-        BitField("flag_TERM_??6", 0, 1),  # 20
+        BitField("flag_TERM_8", 0, 1),  # 80  "flag_TERM_??8"
+        BitField("flag_TERM_7", 0, 1),  # 40 "flag_TERM_??7"
+        BitField("flag_TERM_6", 0, 1),  # 20 "flag_TERM_??6"
         BitField("flag_TERM_VKEY", 0, 1),  # 10
         BitField("flag_TERM_SEP", 0, 1),  # 8
         BitField("flag_TERM_MEN", 0, 1),  # 4
         BitField("flag_TERM_SEL", 0, 1),  # 2
-        BitField("flag_TERM_??1", 0, 1),  # 1
+        BitField("flag_TERM_1", 0, 1),  # 1 "flag_TERM_??1"
         ByteField("virtual_key", 0),
         ByteField("return_code_1", 0),
         ByteField("return_code_2", 0),
@@ -556,7 +571,6 @@ bind_diagitem(SAPDiagMenuEntries, "APPL", 0x0b, 0x01)
 bind_diagitem(SAPDiagMenuEntries, "APPL", 0x0b, 0x02)
 bind_diagitem(SAPDiagMenuEntries, "APPL", 0x0b, 0x03)
 bind_diagitem(SAPDiagMenuEntries, "APPL", 0x0b, 0x04)
-
 
 # Diag UI Event Type values
 diag_ui_event_type_values = {
@@ -626,12 +640,13 @@ class SAPDiagUIEventSource(PacketNoPadded):
         BitField("valid_menu_pos", 0, 1),
         ShortEnumKeysField("event_type", 0, diag_ui_event_type_values),
         ShortEnumKeysField("control_type", 0, diag_ui_event_control_values),
-        ConditionalField(ByteEnumKeysField("navigation_data", 0, diag_ui_event_navigation_data_values), lambda pkt:pkt.valid_navigation_data),
-        ConditionalField(ByteField("event_data", 0), lambda pkt:not pkt.valid_navigation_data),
+        ConditionalField(ByteEnumKeysField("navigation_data", 0, diag_ui_event_navigation_data_values),
+                         lambda pkt: pkt.valid_navigation_data),
+        ConditionalField(ByteField("event_data", 0), lambda pkt: not pkt.valid_navigation_data),
         ShortField("control_row", 0),
         ShortField("control_col", 0),
         FieldLenField("container_nrs", None, count_of="containers"),
-        FieldListField("containers", None, ByteField("container", 0), count_from=lambda x:x.container_nrs)
+        FieldListField("containers", None, ByteField("container", 0), count_from=lambda x: x.container_nrs)
     ]
 
 

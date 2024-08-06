@@ -46,10 +46,8 @@ class PySAPPSEv2Test(unittest.TestCase):
 
     def test_pse_v2_lps_off_pbes1_3des_sha1_decrypt(self):
         """Test decryption of a v2 PBES1 encrypted PSE with LPS off"""
-
         with open(data_filename("pse_v2_lps_off_pbes1_3des_sha1.pse"), "rb") as fd:
             s = fd.read()
-
         pse = SAPPSEFile(s)
         self.assertRaisesRegex(ValueError, "Invalid PIN supplied", pse.decrypt, "Some Invalid PIN")
         pse.decrypt(self.decrypt_pin)

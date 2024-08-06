@@ -354,7 +354,7 @@ class RSECCipher(object):
                 if array_2[self.pc2[n] - 1]:
                     tmp = self.byte_bit[n % 6]
                     tmp = tmp >> 2
-                    keys[8 * j + n / 6] |= tmp
+                    keys[8 * j + n // 6] |= tmp  # Use floor division here
         return keys
 
     def crypt(self, mode, blob, key, length):

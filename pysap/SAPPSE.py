@@ -255,11 +255,12 @@ class SAPPSEFile(ASN1_Packet):
         """Decrypts a PSE file given a provided PIN. Calls the respective decryption function
         based on the PSE version.
         """
-
+        # Convert the pin to bytes
+        pin_bytes = pin.encode('utf-8') if isinstance(pin, str) else pin
         if self.version == 2:
-            return self.decrypt_non_lps(pin)
+            return self.decrypt_non_lps(pin_bytes)
         elif self.version == 256:
-            return self.decrypt_lps(pin)
+            return self.decrypt_lps(pin_bytes)
         else:
             raise ValueError("Unsupported or invalid PSE version")
 

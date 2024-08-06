@@ -55,7 +55,7 @@ class PySAPDiagTest(unittest.TestCase):
 
         diag_header_plain = SAPDiag(compress=0)
         diag_header_plain.message.append(diag_item)
-        new_diag_header_plain = SAPDiag(str(diag_header_plain))
+        new_diag_header_plain = SAPDiag(diag_header_plain)
 
         self.assertEqual(str(diag_header_plain),
                          str(new_diag_header_plain))
@@ -66,7 +66,7 @@ class PySAPDiagTest(unittest.TestCase):
 
         diag_header_compr = SAPDiag(compress=1)
         diag_header_compr.message.append(diag_item)
-        new_diag_header_compr = SAPDiag(str(diag_header_compr))
+        new_diag_header_compr = SAPDiag(diag_header_compr)
         self.assertEqual(str(diag_header_compr.message[0]),
                          str(new_diag_header_compr.message[0]))
 
@@ -138,7 +138,7 @@ class PySAPDiagTest(unittest.TestCase):
         self.assertNotIn(sapdiag_appl_item, sapdiag.get_item(["APPL"], ["ST_USER"], ["CONNECT"]))
 
         # Insert a wrong item and observe that the lookup still works
-        sapdiag.message.append(Raw("\x00" * 10))
+        sapdiag.message.append(Raw(b"\x00" * 10))
         self.assertIn(sapdiag_ses_item, sapdiag.get_item("SES"))
         self.assertIn(sapdiag_appl_item, sapdiag.get_item(["APPL"], "ST_USER", ["RFC_PARENT_UUID", "CONNECT"]))
 
@@ -150,11 +150,11 @@ class PySAPDiagTest(unittest.TestCase):
 
         item_string = "strfield"
         item_value = SAPDiagItemTest(strfield=item_string)
-        item = SAPDiagItem("\x10\x99\xff" + pack("!H", len(item_string)) + item_string)
+        item = SAPDiagItem(b"\x10\x99\xff" + pack("!H", len(item_string)) + item_string.encode())
 
         self.assertEqual(item.item_value, item_value)
         self.assertEqual(item.item_length, len(item_string))
-        self.assertEqual(item.item_value.strfield, item_string)
+        self.assertEqual(item.item_value.strfield, item_string.encode())
         self.assertEqual(str(item.item_value), str(item_value))
         self.assertIs(diag_item_get_class(item, "APPL", 0x99, 0xff), SAPDiagItemTest)
 

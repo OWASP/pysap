@@ -355,7 +355,7 @@ class TimestampField(LongField):
     """Timestamp field"""
 
     def i2h(self, pkt, x):
-        dt = datetime.utcfromtimestamp(x)
+        dt = datetime.utcfromtimestamp
         return dt.strftime("%Y-%m-%d %H:%M:%S UTC")
 
 

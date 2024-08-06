@@ -19,7 +19,7 @@
 
 # Standard imports
 import logging
-from string import letters
+from string import ascii_letters
 from random import choice
 from argparse import ArgumentParser
 # External imports
@@ -124,7 +124,7 @@ def make_login(username, password, client):
 
 
 def get_rand(length):
-    return ''.join(choice(letters) for _ in range(length))
+    return ''.join(choice(ascii_letters) for _ in range(length))
 
 
 def is_duplicate_login(response):

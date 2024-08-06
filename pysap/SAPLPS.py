@@ -34,7 +34,7 @@ from cryptography.hazmat.primitives.hmac import HMAC
 log_lps = logging.getLogger("pysap.lps")
 
 
-cred_key_lps_fallback = "\xe7\x6a\xd2\xce\x4b\xa7\xc7\x9e\xf9\x79\x5f\xa8\x2e\x6e\xaa\x1d\x76\x02\x2e\xcd\xd7\x74\x38\x51"
+cred_key_lps_fallback = b"\xe7\x6a\xd2\xce\x4b\xa7\xc7\x9e\xf9\x79\x5f\xa8\x2e\x6e\xaa\x1d\x76\x02\x2e\xcd\xd7\x74\x38\x51"
 """Fixed key embedded in CommonCryptoLib for encrypted credentials using LPS in fallback mode"""
 
 
@@ -110,7 +110,7 @@ class SAPLPSCipher(Packet):
             raise SAPLPSDecryptionError("Invalid LPS decryption method")
 
         # Decrypt the cipher text with the encryption key
-        iv = "\x00" * 16
+        iv = b"\x00" * 16
         decryptor = Cipher(algorithms.AES(encryption_key), modes.CBC(iv)).decryptor()
         plain = decryptor.update(self.encrypted_data) + decryptor.finalize()
 
@@ -148,7 +148,7 @@ class SAPLPSCipher(Packet):
         hmac.update(self.context)
         default_key = hmac.finalize()[:16]
 
-        iv = "\x00" * 16
+        iv = b"\x00" * 16
         decryptor = Cipher(algorithms.AES(default_key), modes.CBC(iv)).decryptor()
         encryption_key = decryptor.update(self.encrypted_key) + decryptor.finalize()
 

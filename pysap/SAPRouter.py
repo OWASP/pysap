@@ -28,7 +28,7 @@ from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
                           IntField, StrNullField, PacketListField,
                           FieldLenField, FieldListField, SignedIntEnumField,
                           StrFixedLenField, PacketField, BitField, LongField,
-                          ByteEnumKeysField)
+                          ByteEnumKeysField, MultipleTypeField)
 # Custom imports
 from pysap.SAPSNC import SAPSNCFrame
 from pysap.SAPNI import (SAPNI, SAPNIStreamSocket, SAPNIProxy,
@@ -160,12 +160,17 @@ class SAPRouterRouteHop(PacketNoPadded):
         (/H/host/S/service/P/pass)*
 
         :param route_string: route string
-        :type route_string: C{string}
+        :type route_string: C{string} or C{bytes}
 
         :return: route hops in the route string
         :rtype: ``list`` of :class:`SAPRouterRouteHop`
         """
         result = []
+
+        # Convert bytes to string if necessary
+        if isinstance(route_string, bytes):
+            route_string = route_string.decode('utf-8')
+
         for route_hop in [x.groupdict() for x in cls.regex.finditer(route_string)]:
             result.append(cls(hostname=route_hop["hostname"],
                               port=route_hop["port"],
@@ -182,14 +187,15 @@ class SAPRouterRouteHop(PacketNoPadded):
         :return: route string
         :rtype: C{string}
         """
-        result = ""
-        for route_hop in route_hops:
-            result += "/H/{}".format(route_hop.hostname)
-            if route_hop.port:
-                result += "/S/{}".format(route_hop.port)
-            if route_hop.password:
-                result += "/W/{}".format(route_hop.password)
-        return result
+        route_string = ""
+        for hop in route_hops:
+            route_string += "/H/" + hop.hostname.decode('utf-8') if isinstance(hop.hostname, bytes) else hop.hostname
+            if hop.port:
+                route_string += "/S/" + hop.port.decode('utf-8') if isinstance(hop.port, bytes) else hop.port
+            if hop.password:
+                route_string += "/W/" + hop.password.decode('utf-8') if isinstance(hop.password,
+                                                                                   bytes) else hop.password
+        return route_string
 
 
 class SAPRouterInfoClient(PacketNoPadded):
@@ -248,7 +254,7 @@ class SAPRouterError(PacketNoPadded):
     This packet is used to describe an error returned by SAP Router.
     """
     name = "SAP Router Error Text"
-    fields_desc = [
+    ields_desc = [
         StrNullField("eyecatcher", "*ERR*"),
         StrNullField("counter", "1"),
         StrNullField("error", ""),
@@ -269,7 +275,8 @@ class SAPRouterError(PacketNoPadded):
         StrNullField("XXX6", ""),
         StrNullField("XXX7", ""),
         StrNullField("XXX8", ""),
-        StrNullField("eyecatcher", "*ERR*"),
+        ConditionalField(StrNullField("eyecatcher", "*ERR*"),
+                         lambda pkt: pkt.fields.get("eyecatcher") == "*ERR*")
     ]
 
     time_format = "%a %b %d %H:%M:%S %Y"
@@ -449,11 +456,17 @@ class SAPRouter(Packet):
         # Info Request fields
         ConditionalField(StrNullFixedLenField("adm_password", "", 19), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [2]),
 
-        # Cancel Route fields
-        ConditionalField(FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="H"), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [6]),
-        # Trace Connection fields
-        ConditionalField(FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="I"), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [12, 13]),
-
+        MultipleTypeField(
+            [
+                # Cancel Route fields
+                (FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="H"),
+                 lambda pkt: router_is_admin(pkt) and pkt.adm_command == 6),
+                # Trace Connection fields
+                (FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="I"),
+                 lambda pkt: router_is_admin(pkt) and pkt.adm_command in [12, 13]),
+            ],
+            FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="I")
+        ),
         # Cancel Route or Trace Connection fields
         ConditionalField(FieldListField("adm_client_ids", [0x00], IntField("", 0), count_from=lambda pkt:pkt.adm_client_count), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [6, 12, 13]),
 
@@ -572,7 +585,7 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         # Build the route request packet
         talk_mode = talk_mode or ROUTER_TALK_MODE_NI_MSG_IO
         router_strings = list(map(str, route))
-        target = "%s:%d" % (route[-1].hostname, int(route[-1].port))
+        target = "%s:%d" % (route[-1].hostname.decode(), int(route[-1].port))
         router_strings_lens = list(map(len, router_strings))
         route_request = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
                                   route_ni_version=self.router_version,

@@ -30,7 +30,7 @@ class PySAPCryptoUtilsTest(unittest.TestCase):
         Values are taken from https://github.com/SAP/PyHDB/blob/master/tests/test_auth.py
         """
 
-        password = "secret"
+        password = b"secret"
         salt = b"\x80\x96\x4f\xa8\x54\x28\xae\x3a\x81\xac" \
                b"\xd3\xe6\x86\xa2\x79\x33"
         server_key = b"\x41\x06\x51\x50\x11\x7e\x45\x5f\xec\x2f\x03\xf6" \
@@ -58,7 +58,7 @@ class PySAPCryptoUtilsTest(unittest.TestCase):
         Values are taken from https://github.com/SAP/go-hdb/blob/master/internal/protocol/authentication_test.go
         """
 
-        password = "Toor1234"
+        password = b"Toor1234"
         rounds = 15000
         salt = b"3\xb2\xd5\xd5\\R\xc2(Px\xc5[\xa6C\x17?"
         server_key = b" [\xa5\x12\x9eM\x86E\x80\x9dE\xd1/!\xab\xa48\xac\xe5\x00\x99\x03A\x1d\xef\xd2\xba\x86Q \x1d\x89\xef\xa7'\x01\xabuU\x8am&*M+*RF"

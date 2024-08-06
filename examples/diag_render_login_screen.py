@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # encoding: utf-8
 # pysap - Python library for crafting SAP's network protocols packets
 #
@@ -21,9 +21,11 @@
 import logging
 from collections import defaultdict
 from argparse import ArgumentParser
+
 # External imports
 from scapy.config import conf
 from scapy.packet import bind_layers
+
 # Custom imports
 import pysap
 from pysap.SAPNI import SAPNI
@@ -31,13 +33,10 @@ from pysap.SAPDiagItems import *
 from pysap.SAPDiag import SAPDiag, SAPDiagDP
 from pysap.SAPDiagClient import SAPDiagConnection
 
-# Try to import wx for failing gracefully if not found
-try:
-    import wx  # TODO: Change wx to Tkinter
-    has_wx = True
-except ImportError:
-    has_wx = False
-
+# Tkinter imports
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
 
 # Bind the SAPDiag layer
 bind_layers(SAPNI, SAPDiag,)
@@ -46,33 +45,24 @@ bind_layers(SAPDiagDP, SAPDiag,)
 bind_layers(SAPDiag, SAPDiagItem,)
 bind_layers(SAPDiagItem, SAPDiagItem,)
 
-
 # Set the verbosity to 0
 conf.verb = 0
 
-
 # Command line options parser
 def parse_options():
-
-    description = "This example script renders the login screen provided by an SAP Netweaver Application Server using "\
-                  "wxPython."
-
+    description = "This example script renders the login screen provided by an SAP Netweaver Application Server using Tkinter."
     usage = "%(prog)s [options] -d <remote host>"
 
     parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
     target = parser.add_argument_group("Target")
-    target.add_argument("-d", "--remote-host", dest="remote_host",
-                        help="Remote host")
-    target.add_argument("-p", "--remote-port", dest="remote_port", type=int, default=3200,
-                        help="Remote port [%(default)d]")
-    target.add_argument("--route-string", dest="route_string",
-                        help="Route string for connecting through a SAP Router")
+    target.add_argument("-d", "--remote-host", dest="remote_host", help="Remote host")
+    target.add_argument("-p", "--remote-port", dest="remote_port", type=int, default=3200, help="Remote port [%(default)d]")
+    target.add_argument("--route-string", dest="route_string", help="Route string for connecting through a SAP Router")
 
     misc = parser.add_argument_group("Misc options")
     misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
-    misc.add_argument("--terminal", dest="terminal", default=None,
-                      help="Terminal name")
+    misc.add_argument("--terminal", dest="terminal", default=None, help="Terminal name")
 
     options = parser.parse_args()
 
@@ -81,87 +71,92 @@ def parse_options():
 
     return options
 
+class DiagScreen(tk.Tk):
+    def __init__(self, windows_title, height, width, session_title, dbname, cpuname):
+        super().__init__()
 
-class DiagScreen(wx.Frame):
-    def __init__(self, parent, windows_title, height, width, session_title, dbname, cpuname):
-        wx.Frame.__init__(self, parent, title=windows_title)
+        self.title(windows_title)
+        self.geometry(f"{width}x{height}")
 
-        self.maincontainer = wx.BoxSizer(wx.VERTICAL)
+        self.session_title = ttk.Label(self, text=session_title)
+        self.session_title.pack(pady=10)
 
-        self.session_title = wx.StaticBox(self, label=session_title)
+        self.content = ttk.Frame(self)
+        self.content.pack(expand=True, fill=tk.BOTH, padx=10, pady=10)
 
-        self.container = wx.StaticBoxSizer(self.session_title, wx.VERTICAL)
-        self.maincontainer.Add(self.container, flag=wx.EXPAND | wx.ALL, border=10)
+        self.buttonbar = ttk.Frame(self)
+        self.buttonbar.pack(fill=tk.X, padx=10, pady=5)
 
-        self.buttonbar = wx.ToolBar(self)
-        self.container.Add(self.buttonbar, flag=wx.EXPAND | wx.ALL, border=10)
+        self.menubar = tk.Menu(self)
+        self.config(menu=self.menubar)
 
-        self.content = wx.GridBagSizer()
-        self.container.Add(self.content)
-        self.SetSizer(self.container)
+        self.statusbar = ttk.Label(self, text=f"{dbname} | {cpuname}")
+        self.statusbar.pack(side=tk.BOTTOM, fill=tk.X)
 
-        self.menubar = wx.MenuBar()
-        self.SetMenuBar(self.menubar)
-
-        self.toolbar = self.CreateToolBar()
-        self.toolbar.Realize()
-
-        self.statusbar = self.CreateStatusBar()
-        self.statusbar.SetFields(["", dbname, cpuname])
-
-        self.menus = defaultdict(defaultdict)
+        self.menus = defaultdict(dict)
 
     def add_text(self, x, y, maxlength, text, tooltip=None):
-        text_control = wx.StaticText(self, label=text)
+        label = ttk.Label(self.content, text=text)
+        label.grid(row=y, column=x, padx=5, pady=5, sticky='w')
         if tooltip:
-            text_control.SetTooltip(tooltip)
-        self.content.Add(text_control, pos=(y, x), flag=wx.TOP | wx.LEFT | wx.BOTTOM, border=5)
+            ToolTip(label, tooltip)
 
     def add_text_box(self, x, y, maxlength, text, invisible=0):
+        entry = ttk.Entry(self.content)
+        entry.grid(row=y, column=x, padx=5, pady=5)
+        entry.insert(0, text)
         if invisible:
-            textbox_control = wx.TextCtrl(self, style=wx.TE_PASSWORD)
-        else:
-            textbox_control = wx.TextCtrl(self)
-        textbox_control.SetMaxLength(maxlength)
-        textbox_control.SetValue(text)
-        self.content.Add(textbox_control, pos=(y, x), flag=wx.TOP | wx.LEFT | wx.BOTTOM, border=5)
+            entry.config(show="*")
 
     def add_button(self, text):
-        button = wx.Button(self.buttonbar, wx.ID_ANY, text)
-        self.buttonbar.AddControl(button)
-
-    def add_toolbar(self, text):
-        toolbar = wx.Button(self.toolbar, wx.ID_ANY, text)
-        self.toolbar.AddControl(toolbar)
+        ttk.Button(self.buttonbar, text=text).pack(side=tk.LEFT, padx=2, pady=2)
 
     def add_menu(self, pos1, text):
-        self.menus[pos1][0] = wx.Menu()
-        self.menubar.Append(self.menus[pos1][0], text)
+        menu = tk.Menu(self.menubar, tearoff=0)
+        self.menubar.add_cascade(label=text, menu=menu)
+        self.menus[pos1][0] = menu
 
     def add_child_menu(self, text, pos1, pos2=0, pos3=0, pos4=0, sel=0, men=0, sep=0):
-        # XXX: Support menus of level 4, need to use another structure for storing the menus and their handles
         if pos4 > 0:
             return
         if sep:
-            self.menus[pos1][0].AppendSeparator()
+            self.menus[pos1][0].add_separator()
         else:
             if men:
-                self.menus[pos1][pos2] = wx.Menu()
-                item = self.menus[pos1][0].AppendMenu(wx.ID_ANY, text, self.menus[pos1][pos2])
+                submenu = tk.Menu(self.menus[pos1][0], tearoff=0)
+                self.menus[pos1][0].add_cascade(label=text, menu=submenu)
+                self.menus[pos1][pos2] = submenu
             else:
                 if pos3 > 0:
-                    item = self.menus[pos1][pos2].Append(wx.ID_ANY, text)
+                    self.menus[pos1][pos2].add_command(label=text, state=tk.NORMAL if sel == 1 else tk.DISABLED)
                 else:
-                    item = self.menus[pos1][0].Append(wx.ID_ANY, text)
-            item.Enable(sel == 1)
+                    self.menus[pos1][0].add_command(label=text, state=tk.NORMAL if sel == 1 else tk.DISABLED)
 
+class ToolTip:
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.widget.bind("<Enter>", self.enter)
+        self.widget.bind("<Leave>", self.leave)
+        self.tooltip = None
+
+    def enter(self, event=None):
+        x = y = 0
+        x, y, _, _ = self.widget.bbox("insert")
+        x += self.widget.winfo_rootx() + 25
+        y += self.widget.winfo_rooty() + 25
+        self.tooltip = tk.Toplevel(self.widget)
+        self.tooltip.wm_overrideredirect(True)
+        self.tooltip.wm_geometry(f"+{x}+{y}")
+        label = ttk.Label(self.tooltip, text=self.text, background="#ffffe0", relief="solid", borderwidth=1)
+        label.pack(ipadx=1)
+
+    def leave(self, event=None):
+        if self.tooltip:
+            self.tooltip.destroy()
+            self.tooltip = None
 
 def render_diag_screen(screen, verbose):
-    """
-    Renders the Dynt Atom items of a message
-
-    """
-
     def get_item_value(screen, item_type, item_id, item_sid, i=0):
         item = screen.get_item(item_type, item_id, item_sid)
         if item:
@@ -181,15 +176,14 @@ def render_diag_screen(screen, verbose):
     toolbars = get_item_value(screen, "APPL4", "MNUENTRY", "MENU_KYB")
 
     if verbose:
-        print("[*] DB Name: " + dbname)
-        print("[*] CPU Name: " + cpuname)
-        print("[*] Client: " + client)
-        print("[*] Session Icon: " + session_icon)
-        print("[*] Session Title: " + session_title)
-        print("[*] Window Size: " + areasize.window_height + " x " + areasize.window_width)
+        print(f"[*] DB Name: {dbname}")
+        print(f"[*] CPU Name: {cpuname}")
+        print(f"[*] Client: {client}")
+        print(f"[*] Session Icon: {session_icon}")
+        print(f"[*] Session Title: {session_title}")
+        print(f"[*] Window Size: {areasize.window_height} x {areasize.window_width}")
 
-    app = wx.App(False)
-    login_frame = DiagScreen(None, "%s (%s)" % (session_icon, client), areasize.window_height, areasize.window_width, session_title, dbname, cpuname)
+    app = DiagScreen(f"{session_icon} ({client})", areasize.window_height, areasize.window_width, session_title, dbname, cpuname)
 
     # Render the atoms (control boxes and labels)
     atoms = screen.get_item(["APPL", "APPL4"], "DYNT", "DYNT_ATOM")
@@ -207,18 +201,18 @@ def render_diag_screen(screen, verbose):
 
             if text is not None:
                 if atom_item.etype in [123, 132]:  # DIAG_DGOTYP_KEYWORD_1 or DIAG_DGOTYP_KEYWORD_2
-                    if text.find("@\Q") >= 0:
+                    if text.find("@\\Q") >= 0:
                         tooltip = text.split("@")[1][2:]
                         text = text.split("@")[2]
                     else:
                         tooltip = None
                     if verbose:
-                        print("[*] Found text label at %d,%d: \"%s\" (maxlength=%d) (tooltip=\"%s\")" % (atom_item.col, atom_item.row, text.strip(), maxnrchars, tooltip))
-                    login_frame.add_text(atom_item.col, atom_item.row, maxnrchars, text)
+                        print(f"[*] Found text label at {atom_item.col},{atom_item.row}: \"{text.strip()}\" (maxlength={maxnrchars}) (tooltip=\"{tooltip}\")")
+                    app.add_text(atom_item.col, atom_item.row, maxnrchars, text, tooltip)
                 elif atom_item.etype in [121, 130]:  # DIAG_DGOTYP_EFIELD_1 or DIAG_DGOTYP_EFIELD_2
                     if verbose:
-                        print("[*] Found text box at %d,%d: \"%s\" (maxlength=%d)" % (atom_item.col, atom_item.row, text.strip(), maxnrchars))
-                    login_frame.add_text_box(atom_item.col, atom_item.row, maxnrchars, text.strip(), atom_item.attr_DIAG_BSD_INVISIBLE == 1)
+                        print(f"[*] Found text box at {atom_item.col},{atom_item.row}: \"{text.strip()}\" (maxlength={maxnrchars})")
+                    app.add_text_box(atom_item.col, atom_item.row, maxnrchars, text.strip(), atom_item.attr_DIAG_BSD_INVISIBLE == 1)
             else:
                 print("[*] Found label without text")
 
@@ -226,47 +220,40 @@ def render_diag_screen(screen, verbose):
     if menus:
         for menu in menus.entries:
             if verbose:
-                print("[*] Found menu item: \"%s\"" % menu.text)
-            login_frame.add_menu(menu.position_1, menu.text)
+                print(f"[*] Found menu item: \"{menu.text}\"")
+            app.add_menu(menu.position_1, menu.text)
 
         # Render the submenus
         if menudetails:
             for menu in menudetails.entries:
                 if verbose:
-                    print("[*] Found child menu item: \"%s\", pos %d, %d, %d, %d" % (menu.text, menu.position_1, menu.position_2, menu.position_3, menu.position_4))
-                login_frame.add_child_menu(menu.text, menu.position_1, menu.position_2, menu.position_3, menu.position_4, menu.flag_TERM_SEL, menu.flag_TERM_MEN, menu.flag_TERM_SEP)
+                    print(f"[*] Found child menu item: \"{menu.text}\", pos {menu.position_1}, {menu.position_2}, {menu.position_3}, {menu.position_4}")
+                app.add_child_menu(menu.text, menu.position_1, menu.position_2, menu.position_3, menu.position_4, menu.flag_TERM_SEL, menu.flag_TERM_MEN, menu.flag_TERM_SEP)
 
     # Render the buttonbar
     if buttonbars:
         for button in buttonbars.entries:
             if verbose:
-                print("[*] Found button item: \"%s\"" % button.text)
-            login_frame.add_button(button.text)
+                print(f"[*] Found button item: \"{button.text}\"")
+            app.add_button(button.text)
 
     # Render the toolbar
     if toolbars:
         for toolbar in toolbars.entries:
             if verbose:
-                print("[*] Found toolbar item: \"%s\"" % toolbar.text)
-            login_frame.add_toolbar(toolbar.text)
+                print(f"[*] Found toolbar item: \"{toolbar.text}\"")
+            # Note: Toolbar rendering is not implemented in this version
 
-    login_frame.Show(True)
-    app.MainLoop()
+    app.mainloop()
 
-
-# Main function
 def main():
     options = parse_options()
-
-    if not has_wx:
-        print("[-] Required library not found. Please install it from https://wxpython.org/")
-        return
 
     if options.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
     # Create the connection to the SAP Netweaver server
-    print("[*] Connecting to %s port %d" % (options.remote_host, options.remote_port))
+    print(f"[*] Connecting to {options.remote_host} port {options.remote_port}")
     connection = SAPDiagConnection(options.remote_host,
                                    options.remote_port,
                                    terminal=options.terminal,
@@ -281,6 +268,9 @@ def main():
     # Close the connection
     connection.close()
 
-
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("[*] Canceled by the user ...")
+        exit(0)

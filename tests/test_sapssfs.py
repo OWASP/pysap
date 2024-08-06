@@ -26,8 +26,8 @@ from pysap.SAPSSFS import (SAPSSFSKey, SAPSSFSData, SAPSSFSLock)
 
 class PySAPSSFSKeyTest(unittest.TestCase):
 
-    USERNAME = "SomeUser                "
-    HOST =     "ubuntu                  "
+    USERNAME = b"SomeUser                "
+    HOST =     b"ubuntu                  "
 
     def test_ssfs_key_parsing(self):
         """Test parsing of a SSFS Key file"""
@@ -37,7 +37,7 @@ class PySAPSSFSKeyTest(unittest.TestCase):
 
         key = SAPSSFSKey(s)
 
-        self.assertEqual(key.preamble, "RSecSSFsKey")
+        self.assertEqual(key.preamble, b"RSecSSFsKey")
         self.assertEqual(key.type, 1)
         self.assertEqual(key.user, self.USERNAME)
         self.assertEqual(key.host, self.HOST)
@@ -45,12 +45,12 @@ class PySAPSSFSKeyTest(unittest.TestCase):
 
 class PySAPSSFSDataTest(unittest.TestCase):
 
-    USERNAME = "SomeUser                "
-    HOST =     "ubuntu                  "
+    USERNAME = b"SomeUser                "
+    HOST =     b"ubuntu                  "
 
-    PLAIN_VALUES = {"HDB/KEYNAME/DB_CON_ENV": "Env",
-                    "HDB/KEYNAME/DB_DATABASE_NAME": "Database",
-                    "HDB/KEYNAME/DB_USER": "SomeUser",
+    PLAIN_VALUES = {b"HDB/KEYNAME/DB_CON_ENV": b"Env",
+                    b"HDB/KEYNAME/DB_DATABASE_NAME": b"Database",
+                    b"HDB/KEYNAME/DB_USER": b"SomeUser",
                     }
 
     def test_ssfs_data_parsing(self):
@@ -63,7 +63,7 @@ class PySAPSSFSDataTest(unittest.TestCase):
         self.assertEqual(len(data.records), 4)
 
         for record in data.records:
-            self.assertEqual(record.preamble, "RSecSSFsData")
+            self.assertEqual(record.preamble, b"RSecSSFsData")
             self.assertEqual(record.length, len(record))
             self.assertEqual(record.type, 1)
             self.assertEqual(record.user, self.USERNAME)
@@ -77,9 +77,9 @@ class PySAPSSFSDataTest(unittest.TestCase):
 
         data = SAPSSFSData(s)
 
-        self.assertFalse(data.has_record("HDB/KEYNAME/UNEXISTENT"))
-        self.assertIsNone(data.get_record("HDB/KEYNAME/UNEXISTENT"))
-        self.assertIsNone(data.get_value("HDB/KEYNAME/UNEXISTENT"))
+        self.assertFalse(data.has_record(b"HDB/KEYNAME/UNEXISTENT"))
+        self.assertIsNone(data.get_record(b"HDB/KEYNAME/UNEXISTENT"))
+        self.assertIsNone(data.get_value(b"HDB/KEYNAME/UNEXISTENT"))
 
         for key, value in list(self.PLAIN_VALUES.items()):
             self.assertTrue(data.has_record(key))
@@ -108,14 +108,14 @@ class PySAPSSFSDataTest(unittest.TestCase):
 
             # Now tamper with the data
             orginal_data = record.data
-            record.data = orginal_data + "AddedDataBytes"
+            record.data = orginal_data + b"AddedDataBytes"
             self.assertFalse(record.valid)
             record.data = orginal_data
             self.assertTrue(record.valid)
 
             # Now tamper with the HMAC
             orginal_hmac = record.hmac
-            record.hmac = orginal_hmac[:-1] + "A"
+            record.hmac = orginal_hmac[:-1] + b"A"
             self.assertFalse(record.valid)
             record.hmac = orginal_hmac
             self.assertTrue(record.valid)
@@ -137,11 +137,11 @@ class PySAPSSFSDataDecryptTest(unittest.TestCase):
         data = SAPSSFSData(s)
 
         for name, value in list(self.ENCRYPTED_VALUES.items()):
-            self.assertTrue(data.has_record(name))
-            self.assertIsNotNone(data.get_record(name))
-            self.assertEqual(data.get_value(name, key), value)
+            self.assertTrue(data.has_record(name.encode()))
+            self.assertIsNotNone(data.get_record(name.encode()))
+            self.assertEqual(data.get_value(name, key), value.encode())
 
-            record = data.get_record(name)
+            record = data.get_record(name.encode())
             self.assertFalse(record.is_stored_as_plaintext)
             self.assertTrue(record.valid)
 

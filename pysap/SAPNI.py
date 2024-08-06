@@ -100,8 +100,16 @@ class SAPNIStreamSocket(StreamSocket):
         :type packet: Packet
         """
         # Add the NI layer and send
-        log_sapni.debug("To send %d bytes data + 4 bytes NI header", len(packet))
-        return StreamSocket.send(self, SAPNI() / packet)
+        # log_sapni.debug("To send %d bytes data + 4 bytes NI header", len(packet))
+        ni_packet = SAPNI() / packet
+
+        # Ensure we're sending bytes
+        if isinstance(ni_packet, str):
+            ni_packet = ni_packet.encode('utf-8')
+        elif not isinstance(ni_packet, bytes):
+            ni_packet = bytes(ni_packet)
+
+        return StreamSocket.send(self, ni_packet)
 
     def recv(self):
         """Receive a packet at the NI layer, first reading the length field and
@@ -123,7 +131,7 @@ class SAPNIStreamSocket(StreamSocket):
         log_sapni.debug("Received 4 bytes NI header, to receive %d bytes data", nilength)
 
         # Receive the whole NI packet (length+payload)
-        nidata = ''
+        nidata = b''
         while len(nidata) < nilength + 4:
             nidata += self.ins.recv(nilength - len(nidata) + 4)
             if len(nidata) == 0:
@@ -466,14 +474,11 @@ class SAPNIServerHandler(BaseRequestHandler):
             # Receive and store the packet
             try:
                 self.packet = self.request.recv()
-
                 log_sapni.debug("SAPNIServerHandler: Request received")
-                # Pass the control to the handle_data function
                 self.handle_data()
-
             except socket.error as e:
                 log_sapni.debug("SAPNIServerHandler: Error handling data or client %s disconnected, %s (errno %d)",
-                                self.client_address, e.message, e.errno)
+                                self.client_address, str(e), e.errno)
                 break
 
     def handle_data(self):
