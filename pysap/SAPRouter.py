@@ -182,14 +182,15 @@ class SAPRouterRouteHop(PacketNoPadded):
         :return: route string
         :rtype: C{string}
         """
-        result = ""
-        for route_hop in route_hops:
-            result += "/H/{}".format(route_hop.hostname)
-            if route_hop.port:
-                result += "/S/{}".format(route_hop.port)
-            if route_hop.password:
-                result += "/W/{}".format(route_hop.password)
-        return result
+        route_string = ""
+        for hop in route_hops:
+            if hop.hostname:
+                route_string += f"/H/{hop.hostname}"
+            if hop.port:
+                route_string += f"/S/{hop.port}"
+            if hop.password:
+                route_string += f"/W/{hop.password}"
+        return route_string
 
 
 class SAPRouterInfoClient(PacketNoPadded):

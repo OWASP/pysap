@@ -111,7 +111,7 @@ class PKCS12_PBKDF1(object):
         v = self._algorithm.block_size
 
         # Step 1 - Concatenate v/8 copies of ID
-        d = chr(self._id) * v
+        d = bytes([self._id]) * v
 
         def concatenate_string(inp):
             s = b''
@@ -135,7 +135,6 @@ class PKCS12_PBKDF1(object):
         c = int(math.ceil(float(self._length) / u))
 
         # Step 6
-
         def digest(inp):
             h = Hash(self._algorithm())
             h.update(inp)
@@ -144,17 +143,17 @@ class PKCS12_PBKDF1(object):
         def to_int(value):
             if value == b'':
                 return 0
-            return int(value.encode("hex"), 16)
+            return int.from_bytes(value, byteorder='big')
 
-        def to_bytes(value):
-            value = "%x" % value
-            if len(value) & 1:
-                value = "0" + value
-            return value.decode("hex")
+        def to_bytes(value, length):
+            try:
+                return value.to_bytes(length, byteorder='big')
+            except OverflowError:
+                # If the integer is too large, we'll take the least significant bytes
+                return (value & ((1 << (8 * length)) - 1)).to_bytes(length, byteorder='big')
 
         a = b'\x00' * (c * u)
         for n in range(1, c + 1):
-
             a2 = digest(d + i)
             for _ in range(2, self._iterations + 1):
                 a2 = digest(a2)
@@ -172,13 +171,9 @@ class PKCS12_PBKDF1(object):
                     start = n2 * v
                     end = (n2 + 1) * v
                     i_n2 = i[start:end]
-                    i_n2 = to_bytes(to_int(i_n2) + b)
+                    i_n2 = to_bytes(to_int(i_n2) + b, v)
 
-                    i_n2_l = len(i_n2)
-                    if i_n2_l > v:
-                        i_n2 = i_n2[i_n2_l - v:]
-
-                    i = i[0:start] + i_n2 + i[end:]
+                    i = i[:start] + i_n2 + i[end:]
 
             # Step 7
             start = (n - 1) * u
@@ -230,6 +225,8 @@ class PKCS12_PBES1(object):
         self._derive_key, self._iv = self.derive_key(salt, iterations, password)
 
     def derive_key(self, salt, iterations, password):
+        if isinstance(password, str):
+            password = password.encode()
         pkcs12_pbkdf1 = PKCS12_PBKDF1(self._hash_algorithm, 24, salt, iterations, 1)
         key = pkcs12_pbkdf1.derive(password)
 
@@ -248,11 +245,11 @@ class PKCS12_PBES1(object):
         return cipher_text
 
     def decrypt(self, cipher_text):
-        padder = padding.PKCS7(self._hash_algorithm.block_size).padder()
-        cipher_text = padder.update(cipher_text) + padder.finalize()
-
         decryptor = Cipher(self._enc_algorithm(self._derive_key), self._enc_mode(self._iv)).decryptor()
-        plain_text = decryptor.update(cipher_text) + decryptor.finalize()
+        padded_plain_text = decryptor.update(cipher_text) + decryptor.finalize()
+
+        unpadder = padding.PKCS7(self._hash_algorithm.block_size).unpadder()
+        plain_text = unpadder.update(padded_plain_text) + unpadder.finalize()
 
         return plain_text
 
@@ -348,8 +345,8 @@ def rsec_decrypt(blob, key):
     if len(key) != 24:
         raise Exception("Wrong key length")
 
-    blob = [ord(i) for i in blob]
-    key = [ord(i) for i in key]
+    blob = [i for i in blob]
+    key = [i for i in key]
     key1 = key[0:8]
     key2 = key[8:16]
     key3 = key[16:24]
@@ -359,4 +356,4 @@ def rsec_decrypt(blob, key):
     round_2 = cipher.crypt(RSECCipher.MODE_ENCODE, round_1, key2, len(round_1))
     round_3 = cipher.crypt(RSECCipher.MODE_DECODE, round_2, key1, len(round_2))
 
-    return ''.join([chr(i) for i in round_3])
+    return bytes(round_3)

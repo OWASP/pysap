@@ -98,7 +98,7 @@ class SAPCredv2_Cred_Plain(ASN1_Packet):
         :rtype: string
         """
         entropy = cred.pse_path
-        return dpapi_decrypt_blob(unhexlify(plain.blob.val), entropy)
+        return dpapi_decrypt_blob(unhexlify(plain.blob.val).decode(), entropy)
 
     PROVIDER_MSCryptProtect = "MSCryptProtect"
     """Provider for Windows hosts using DPAPI"""
@@ -170,14 +170,14 @@ class SAPCredv2_Cred(ASN1_Packet):
     @property
     def cipher_format_version(self):
         cipher = self.cipher.val_readable
-        if len(cipher) >= 36 and ord(cipher[0]) in [0, 1]:
-            return ord(cipher[0])
+        if len(cipher) >= 36 and (cipher[0]) in [0, 1]:
+            return cipher[0]
         return 0
 
     @property
     def cipher_algorithm(self):
         if self.cipher_format_version == 1:
-            return ord(self.cipher.val_readable[1])
+            return self.cipher.val_readable[1]
         return 0
 
     def decrypt(self, username):
@@ -216,20 +216,25 @@ class SAPCredv2_Cred(ASN1_Packet):
         iv = "\x00" * 8
 
         # Decrypt the cipher text with the derived key and IV
-        decryptor = Cipher(algorithms.TripleDES(key), modes.CBC(iv), backend=default_backend()).decryptor()
+        decryptor = Cipher(algorithms.TripleDES(key.encode()), modes.CBC(iv.encode()), backend=default_backend()).decryptor()
         plain = decryptor.update(blob) + decryptor.finalize()
 
         return SAPCredv2_Cred_Plain(plain)
 
-    def xor(self, string, start):
-        """XOR a given string using a fixed key and a starting number."""
+    def xor(self, data, start):
+        """XOR given data using a fixed key and a starting number."""
         key = 0x15a4e35
         x = start
-        y = ""
-        for c in string:
+        y = bytearray()
+        for value in data:
             x *= key
             x += 1
-            y += chr(ord(c) ^ (x & 0xff))
+            # Ensure the value is treated as an integer
+            if isinstance(value, str):
+                value = ord(value)
+            # Perform the XOR operation
+            xored_value = value ^ (x & 0xff)
+            y.append(xored_value)
         return y
 
     def derive_key(self, key, blob, header, username):
@@ -237,13 +242,13 @@ class SAPCredv2_Cred(ASN1_Packet):
         initial key, a header, salt and username.
         """
         digest = Hash(SHA256(), backend=default_backend())
-        digest.update(key)
+        digest.update(key.encode())
         digest.update(blob[0:4])
         digest.update(header.salt)
-        digest.update(self.xor(username, ord(header.salt[0])))
-        digest.update("" * 0x20)
+        digest.update(self.xor(username, (header.salt[0])))
+        digest.update(b"" * 0x20)
         hashed = digest.finalize()
-        derived_key = self.xor(hashed, ord(header.salt[1]))
+        derived_key = self.xor(hashed, (header.salt[1]))
 
         # Validate and select proper algorithm
         if header.algorithm == CIPHER_ALGORITHM_3DES:
@@ -377,7 +382,7 @@ class SAPCredv2_Cred_LPS(ASN1_Packet):
         plain = cipher.decrypt()
 
         # Get the pin from the raw data
-        plain_size = ord(plain[0])
+        plain_size = (plain[0])
         pin = plain[plain_size + 1:]
 
         # Create a plain credential container

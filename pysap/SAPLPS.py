@@ -111,7 +111,7 @@ class SAPLPSCipher(Packet):
 
         # Decrypt the cipher text with the encryption key
         iv = "\x00" * 16
-        decryptor = Cipher(algorithms.AES(encryption_key), modes.CBC(iv)).decryptor()
+        decryptor = Cipher(algorithms.AES(encryption_key), modes.CBC(iv.encode())).decryptor()
         plain = decryptor.update(self.encrypted_data) + decryptor.finalize()
 
         # TODO: Calculate and validate HMAC
@@ -141,7 +141,7 @@ class SAPLPSCipher(Packet):
         log_lps.debug("Obtaining encryption key with FALLBACK LPS mode")
 
         digest = Hash(SHA1())
-        digest.update(cred_key_lps_fallback)
+        digest.update(cred_key_lps_fallback.encode())
         hashed_key = digest.finalize()
 
         hmac = HMAC(hashed_key, SHA1())
@@ -149,7 +149,7 @@ class SAPLPSCipher(Packet):
         default_key = hmac.finalize()[:16]
 
         iv = "\x00" * 16
-        decryptor = Cipher(algorithms.AES(default_key), modes.CBC(iv)).decryptor()
+        decryptor = Cipher(algorithms.AES(default_key), modes.CBC(iv.encode())).decryptor()
         encryption_key = decryptor.update(self.encrypted_key) + decryptor.finalize()
 
         return encryption_key

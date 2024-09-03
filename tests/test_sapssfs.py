@@ -26,8 +26,8 @@ from pysap.SAPSSFS import (SAPSSFSKey, SAPSSFSData, SAPSSFSLock)
 
 class PySAPSSFSKeyTest(unittest.TestCase):
 
-    USERNAME = "SomeUser                "
-    HOST =     "ubuntu                  "
+    USERNAME = b"SomeUser                "
+    HOST =     b"ubuntu                  "
 
     def test_ssfs_key_parsing(self):
         """Test parsing of a SSFS Key file"""
@@ -37,7 +37,7 @@ class PySAPSSFSKeyTest(unittest.TestCase):
 
         key = SAPSSFSKey(s)
 
-        self.assertEqual(key.preamble, "RSecSSFsKey")
+        self.assertEqual(key.preamble, b"RSecSSFsKey")
         self.assertEqual(key.type, 1)
         self.assertEqual(key.user, self.USERNAME)
         self.assertEqual(key.host, self.HOST)
@@ -45,8 +45,8 @@ class PySAPSSFSKeyTest(unittest.TestCase):
 
 class PySAPSSFSDataTest(unittest.TestCase):
 
-    USERNAME = "SomeUser                "
-    HOST =     "ubuntu                  "
+    USERNAME = b"SomeUser                "
+    HOST =     b"ubuntu                  "
 
     PLAIN_VALUES = {"HDB/KEYNAME/DB_CON_ENV": "Env",
                     "HDB/KEYNAME/DB_DATABASE_NAME": "Database",
@@ -63,7 +63,7 @@ class PySAPSSFSDataTest(unittest.TestCase):
         self.assertEqual(len(data.records), 4)
 
         for record in data.records:
-            self.assertEqual(record.preamble, "RSecSSFsData")
+            self.assertEqual(record.preamble, b"RSecSSFsData")
             self.assertEqual(record.length, len(record))
             self.assertEqual(record.type, 1)
             self.assertEqual(record.user, self.USERNAME)
@@ -84,7 +84,7 @@ class PySAPSSFSDataTest(unittest.TestCase):
         for key, value in list(self.PLAIN_VALUES.items()):
             self.assertTrue(data.has_record(key))
             self.assertIsNotNone(data.get_record(key))
-            self.assertEqual(data.get_value(key), value)
+            self.assertEqual(data.get_value(key), value.encode())
 
             record = data.get_record(key)
             self.assertTrue(record.is_stored_as_plaintext)

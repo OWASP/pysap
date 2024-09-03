@@ -334,7 +334,7 @@ class SAPPSEFile(ASN1_Packet):
         # On version 2, we can check that the PIN was valid before decrypting the whole
         # cipher text
         if self.version == 2:
-            encrypted_pin = pbes.encrypt(pin)
+            encrypted_pin = pbes.encrypt(pin.encode())
             if encrypted_pin != self.enc_cont.encrypted_pin.val:
                 raise ValueError("Invalid PIN supplied")
 

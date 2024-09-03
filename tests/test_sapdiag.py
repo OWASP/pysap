@@ -55,7 +55,7 @@ class PySAPDiagTest(unittest.TestCase):
 
         diag_header_plain = SAPDiag(compress=0)
         diag_header_plain.message.append(diag_item)
-        new_diag_header_plain = SAPDiag(str(diag_header_plain))
+        new_diag_header_plain = SAPDiag(diag_header_plain)
 
         self.assertEqual(str(diag_header_plain),
                          str(new_diag_header_plain))
@@ -148,9 +148,9 @@ class PySAPDiagTest(unittest.TestCase):
             fields_desc = [StrField("strfield", None)]
         bind_diagitem(SAPDiagItemTest, "APPL", 0x99, 0xff)
 
-        item_string = "strfield"
+        item_string = b"strfield"
         item_value = SAPDiagItemTest(strfield=item_string)
-        item = SAPDiagItem("\x10\x99\xff" + pack("!H", len(item_string)) + item_string)
+        item = SAPDiagItem(b"\x10\x99\xff" + pack("!H", len(item_string)) + item_string)
 
         self.assertEqual(item.item_value, item_value)
         self.assertEqual(item.item_length, len(item_string))

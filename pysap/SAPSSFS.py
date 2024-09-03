@@ -101,12 +101,12 @@ class SAPSSFSDecryptedPayload(PacketNoPadded):
         blob = str(self)
 
         digest = Hash(SHA1())
-        digest.update(blob[:8])
-        digest.update(blob[8:8+4])
+        digest.update(blob[:8].encode())
+        digest.update(blob[8:8+4].encode())
         if self.length:
-            digest.update(blob[0x20:0x20 + self.length])
+            digest.update(blob[0x20:0x20 + self.length].encode())
         if len(blob) > self.length + 0x20:
-            digest.update(blob[0x20 + self.length:])
+            digest.update(blob[0x20 + self.length:].encode())
         blob_hash = digest.finalize()
         return blob_hash == self.hash
 
@@ -158,8 +158,8 @@ class SAPSSFSDataRecord(PacketNoPadded):
         """Returns whether the HMAC-SHA1 value is valid for the given payload"""
 
         # Calculate the HMAC-SHA1
-        h = HMAC(ssfs_hmac_key_unobscured, SHA1())
-        h.update(str(self)[24:156])  # Entire Data header without the HMAC field
+        h = HMAC(ssfs_hmac_key_unobscured.encode(), SHA1())
+        h.update((self)[24:156])  # Entire Data header without the HMAC field
         h.update(self.data)
 
         # Validate the signature
@@ -194,8 +194,9 @@ class SAPSSFSData(Packet):
         :return: if the data file contains the record with key_name
         :rtype: bool
         """
+        key_name_bytes = key_name.encode('utf-8')  # Convert input string to bytes
         for record in self.records:
-            if record.key_name.rstrip(" ") == key_name:
+            if record.key_name.rstrip(b" ") == key_name_bytes:  # Use b" " for byte string
                 return True
         return False
 
@@ -208,8 +209,9 @@ class SAPSSFSData(Packet):
         :return: the record with key_name
         :rtype: SAPSSFSDataRecord
         """
+        key_name_bytes = key_name.encode('utf-8')  # Convert input string to bytes
         for record in self.records:
-            if record.key_name.rstrip(" ") == key_name:
+            if record.key_name.rstrip(b" ") == key_name_bytes:
                 yield record
 
     def get_record(self, key_name):
