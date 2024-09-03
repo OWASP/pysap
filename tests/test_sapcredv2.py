@@ -49,8 +49,19 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(len(creds), number)
         cred = creds[0].cred
 
-        self.assertEqual(cred.common_name, cert_name or self.cert_name)
-        self.assertEqual(cred.pse_file_path, pse_path or self.pse_path)
+        # Check if cert_name is None before encoding
+        cert_name_encoded = cert_name.encode() if cert_name is not None else None
+
+        # Check if pse_path is None before encoding
+        pse_path_encoded = pse_path.encode() if pse_path is not None else None
+
+        # Assert common_name (previously cert_name)
+        self.assertEqual(cred.common_name, cert_name_encoded or self.cert_name.encode())
+
+        # Assert pse_file_path (previously pse_path)
+        self.assertEqual(cred.pse_file_path, pse_path_encoded or self.pse_path.encode())
+
+        # These assertions remain unchanged
         self.assertEqual(cred.lps_type, lps_type)
         self.assertEqual(cred.cipher_format_version, cipher_format_version)
         self.assertEqual(cred.cipher_algorithm, cipher_algorithm)
@@ -60,6 +71,10 @@ class PySAPCredV2Test(unittest.TestCase):
         self.assertEqual(cred.pse_path, pse_path or self.pse_path)
         self.assertEqual(cred.unknown2, b"")
 
+        # Assert pse_path (previously pse_file_path)
+        self.assertEqual(cred.pse_path, pse_path_encoded or self.pse_path.encode())
+
+        self.assertEqual(cred.unknown2, b"")
     def validate_credv2_plain(self, cred, decrypt_username=None, decrypt_pin=None):
         plain = cred.decrypt(decrypt_username or self.decrypt_username)
         self.assertEqual(plain.pin.val, decrypt_pin or self.decrypt_pin)
