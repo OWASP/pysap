@@ -21,7 +21,8 @@ import sys
 import unittest
 
 
-test_suite = unittest.defaultTestLoader.discover('.', '*_test.py')
+import os
+test_suite = unittest.defaultTestLoader.discover(os.path.dirname(__file__), '*_test.py')
 
 
 if __name__ == '__main__':

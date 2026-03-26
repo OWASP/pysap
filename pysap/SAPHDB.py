@@ -403,8 +403,8 @@ class SAPHDBPartError(PacketNoPadded):
         LESignedIntField("error_position", 0),
         FieldLenField("error_text_length", None, length_of="error_text", fmt="<i"),
         EnumField("error_level", 0, hdb_error_level_vals, fmt="<b"),
-        StrFixedLenField("sql_state", "HY000", 5),
-        PadField(StrFixedLenField("error_text", "", length_from=lambda pkt: pkt.error_text_length), 8),
+        StrFixedLenField("sql_state", b"HY000", 5),
+        PadField(StrFixedLenField("error_text", b"", length_from=lambda pkt: pkt.error_text_length), 8),
     ]
 
 
@@ -805,7 +805,7 @@ class SAPHDBInitializationRequest(Packet):
     """
     name = "SAP HANA SQL Command Network Protocol Initialization Request"
     fields_desc = [
-        StrFixedLenField("initialization", "\xff\xff\xff\xff\x04\x20\x00\x04\x01\x00\x00\x01\x01\x01", 14),
+        StrFixedLenField("initialization", b"\xff\xff\xff\xff\x04\x20\x00\x04\x01\x00\x00\x01\x01\x01", 14),
     ]
 
 
@@ -1358,7 +1358,7 @@ class SAPHDBConnection(object):
         self.send(init_request)
 
         # Receive initialization response packet
-        init_reply = SAPHDBInitializationReply(self._stream_socket.recv(8))  # We use the raw socket recv here
+        init_reply = SAPHDBInitializationReply(self._stream_socket.ins.recv(8))  # We use the raw socket recv here
         self.product_version = init_reply.product_major
         self.protocol_version = init_reply.protocol_major
 

@@ -48,7 +48,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 log_cred = logging.getLogger("pysap.cred")
 
 
-cred_key_fmt = "240657rsga&/%srwthgrtawe45hhtrtrsr35467b2dx3456j67mv67f89656f75"
+cred_key_fmt = b"240657rsga&/%srwthgrtawe45hhtrtrsr35467b2dx3456j67mv67f89656f75"
 """Fixed key embedded in CommonCryptoLib for encrypted credentials"""
 
 
@@ -100,7 +100,7 @@ class SAPCredv2_Cred_Plain(ASN1_Packet):
         entropy = cred.pse_path
         return dpapi_decrypt_blob(unhexlify(plain.blob.val), entropy)
 
-    PROVIDER_MSCryptProtect = "MSCryptProtect"
+    PROVIDER_MSCryptProtect = b"MSCryptProtect"
     """Provider for Windows hosts using DPAPI"""
 
     providers = {
@@ -170,14 +170,15 @@ class SAPCredv2_Cred(ASN1_Packet):
     @property
     def cipher_format_version(self):
         cipher = self.cipher.val_readable
-        if len(cipher) >= 36 and ord(cipher[0]) in [0, 1]:
-            return ord(cipher[0])
+        if len(cipher) >= 36 and (cipher[0] if isinstance(cipher[0], int) else ord(cipher[0])) in [0, 1]:
+            return cipher[0] if isinstance(cipher[0], int) else ord(cipher[0])
         return 0
 
     @property
     def cipher_algorithm(self):
         if self.cipher_format_version == 1:
-            return ord(self.cipher.val_readable[1])
+            val = self.cipher.val_readable[1]
+            return val if isinstance(val, int) else ord(val)
         return 0
 
     def decrypt(self, username):
@@ -211,9 +212,11 @@ class SAPCredv2_Cred(ASN1_Packet):
         blob = self.cipher.val_readable
 
         # Construct the key using the key format and the username
+        if isinstance(username, str):
+            username = username.encode()
         key = (cred_key_fmt % username)[:24]
         # Set empty IV
-        iv = "\x00" * 8
+        iv = b"\x00" * 8
 
         # Decrypt the cipher text with the derived key and IV
         decryptor = Cipher(algorithms.TripleDES(key), modes.CBC(iv), backend=default_backend()).decryptor()
@@ -225,12 +228,13 @@ class SAPCredv2_Cred(ASN1_Packet):
         """XOR a given string using a fixed key and a starting number."""
         key = 0x15a4e35
         x = start
-        y = ""
+        y = bytearray()
         for c in string:
             x *= key
             x += 1
-            y += chr(ord(c) ^ (x & 0xff))
-        return y
+            c_val = c if isinstance(c, int) else ord(c)
+            y.append(c_val ^ (x & 0xff))
+        return bytes(y)
 
     def derive_key(self, key, blob, header, username):
         """Derive a key using SAP's algorithm. The key is derived using SHA256 and xor from an
@@ -240,10 +244,12 @@ class SAPCredv2_Cred(ASN1_Packet):
         digest.update(key)
         digest.update(blob[0:4])
         digest.update(header.salt)
-        digest.update(self.xor(username, ord(header.salt[0])))
-        digest.update("" * 0x20)
+        salt_0 = header.salt[0] if isinstance(header.salt[0], int) else ord(header.salt[0])
+        salt_1 = header.salt[1] if isinstance(header.salt[1], int) else ord(header.salt[1])
+        digest.update(self.xor(username, salt_0))
+        digest.update(b"")
         hashed = digest.finalize()
-        derived_key = self.xor(hashed, ord(header.salt[1]))
+        derived_key = self.xor(hashed, salt_1)
 
         # Validate and select proper algorithm
         if header.algorithm == CIPHER_ALGORITHM_3DES:
@@ -340,7 +346,8 @@ class SAPCredv2_Cred_LPS(ASN1_Packet):
 
     @property
     def lps_type(self):
-        return ord(self.cipher.val_readable[1])
+        val = self.cipher.val_readable[1]
+        return val if isinstance(val, int) else ord(val)
 
     @property
     def lps_type_str(self):
@@ -352,7 +359,8 @@ class SAPCredv2_Cred_LPS(ASN1_Packet):
 
     @property
     def cipher_format_version(self):
-        return ord(self.cipher.val_readable[0])
+        val = self.cipher.val_readable[0]
+        return val if isinstance(val, int) else ord(val)
 
     @property
     def cipher_algorithm(self):
@@ -377,7 +385,7 @@ class SAPCredv2_Cred_LPS(ASN1_Packet):
         plain = cipher.decrypt()
 
         # Get the pin from the raw data
-        plain_size = ord(plain[0])
+        plain_size = plain[0] if isinstance(plain[0], int) else ord(plain[0])
         pin = plain[plain_size + 1:]
 
         # Create a plain credential container

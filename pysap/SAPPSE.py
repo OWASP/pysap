@@ -330,6 +330,8 @@ class SAPPSEFile(ASN1_Packet):
             raise Exception("Invalid PBE algorithm")
 
         # Build the PBE class
+        if isinstance(pin, str):
+            pin = pin.encode()
         pbes = pbes_cls(salt, iterations, iv, pin, hash_algorithm, enc_algorithm, enc_mode, default_backend())
 
         # On version 2, we can check that the PIN was valid before decrypting the whole

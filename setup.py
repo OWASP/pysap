@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # encoding: utf-8
 # pysap - Python library for crafting SAP's network protocols packets
 #
@@ -111,9 +111,10 @@ setup(name=pysap.__title__,  # Package information
                    'Intended Audience :: Information Technology',
                    'Intended Audience :: System Administrators',
                    'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
-                   'Programming Language :: Python',
+                   'Programming Language :: Python :: 3',
                    'Programming Language :: C++',
                    'Topic :: Security'],
+      python_requires='>=3.6',
       # Packages list
       packages=['pysap', 'pysap.utils', 'pysap.utils.crypto'],
       provides=['pysapcompress', 'pysap'],

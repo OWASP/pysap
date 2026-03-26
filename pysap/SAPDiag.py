@@ -62,16 +62,16 @@ class SAPDiagDP(Packet):
         ByteField("new_stat", 0),
         SignedIntField("unused1", -1),
         SignedShortField("rq_id", -1),
-        StrFixedLenField("unused2", "\x20" * 40, 40),
-        StrFixedLenField("terminal", "\x00" * 15, 15),
-        StrFixedLenField("unused3", "\x00" * 10, 10),
-        StrFixedLenField("unused4", "\x20" * 20, 20),
+        StrFixedLenField("unused2", b"\x20" * 40, 40),
+        StrFixedLenField("terminal", b"\x00" * 15, 15),
+        StrFixedLenField("unused3", b"\x00" * 10, 10),
+        StrFixedLenField("unused4", b"\x20" * 20, 20),
         IntField("unused5", 0),
         IntField("unused6", 0),
         SignedIntField("unused7", -1),
         IntField("unused8", 0),
         ByteField("unused9", 0x01),
-        StrFixedLenField("unused10", "\x00" * 57, 57)]
+        StrFixedLenField("unused10", b"\x00" * 57, 57)]
 
 
 # Diag Item Types
@@ -500,7 +500,7 @@ class SAPDiag(PacketNoPadded):
         # Compression Header
         ConditionalField(LEIntField("uncompress_length", None), lambda pkt:pkt.compress == 1),
         ConditionalField(ByteEnumField("algorithm", 0x12, {0x12: "LZH", 0x10: "LZC"}), lambda pkt: pkt.compress == 1),
-        ConditionalField(StrFixedLenField("magic_bytes", "\x1f\x9d", 2), lambda pkt: pkt.compress == 1),
+        ConditionalField(StrFixedLenField("magic_bytes", b"\x1f\x9d", 2), lambda pkt: pkt.compress == 1),
         ConditionalField(ByteField("special", 2), lambda pkt: pkt.compress == 1),
 
         # SNC Frame
@@ -552,7 +552,7 @@ class SAPDiag(PacketNoPadded):
         decompress the payload.
         """
         # If the compression flag is set, decompress everything after the headers
-        if s[7] == "\x01":
+        if s[7:8] == b"\x01":
             # First need to get the reported decompressed length
             (reported_length, ) = unpack("<I", s[8:12])
 
@@ -569,9 +569,9 @@ class SAPDiag(PacketNoPadded):
         the message field and the payload.
         """
         if pay is None:
-            pay = ''
+            pay = b''
         if self.compress == 1:
-            payload = "".join([str(item) for item in self.message]) + pay
+            payload = b"".join([bytes(item) for item in self.message]) + pay
             if len(payload) > 0:
                 try:
                     return p[:8] + self.do_compress(payload)
@@ -651,11 +651,11 @@ def diag_guess_diagdp_header(self, payload):
     Use this function as guess_payload_class for the :class:`SAPNI` packet if need to
     dissect :class:`SAPDiag` packets.
     """
-    if self.length == 14 and payload.startswith("**DPTMMSG**\x00"):
+    if self.length == 14 and payload.startswith(b"**DPTMMSG**\x00"):
         return SAPDiagError
-    elif self.length == 17 and payload.startswith("**DPTMOPC**\x00"):
+    elif self.length == 17 and payload.startswith(b"**DPTMOPC**\x00"):
         return SAPDiagError
-    elif self.length > 200 + 8 and payload[0] == "\xff":
+    elif self.length > 200 + 8 and payload[0:1] == b"\xff":
         return SAPDiagDP
     else:
         return SAPDiag

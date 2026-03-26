@@ -21,6 +21,8 @@ import sys
 import unittest
 from struct import pack
 # External imports
+from scapy.config import conf
+conf.max_list_count = 1000
 from scapy.fields import StrField
 from scapy.packet import Packet, Raw
 # Custom imports
@@ -38,16 +40,16 @@ class PySAPDiagTest(unittest.TestCase):
 
         diag_header_plain = SAPDiag(compress=0)
         diag_header_plain.message.append(diag_item)
-        diag_plain_message = str(diag_header_plain.message)
+        diag_plain_message = b"".join(bytes(m) for m in diag_header_plain.message)
 
         diag_header_compr = SAPDiag(compress=1)
         diag_header_compr.message.append(diag_item)
-        diag_compr_message = str(diag_header_compr.message)
+        diag_compr_message = b"".join(bytes(m) for m in diag_header_compr.message)
 
         self.assertEqual(diag_plain_message, diag_compr_message)
 
         diag_header_compr.compress = 0
-        self.assertEqual(str(diag_header_plain), str(diag_header_compr))
+        self.assertEqual(bytes(diag_header_plain), bytes(diag_header_compr))
 
     def test_sapdiag_header_dissection_plain(self):
         """Test SAPDiag headers dissection without compression"""
@@ -55,10 +57,10 @@ class PySAPDiagTest(unittest.TestCase):
 
         diag_header_plain = SAPDiag(compress=0)
         diag_header_plain.message.append(diag_item)
-        new_diag_header_plain = SAPDiag(str(diag_header_plain))
+        new_diag_header_plain = SAPDiag(bytes(diag_header_plain))
 
-        self.assertEqual(str(diag_header_plain),
-                         str(new_diag_header_plain))
+        self.assertEqual(bytes(diag_header_plain),
+                         bytes(new_diag_header_plain))
 
     def test_sapdiag_header_dissection_compressed(self):
         """Test SAPDiag headers dissection with compression"""
@@ -66,9 +68,9 @@ class PySAPDiagTest(unittest.TestCase):
 
         diag_header_compr = SAPDiag(compress=1)
         diag_header_compr.message.append(diag_item)
-        new_diag_header_compr = SAPDiag(str(diag_header_compr))
-        self.assertEqual(str(diag_header_compr.message[0]),
-                         str(new_diag_header_compr.message[0]))
+        new_diag_header_compr = SAPDiag(bytes(diag_header_compr))
+        self.assertEqual(bytes(diag_header_compr.message[0]),
+                         bytes(new_diag_header_compr.message[0]))
 
     def test_sapdiag_item(self):
         """Test construction of SAPDiag Items"""
@@ -138,7 +140,7 @@ class PySAPDiagTest(unittest.TestCase):
         self.assertNotIn(sapdiag_appl_item, sapdiag.get_item(["APPL"], ["ST_USER"], ["CONNECT"]))
 
         # Insert a wrong item and observe that the lookup still works
-        sapdiag.message.append(Raw("\x00" * 10))
+        sapdiag.message.append(Raw(b"\x00" * 10))
         self.assertIn(sapdiag_ses_item, sapdiag.get_item("SES"))
         self.assertIn(sapdiag_appl_item, sapdiag.get_item(["APPL"], "ST_USER", ["RFC_PARENT_UUID", "CONNECT"]))
 
@@ -148,14 +150,14 @@ class PySAPDiagTest(unittest.TestCase):
             fields_desc = [StrField("strfield", None)]
         bind_diagitem(SAPDiagItemTest, "APPL", 0x99, 0xff)
 
-        item_string = "strfield"
+        item_string = b"strfield"
         item_value = SAPDiagItemTest(strfield=item_string)
-        item = SAPDiagItem("\x10\x99\xff" + pack("!H", len(item_string)) + item_string)
+        item = SAPDiagItem(b"\x10\x99\xff" + pack("!H", len(item_string)) + item_string)
 
         self.assertEqual(item.item_value, item_value)
         self.assertEqual(item.item_length, len(item_string))
         self.assertEqual(item.item_value.strfield, item_string)
-        self.assertEqual(str(item.item_value), str(item_value))
+        self.assertEqual(bytes(item.item_value), bytes(item_value))
         self.assertIs(diag_item_get_class(item, "APPL", 0x99, 0xff), SAPDiagItemTest)
 
 

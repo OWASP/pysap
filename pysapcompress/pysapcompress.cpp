@@ -19,6 +19,7 @@
 #
 */
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
 #include <stdio.h>
@@ -372,7 +373,8 @@ pysapcompress_compress(PyObject *self, PyObject *args, PyObject *keywds)
 {
     const unsigned char *in = NULL;
     unsigned char *out = NULL;
-    int status = 0, in_length = 0, out_length = 0, algorithm = ALG_LZC;
+    Py_ssize_t in_length = 0;
+    int status = 0, out_length = 0, algorithm = ALG_LZC;
 
     /* Define the keyword list */
     static char kwin[] = "in";
@@ -380,7 +382,7 @@ pysapcompress_compress(PyObject *self, PyObject *args, PyObject *keywds)
     static char* kwlist[] = {kwin, kwalgorithm, NULL};
 
     /* Parse the parameters. We are also interested in the length of the input buffer. */
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "s#|i", kwlist, &in, &in_length, &algorithm))
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "y#|i", kwlist, &in, &in_length, &algorithm))
         return (NULL);
 
     /* Call the compression function */
@@ -398,7 +400,7 @@ pysapcompress_compress(PyObject *self, PyObject *args, PyObject *keywds)
     }
 
     /* It no error was raised, return the compressed buffer and the length */
-	return (Py_BuildValue("iis#", status, out_length, out, out_length));
+	return (Py_BuildValue("iiy#", status, out_length, out, (Py_ssize_t)out_length));
 }
 
 
@@ -415,10 +417,11 @@ pysapcompress_decompress(PyObject *self, PyObject *args)
 {
     const unsigned char *in = NULL;
     unsigned char *out = NULL;
-    int status = 0, in_length = 0, out_length = 0;
+    Py_ssize_t in_length = 0;
+    int status = 0, out_length = 0;
 
     /* Parse the parameters. We are also interested in the length of the input buffer. */
-    if (!PyArg_ParseTuple(args, "s#i", &in, &in_length, &out_length))
+    if (!PyArg_ParseTuple(args, "y#i", &in, &in_length, &out_length))
         return (NULL);
 
     /* Call the compression function */
@@ -434,7 +437,7 @@ pysapcompress_decompress(PyObject *self, PyObject *args)
     		return (PyErr_Format(decompression_exception, "Decompression error (%s)", error_string(status)));
     }
     /* It no error was raised, return the uncompressed buffer and the length */
-    return (Py_BuildValue("iis#", status, out_length, out, out_length));
+    return (Py_BuildValue("iiy#", status, out_length, out, (Py_ssize_t)out_length));
 }
 
 
@@ -449,13 +452,24 @@ static PyMethodDef pysapcompressMethods[] = {
 /* pysapcompress module doc string */
 static char pysapcompress_module_doc[] = "Library implementing SAP's LZH and LZC compression algorithms.";
 
+/* Module definition for Python 3 */
+static struct PyModuleDef pysapcompress_module = {
+    PyModuleDef_HEAD_INIT,
+    "pysapcompress",
+    pysapcompress_module_doc,
+    -1,
+    pysapcompressMethods
+};
+
 /* Module initialization */
 PyMODINIT_FUNC
-initpysapcompress(void)
+PyInit_pysapcompress(void)
 {
     PyObject *module = NULL;
     /* Create the module and define the methods */
-    module = Py_InitModule3("pysapcompress", pysapcompressMethods, pysapcompress_module_doc);
+    module = PyModule_Create(&pysapcompress_module);
+    if (module == NULL)
+        return NULL;
 
     /* Add the algorithm constants */
     PyModule_AddIntConstant(module, "ALG_LZC", ALG_LZC);
@@ -468,4 +482,5 @@ initpysapcompress(void)
     decompression_exception = PyErr_NewException(decompression_exception_name, NULL, NULL);
     PyModule_AddObject(module, decompression_exception_short, decompression_exception);
 
+    return module;
 }

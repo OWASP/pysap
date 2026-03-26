@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # encoding: utf-8
 # pysap - Python library for crafting SAP's network protocols packets
 #
@@ -92,13 +92,13 @@ def main():
         print ("Error during MS connection. Is internal ms port %d reachable ?" % options.remote_port)
     else:
         print ("[*] Connected. I check parameters...")
-        client_string = options.client
+        client_string = options.client.encode() if isinstance(options.client, str) else options.client
         # Send MS_LOGIN_2 packet
         p = SAPMS(flag=0x00, iflag=0x08, toname=client_string, fromname=client_string)
         print("[*] Sending login packet:")
         response = conn.sr(p)[SAPMS]
         print("[*] Login OK, Server string: %s\n" % response.fromname)
-        server_string = response.fromname
+        server_string = response.fromname if isinstance(response.fromname, bytes) else response.fromname
 
         try:
             with open(options.file_param) as list_param:
@@ -117,14 +117,16 @@ def main():
                     status = '[!]'
 
                     # create request
-                    adm = SAPMSAdmRecord(opcode=0x1, parameter=param2c)
+                    adm = SAPMSAdmRecord(opcode=0x1, parameter=param2c.encode())
                     p = SAPMS(toname=server_string, fromname=client_string, version=4, flag=0x04, iflag=0x05,
                               adm_records=[adm])
 
                     # send request
                     respond = conn.sr(p)[SAPMS]
-                    value = respond.adm_records[0].parameter.replace(respond.adm_records[0].parameter.split('=')[0] +
-                                                                     '=', '')
+                    param_val = respond.adm_records[0].parameter
+                    if isinstance(param_val, bytes):
+                        param_val = param_val.decode('utf-8', errors='replace').rstrip('\x00')
+                    value = param_val.replace(param_val.split('=')[0] + '=', '')
 
                     status = '[ ]'
                     # Verify if value match with expected value
@@ -149,11 +151,12 @@ def main():
                     # display result
                     print ("%s %s = %s" % (status, param2c, value))
 
-        except IOError:
-            print("Error reading parameters file !")
+        except IOError as e:
+            print("Error reading parameters file: %s" % e)
             exit(0)
-        except ValueError:
-            print("Invalid parameters file format or access denied!")
+        except ValueError as e:
+            import traceback; traceback.print_exc()
+            print("Invalid parameters file format or access denied: %s" % e)
             exit(0)
 
 

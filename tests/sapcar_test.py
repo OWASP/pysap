@@ -31,19 +31,22 @@ from pysap.SAPCAR import (SAPCARArchive, SAPCARArchiveFile, SAPCARArchiveFilev20
 class PySAPCARTest(unittest.TestCase):
 
     test_archive_file = "somefile"
-    test_filename = "test_string.txt"
+    test_filename = b"test_string.txt"
     test_timestamp_raw = 1449010128
     test_timestamp = "01 Dec 2015 22:48"
     test_perm_mode = 33204
     test_permissions = "-rw-rw-r--"
-    test_string = "The quick brown fox jumps over the lazy dog"
+    test_string = b"The quick brown fox jumps over the lazy dog"
 
     def setUp(self):
-        with open(self.test_filename, "wb") as fd:
+        fname = self.test_filename.decode() if isinstance(self.test_filename, bytes) else self.test_filename
+        with open(fname, "wb") as fd:
             fd.write(self.test_string)
 
     def tearDown(self):
         for filename in [self.test_filename, self.test_archive_file]:
+            if isinstance(filename, bytes):
+                filename = filename.decode()
             if exists(filename):
                 unlink(filename)
         if exists("test"):
@@ -59,8 +62,8 @@ class PySAPCARTest(unittest.TestCase):
             self.assertEqual(version, sapcar_archive.version)
             self.assertEqual(1, len(sapcar_archive.files))
             self.assertEqual(1, len(sapcar_archive.files_names))
-            self.assertListEqual([self.test_filename], sapcar_archive.files_names)
-            self.assertListEqual([self.test_filename], sapcar_archive.files.keys())
+            self.assertListEqual([self.test_filename], list(sapcar_archive.files_names))
+            self.assertListEqual([self.test_filename], list(sapcar_archive.files.keys()))
 
             af = sapcar_archive.open(self.test_filename)
             self.assertEqual(self.test_string, af.read())
@@ -105,15 +108,15 @@ class PySAPCARTest(unittest.TestCase):
 
         ar = SAPCARArchive(self.test_archive_file, "w")
         ar.add_file(self.test_filename)
-        ar.add_file(self.test_filename, archive_filename=self.test_filename+"two")
+        ar.add_file(self.test_filename, archive_filename=self.test_filename+b"two")
 
-        self.assertEqual("2.01", ar.version)
+        self.assertEqual(b"2.01", ar.version)
         self.assertEqual(2, len(ar.files))
         self.assertEqual(2, len(ar.files_names))
-        self.assertListEqual([self.test_filename, self.test_filename+"two"], ar.files_names)
-        self.assertListEqual([self.test_filename, self.test_filename+"two"], ar.files.keys())
+        self.assertListEqual([self.test_filename, self.test_filename+b"two"], list(ar.files_names))
+        self.assertListEqual([self.test_filename, self.test_filename+b"two"], list(ar.files.keys()))
 
-        for filename in [self.test_filename, self.test_filename+"two"]:
+        for filename in [self.test_filename, self.test_filename+b"two"]:
             af = ar.open(filename)
             self.assertEqual(self.test_string, af.read())
             af.close()
@@ -144,7 +147,7 @@ class PySAPCARTest(unittest.TestCase):
         self.assertEqual(self.test_string, af.read())
         af.close()
 
-        test_filename_new = "some_other_filename.txt"
+        test_filename_new = b"some_other_filename.txt"
         ff = SAPCARArchiveFile.from_file(self.test_filename, archive_filename=test_filename_new)
         self.assertEqual(len(self.test_string), ff.size)
         self.assertEqual(test_filename_new, ff.filename)

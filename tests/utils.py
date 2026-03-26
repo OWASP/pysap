@@ -27,11 +27,13 @@ def data_filename(filename):
 
 def read_data_file(filename, unhex=True):
     filename = data_filename(filename)
-    with open(filename, 'r') as f:
-        data = f.read()
-
-    data = data.replace('\n', ' ').replace(' ', '')
     if unhex:
+        with open(filename, 'r') as f:
+            data = f.read()
+        data = data.replace('\n', ' ').replace(' ', '')
         data = unhexlify(data)
+    else:
+        with open(filename, 'rb') as f:
+            data = f.read()
 
     return data
