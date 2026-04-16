@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # encoding: utf-8
 # pysap - Python library for crafting SAP's network protocols packets
 #
@@ -21,7 +21,7 @@
 from sys import exit
 from glob import glob
 from subprocess import call
-from setuptools import setup, Extension, Command
+from setuptools import setup, Command
 # Custom imports
 import pysap
 
@@ -75,22 +75,6 @@ class PreExecuteNotebooksCommand(Command):
         exit(status)
 
 
-sapcompress_macros = [
-    # Enable this macro if you want some debugging information on the (de)compression functions
-    # ('DEBUG', None),
-    # Enable this macro if you want detailed debugging information (hexdumps) on the (de)compression functions
-    # ('DEBUG_TRACE', None),
-]
-
-
-sapcompress = Extension('pysapcompress',
-                        ['pysapcompress/pysapcompress.cpp',
-                         'pysapcompress/vpa105CsObjInt.cpp',
-                         'pysapcompress/vpa106cslzc.cpp',
-                         'pysapcompress/vpa107cslzh.cpp',
-                         'pysapcompress/vpa108csulzh.cpp'],
-                        define_macros=sapcompress_macros)
-
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -112,14 +96,13 @@ setup(name=pysap.__title__,  # Package information
                    'Intended Audience :: System Administrators',
                    'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
                    'Programming Language :: Python',
-                   'Programming Language :: C++',
                    'Topic :: Security'],
       # Packages list
       packages=['pysap', 'pysap.utils', 'pysap.utils.crypto'],
       provides=['pysapcompress', 'pysap'],
 
-      # Extension module compilation
-      ext_modules=[sapcompress],
+      # Pure Python compression module
+      py_modules=['pysapcompress'],
 
       # Script files
       scripts=['bin/pysapcar', 'bin/pysapgenpse'],
