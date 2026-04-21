@@ -74,15 +74,19 @@ Manual installation
 The tool relays on the `Scapy <https://scapy.net/>`_ library for crafting
 packets. To install the required libraries use::
 
-    $ python -m pip install -r requirements.txt
+1) ``python -m pip install --upgrade pip wheel setuptools``
+2) ``python -m pip install -r requirements.txt``
 
 Once you have downloaded pysap's sources, you can install it easily using
-the Python's ``setuptools`` script provided:
+the Python's integration of ``setuptools`` scripts in pip:
 
-1) ``python setup.py test``
+For development and unit testing:
+1) ``python -m pip install -e .``
+2) ``python -m unittest discover -s tests -p '*_test.py'``
 
-2) ``python setup.py install``
-
+For creating your own build without PyPi: 
+1) ``python -m pip install build``
+2) ``python -m build --wheel``
 
 Scapy installation
 ~~~~~~~~~~~~~~~~~~
@@ -98,6 +102,8 @@ References
 ----------
 
 Additional information about the protocols and the research can be found at different publications:
+
+* `Everyone knows SAP, everyone uses SAP, everyone uses RFC, no one knows RFC: From RFC to RCE 16 years later <https://troopers.de/troopers23/talks/n7yuqg/>`_
 
 * `Uncovering SAP vulnerabilities: reversing and breaking the Diag protocol <https://www.coresecurity.com/corelabs-research/publications/uncovering-sap-vulnerabilities-reversing-and-breaking-diag-protocol>`_
 

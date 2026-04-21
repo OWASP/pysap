@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v0.1.30 - 2026-XX-XX
+--------------------
+
+- Full remaining Python3 migration contributed by Red Rays. Thanks [@vah13]
+- Source code review and change aligment by [@codehorse87]
+- Functional testing by various OWASP CBAS community members 
+
+
 v0.1.20 - 2023-XX-XX
 --------------------
 
