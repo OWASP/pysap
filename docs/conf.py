@@ -16,7 +16,8 @@ import pysap
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
+docs_dir = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(docs_dir, '..')))
 
 
 # -- Project information -----------------------------------------------------
@@ -45,7 +46,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'nbsphinx',
     'sphinx.ext.mathjax',
-    'm2r',
+    'myst_parser',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -54,8 +55,10 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = ['.rst', '.md']
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
 
 # The master toctree document.
 master_doc = 'index'
@@ -65,7 +68,7 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -170,8 +173,8 @@ def run_apidoc(_):
         "-T",           # No TOC
         "-e",           # Each module on its own page
         "-M",           # Module first
-        "-o", "api/",   # Output on "api/"
-        "../pysap"      # Only document pysap module
+        "-o", os.path.join(docs_dir, "api"),   # Output on "api/"
+        os.path.join(docs_dir, "../pysap")     # Only document pysap module
     ] + ignore_paths
 
     from sphinx.ext import apidoc

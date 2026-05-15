@@ -3,5 +3,6 @@
 Release and version history
 ===========================
 
-.. mdinclude:: ../../ChangeLog.md
+.. include:: ../../ChangeLog.md
+   :parser: myst_parser.sphinx_
    :start-line: 2
