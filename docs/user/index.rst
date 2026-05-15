@@ -44,6 +44,7 @@ Installation
 ------------
 
 This section of the documentation covers the installation process of pysap.
+pysap requires Python 3.6 or newer.
 
 
 Installation with pip
@@ -52,7 +53,7 @@ Installation with pip
 Installing pysap is simple with `pip <https://pip.pypa.io/>`_, just run the
 following command on a terminal::
 
-    $ python -m pip install pysap
+    $ python3 -m pip install pysap
 
 Some example scripts has additional required libraries:
 
@@ -65,7 +66,7 @@ Some example scripts has additional required libraries:
 Some of those extra libraries can be installed with `pip`_ running the following
 command::
 
-    $ python -m pip install pysap[examples]
+    $ python3 -m pip install pysap[examples]
 
 
 Manual installation
@@ -74,19 +75,19 @@ Manual installation
 The tool relays on the `Scapy <https://scapy.net/>`_ library for crafting
 packets. To install the required libraries use::
 
-1) ``python -m pip install --upgrade pip wheel setuptools``
-2) ``python -m pip install -r requirements.txt``
+1) ``python3 -m pip install --upgrade pip wheel setuptools``
+2) ``python3 -m pip install -r requirements.txt``
 
 Once you have downloaded pysap's sources, you can install it easily using
 the Python's integration of ``setuptools`` scripts in pip:
 
 For development and unit testing:
-1) ``python -m pip install -e .``
-2) ``python -m unittest discover -s tests -p '*_test.py'``
+1) ``python3 -m pip install -e .``
+2) ``python3 -m unittest discover -s tests -p '*_test.py'``
 
 For creating your own build without PyPi: 
-1) ``python -m pip install build``
-2) ``python -m build --wheel``
+1) ``python3 -m pip install build``
+2) ``python3 -m build --wheel``
 
 Scapy installation
 ~~~~~~~~~~~~~~~~~~

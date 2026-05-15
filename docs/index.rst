@@ -15,7 +15,7 @@ formats as well. While some of them are standard and well-known protocols, other
 are proprietaries and public information is generally not available.
 
 `pysap <https://owasp.org/www-project-core-business-application-security/>`_
-is an open source Python 2 library that provides modules for crafting and sending packets
+is an open source Python 3 library that provides modules for crafting and sending packets
 using SAP's ``NI``, ``Diag``, ``Enqueue``, ``Router``, ``MS``, ``SNC``, ``IGS``, ``RFC``
 and ``HDB`` protocols. In addition, support for creating and parsing different proprietary
 file formats is included. The modules are built on top of `Scapy <https://scapy.net/>`_ and
