@@ -39,11 +39,9 @@ from pysap.utils.fields import ASN1F_CHOICE_SAFE
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.hashes import SHA1
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-try:
-    from cryptography.hazmat.decrepit.ciphers import algorithms as decrepit_algorithms
-    TripleDES = decrepit_algorithms.TripleDES
-except ImportError:
-    TripleDES = algorithms.TripleDES
+from cryptography.hazmat.decrepit.ciphers import algorithms as decrepit_algorithms
+
+TripleDES = decrepit_algorithms.TripleDES
 
 
 # Create a logger for the PSE layer
