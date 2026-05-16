@@ -6,8 +6,6 @@
 # full list see the documentation:
 # http://www.sphinx-doc.org/en/master/config
 
-import pysap
-
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -18,6 +16,20 @@ import os
 import sys
 docs_dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, os.path.abspath(os.path.join(docs_dir, '..')))
+
+import pysap
+
+from scapy.config import conf
+from scapy.interfaces import NetworkInterfaceDict
+
+
+def skip_scapy_iface_reload(self):
+    pass
+
+
+conf.route_autoload = False
+conf.route6_autoload = False
+NetworkInterfaceDict.reload = skip_scapy_iface_reload
 
 
 # -- Project information -----------------------------------------------------
