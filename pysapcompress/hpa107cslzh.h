@@ -40,7 +40,7 @@
 #ifndef CSLZH_INCL       /* cannot be included twice .................*/
 #define CSLZH_INCL
 
-#define REGISTER register
+#define REGISTER
 
 /* The minimum and maximum match lengths .............................*/
 #define MIN_MATCH  3
