@@ -6,13 +6,17 @@ v0.2.0.dev0 - unreleased
 
 - Full remaining Python3 migration contributed by Red Rays. Thanks [@vah13]
 - Source code review and change aligment by [@codehorse87]
-- Functional testing by various OWASP CBAS community members 
+- Functional testing by various OWASP CBAS community members
+- `README.md` and documentation: Clarified that pysap now runs on Python 3 and requires Python 3.10 or newer.
+- Documentation: Updated the Sphinx build to Python 3.10, Sphinx 7.4, and MyST Parser.
+- GitHub Actions: Updated the build matrix to cover Python 3.10 through 3.14 and added a documentation build job.
+- Read the Docs: Updated the build configuration for the new Python 3.10 documentation toolchain.
 
-
-v0.1.20 - 2023-XX-XX
---------------------
-
+- `pysap/utils/crypto/rsec.py`: Fixed RSEC SSFS key decryption ([\#71](https://github.com/OWASP/pysap/pull/71)).
+- `examples/default_sap_credentials`: Updated default SAP credentials.
 - Project was contributed by SecureAuth to the OWASP CBAS Project in October 2022.
+- Added the security policy file and clarified the project disclaimer.
+- Documentation: Added references to SAP Secure Storage and SSFS research.
 - `pysap/SAPCredv2.py`: Added subject fields instead of commonName for LPS-enabled credentials ([\#35](https://github.com/OWASP/pysap/issues/35)). Thanks [@rstenet](https://github.com/rstenet)!
 - `pysap/SAPCredv2.py`: Add support for cipher format version 1 with 3DES ([\#35](https://github.com/OWASP/pysap/issues/35) and [\#37](https://github.com/OWASP/pysap/pull/37)). Thanks [@rstenet](https://github.com/rstenet)!
 - `pysap/SAPHDB.py`: Added missing `StatementContextOption` values (see [\#22](https://github.com/SecureAuthCorp/SAP-Dissection-plug-in-for-Wireshark/issues/22)).
