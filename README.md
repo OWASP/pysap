@@ -122,6 +122,7 @@ Contributions made by:
   * Mathieu Geli ([@gelim](https://github.com/gelim))
   * Yvan Genuer ([@iggy38](https://github.com/iggy38))
   * Malte Heinzelmann ([@hnzlmnn](https://github.com/hnzlmnn))
+  * [@codeHorse87](https://github.com/codeHorse87)
   * Albert Zedlitz
   * [@cclauss](https://github.com/cclauss)
   * [@okuuva](https://github.com/okuuva)
@@ -129,6 +130,9 @@ Contributions made by:
   * fabhap
   * Andreas Hornig
   * Jennifer Hornig ([@gloomicious](https://github.com/gloomicious))
+  * RedRays Security Team
+  * Vincent Berg
+  * WaseemAjrab ([@default-eshu](https://github.com/default-eshu))
 
 Disclaimer
 ----------
