@@ -66,7 +66,7 @@ To install pysap simply run:
 
     $ python3 -m pip install pysap
 
-pysap requires Python 3.6 or newer.
+pysap requires Python 3.10 or newer.
 
 
 Roadmap

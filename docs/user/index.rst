@@ -44,7 +44,7 @@ Installation
 ------------
 
 This section of the documentation covers the installation process of pysap.
-pysap requires Python 3.6 or newer.
+pysap requires Python 3.10 or newer.
 
 
 Installation with pip
@@ -73,7 +73,7 @@ Manual installation
 ~~~~~~~~~~~~~~~~~~~
 
 The tool relays on the `Scapy <https://scapy.net/>`_ library for crafting
-packets. To install the required libraries use::
+packets. To install the required libraries use:
 
 1) ``python3 -m pip install --upgrade pip wheel setuptools``
 2) ``python3 -m pip install -r requirements.txt``
