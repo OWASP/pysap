@@ -183,15 +183,15 @@ extern CODE_INT DE_STACK_OFFSET;
 
 #define BYTES_OUT(dst,src,len)              \
     {                                       \
-      register int i_i = len;               \
-      register BYTE_TYP *bufp = src;        \
+      int i_i = len;               \
+      BYTE_TYP *bufp = src;        \
       while (i_i-- > 0) *dst++ = *bufp++;   \
     }
 
 #define BYTES_IN(to,from,len)               \
     {                                       \
-      register int i_i = len;               \
-      register BYTE_TYP *bufp = to;         \
+      int i_i = len;               \
+      BYTE_TYP *bufp = to;         \
       while (i_i-- > 0) *bufp++ = *from++;  \
     }
 

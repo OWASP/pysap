@@ -137,6 +137,7 @@ int decompress_packet (const unsigned char *in, const int in_length, unsigned ch
 	/* Point the input buffer to the input */
 	bufin = bufin_pos = (SAP_BYTE*) in;
 	bufin_length = bufin_rest = (SAP_INT)in_length;
+	(void)bufin_length;
 
 	/* Initialize and obtain the reported uncompressed data length */
 	rt = csObject.CsInitDecompr(bufin);
@@ -266,6 +267,7 @@ int compress_packet (const unsigned char *in, const int in_length, unsigned char
 	/* Point the input buffer to the input */
 	bufin = bufin_pos = (SAP_BYTE*) in;
 	bufin_length = bufin_rest = (SAP_INT)in_length;
+	(void)bufin;
 
 	/* Allocate the output buffer. We use the input size with a constant factor
 	 * as the output buffer size.

@@ -171,7 +171,11 @@ class SAPSSFSDataRecord(PacketNoPadded):
         log_ssfs.debug("Decrypting record {}".format(self.key_name))
         decrypted_data = rsec_decrypt(self.data, key.key)
         decrypted_payload = SAPSSFSDecryptedPayload(decrypted_data)
-        log_ssfs.warn("Decrypted payload integrity is {}".format(decrypted_payload.valid))
+        integrity_message = "Decrypted payload integrity is {}".format(decrypted_payload.valid)
+        if decrypted_payload.valid:
+            log_ssfs.debug(integrity_message)
+        else:
+            log_ssfs.warning(integrity_message)
         return decrypted_payload.data
 
     @property

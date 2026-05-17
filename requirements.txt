@@ -1,2 +1,2 @@
 scapy>=2.5.0
-cryptography>=41.0,<44.0
+cryptography>=48.0,<49.0

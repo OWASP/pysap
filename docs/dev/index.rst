@@ -17,7 +17,7 @@ Documentation
 
 Documentation can be build using::
 
-    $ python setup.py doc
+    $ python3 setup.py doc
 
 A build is also available at `Read the Docs <https://pysap.readthedocs.io/en/latest/>`_.
 
@@ -33,7 +33,7 @@ For example, installation on a Ubuntu box would require the following commands::
 
 Python packages can be installed using ::
 
-    $ python -m pip install pysap[docs]
+    $ python3 -m pip install pysap[docs]
 
 
 Notebooks
@@ -46,7 +46,7 @@ graphical representations are built using `Scapy <https://scapy.net/>`_,
 
 Jupyter notebooks containing the protocol packets' representation can be re-build using the following command::
 
-   $ python setup.py notebooks
+   $ python3 setup.py notebooks
 
 
 Code contributions

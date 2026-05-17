@@ -1,6 +1,6 @@
-Sphinx>=5.0
+# Sphinx 8+ requires Python >=3.11; keep docs installable in the Python 3.10 docs virtualenv.
+Sphinx>=7.4.7,<8.0
 ipykernel
 nbsphinx>=0.9.0
 ipython
-m2r2
-mistune>=2.0
+myst-parser
