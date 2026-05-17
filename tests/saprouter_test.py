@@ -18,16 +18,14 @@
 
 # Standard imports
 import sys
-import socket
 import unittest
-from struct import unpack
+import socket
 from threading import Thread
 # External imports
 import pytest
 
 # Custom imports
-from scapy.packet import Raw
-from pysap.SAPNI import SAPNIServerHandler, SAPNIServerThreaded, SAPNI
+from pysap.SAPNI import SAPNIServerHandler, SAPNIServerThreaded
 from pysap.SAPRouter import (SAPRouter, SAPRouterRouteHop, router_is_route,
                              SAPRoutedStreamSocket, SAPRouteException)
 

@@ -22,7 +22,6 @@ import unittest
 from struct import pack
 # External imports
 from scapy.config import conf
-conf.max_list_count = 1000
 from scapy.fields import StrField
 from scapy.packet import Packet, Raw
 # Custom imports
@@ -30,6 +29,8 @@ from tests.utils import read_data_file
 from pysap.SAPDiag import (SAPDiagItems, SAPDiagItem, SAPDiag, bind_diagitem,
                            diag_item_get_class)
 from pysap.SAPDiagItems import SAPDiagDyntAtomItem
+
+conf.max_list_count = 1000
 
 
 class PySAPDiagTest(unittest.TestCase):

@@ -21,7 +21,7 @@ from unittest import mock
 
 from pysap.SAPDiag import SAPDiag, SAPDiagDP, SAPDiagItem
 from pysap.SAPDiagClient import SAPDiagConnection
-from pysap.SAPDiagItems import SAPDiagStep, SAPDiagSupportBits
+from pysap.SAPDiagItems import SAPDiagSupportBits
 from tests.utils import DummyConnection
 
 

@@ -108,15 +108,15 @@ class PySAPCARTest(unittest.TestCase):
 
         ar = SAPCARArchive(self.test_archive_file, "w")
         ar.add_file(self.test_filename)
-        ar.add_file(self.test_filename, archive_filename=self.test_filename+b"two")
+        ar.add_file(self.test_filename, archive_filename=self.test_filename + b"two")
 
         self.assertEqual(b"2.01", ar.version)
         self.assertEqual(2, len(ar.files))
         self.assertEqual(2, len(ar.files_names))
-        self.assertListEqual([self.test_filename, self.test_filename+b"two"], list(ar.files_names))
-        self.assertListEqual([self.test_filename, self.test_filename+b"two"], list(ar.files.keys()))
+        self.assertListEqual([self.test_filename, self.test_filename + b"two"], list(ar.files_names))
+        self.assertListEqual([self.test_filename, self.test_filename + b"two"], list(ar.files.keys()))
 
-        for filename in [self.test_filename, self.test_filename+b"two"]:
+        for filename in [self.test_filename, self.test_filename + b"two"]:
             af = ar.open(filename)
             self.assertEqual(self.test_string, af.read())
             af.close()

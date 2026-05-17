@@ -192,7 +192,6 @@ class PySAPCredV2Test(unittest.TestCase):
         with open(data_filename("credv2_lps_on_v2_int_aes256_composed_subject"), "rb") as fd:
             s = fd.read()
 
-        c = SAPCredv2(s)
         creds = SAPCredv2(s).creds
         self.assertEqual(len(creds), 1)
 
