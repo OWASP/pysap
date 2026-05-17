@@ -54,6 +54,10 @@ exercise protocol logic.
 Recommended commands
 --------------------
 
+Run the lint suite with tox::
+
+   $ python3 -m tox -e lint
+
 Run the full unit suite with tox::
 
    $ python3 -m tox -e unit
