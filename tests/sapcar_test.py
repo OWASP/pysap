@@ -267,7 +267,7 @@ class PySAPCARTest(unittest.TestCase):
             self.assertEqual(ff.file_length_high, 99999)
 
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPCARTest))
@@ -276,5 +276,5 @@ def test_suite():
 
 if __name__ == "__main__":
     test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
-    result = test_runner.run(test_suite())
+    result = test_runner.run(suite())
     sys.exit(not result.wasSuccessful())

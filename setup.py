@@ -18,12 +18,21 @@
 #
 
 # Standard imports
+import re
 from sys import exit
 from glob import glob
 from subprocess import call
 from setuptools import setup, Extension, Command
-# Custom imports
-import pysap
+
+
+def read_metadata(name):
+    """Read a package metadata value from pysap/__init__.py without importing it."""
+    with open("pysap/__init__.py", "r", encoding="utf-8") as fh:
+        content = fh.read()
+    match = re.search(r"^%s\s*=\s*['\"]([^'\"]+)['\"]" % re.escape(name), content, re.MULTILINE)
+    if not match:
+        raise RuntimeError("Unable to find %s in pysap/__init__.py" % name)
+    return match.group(1)
 
 
 class DocumentationCommand(Command):
@@ -96,16 +105,16 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 
-setup(name=pysap.__title__,  # Package information
-      version=pysap.__version__,
+setup(name=read_metadata("__title__"),  # Package information
+      version=read_metadata("__version__"),
       author='Martin Gallo, OWASP CBAS Project',
       author_email='martin.gallo@gmail.com',
       description='Python library for crafting SAP\'s network protocols packets',
       long_description=long_description,
       long_description_content_type="text/markdown",
-      url=pysap.__url__,
-      download_url=pysap.__url__,
-      license=pysap.__license__,
+      url=read_metadata("__url__"),
+      download_url=read_metadata("__url__"),
+      license=read_metadata("__license__"),
       classifiers=['Development Status :: 3 - Alpha',
                    'Intended Audience :: Developers',
                    'Intended Audience :: Information Technology',
@@ -131,9 +140,6 @@ setup(name=pysap.__title__,  # Package information
       # Script files
       scripts=['bin/pysapcar', 'bin/pysapgenpse'],
 
-      # Tests command
-      test_suite='tests.test_suite',
-
       # Documentation commands
       cmdclass={'doc': DocumentationCommand,
                 'notebooks': PreExecuteNotebooksCommand},
@@ -142,6 +148,7 @@ setup(name=pysap.__title__,  # Package information
       install_requires=open('requirements.txt').read().splitlines(),
 
       # Optional requirements for docs and some examples
-      extras_require={"docs": open('requirements-docs.txt').read().splitlines(),
+      extras_require={"tests": open('requirements-test.txt').read().splitlines(),
+                      "docs": open('requirements-docs.txt').read().splitlines(),
                       "examples": open('requirements-examples.txt').read().splitlines()},
       )

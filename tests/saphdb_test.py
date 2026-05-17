@@ -21,8 +21,13 @@ import sys
 import unittest
 from threading import Thread
 from socketserver import BaseRequestHandler, ThreadingTCPServer
+# External imports
+import pytest
 # Custom imports
 from pysap.SAPHDB import SAPHDBConnection
+
+
+pytestmark = pytest.mark.integration
 
 
 class SAPHDBServerTestHandler(BaseRequestHandler):
@@ -65,7 +70,7 @@ class PySAPHDBConnectionTest(unittest.TestCase):
         self.stop_server()
 
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPHDBConnectionTest))
@@ -74,5 +79,5 @@ def test_suite():
 
 if __name__ == "__main__":
     test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
-    result = test_runner.run(test_suite())
+    result = test_runner.run(suite())
     sys.exit(not result.wasSuccessful())

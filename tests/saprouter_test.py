@@ -23,12 +23,16 @@ import unittest
 from struct import unpack
 from threading import Thread
 # External imports
+import pytest
 
 # Custom imports
 from scapy.packet import Raw
 from pysap.SAPNI import SAPNIServerHandler, SAPNIServerThreaded, SAPNI
 from pysap.SAPRouter import (SAPRouter, SAPRouterRouteHop, router_is_route,
                              SAPRoutedStreamSocket, SAPRouteException)
+
+
+pytestmark = pytest.mark.integration
 
 
 class PySAPRouterTest(unittest.TestCase):
@@ -245,7 +249,7 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
         self.stop_server()
 
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPRouterTest))
@@ -255,5 +259,5 @@ def test_suite():
 
 if __name__ == "__main__":
     test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
-    result = test_runner.run(test_suite())
+    result = test_runner.run(suite())
     sys.exit(not result.wasSuccessful())

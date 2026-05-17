@@ -73,7 +73,7 @@ class PySAPCryptoUtilsTest(unittest.TestCase):
         self.assertEqual(expected_scrambled_salt, scrambled_salt)
 
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPCryptoUtilsTest))
@@ -81,4 +81,4 @@ def test_suite():
 
 
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=2).run(test_suite())
+    unittest.TextTestRunner(verbosity=2).run(suite())

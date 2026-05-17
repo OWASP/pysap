@@ -161,7 +161,7 @@ class PySAPDiagTest(unittest.TestCase):
         self.assertIs(diag_item_get_class(item, "APPL", 0x99, 0xff), SAPDiagItemTest)
 
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPDiagTest))
@@ -170,5 +170,5 @@ def test_suite():
 
 if __name__ == "__main__":
     test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
-    result = test_runner.run(test_suite())
+    result = test_runner.run(suite())
     sys.exit(not result.wasSuccessful())

@@ -16,16 +16,4 @@
 #   Code contributed by SecureAuth to the OWASP CBAS project
 #
 
-# Standard imports
-import sys
-import unittest
-
-
-import os
-test_suite = unittest.defaultTestLoader.discover(os.path.dirname(__file__), '*_test.py')
-
-
-if __name__ == '__main__':
-    test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
-    result = test_runner.run(test_suite)
-    sys.exit(not result.wasSuccessful())
+# Test package marker for pytest discovery.
