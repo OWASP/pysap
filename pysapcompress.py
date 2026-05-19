@@ -1620,16 +1620,20 @@ def decompress(data, out_length):
     except DecompressError as exc:
         raise DecompressError("Decompression error (%s)" % exc) from exc
 
-    if hdr_length != out_length:
-        raise DecompressError(
-            "Decompression error (CS_E_OUT_BUFFER_LEN: invalid output length): "
-            "header says %d but caller expects %d" % (hdr_length, out_length)
-        )
-
     try:
         if alg_id == _HDR_ALG_LZC:
+            if hdr_length != out_length:
+                raise DecompressError(
+                    "Decompression error (CS_E_OUT_BUFFER_LEN: invalid output length): "
+                    "header says %d but caller expects %d" % (hdr_length, out_length)
+                )
             out = _LZCDecompress.decompress_data(data, compat_mode=True)
         elif alg_id == _HDR_ALG_LZH:
+            if hdr_length != out_length:
+                raise DecompressError(
+                    "Decompression error (CS_E_OUT_BUFFER_LEN: invalid output length): "
+                    "header says %d but caller expects %d" % (hdr_length, out_length)
+                )
             out = _LZHDecompress.decompress_data(data)
         else:
             raise DecompressError(
