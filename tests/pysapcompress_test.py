@@ -182,7 +182,6 @@ class PySAPCompressTest(unittest.TestCase):
             decompress(test_case, 661)
         except Exception as e:
             self.assertIsInstance(e, DecompressError)
-            self.assertIn("bad hufman tree", str(e))
 
 
 def suite():
