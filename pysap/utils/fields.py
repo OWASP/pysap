@@ -311,7 +311,7 @@ class AdjustableFieldLenField(Field):
     def addfield(self, pkt, s, val):
         i2m = self.i2m(pkt, val)
         fmt = "B"
-        padd = ""
+        padd = b""
         if i2m > 0xf0:
             fmt = ">H"
             padd = struct.pack("B", 0xff)

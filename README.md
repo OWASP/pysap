@@ -92,6 +92,11 @@ Documentation
 
 Documentation is available at [Read the Docs](https://pysap.readthedocs.io/en/latest/).
 
+The development documentation includes a short testing guide at
+[docs/dev/testing.rst](docs/dev/testing.rst). It describes the unit and
+integration suites, the test harness, and the recommended `tox` and `pytest`
+commands.
+
 
 License
 -------

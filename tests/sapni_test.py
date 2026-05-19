@@ -24,11 +24,15 @@ from threading import Thread
 from struct import pack, unpack
 from socketserver import BaseRequestHandler, ThreadingTCPServer
 # External imports
+import pytest
 from scapy.fields import StrField
 from scapy.packet import Packet, Raw
 # Custom imports
 from pysap.SAPNI import (SAPNI, SAPNIStreamSocket, SAPNIServerThreaded,
                          SAPNIServerHandler, SAPNIProxy, SAPNIProxyHandler)
+
+
+pytestmark = pytest.mark.integration
 
 
 class PySAPBaseServerTest(unittest.TestCase):
@@ -342,7 +346,7 @@ class PySAPNIProxyTest(PySAPBaseServerTest):
         self.stop_server()
 
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPNITest))
@@ -354,5 +358,5 @@ def test_suite():
 
 if __name__ == "__main__":
     test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
-    result = test_runner.run(test_suite())
+    result = test_runner.run(suite())
     sys.exit(not result.wasSuccessful())

@@ -67,7 +67,7 @@ class PySAPPSEv2Test(unittest.TestCase):
         self.assertEqual(len(pse.enc_cont.algorithm_identifier.parameters.salt.val), 8)
 
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPPSEv2Test))
@@ -76,5 +76,5 @@ def test_suite():
 
 if __name__ == "__main__":
     test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
-    result = test_runner.run(test_suite())
+    result = test_runner.run(suite())
     sys.exit(not result.wasSuccessful())
