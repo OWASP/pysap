@@ -68,7 +68,7 @@ class DiagParser(object):
             if key not in self.packets_metadata:
                 self.packets_metadata[key] = []
             self.packets_metadata[key].append((pkt[TCP].seq + pkt[TCP].ack,
-                                               str(pkt[Raw].load)))
+                                               bytes(pkt[Raw].load)))
 
     def reassemble(self):
         # Build a stream of packets for each connection
@@ -76,7 +76,7 @@ class DiagParser(object):
         for key, value in list(self.packets_metadata.items()):
             value.sort()
             value = list(value for value, _ in itertools.groupby(value))
-            streams[key] = ''
+            streams[key] = b''
             for pkts in sorted(value):
                 streams[key] += pkts[1]
 
@@ -105,8 +105,10 @@ class DiagParser(object):
                 for atom in [atom for atom_item in atoms for atom in atom_item.item_value.items]:
                     if atom.etype in [121, 122, 123, 130, 131, 132]:
                         text = atom.field1_text or atom.field2_text
+                        if isinstance(text, bytes):
+                            text = text.decode("utf-8", errors="replace")
                         text = text.strip()
-                        if "@\Q" in text:
+                        if "@\\Q" in text:
                             parts = text.split("@")
                             try:
                                 text = "%s (hint: %s)" % (parts[2], parts[1])
