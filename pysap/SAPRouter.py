@@ -580,8 +580,11 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         """
         # Build the route request packet
         talk_mode = talk_mode or ROUTER_TALK_MODE_NI_MSG_IO
-        router_strings = list(map(str, route))
-        target = "%s:%d" % (route[-1].hostname, int(route[-1].port))
+        router_strings = list(map(bytes, route))
+        hostname = route[-1].hostname
+        if isinstance(hostname, bytes):
+            hostname = hostname.decode("utf-8", errors="replace")
+        target = "%s:%d" % (hostname, int(route[-1].port))
         router_strings_lens = list(map(len, router_strings))
         route_request = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
                                   route_ni_version=self.router_version,
@@ -706,7 +709,7 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         # the route
         if host is not None and port is not None:
             route.append(SAPRouterRouteHop(hostname=host,
-                                           port=port,
+                                           port=str(port),
                                            password=password))
 
         # Connect to the first hop in the route (it should be the SAP Router)

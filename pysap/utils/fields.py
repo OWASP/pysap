@@ -222,7 +222,7 @@ class IntToStrField(Field):
 class StrEncodedPaddedField(StrField):
     __slots__ = ["remain", "encoding", "padd"]
 
-    def __init__(self, name, default, encoding="utf-16", padd="\x0c",
+    def __init__(self, name, default, encoding="utf-16", padd=b"\x0c",
                  fmt="H", remain=0):
         StrField.__init__(self, name, default, fmt, remain)
         self.encoding = encoding
@@ -244,7 +244,7 @@ class StrEncodedPaddedField(StrField):
     def getfield(self, pkt, s):
         l = s.find(self.padd)
         if l < 0:
-            return "", s
+            return b"", s
         return s[l + 1:], self.m2i(pkt, s[:l])
 
 
