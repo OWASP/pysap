@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # encoding: utf-8
 # pysap - Python library for crafting SAP's network protocols packets
 #

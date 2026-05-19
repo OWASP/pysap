@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # encoding: utf-8
 # pysap - Python library for crafting SAP's network protocols packets
 #
@@ -19,7 +19,7 @@
 
 # Standard imports
 import logging
-from string import letters
+from string import ascii_letters as letters
 from random import choice
 from argparse import ArgumentParser
 # External imports
@@ -132,9 +132,12 @@ def is_duplicate_login(response):
         for item in response[SAPDiag].get_item("APPL4", "DYNT", "DYNT_ATOM"):
             if item.item_value:
                 for atom in item.item_value.items:
-                    if atom.dlg_flag_1 is 0 and atom.dlg_flag_2 is 0 and atom.field2_text:
-                        if "is already logged on in" in atom.field2_text:
-                            return True, atom.field2_text
+                    if atom.dlg_flag_1 == 0 and atom.dlg_flag_2 == 0 and atom.field2_text:
+                        text = atom.field2_text
+                        if isinstance(text, bytes):
+                            text = text.decode('utf-8', errors='replace')
+                        if "is already logged on in" in text:
+                            return True, text
     return False, ""
 
 
@@ -156,6 +159,10 @@ def login(host, port, terminal, route, username, password, client, verbose, resu
     # If the response contain a MESSAGE item, it could be a error message of the user requesting a password change
     if response[SAPDiag].get_item("APPL", "ST_R3INFO", "MESSAGE"):
         status = response[SAPDiag].get_item("APPL", "ST_R3INFO", "MESSAGE")[0].item_value
+        if hasattr(status, 'load'):
+            status = status.load
+        if isinstance(status, bytes):
+            status = status.decode('utf-8', errors='replace').rstrip('\x00')
         # Check if the password is expired
         if status == "Enter a new password":
             user_valid = login_success = True
@@ -174,13 +181,19 @@ def login(host, port, terminal, route, username, password, client, verbose, resu
     # If the ST_USER USERNAME item is set to the username, the login was successful
     elif response[SAPDiag].get_item("APPL", "ST_USER", "USERNAME"):
         st_username = response[SAPDiag].get_item("APPL", "ST_USER", "USERNAME")[0].item_value
+        if hasattr(st_username, 'load'):
+            st_username = st_username.load
+        if isinstance(st_username, bytes):
+            st_username = st_username.decode('utf-8', errors='replace').rstrip('\x00')
         if st_username == username:
             user_valid = login_success = True
     # If the response doesn't contain a message item but the Internal Mode Number is set to 1, we have found a
     # successful login
     elif response[SAPDiag].get_item("APPL", "ST_R3INFO", "IMODENUMBER"):
         imodenumber = response[SAPDiag].get_item("APPL", "ST_R3INFO", "IMODENUMBER")[0].item_value
-        if imodenumber == "\x00\x01":
+        if hasattr(imodenumber, 'load'):
+            imodenumber = imodenumber.load
+        if imodenumber == b"\x00\x01":
             user_valid = login_success = True
 
     # Otherwise, we are dealing with an unknown response

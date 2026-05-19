@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # encoding: utf-8
 # pysap - Python library for crafting SAP's network protocols packets
 #
@@ -113,7 +113,7 @@ class SAPMSMonitorConsole(BaseConsole):
         response = self.connection.sr(p)[SAPMS]
 
         if response.errorno == 0:
-            self.runtimeoptions["server_string"] = response.fromname.strip() + "\x00"
+            self.runtimeoptions["server_string"] = response.fromname.strip() + b"\x00"
             self._debug("Login performed, server string: %s" % response.fromname)
             self._print("pysap's Message Server monitor, connected to %s / %d" % (self.options.remote_host,
                                                                                   self.options.remote_port))

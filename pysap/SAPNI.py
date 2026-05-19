@@ -22,7 +22,7 @@ import logging
 from select import select
 from struct import unpack
 from threading import Event
-from SocketServer import BaseRequestHandler, ThreadingMixIn, TCPServer
+from socketserver import BaseRequestHandler, ThreadingMixIn, TCPServer
 # External imports
 from scapy.fields import LenField
 from scapy.packet import Packet, Raw
@@ -58,13 +58,13 @@ class SAPNI(Packet):
     fields_desc = [LenField("length", None, fmt="!I")]
 
     # Constants for keep-alive messages
-    SAPNI_PING = "NI_PING\x00"
+    SAPNI_PING = b"NI_PING\x00"
     """ :cvar: Constant for keep-alive request messages (NI_PING)
-        :type: C{string} """
+        :type: C{bytes} """
 
-    SAPNI_PONG = "NI_PONG\x00"
+    SAPNI_PONG = b"NI_PONG\x00"
     """ :cvar: Constant for keep-alive response messages (NI_PONG)
-        :type: C{string} """
+        :type: C{bytes} """
 
 
 class SAPNIStreamSocket(StreamSocket):
@@ -123,7 +123,7 @@ class SAPNIStreamSocket(StreamSocket):
         log_sapni.debug("Received 4 bytes NI header, to receive %d bytes data", nilength)
 
         # Receive the whole NI packet (length+payload)
-        nidata = ''
+        nidata = b''
         while len(nidata) < nilength + 4:
             nidata += self.ins.recv(nilength - len(nidata) + 4)
             if len(nidata) == 0:
@@ -472,8 +472,8 @@ class SAPNIServerHandler(BaseRequestHandler):
                 self.handle_data()
 
             except socket.error as e:
-                log_sapni.debug("SAPNIServerHandler: Error handling data or client %s disconnected, %s (errno %d)",
-                                self.client_address, e.message, e.errno)
+                log_sapni.debug("SAPNIServerHandler: Error handling data or client %s disconnected, %s (errno %s)",
+                                self.client_address, str(e), e.errno)
                 break
 
     def handle_data(self):

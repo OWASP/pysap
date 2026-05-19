@@ -517,14 +517,14 @@ class SAPDiagMenuEntry(PacketNoPadded):
         ByteField("position_3", 0),
         ByteField("position_4", 0),
         # Menu Entry Flags
-        BitField("flag_TERM_??8", 0, 1),  # 80
-        BitField("flag_TERM_??7", 0, 1),  # 40
-        BitField("flag_TERM_??6", 0, 1),  # 20
+        BitField("flag_TERM_UNK8", 0, 1),  # 80
+        BitField("flag_TERM_UNK7", 0, 1),  # 40
+        BitField("flag_TERM_UNK6", 0, 1),  # 20
         BitField("flag_TERM_VKEY", 0, 1),  # 10
         BitField("flag_TERM_SEP", 0, 1),  # 8
         BitField("flag_TERM_MEN", 0, 1),  # 4
         BitField("flag_TERM_SEL", 0, 1),  # 2
-        BitField("flag_TERM_??1", 0, 1),  # 1
+        BitField("flag_TERM_UNK1", 0, 1),  # 1
         ByteField("virtual_key", 0),
         ByteField("return_code_1", 0),
         ByteField("return_code_2", 0),

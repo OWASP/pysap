@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # encoding: utf-8
 # pysap - Python library for crafting SAP's network protocols packets
 #
@@ -86,14 +86,22 @@ gui_lang = {
     "i": "Indonesian",
 }
 
+def _to_str(s):
+    """Convert item_value to string."""
+    if hasattr(s, 'load'):
+        s = s.load
+    if isinstance(s, bytes):
+        s = s.decode('utf-8', errors='replace').rstrip('\x00')
+    return s
+
 serv_info = {
-    'DBNAME': lambda s: s,
-    'CPUNAME': lambda s: s,
-    'CLIENT': lambda s: s,
-    'LANGUAGE': lambda s: gui_lang.get(s, 'Language unknown (%s)' % s),
-    'SESSION_ICON': lambda s: s,
-    'SESSION_TITLE': lambda s: s,
-    'KERNEL_VERSION': lambda s: '.'.join(s[:-1].split('\x00')),
+    'DBNAME': lambda s: _to_str(s),
+    'CPUNAME': lambda s: _to_str(s),
+    'CLIENT': lambda s: _to_str(s),
+    'LANGUAGE': lambda s: gui_lang.get(_to_str(s), 'Language unknown (%s)' % _to_str(s)),
+    'SESSION_ICON': lambda s: _to_str(s),
+    'SESSION_TITLE': lambda s: _to_str(s),
+    'KERNEL_VERSION': lambda s: '.'.join(_to_str(s).split('\x00')),
 }
 
 key_len = 20
@@ -116,8 +124,9 @@ def show_serv_info(item):
     Print server information displayed in login screen
 
     """
-    isid = diag_appl_sids[item.item_id][item.item_sid]
-    if isid in serv_info.keys():
+    sids = diag_appl_sids.get(item.item_id, {})
+    isid = sids.get(item.item_sid, None)
+    if isid and isid in serv_info.keys():
         print(("%s" % isid).ljust(key_len) + "\t" + ("%s" % serv_info[isid](item.item_value)).ljust(val_len))
 
 

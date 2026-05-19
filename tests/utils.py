@@ -35,4 +35,5 @@ def read_data_file(filename, unhex=True):
     else:
         with open(filename, 'rb') as f:
             data = f.read()
+
     return data

@@ -95,9 +95,9 @@ CODE_INT DE_STACK_OFFSET = 1<<(CS_BITS+1);
 /* Output one code  (A maximum of CS_BITS is written)               */ \
 /*------------------------------------------------------------------*/ \
 {                                                                      \
-  register BYTE_TYP * bp = csc.buf1;                                   \
-  register int code = cod;                                             \
-  register unsigned int r_off, bits = csc.n_bits;                      \
+  BYTE_TYP * bp = csc.buf1;                                   \
+  int code = cod;                                             \
+  unsigned int r_off, bits = csc.n_bits;                      \
                                                                        \
   if (csc.put_n_bytes)                /* put out the rest ........*/   \
   {                                                                    \
@@ -322,11 +322,11 @@ int CsObjectInt::CsComprLZC (SAP_INT    sumlen,
 /*                                                                    */
 /*--------------------------------------------------------------------*/
 {
-  register SAP_INT fcode;
-  register CODE_INT i = 0;
-  register BYTE_TYP *inptr = inbuf;
-  register int c;
-  register CODE_INT disp;
+  SAP_INT fcode;
+  CODE_INT i = 0;
+  BYTE_TYP *inptr = inbuf;
+  int c;
+  CODE_INT disp;
 
   int rc;
 
@@ -516,7 +516,7 @@ int CsObjectInt::ClearBlock (SAP_INT in_count, SAP_INT bytes_out)
 /*       returns   0: no clear                                        */
 /*--------------------------------------------------------------------*/
 {
-  register SAP_INT rat;
+  SAP_INT rat;
 
   csc.checkpoint = in_count + CHECK_GAP;
 
@@ -594,9 +594,9 @@ int CsObjectInt::CsDecomprLZC (SAP_BYTE * inbuf,
 /*                                                                    */
 /*--------------------------------------------------------------------*/
 {
-  register BYTE_TYP *stackp;
-  register CODE_INT code, oldcode, incode, finchar;
-  register SAP_INT rest_lenr;
+  BYTE_TYP *stackp;
+  CODE_INT code, oldcode = 0, incode, finchar = 0;
+  SAP_INT rest_lenr;
 /*
   static BYTE_TYP *sstackp = (BYTE_TYP *) 0;
 
@@ -626,7 +626,7 @@ int CsObjectInt::CsDecomprLZC (SAP_BYTE * inbuf,
   csc.end_inbuf  = inbuf + inlen;            /* set start & end ptrs .....*/
   csc.end_outbuf = outbuf + outlen;
   csc.outptr     = outbuf;
-  rest_lenr  = csc.rest_len;                 /* push to register .........*/
+  rest_lenr  = csc.rest_len;                 /* push to local state ........*/
 
   if (option & CS_INIT_DECOMPRESS)       /* only initial .............*/
   {
@@ -832,10 +832,10 @@ CODE_INT CsObjectInt::GetCode (void)
 /*                                                                    */
 /*--------------------------------------------------------------------*/
 {
-  register CODE_INT code;
+  CODE_INT code;
 
-  register int r_off, bits;
-  register BYTE_TYP *bp = csc.buf1;
+  int r_off, bits;
+  BYTE_TYP *bp = csc.buf1;
 
   for (;;)
   {

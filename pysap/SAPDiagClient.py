@@ -20,6 +20,8 @@
 from random import randint
 from socket import error as SocketError
 from binascii import unhexlify as unhex
+from scapy.config import conf
+conf.max_list_count = 1000
 # Custom imports
 from pysap.SAPRouter import SAPRoutedStreamSocket
 from pysap.SAPDiag import SAPDiag, SAPDiagDP, SAPDiagItem

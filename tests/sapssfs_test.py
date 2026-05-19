@@ -26,8 +26,8 @@ from pysap.SAPSSFS import (SAPSSFSKey, SAPSSFSKeyE, SAPSSFSData, SAPSSFSLock)
 
 class PySAPSSFSKeyTest(unittest.TestCase):
 
-    USERNAME = "SomeUser                "
-    HOST =     "ubuntu                  "
+    USERNAME = b"SomeUser                "
+    HOST =     b"ubuntu                  "
 
     def test_ssfs_key_parsing(self):
         """Test parsing of a SSFS Key file"""
@@ -37,7 +37,7 @@ class PySAPSSFSKeyTest(unittest.TestCase):
 
         key = SAPSSFSKey(s)
 
-        self.assertEqual(key.preamble, "RSecSSFsKey")
+        self.assertEqual(key.preamble, b"RSecSSFsKey")
         self.assertEqual(key.type, 1)
         self.assertEqual(key.user, self.USERNAME)
         self.assertEqual(key.host, self.HOST)
@@ -45,12 +45,12 @@ class PySAPSSFSKeyTest(unittest.TestCase):
 
 class PySAPSSFSDataTest(unittest.TestCase):
 
-    USERNAME = "SomeUser                "
-    HOST =     "ubuntu                  "
+    USERNAME = b"SomeUser                "
+    HOST =     b"ubuntu                  "
 
-    PLAIN_VALUES = {"HDB/KEYNAME/DB_CON_ENV": "Env",
-                    "HDB/KEYNAME/DB_DATABASE_NAME": "Database",
-                    "HDB/KEYNAME/DB_USER": "SomeUser",
+    PLAIN_VALUES = {"HDB/KEYNAME/DB_CON_ENV": b"Env",
+                    "HDB/KEYNAME/DB_DATABASE_NAME": b"Database",
+                    "HDB/KEYNAME/DB_USER": b"SomeUser",
                     }
 
     def test_ssfs_data_parsing(self):
@@ -63,7 +63,7 @@ class PySAPSSFSDataTest(unittest.TestCase):
         self.assertEqual(len(data.records), 4)
 
         for record in data.records:
-            self.assertEqual(record.preamble, "RSecSSFsData")
+            self.assertEqual(record.preamble, b"RSecSSFsData")
             self.assertEqual(record.length, len(record))
             self.assertEqual(record.type, 1)
             self.assertEqual(record.user, self.USERNAME)
@@ -101,21 +101,21 @@ class PySAPSSFSDataTest(unittest.TestCase):
 
             # Now tamper with the header
             original_user = record.user
-            record.user = "NewUser"
+            record.user = b"NewUser"
             self.assertFalse(record.valid)
             record.user = original_user
             self.assertTrue(record.valid)
 
             # Now tamper with the data
             orginal_data = record.data
-            record.data = orginal_data + "AddedDataBytes"
+            record.data = orginal_data + b"AddedDataBytes"
             self.assertFalse(record.valid)
             record.data = orginal_data
             self.assertTrue(record.valid)
 
             # Now tamper with the HMAC
             orginal_hmac = record.hmac
-            record.hmac = orginal_hmac[:-1] + "A"
+            record.hmac = orginal_hmac[:-1] + b"A"
             self.assertFalse(record.valid)
             record.hmac = orginal_hmac
             self.assertTrue(record.valid)
@@ -123,7 +123,7 @@ class PySAPSSFSDataTest(unittest.TestCase):
 
 class PySAPSSFSDataDecryptTest(unittest.TestCase):
 
-    ENCRYPTED_VALUES = {"HDB/KEYNAME/DB_PASSWORD": "SomePassword"}
+    ENCRYPTED_VALUES = {"HDB/KEYNAME/DB_PASSWORD": b"SomePassword"}
 
     def test_ssfs_data_record_decrypt(self):
         """Test decrypting a record with a given key in a SSFS Data file."""
@@ -147,7 +147,7 @@ class PySAPSSFSDataDecryptTest(unittest.TestCase):
 
 class PySAPSSFSDataDecryptETest(unittest.TestCase):
 
-    ENCRYPTED_VALUES = {"RS/CIPHERTEXT_VAL": "hellow0rld"}
+    ENCRYPTED_VALUES = {"RS/CIPHERTEXT_VAL": b"hellow0rld"}
 
     def test_ssfs_data_record_decrypt(self):
         """Test decrypting a record with a given key in a SSFS Data file."""

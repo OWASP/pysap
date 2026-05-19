@@ -51,7 +51,7 @@ class PySAPPSEv2Test(unittest.TestCase):
             s = fd.read()
 
         pse = SAPPSEFile(s)
-        self.assertRaisesRegexp(ValueError, "Invalid PIN supplied", pse.decrypt, "Some Invalid PIN")
+        self.assertRaisesRegex(ValueError, "Invalid PIN supplied", pse.decrypt, "Some Invalid PIN")
         pse.decrypt(self.decrypt_pin)
 
     def test_pse_v4_lps_off_pbes1_3des_sha1(self):

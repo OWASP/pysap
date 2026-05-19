@@ -122,7 +122,7 @@ void CsObjectInt::LongestMatchInit (int level, unsigned char *flags)
 /*  general purpose bit flag                                          */
 /*--------------------------------------------------------------------*/
 {
-  register unsigned j;
+  unsigned j;
 
   /* Initialize the hash table .......................................*/
   for (j = 0;  j < CS_HASH_SIZE; j++) csh.CsHead[j] = 0;
@@ -147,9 +147,9 @@ void CsObjectInt::LongestMatchInit (int level, unsigned char *flags)
 #ifndef UNALIGNED_OK
  int CsObjectInt::LongestMatch (unsigned cur_match)         /* current match */
 {
-  register unsigned char *scan = csh.window + csh.StrStart;           /* current string */
-  register unsigned char *match = scan;                       /* matched string */
-  register int len;                        /* length of current match */
+  unsigned char *scan = csh.window + csh.StrStart;           /* current string */
+  unsigned char *match = scan;                       /* matched string */
+  int len;                        /* length of current match */
   int best_len = csh.PrevLen;                 /* best match length so far */
   unsigned limit = csh.StrStart > (unsigned)MAX_DIST ?
                           csh.StrStart - (unsigned)MAX_DIST : 0;
@@ -161,9 +161,9 @@ void CsObjectInt::LongestMatchInit (int level, unsigned char *flags)
   /* Stop when cur_match becomes <= limit. To simplify the code,
    * we prevent matches with the string of window index 0. */
 
-  register unsigned char scan_start = *scan;
-  register unsigned char scan_end1  = scan[best_len-1];
-  register unsigned char scan_end   = scan[best_len];
+  unsigned char scan_start = *scan;
+  unsigned char scan_end1  = scan[best_len-1];
+  unsigned char scan_end   = scan[best_len];
 
   /* Do not waste too much time if we already have a good match: */
   if (csh.PrevLen >= good_match)
@@ -293,7 +293,7 @@ void CsObjectInt::FillWindow (void)
 /* OUT assertion: at least one byte has been read, or eoInput is set. */
 /*--------------------------------------------------------------------*/
 {
-  register unsigned n, m;
+  unsigned n, m;
   unsigned more = (unsigned)((SAP_UINT)2*WSIZE
                             - (SAP_UINT)csh.Lookahead - (SAP_UINT) csh.StrStart);
   int rc;
@@ -1304,7 +1304,7 @@ unsigned short CsObjectInt::ReverseCode (unsigned code,    /* the value to inver
 /*  (a faster method would use a table) 1 <= len <= 15                */
 /*--------------------------------------------------------------------*/
 {
-  register unsigned res = 0;
+  unsigned res = 0;
   do
   {
     res |= code & 1;

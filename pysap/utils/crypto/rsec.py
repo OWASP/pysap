@@ -244,7 +244,7 @@ class RSECCipher(object):
     def _f(self, r, sub_key):
         r_1 = r
         r_2 = 2 * r
-        if r_2 / (16 ** 8) > 0:
+        if r_2 // (16 ** 8) > 0:
             r_2 = r_2 % (16 ** 8)
             r_2 |= 1
         value = self.table[2 * 64 + (((r_1 >> 19) ^ sub_key[2]) & 0x3F)] | \
@@ -354,7 +354,7 @@ class RSECCipher(object):
                 if array_2[self.pc2[n] - 1]:
                     tmp = self.byte_bit[n % 6]
                     tmp = tmp >> 2
-                    keys[8 * j + n / 6] |= tmp
+                    keys[8 * j + n // 6] |= tmp
         return keys
 
     def crypt(self, mode, blob, key, length):

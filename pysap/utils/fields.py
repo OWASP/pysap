@@ -90,7 +90,7 @@ class MutablePacketField(StrLenField):
     def i2m(self, pkt, i):
         cls = self.get_class(pkt)
         if cls is not None:
-            return str(i)
+            return bytes(i)
         else:
             return StrLenField.i2m(self, pkt, i)
 
@@ -117,7 +117,9 @@ class StrNullFixedLenField(StrFixedLenField):
 
     def i2repr(self, pkt, v):
         if self.null_terminated(pkt):
-            if type(v) is str:
+            if isinstance(v, bytes):
+                v = v.rstrip(b"\0")
+            elif isinstance(v, str):
                 v = v.rstrip("\0")
             return repr(v)
         return StrFixedLenField.i2repr(self, pkt, v)
@@ -131,7 +133,7 @@ class StrNullFixedLenField(StrFixedLenField):
     def addfield(self, pkt, s, val):
         if self.null_terminated(pkt):
             l = self.length_from(pkt) - 1
-            return s + struct.pack("%is" % l, self.i2m(pkt, val)) + "\x00"
+            return s + struct.pack("%is" % l, self.i2m(pkt, val)) + b"\x00"
         return StrFixedLenField.addfield(self, pkt, s, val)
 
     def randval(self):
@@ -152,7 +154,7 @@ class StrFixedLenPaddedField(StrFixedLenField):
 
     def __init__(self, name, default, length=None, length_from=None, padd=" "):
         StrFixedLenField.__init__(self, name, default, length, length_from)
-        self.padd = padd
+        self.padd = padd.encode() if isinstance(padd, str) else padd
 
     def getfield(self, pkt, s):
         l = self.length_from(pkt)
@@ -160,6 +162,8 @@ class StrFixedLenPaddedField(StrFixedLenField):
 
     def addfield(self, pkt, s, val):
         l = self.length_from(pkt)
+        if isinstance(val, str):
+            val = val.encode()
         val += self.padd * l
         return StrFixedLenField.addfield(self, pkt, s, val)
 
@@ -172,17 +176,19 @@ class StrNullFixedLenPaddedField(StrFixedLenField):
 
     def __init__(self, name, default, length=None, length_from=None, padd=" "):
         StrFixedLenField.__init__(self, name, default, length, length_from)
-        self.padd = padd
+        self.padd = padd.encode() if isinstance(padd, str) else padd
 
     def getfield(self, pkt, s):
         l = self.length_from(pkt)
-        lz = s.find("\x00")
+        lz = s.find(b"\x00")
         if lz < l:
             return s[l + 1:], self.m2i(pkt, s[:lz])
         return s[l + 1:], self.m2i(pkt, s[:l])
 
     def addfield(self, pkt, s, val):
         l = self.length_from(pkt)
+        if isinstance(val, str):
+            val = val.encode()
         val += self.padd * l
         return StrFixedLenField.addfield(self, pkt, s, val)
 
@@ -207,7 +213,7 @@ class IntToStrField(Field):
         return str(x)
 
     def i2m(self, pkt, x):
-        return self.format % int(x)
+        return (self.format % int(x)).encode()
 
     def i2count(self, pkt, x):
         return x

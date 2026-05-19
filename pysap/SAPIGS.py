@@ -154,9 +154,9 @@ class SAPIGS(Packet):
         StrFixedLenPaddedField("padd2", "\x00" * 20, length=20),
         ByteField("todo2", 0x08),  # TODO: need to work on it
         StrFixedLenPaddedField("padd3", "\x00" * 6, length=6),
-        StrFixedLenField("eye_catch", "TransMagic", length=10),
+        StrFixedLenField("eye_catch", b"TransMagic", length=10),
         StrFixedLenPaddedField("padd4", "\x00" * 2, length=2),
-        StrFixedLenField("codepage", "4103", length=4),
+        StrFixedLenField("codepage", b"4103", length=4),
         StrFixedLenPaddedField("offset_content", "", padd="\x00", length=16),
         StrFixedLenPaddedField("packet_size", "", padd="\x00", length=16),
     ]

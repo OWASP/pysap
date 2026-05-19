@@ -39,6 +39,9 @@ from pysap.utils.fields import ASN1F_CHOICE_SAFE
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.hashes import SHA1
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.decrepit.ciphers import algorithms as decrepit_algorithms
+
+TripleDES = decrepit_algorithms.TripleDES
 
 
 # Create a logger for the PSE layer
@@ -320,7 +323,7 @@ class SAPPSEFile(ASN1_Packet):
             salt = self.enc_cont.algorithm_identifier.parameters.salt.val
             iterations = self.enc_cont.algorithm_identifier.parameters.iterations.val
             hash_algorithm = SHA1
-            enc_algorithm = algorithms.TripleDES
+            enc_algorithm = TripleDES
             enc_mode = modes.CBC
             iv = None
             pbes_cls = PKCS12_PBES1
@@ -330,6 +333,8 @@ class SAPPSEFile(ASN1_Packet):
             raise Exception("Invalid PBE algorithm")
 
         # Build the PBE class
+        if isinstance(pin, str):
+            pin = pin.encode()
         pbes = pbes_cls(salt, iterations, iv, pin, hash_algorithm, enc_algorithm, enc_mode, default_backend())
 
         # On version 2, we can check that the PIN was valid before decrypting the whole

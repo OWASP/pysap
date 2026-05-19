@@ -28,7 +28,7 @@ from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
                           IntField, StrNullField, PacketListField,
                           FieldLenField, FieldListField, SignedIntEnumField,
                           StrFixedLenField, PacketField, BitField, LongField,
-                          ByteEnumKeysField)
+                          ByteEnumKeysField, MultipleTypeField)
 # Custom imports
 from pysap.SAPSNC import SAPSNCFrame
 from pysap.SAPNI import (SAPNI, SAPNIStreamSocket, SAPNIProxy,
@@ -184,11 +184,20 @@ class SAPRouterRouteHop(PacketNoPadded):
         """
         result = ""
         for route_hop in route_hops:
-            result += "/H/{}".format(route_hop.hostname)
+            hostname = route_hop.hostname
+            if isinstance(hostname, bytes):
+                hostname = hostname.decode()
+            result += "/H/{}".format(hostname)
             if route_hop.port:
-                result += "/S/{}".format(route_hop.port)
+                port = route_hop.port
+                if isinstance(port, bytes):
+                    port = port.decode()
+                result += "/S/{}".format(port)
             if route_hop.password:
-                result += "/W/{}".format(route_hop.password)
+                password = route_hop.password
+                if isinstance(password, bytes):
+                    password = password.decode()
+                result += "/W/{}".format(password)
         return result
 
 
@@ -269,7 +278,7 @@ class SAPRouterError(PacketNoPadded):
         StrNullField("XXX6", ""),
         StrNullField("XXX7", ""),
         StrNullField("XXX8", ""),
-        StrNullField("eyecatcher", "*ERR*"),
+        StrNullField("eyecatcher_end", "*ERR*"),
     ]
 
     time_format = "%a %b %d %H:%M:%S %Y"
@@ -394,25 +403,25 @@ class SAPRouter(Packet):
     SAPROUTER_DEFAULT_VERSION = 40
 
     # Constants for router types
-    SAPROUTER_ROUTE = "NI_ROUTE"
+    SAPROUTER_ROUTE = b"NI_ROUTE"
     """ :cvar: Constant for route packets
-        :type: C{string} """
+        :type: C{bytes} """
 
-    SAPROUTER_ADMIN = "ROUTER_ADM"
+    SAPROUTER_ADMIN = b"ROUTER_ADM"
     """ :cvar: Constant for administration packets
-        :type: C{string} """
+        :type: C{bytes} """
 
-    SAPROUTER_ERROR = "NI_RTERR"
+    SAPROUTER_ERROR = b"NI_RTERR"
     """ :cvar: Constant for error information packets
-        :type: C{string} """
+        :type: C{bytes} """
 
-    SAPROUTER_CONTROL = "NI_RTERR"
+    SAPROUTER_CONTROL = b"NI_RTERR"
     """ :cvar: Constant for control messages packets
-        :type: C{string} """
+        :type: C{bytes} """
 
-    SAPROUTER_PONG = "NI_PONG"
+    SAPROUTER_PONG = b"NI_PONG"
     """ :cvar: Constant for route accepted packets
-        :type: C{string} """
+        :type: C{bytes} """
 
     router_type_values = [
         SAPROUTER_ADMIN,
@@ -452,10 +461,10 @@ class SAPRouter(Packet):
         # Cancel Route fields
         ConditionalField(FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="H"), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [6]),
         # Trace Connection fields
-        ConditionalField(FieldLenField("adm_client_count", None, count_of="adm_client_ids", fmt="I"), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [12, 13]),
+        ConditionalField(FieldLenField("adm_client_count_trace", None, count_of="adm_client_ids", fmt="I"), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [12, 13]),
 
         # Cancel Route or Trace Connection fields
-        ConditionalField(FieldListField("adm_client_ids", [0x00], IntField("", 0), count_from=lambda pkt:pkt.adm_client_count), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [6, 12, 13]),
+        ConditionalField(FieldListField("adm_client_ids", [0x00], IntField("", 0), count_from=lambda pkt:pkt.adm_client_count if pkt.adm_command in [6] else pkt.adm_client_count_trace), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [6, 12, 13]),
 
         # Set/Clear Peer Trace fields  # TODO: Check whether this field should be a IPv6 address or another proper field
         ConditionalField(StrFixedLenField("adm_address_mask", "", 32), lambda pkt:router_is_admin(pkt) and pkt.adm_command in [10, 11]),
@@ -467,7 +476,7 @@ class SAPRouter(Packet):
 
         # Error Information fields
         ConditionalField(FieldLenField("err_text_length", None, length_of="err_text_value", fmt="!I"), lambda pkt: router_is_error(pkt) and pkt.opcode == 0),
-        ConditionalField(PacketField("err_text_value", SAPRouterError(), SAPRouterError), lambda pkt: router_is_error(pkt) and pkt.opcode == 0 and pkt.err_text_length > 0),
+        ConditionalField(PacketField("err_text_value", SAPRouterError(), SAPRouterError), lambda pkt: router_is_error(pkt) and pkt.opcode == 0 and (pkt.err_text_length or 0) > 0),
         ConditionalField(IntField("err_text_unknown", 0), lambda pkt: router_is_error(pkt) and pkt.opcode == 0),
 
         # Control Message fields

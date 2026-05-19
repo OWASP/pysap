@@ -13,6 +13,7 @@ include pysapcompress/*.h
 
 # Include the docs
 recursive-include docs *
+prune docs/_build
 
 # Include the extra scripts
 recursive-include extra *.py

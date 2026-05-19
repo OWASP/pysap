@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # encoding: utf-8
 # pysap - Python library for crafting SAP's network protocols packets
 #
@@ -95,7 +95,7 @@ def main():
                                               base_cls=SAPMS)
     print("[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port))
 
-    client_string = options.client
+    client_string = options.client.encode() if isinstance(options.client, str) else options.client
 
     # Build MS_LOGIN_2 packet
     p = SAPMS(flag=0x00, iflag=0x08, domain=domain, toname=client_string, fromname=client_string)
@@ -105,7 +105,7 @@ def main():
     response = conn.sr(p)[SAPMS]
 
     print("[*] Login performed, server string: %s" % response.fromname)
-    server_string = response.fromname
+    server_string = response.fromname if isinstance(response.fromname, bytes) else response.fromname
 
     print("[*] Retrieving current value of parameter: %s" % options.param_name)
 

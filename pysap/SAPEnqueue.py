@@ -159,7 +159,7 @@ class SAPEnqueue(PacketNoPadded):
 
     name = "SAP Enqueue"
     fields_desc = [
-        StrFixedLenField("magic_bytes", "\xab\xcd\xe1\x23", 4),
+        StrFixedLenField("magic_bytes", b"\xab\xcd\xe1\x23", 4),
         IntField("id", 0),
         LenField("len", None, fmt="!I"),
         LenField("len_frag", None, fmt="!I"),
@@ -174,13 +174,13 @@ class SAPEnqueue(PacketNoPadded):
         ConditionalField(ByteField("adm_padd1", 0), lambda pkt:pkt.dest == 3),
         ConditionalField(ByteField("adm_padd2", 0), lambda pkt:pkt.dest == 3),
         ConditionalField(ByteField("adm_padd3", 0), lambda pkt:pkt.dest == 3),
-        ConditionalField(StrFixedLenField("adm_eyecatcher2", "#EAA", 4), lambda pkt:pkt.dest == 3),
+        ConditionalField(StrFixedLenField("adm_eyecatcher2", b"#EAA", 4), lambda pkt:pkt.dest == 3),
         ConditionalField(ByteField("adm_1", 1), lambda pkt:pkt.dest == 3),
         ConditionalField(IntField("adm_len", 0), lambda pkt:pkt.dest == 3),
         ConditionalField(ByteEnumKeysField("adm_opcode", 0, enqueue_server_admin_opcode_values), lambda pkt:pkt.dest == 3),
         ConditionalField(ByteField("adm_flags", 0), lambda pkt:pkt.dest == 3),
         ConditionalField(IntField("adm_rc", 0), lambda pkt:pkt.dest == 3),
-        ConditionalField(StrFixedLenField("adm_eyecatcher3", "#EAE", 4), lambda pkt:pkt.dest == 3),
+        ConditionalField(StrFixedLenField("adm_eyecatcher3", b"#EAE", 4), lambda pkt:pkt.dest == 3),
 
         # Server Admin Trace fields
         ConditionalField(ByteField("adm_trace_protocol_version", 1), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
@@ -195,9 +195,9 @@ class SAPEnqueue(PacketNoPadded):
         ConditionalField(FieldLenField("adm_trace_nopatterns", 0, count_of="adm_trace_patterns", fmt="!I"), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
         ConditionalField(FieldLenField("adm_trace_nopatterns1", 0, count_of="adm_trace_patterns", fmt="!I"), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
         ConditionalField(IntField("adm_trace_unknown3", 37), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
-        ConditionalField(StrFixedLenField("adm_trace_eyecatcher4", "#EAH", 4), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
+        ConditionalField(StrFixedLenField("adm_trace_eyecatcher4", b"#EAH", 4), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
         ConditionalField(PacketListField("adm_trace_patterns", None, SAPEnqueueTracePattern, count_from=lambda pkt:pkt.adm_trace_nopatterns), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
-        ConditionalField(StrFixedLenField("adm_trace_eyecatcher5", "#EAD", 4), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
+        ConditionalField(StrFixedLenField("adm_trace_eyecatcher5", b"#EAD", 4), lambda pkt:pkt.dest == 3 and pkt.adm_opcode in [0x06]),
 
         # Connection Admin fields
         ConditionalField(FieldLenField("params_count", None, count_of="params", fmt="!I"), lambda pkt:pkt.dest == 6 and pkt.opcode in [1, 2]),
@@ -242,14 +242,14 @@ class SAPEnqueueStreamSocket(SAPRoutedStreamSocket):
         if SAPEnqueue in packet and packet[SAPEnqueue].more_frags:
             log_sapenqueue.debug("Received Enqueue fragmented packet")
 
-            head = str(packet[SAPEnqueue])[:20]
-            data = str(packet[SAPEnqueue])[20:]
+            head = bytes(packet[SAPEnqueue])[:20]
+            data = bytes(packet[SAPEnqueue])[20:]
             total_length = packet[SAPEnqueue].len - 20
             recvd_length = len(packet[SAPEnqueue]) - 20
             log_sapenqueue.debug("Received %d up to %d bytes", recvd_length, total_length)
             while recvd_length < total_length and packet[SAPEnqueue].more_frags == 1:
                 response = SAPRoutedStreamSocket.recv(self)[SAPEnqueue]
-                data += str(response)[20:]
+                data += bytes(response)[20:]
                 recvd_length += len(response) - 20
                 log_sapenqueue.debug("Received %d up to %d bytes", recvd_length, total_length)
 
