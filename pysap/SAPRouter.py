@@ -580,6 +580,11 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         """
         # Build the route request packet
         talk_mode = talk_mode or ROUTER_TALK_MODE_NI_MSG_IO
+        # Ensure port values are strings/bytes — int ports serialise as N zero
+        # bytes in Python 3 (bytes(N) == b"\x00" * N), corrupting route_length.
+        for hop in route:
+            if hop.port is not None and isinstance(hop.port, int):
+                hop.port = str(hop.port)
         router_strings = list(map(bytes, route))
         hostname = route[-1].hostname
         if isinstance(hostname, bytes):

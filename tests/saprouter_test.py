@@ -165,7 +165,7 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
         sock.connect((self.test_address, self.test_port))
 
         route = [SAPRouterRouteHop(hostname=self.test_address,
-                                   port=self.test_port),
+                                   port=str(self.test_port)),
                  SAPRouterRouteHop(hostname="10.0.0.1",
                                    port="3200")]
 
@@ -186,7 +186,7 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
         sock.connect((self.test_address, self.test_port))
 
         route = [SAPRouterRouteHop(hostname=self.test_address,
-                                   port=self.test_port),
+                                   port=str(self.test_port)),
                  SAPRouterRouteHop(hostname="10.0.0.2",
                                    port="3200")]
 
@@ -217,7 +217,7 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
 
         # Test using a complete route
         route = [SAPRouterRouteHop(hostname=self.test_address,
-                                   port=self.test_port),
+                                   port=str(self.test_port)),
                  SAPRouterRouteHop(hostname="10.0.0.1",
                                    port="3200")]
         self.client = SAPRoutedStreamSocket.get_nisocket(route=route,
