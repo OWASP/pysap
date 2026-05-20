@@ -19,10 +19,9 @@
 
 # Standard imports
 import re
-from sys import exit
-from glob import glob
-from subprocess import call
+from pathlib import Path
 from setuptools import setup, Command
+from setuptools._distutils.errors import DistutilsExecError
 
 
 def read_metadata(name):
@@ -49,39 +48,93 @@ class DocumentationCommand(Command):
         pass
 
     def run(self):
-        """Runs Sphinx
-        """
-        exit(call("cd docs && make html", shell=True))
+        """Run Sphinx."""
+        try:
+            from sphinx.cmd.build import main as sphinx_build
+        except ImportError as exc:
+            raise DistutilsExecError(
+                "Sphinx is required to build the documentation. "
+                "Install the docs extra first: python3 -m pip install pysap[docs]"
+            ) from exc
+
+        docs_dir = Path("docs")
+        build_dir = docs_dir / "_build"
+        argv = [
+            "-b", "html",
+            "-d", str(build_dir / "doctrees"),
+            str(docs_dir),
+            str(build_dir / "html"),
+        ]
+        self.announce("building documentation with Sphinx", level=2)
+        status = sphinx_build(argv)
+        if status:
+            raise DistutilsExecError("Sphinx build failed with status %d" % status)
 
 
 class PreExecuteNotebooksCommand(Command):
-    """Custom command for pre-executing Jupyther notebooks included in the documentation.
+    """Custom command for pre-executing Jupyter notebooks included in the documentation.
     """
 
-    description = "Pre-executes Jupyther notebooks included in the documentation"
+    description = "Pre-executes Jupyter notebooks included in the documentation"
     user_options = [
         ('notebooks=', 'n', "patterns to match (i.e. 'protocols/SAPDiag*')"),
+        ('timeout=', 't', "execution timeout in seconds for each notebook"),
+        ('kernel-name=', 'k', "Jupyter kernel name to use"),
+        ('allow-errors', None, "keep executing notebooks when a cell raises an error"),
     ]
+    boolean_options = ['allow-errors']
 
     def initialize_options(self):
         """Initialize options with default values."""
         self.notebooks = None
+        self.timeout = None
+        self.kernel_name = None
+        self.allow_errors = False
 
     def finalize_options(self):
         """Check and expand provided values."""
-        base_path = "docs/"
+        docs_dir = Path("docs")
         if self.notebooks:
-            self.notebooks = glob(base_path + self.notebooks)
+            notebooks = sorted(docs_dir.glob(self.notebooks))
         else:
-            self.notebooks = glob(base_path + "protocols/*.ipynb")
-            self.notebooks.extend(glob(base_path + "fileformats/*.ipynb"))
+            notebooks = sorted(docs_dir.glob("protocols/*.ipynb"))
+            notebooks.extend(sorted(docs_dir.glob("fileformats/*.ipynb")))
+        self.notebooks = notebooks
+        if not self.notebooks:
+            raise DistutilsExecError("No notebooks matched the requested pattern")
+
+        self.timeout = int(self.timeout) if self.timeout is not None else 600
+        self.kernel_name = self.kernel_name or "python3"
 
     def run(self):
-        """Pre executes notebooks."""
-        status = 0
+        """Pre-execute notebooks in place."""
+        try:
+            import nbformat
+            from nbconvert.preprocessors import ExecutePreprocessor
+        except ImportError as exc:
+            raise DistutilsExecError(
+                "nbformat and nbconvert are required to execute notebooks. "
+                "Install the docs extra first: python3 -m pip install pysap[docs]"
+            ) from exc
+
         for notebook in self.notebooks:
-            status |= call("jupyter nbconvert --inplace --to notebook --execute {}".format(notebook), shell=True)
-        exit(status)
+            self.announce("executing notebook %s" % notebook, level=2)
+            with notebook.open("r", encoding="utf-8") as fh:
+                nb = nbformat.read(fh, as_version=nbformat.NO_CONVERT)
+
+            executor = ExecutePreprocessor(
+                timeout=self.timeout,
+                kernel_name=self.kernel_name,
+                allow_errors=self.allow_errors,
+            )
+            resources = {"metadata": {"path": str(notebook.parent)}}
+            try:
+                executor.preprocess(nb, resources=resources)
+            except Exception as exc:
+                raise DistutilsExecError("Notebook execution failed for %s" % notebook) from exc
+
+            with notebook.open("w", encoding="utf-8") as fh:
+                nbformat.write(nb, fh)
 
 
 
