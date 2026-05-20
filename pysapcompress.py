@@ -1645,4 +1645,10 @@ def decompress(data, out_length):
     except Exception as exc:
         raise DecompressError("Decompression error (%s)" % exc) from exc
 
+    if len(out) != out_length:
+        raise DecompressError(
+            "Decompression error (CS_E_OUT_BUFFER_LEN: invalid output length): "
+            "decoded %d but caller expects %d" % (len(out), out_length)
+        )
+
     return _CS_END_OF_STREAM, len(out), out
