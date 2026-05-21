@@ -63,9 +63,10 @@ to ``docs/``::
 
    $ python3 setup.py notebooks --notebooks protocols/SAPDiag.ipynb
 
-Notebook execution also accepts ``--timeout``, ``--kernel-name`` and
-``--allow-errors`` options for slow notebooks, alternate kernels or diagnostic
-runs.
+Notebook execution also accepts ``--timeout``, ``--kernel-name``,
+``--allow-errors`` and ``--clean`` options for slow notebooks, alternate
+kernels, diagnostic runs or validating notebooks without keeping executed cell
+outputs.
 
 
 Code contributions

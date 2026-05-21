@@ -81,8 +81,9 @@ class PreExecuteNotebooksCommand(Command):
         ('timeout=', 't', "execution timeout in seconds for each notebook"),
         ('kernel-name=', 'k', "Jupyter kernel name to use"),
         ('allow-errors', None, "keep executing notebooks when a cell raises an error"),
+        ('clean', None, "clear code cell outputs and execution metadata after execution"),
     ]
-    boolean_options = ['allow-errors']
+    boolean_options = ['allow-errors', 'clean']
 
     def initialize_options(self):
         """Initialize options with default values."""
@@ -90,6 +91,7 @@ class PreExecuteNotebooksCommand(Command):
         self.timeout = None
         self.kernel_name = None
         self.allow_errors = False
+        self.clean = False
 
     def finalize_options(self):
         """Check and expand provided values."""
@@ -133,8 +135,21 @@ class PreExecuteNotebooksCommand(Command):
             except Exception as exc:
                 raise DistutilsExecError("Notebook execution failed for %s" % notebook) from exc
 
+            if self.clean:
+                self.announce("cleaning executed cells from notebook %s" % notebook, level=2)
+                self.clean_notebook(nb)
+
             with notebook.open("w", encoding="utf-8") as fh:
                 nbformat.write(nb, fh)
+
+    @staticmethod
+    def clean_notebook(nb):
+        """Clear outputs and execution metadata from code cells."""
+        for cell in nb.cells:
+            if cell.cell_type == "code":
+                cell.outputs = []
+                cell.execution_count = None
+                cell.metadata.pop("execution", None)
 
 
 
