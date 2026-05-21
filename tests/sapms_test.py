@@ -67,6 +67,28 @@ class PySAPMessageServerTest(unittest.TestCase):
         self.assertEqual(parsed.iflag, 0x08)
         self.assertEqual(parsed.diag_port, 3300)
 
+    def test_message_server_shutdown_opcodes_roundtrip(self):
+        for opcode in [0x2e, 0x2f, 0x30, 0x4a]:
+            packet = SAPMS(iflag=0x01, opcode=opcode,
+                           shutdown_reason="maintenance")
+            parsed = roundtrip_packet(packet)
+
+            self.assertEqual(parsed.opcode, opcode)
+            self.assertIsNotNone(parsed.shutdown_client)
+            self.assertEqual(parsed.shutdown_reason, b"maintenance")
+
+    def test_message_server_ip_to_name_roundtrip(self):
+        packet = SAPMS(iflag=0x01, opcode=0x46,
+                       ip_to_name_address4="127.0.0.1",
+                       ip_to_name_port=3200,
+                       ip_to_name="server.example")
+        parsed = roundtrip_packet(packet)
+
+        self.assertEqual(parsed.opcode, 0x46)
+        self.assertEqual(parsed.ip_to_name_address4, "127.0.0.1")
+        self.assertEqual(parsed.ip_to_name_port, 3200)
+        self.assertEqual(parsed.ip_to_name, b"server.example")
+
 
 def suite():
     loader = unittest.TestLoader()
