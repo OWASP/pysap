@@ -96,16 +96,16 @@ class SAPCARCompressedBlobFormat(PacketNoPadded):
     name = "SAP CAR Archive Compressed blob"
 
     fields_desc = [
-        LEIntField("compressed_length", None),
-        LEIntField("uncompress_length", None),
+        LEIntField("compressed_length", 8),
+        LEIntField("uncompress_length", 0),
         ByteEnumField("algorithm", 0x12, {0x12: "LZH", 0x10: "LZC"}),
-        StrFixedLenField("magic_bytes", "\x1f\x9d", 2),
+        StrFixedLenField("magic_bytes", b"\x1f\x9d", 2),
         ByteField("special", 2),
         MultipleTypeField(
-            [(StrField("blob", None, remain=4), lambda x: x.compressed_length <= 8),
-             (StrFixedLenField("blob", None, length_from=lambda x: x.compressed_length - 8),
+            [(StrField("blob", b"", remain=4), lambda x: x.compressed_length <= 8),
+             (StrFixedLenField("blob", b"", length_from=lambda x: x.compressed_length - 8),
               lambda x: x.compressed_length > 8)],
-            StrField("blob", None, remain=4)
+            StrField("blob", b"", remain=4)
         ),
     ]
 
@@ -132,7 +132,7 @@ class SAPCARCompressedBlockFormat(PacketNoPadded):
 
     fields_desc = [
         StrFixedLenField("type", SAPCAR_BLOCK_TYPE_COMPRESSED_LAST, 2),
-        ConditionalField(PacketField("compressed", None, SAPCARCompressedBlobFormat),
+        ConditionalField(PacketField("compressed", SAPCARCompressedBlobFormat(), SAPCARCompressedBlobFormat),
                          lambda x: x.type in [SAPCAR_BLOCK_TYPE_COMPRESSED_LAST, SAPCAR_BLOCK_TYPE_COMPRESSED]),
         ConditionalField(LESignedIntField("checksum", 0),
                          lambda x: x.type == SAPCAR_BLOCK_TYPE_COMPRESSED_LAST),

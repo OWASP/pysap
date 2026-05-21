@@ -27,8 +27,9 @@ from scapy.supersocket import socket, StreamSocket
 from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
                           IntField, StrNullField, PacketListField,
                           FieldLenField, FieldListField, SignedIntEnumField,
-                          StrFixedLenField, PacketField, BitField, LongField,
-                          ByteEnumKeysField, MultipleTypeField)
+                          StrFixedLenField, PacketField, PacketLenField,
+                          BitField, LongField, ByteEnumKeysField,
+                          MultipleTypeField)
 # Custom imports
 from pysap.SAPSNC import SAPSNCFrame
 from pysap.SAPNI import (SAPNI, SAPNIStreamSocket, SAPNIProxy,
@@ -476,7 +477,7 @@ class SAPRouter(Packet):
 
         # Error Information fields
         ConditionalField(FieldLenField("err_text_length", None, length_of="err_text_value", fmt="!I"), lambda pkt: router_is_error(pkt) and pkt.opcode == 0),
-        ConditionalField(PacketField("err_text_value", SAPRouterError(), SAPRouterError), lambda pkt: router_is_error(pkt) and pkt.opcode == 0 and (pkt.err_text_length or 0) > 0),
+        ConditionalField(PacketLenField("err_text_value", SAPRouterError(), SAPRouterError, length_from=lambda pkt:pkt.err_text_length), lambda pkt: router_is_error(pkt) and pkt.opcode == 0 and (pkt.err_text_length is None or pkt.err_text_length > 0)),
         ConditionalField(IntField("err_text_unknown", 0), lambda pkt: router_is_error(pkt) and pkt.opcode == 0),
 
         # Control Message fields
