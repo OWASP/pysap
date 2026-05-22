@@ -11,7 +11,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-import os
 import importlib
 import inspect
 import pkgutil
@@ -188,6 +187,23 @@ def packet_examples():
         yield "variant %s" % name, packet
 
 
+def renderable_packet_examples():
+    """Packets that can be rendered with Scapy's field-based canvas_dump."""
+    from scapy.asn1packet import ASN1_Packet
+
+    for name, packet in packet_examples():
+        if isinstance(packet, ASN1_Packet):
+            continue
+        yield name, packet
+
+
+def scapy_canvas_dump_available():
+    """Return whether Scapy's PyX-backed packet rendering is available."""
+    from scapy.packet import PYX
+
+    return bool(PYX)
+
+
 @pytest.mark.unit
 @pytest.mark.parametrize("name,packet", list(packet_examples()))
 def test_packet_examples_build_and_dissect(name, packet):
@@ -196,8 +212,9 @@ def test_packet_examples_build_and_dissect(name, packet):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not os.environ.get("PYSAP_RUN_SLOW_PACKET_VISUALS"),
-                    reason="set PYSAP_RUN_SLOW_PACKET_VISUALS=1 to render packet visuals")
-@pytest.mark.parametrize("name,packet", list(packet_examples()))
+@pytest.mark.packet_visual
+@pytest.mark.skipif(not scapy_canvas_dump_available(),
+                    reason="Scapy canvas_dump requires PyX and pdflatex")
+@pytest.mark.parametrize("name,packet", list(renderable_packet_examples()))
 def test_packet_examples_render_canvas(name, packet):
     assert packet.canvas_dump() is not None, name

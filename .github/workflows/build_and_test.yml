@@ -76,6 +76,9 @@ jobs:
       - name: Run unit tests
         run: |
           python -m tox -e unit -- --maxfail=1
+      - name: Run slow packet visual tests
+        run: |
+          python -m tox -e packet-visuals -- --maxfail=1
 
       - name: Build wheel artifact
         run: |
