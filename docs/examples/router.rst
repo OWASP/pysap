@@ -82,7 +82,7 @@ in the database:
     [+] Request: No route invalid length
 
     [*] Probable versions (1):
-    [*]	Hits: 13 Version: version: "40" release: "749" patch_number: "200" source_id: "0.200" update_level: "0" platform: "linux-x86-64" submitted_by: "mgallo@secureauth.com"
+    [*]	Hits: 13 Version: version: "40" release: "749" patch_number: "200" source_id: "0.200" update_level: "0" platform: "linux-x86-64" submitted_by: "@martingalloar"
 
 
 As can be observed, by matching the information in the error message with the fingerprint database
@@ -120,7 +120,7 @@ not found in the database:
     [-] Request: Empty route null offset
     [-] Request: No route invalid length
 
-    [-] Some error values were not found in the fingerprint database. If you want to contribute, submit an issue to https://github.com/OWASP/pysap or write an email to mgallo@secureauth.com with the following information along with the SAP Router file information and how it was configured.
+    [-] Some error values were not found in the fingerprint database. If you want to contribute, submit an issue to https://github.com/OWASP/pysap/issues with the following information along with the SAP Router file information and how it was configured.
 
 
     New fingerprint saved to: saprouter_new_fingerprints.json
@@ -149,7 +149,7 @@ database:
 
     $ ./router_fingerprint.py -a --new-fingerprints-file saprouter_new_fingerprints.json -i '{
     >     "comment": "A new comment to add to the fingerprint",
-    >     "submitted_by": "email or contact of the submitter",
+    >     "submitted_by": "GitHub username of the submitter",
     >     "update_level": "update level",
     >     "patch_number": "patch number",
     >     "file_version": "file version",
@@ -172,9 +172,9 @@ database:
     [*]	Added a new entry for the target Empty route null offset
     [*]	Added a new entry for the target No route invalid length
 
-Fingerprints for missing versions can be contributed in the form of GitHub issues reporting the
-version and build numbers or in the form of pull requests with the addition of new records to the
-database.
+Fingerprints for missing versions can be contributed through the GitHub repository as issues
+reporting the version and build numbers, or as pull requests with the addition of new records to
+the database.
 
 
 ``router_niping``
