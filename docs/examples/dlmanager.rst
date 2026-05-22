@@ -6,7 +6,7 @@ Download Manager scripts
 ``dlmanager_decrypt``
 ---------------------
 
-This example script extract SAP's Download Manager stored passwords. For SAP Download Manager
+This example script extracts SAP Download Manager stored passwords. For SAP Download Manager
 versions before ``2.1.140a``, stored passwords were kept unencrypted. For versions between
 ``2.1.140a`` and ``2.1.142``, the script should be able to decrypt the password given possible
 to obtain the machine serial number.
@@ -18,9 +18,17 @@ The script can attempt to retrieve the machine serial number when running on Win
 provided with the ``--retrieve-serial-number`` option. For other platforms it must need to be
 provided by the ``--serial-number`` parameter.
 
+Example usage:
+
+.. code-block:: console
+
+    $ examples/dlmanager_decrypt.py -f dlmanager.conf
+    $ examples/dlmanager_decrypt.py -f dlmanager.conf --encrypted --serial-number <serial-number>
+    $ examples/dlmanager_decrypt.py -f dlmanager.conf --encrypted --retrieve-serial-number
+
 For more details on the encryption mechanism see
-`CVE-2016-3685 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=2016-3685>`_ and
-`CVE-2016-3684 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=2016-3684>`_ documented in the
+`CVE-2016-3685 <https://www.cve.org/CVERecord?id=CVE-2016-3685>`_ and
+`CVE-2016-3684 <https://www.cve.org/CVERecord?id=CVE-2016-3684>`_ documented in the
 `SAP Download Manager Password Weak Encryption security advisory <https://www.coresecurity.com/advisories/sap-download-manager-password-weak-encryption>`_.
 
 
@@ -36,5 +44,11 @@ In that case, the scripts takes the files to inject as parameters, performs an `
 MitM and when identifies a ``SAR`` file that is going to be offered as a download it infects it.
 
 For more details about the exemplified attack vector see the `Deep-dive into SAP
-archive file formats <https://www.troopers.de/events/troopers16/628_deep-dive_into_sap_archive_file_formats/>`_
+archive file formats <https://troopers.de/events/troopers16/628_deep-dive_into_sap_archive_file_formats/>`_
 presentation at Troopers' 2016.
+
+Example usage for a local SAR archive:
+
+.. code-block:: console
+
+    $ examples/dlmanager_infector.py -f package.SAR payload.sh usr/sap/payload.sh

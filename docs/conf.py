@@ -87,6 +87,15 @@ language = 'en'
 # This pattern also affects html_static_path and html_extra_path .
 exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
 
+# Some reader-facing references are behind login pages or bot-protection
+# challenges and cannot be validated reliably by Sphinx linkcheck.
+linkcheck_ignore = [
+    r'https://me\.sap\.com/notes/.*',
+    r'https://support\.sap\.com/content/dam/.*',
+    r'https://www\.coresecurity\.com/.*',
+    r'https://www\.wxpython\.org/.*',
+]
+
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 

@@ -33,7 +33,7 @@ The following projects, tools and repositories are known to be using pysap:
   Exploit proof of concept code for ACL misconfigurations in the SAP Gateway that
   leads to a Remote Command Execution (RCE).
 
-* `John the Ripper's pse2john script <https://github.com/magnumripper/JohnTheRipper/blob/bleeding-jumbo/run/pse2john.py>`_:
+* `John the Ripper's pse2john script <https://github.com/openwall/john/blob/bleeding-jumbo/run/pse2john.py>`_:
   Script to export PSE's encryption PIN into a format that can be cracked with
   John the Ripper.
 
@@ -50,7 +50,7 @@ pysap requires Python 3.10 or newer.
 Installation with pip
 ~~~~~~~~~~~~~~~~~~~~~
 
-Installing pysap is simple with `pip <https://pip.pypa.io/>`_, just run the
+Installing pysap is simple with `pip <https://pip.pypa.io/en/stable/>`_, just run the
 following command on a terminal::
 
     $ python3 -m pip install pysap
@@ -98,7 +98,7 @@ Scapy installation
 - For installing `Scapy`_, see the official `installation documentation <https://scapy.readthedocs.io/en/latest/installation.html>`_ for each platform:
 
   - `Linux <https://scapy.readthedocs.io/en/latest/installation.html#installing-scapy-v2-x>`_.
-  - `macOS <http://scapy.readthedocs.io/en/latest/installation.html#mac-os-x>`_.
+  - `macOS <https://scapy.readthedocs.io/en/latest/installation.html#mac-os-x>`_.
   - `Windows <https://scapy.readthedocs.io/en/latest/installation.html#windows>`_.
 
 
@@ -123,17 +123,17 @@ Additional information about the protocols and the research can be found at diff
 
 * `Hunting crypto secrets in SAP systems <https://www.coresecurity.com/publication/hunting-crypto-secrets-sap-systems>`_
 
-* `Revisiting the Old and Looking at New Potential SAP Vulnerabilities <https://www.secureauth.com/blog/revisiting-old-and-looking-new-potential-sap-vulnerabilities>`_
+* `Revisiting the Old and Looking at New Potential SAP Vulnerabilities <https://web.archive.org/web/20200920010313/https://www.secureauth.com/blog/revisiting-old-and-looking-new-potential-sap-vulnerabilities>`_
 
 * Exploring the SAP HANA SQL Command Network Protocol Blog post series:
 
-  * `Protocol Basics and Authentication <https://www.secureauth.com/blog/exploring-sap-hana-sql-command-network-protocol-protocol-basics-and-authentication/>`_
+  * `Protocol Basics and Authentication <https://web.archive.org/web/20240526032530/https://www.secureauth.com/blog/exploring-sap-hana-sql-command-network-protocol-protocol-basics-and-authentication/>`_
 
-  * `Password-based Authentication and TLS <https://www.secureauth.com/blog/exploring-sap-hana-sql-command-network-protocol-password-based-authentication-and-tls/>`_
+  * `Password-based Authentication and TLS <https://web.archive.org/web/20240526031731/https://www.secureauth.com/blog/exploring-sap-hana-sql-command-network-protocol-password-based-authentication-and-tls/>`_
 
-  * `Federated Authentication <https://www.secureauth.com/blog/exploring-the-sap-hana-sql-command-network-protocol-federated-authentication/>`_
+  * `Federated Authentication <https://web.archive.org/web/20240421145400/https://www.secureauth.com/blog/exploring-the-sap-hana-sql-command-network-protocol-federated-authentication/>`_
 
-* `SecureAuth Innovation Labs Sheds Light on Protecting Credentials in SAP HANA: The Client Secure User Store <https://www.secureauth.com/blog/secureauth-innovation-labs-sheds-light-on-protecting-credentials-in-sap-hana-the-client-secure-user-store/>`_
+* `SecureAuth Innovation Labs Sheds Light on Protecting Credentials in SAP HANA: The Client Secure User Store <https://web.archive.org/web/20240420013719/https://www.secureauth.com/blog/secureauth-innovation-labs-sheds-light-on-protecting-credentials-in-sap-hana-the-client-secure-user-store/>`_
 
 And advisories:
 
@@ -155,30 +155,30 @@ And advisories:
 
 * `SAP Note Assistant Insecure Handling of SAP Notes Signature Vulnerability <https://www.coresecurity.com/advisories/sap-note-assistant-insecure-handling-sap-notes-signature-vulnerability>`_
 
-* `SAP HANA SAML Assertion Improper Validation Vulnerability <https://www.secureauth.com/advisories/sap-hana-saml-assertion-improper-validation-authentication/>`_
+* `SAP HANA SAML Assertion Improper Validation Vulnerability <https://web.archive.org/web/20201208221548/https://www.secureauth.com/advisories/sap-hana-saml-assertion-improper-validation-authentication/>`_
 
-  * `Associated Blog Post SecureAuth uncovers SAML validation weakness in SAP HANA <https://www.secureauth.com/blog/secureauth-uncovers-saml-validation-weakness-in-sap-hana/>`_
+  * Associated Blog Post SecureAuth uncovers SAML validation weakness in SAP HANA
 
 Initial research about the SAP CAR file format was performed by Martin Gallo and published in `Deep-dive into SAP archive file formats <https://www.coresecurity.com/corelabs-research/publications/deep-dive-sap-archive-file-formats>`_
-at the `Troopers 2016 Security Conference <https://www.troopers.de/troopers16/agenda/>`_. Additional research was
+at the `Troopers 2016 Security Conference <https://troopers.de/troopers16/agenda/>`_. Additional research was
 performed by `Hans-Christian Esperer <https://github.com/hce>`_ and published in the
 `Hascar <https://github.com/VirtualForgeGmbH/hascar>`_ tool.
 
 Documentation on the SAP `SAR <https://www.iana.org/assignments/media-types/application/vnd.sar>`_ archive file format
-is available in SAP's `Virus Scan Interface (NW-VSI) <https://archive.sap.com/documents/docs/DOC-7838>`_
+was previously available as SAP's Virus Scan Interface (NW-VSI) specification document
 specification document. An example implementation can be also found in the `Virus Scan Adapter SDK`, which is
 available upon request.
 
-Initial research about the ``IGS`` protocol was performed by Yvan Genuer and published in `SAP IGS : The 'vulnerable' forgotten component <https://www.troopers.de/troopers18/agenda/3r38lr/>`_.
+Initial research about the ``IGS`` protocol was performed by Yvan Genuer and published in `SAP IGS : The 'vulnerable' forgotten component <https://troopers.de/troopers18/agenda/3r38lr/>`_.
 
 Additional research about the Message Server (``MS``) and Remote Function Call (``RFC``) protocols was performed by
-Dmitry Chastuhin and Mathieu Geli and published in `(SAP) Gateway to Heaven <https://github.com/comaeio/OPCDE/tree/master/2019/Emirates/(SAP)%20Gateway%20to%20Heaven%20-%20Dmitry%20Chastuhin%2C%20Mathieu%20Geli>`_.
+Dmitry Chastuhin and Mathieu Geli and published in `(SAP) Gateway to Heaven <https://github.com/msuiche/OPCDE/tree/master/2019/Emirates/(SAP)%20Gateway%20to%20Heaven%20-%20Dmitry%20Chastuhin%2C%20Mathieu%20Geli>`_.
 
-The specifications of the ``HDB`` protocol are published in the `SAP HANA SQL Command Network Protocol Reference <https://help.sap.com/viewer/7e4aba181371442d9e4395e7ff71b777/2.0.03/en-US>`_
+The specifications of the ``HDB`` protocol are published in the `SAP HANA SQL Command Network Protocol Reference <https://help.sap.com/doc/63cef00e229b4010be06cfa01e1d338b/2.0.03/en-US/SAP_HANA_SQL_Command_Network_Protocol_Reference_en.pdf>`_
 guide.
 
 Initial research about the ``SSFS`` file formats and encryption, and the Client Secure Store was performed by Dmitr
 Chastuhin and Vladimir Egorov and published in a series of blogpost now unavailable, and shared by Dmitry at the
 Confidence Security Conference 2014 Edition session
-"`All your SAP Passwords belong to us <https://erpscan.io/wp-content/uploads/presentations/2014-Confidence-All-your-SAP-Passwords-belong-to-us.pdf>`_".
-Additional research was also shared by Yvan Genuer and published in "`The security of ‘SAP Secure Storage. <https://www.cert-devoteam.fr/en/the-security-of-sap-secure-storage/>`_".
+"`All your SAP Passwords belong to us <https://web.archive.org/web/20210429183310/https://erpscan.io/wp-content/uploads/presentations/2014-Confidence-All-your-SAP-Passwords-belong-to-us.pdf>`_".
+Additional research was also shared by Yvan Genuer and published in "`The security of ‘SAP Secure Storage. <https://web.archive.org/web/20230328204958/https://www.cert-devoteam.fr/en/the-security-of-sap-secure-storage/>`_".

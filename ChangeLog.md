@@ -19,7 +19,7 @@ v0.2.0.dev0 - unreleased
 - Documentation: Added references to SAP Secure Storage and SSFS research.
 - `pysap/SAPCredv2.py`: Added subject fields instead of commonName for LPS-enabled credentials ([\#35](https://github.com/OWASP/pysap/issues/35)). Thanks [@rstenet](https://github.com/rstenet)!
 - `pysap/SAPCredv2.py`: Add support for cipher format version 1 with 3DES ([\#35](https://github.com/OWASP/pysap/issues/35) and [\#37](https://github.com/OWASP/pysap/pull/37)). Thanks [@rstenet](https://github.com/rstenet)!
-- `pysap/SAPHDB.py`: Added missing `StatementContextOption` values (see [\#22](https://github.com/SecureAuthCorp/SAP-Dissection-plug-in-for-Wireshark/issues/22)).
+- `pysap/SAPHDB.py`: Added missing `StatementContextOption` values (see [\#22](https://github.com/SecureAuthCorp/SAP-Dissection-plug-in-for-Wireshark/pull/22)).
 
 
 v0.1.19 - 2021-04-29
@@ -32,7 +32,7 @@ v0.1.19 - 2021-04-29
 - `pysap/SAPHDB.py`: Implementation of GSS-based auth method with Kerberos 5.
 - `pysap/SAPHDB.py`: Handling of Session Cookie values when found in the `CONNECT` response.
 - `pysap/SAPRouter.py`: Add support to route string in `SAPRouterNativeProxy` ([\#33](https://github.com/OWASP/pysap/pull/33)). Thanks [@gloomicious](https://github.com/gloomicious)!
-- `examples/router_fingerprints.json`: New fingerprints for SAP Router version 7450.34.25.5091. Thanks [@jvis](https://twitter.com/jvis)!
+- `examples/router_fingerprints.json`: New fingerprints for SAP Router version 7450.34.25.5091. Thanks [@jvis](https://x.com/jvis)!
 - `examples/router_portfw.py`: Add support to route string. ([\#33](https://github.com/OWASP/pysap/pull/33)) Thanks [@gloomicious](https://github.com/gloomicious)!
 - `tests/sapssfs_test.py`: Basic unit tests for the SSFS file format.
 
@@ -67,8 +67,8 @@ v0.1.17 - 2019-11-05
 - `bin/pysapcar`: Add cli option to determine output directory when extracting archives with pysapcar ([\#24](https://github.com/OWASP/pysap/pull/24)) Thanks [@okuuva](https://github.com/okuuva)!
 - `pysap/SAPDiag.py`: Added support bits for SAP GUI 7.50 and SAP NW 7.52 SP01.
 - `pysap/SAPCAR.py`: Fixed crafting of archive files by defaulting length fields to zero ([\#22](https://github.com/OWASP/pysap/issues/22)) Thanks [@okuuva](https://github.com/okuuva)!
-- `pysap/SAPMS.py`: Added the `DPInfo[1-3]` packets for handling specific Message Server `ADM` packets relaying Dispatcher/WP info: `[1-3]` because of tight SAP kernel version dependency. ([\#31](https://github.com/OWASP/pysap/pull/31)) Thanks Mathieu ([@gelim](https://github.com/gelim)) and Dmitry ([@_chipik](https://twitter.com/_chipik))!
-- `pysap/SAPRFC.py`: Enhanced with mainly `SAPCPIC*` and `SAPRFXPG*` new packets. ([\#31](https://github.com/OWASP/pysap/pull/31)) Thanks Mathieu ([@gelim](https://github.com/gelim)) and Dmitry ([@_chipik](https://twitter.com/_chipik))!
+- `pysap/SAPMS.py`: Added the `DPInfo[1-3]` packets for handling specific Message Server `ADM` packets relaying Dispatcher/WP info: `[1-3]` because of tight SAP kernel version dependency. ([\#31](https://github.com/OWASP/pysap/pull/31)) Thanks Mathieu ([@gelim](https://github.com/gelim)) and Dmitry ([@_chipik](https://x.com/_chipik))!
+- `pysap/SAPRFC.py`: Enhanced with mainly `SAPCPIC*` and `SAPRFXPG*` new packets. ([\#31](https://github.com/OWASP/pysap/pull/31)) Thanks Mathieu ([@gelim](https://github.com/gelim)) and Dmitry ([@_chipik](https://x.com/_chipik))!
 - `pysap/SAPRouter.py`: Fixed padding on SAPRouter client info packets.
 - `examples/rfc_monitor.py`: Renamed the script to `gw_monitor.py`.
 - `examples/router_scanner.py`: Add capability to provide a comma separated list of targets/ports to scan.
@@ -132,8 +132,8 @@ v0.1.14 - 2017-10-04
   Thanks [@gelim](https://github.com/gelim)!.
 - `examples/ms_dump_param.py`: New example script to list Message Server parameters and check them against a list of
   expected values ([\#15](https://github.com/OWASP/pysap/pull/15)). Thanks [@iggy38](https://github.com/iggy38)!
-- `examples/ms_dos_exploit.py`: New example script to check for [CVE-2017-5997](https://erpscan.com/advisories/erpscan-16-038-sap-message-server-http-remote-dos/)
-  DoS vulnerability on Message Server and fixed at [SAP Note 2358972](https://launchpad.support.sap.com/#/notes/2358972)
+- `examples/ms_dos_exploit.py`: New example script to check for [CVE-2017-5997](https://web.archive.org/web/20180125175227/https://erpscan.com/advisories/erpscan-16-038-sap-message-server-http-remote-dos/)
+  DoS vulnerability on Message Server and fixed at [SAP Note 2358972](https://me.sap.com/notes/2358972)
   ([\#10](https://github.com/OWASP/pysap/pull/10)). Thanks [@vah13](https://github.com/vah13) and [@gelim](https://github.com/gelim)!
 
 
@@ -164,8 +164,8 @@ v0.1.12 - 2016-12-16
 - Building and testing in OSX with Travis and Windows with Appveyor.
 - `pysap/SAPDiagItems.py`: Added default support bits from SAP GUI 7.40 version.
 - `examples/diag_capturer.py`: Added option to display available capture interfaces.
-- `examples/enqueue_dos_exploit.py`: New example script to check for [CVE-2016-4015](https://erpscan.com/advisories/erpscan-16-019-sap-netweaver-enqueue-server-dos-vulnerability/)
-  DoS vulnerability on Standalone Enqueue Server and fixed at [SAP Note 2258784](https://launchpad.support.sap.com/#/notes/0002258784)
+- `examples/enqueue_dos_exploit.py`: New example script to check for [CVE-2016-4015](https://seclists.org/fulldisclosure/2016/Jul/44)
+  DoS vulnerability on Standalone Enqueue Server and fixed at [SAP Note 2258784](https://me.sap.com/notes/2258784)
   ([\#6](https://github.com/OWASP/pysap/pull/6)). Thanks [@vah13](https://github.com/vah13)!
 - `examples/router_fingerprints.json`: Added fingerprints from SAP Router releases 745.
 
@@ -180,8 +180,8 @@ v0.1.11 - 2016-10-12
 - `pysap/SAPDiag.py`: Splitted `SBA`/`SFE`/`SLC` fields.
 - `pysap/SAPDiag.py`: Renamed error flag to error number.
 - `examples/diag_capturer.py`: Fix imports for running diag capturer example script in Windows.
-- `examples/diag_login_brute_force.py`: Added SOLMAN [default](https://www.troopers.de/media/filer_public/37/34/3734ebb3-989c-4750-9d48-ea478674991a/an_easy_way_into_your_sap_systems_v30.pdf)
-  [credentials](https://launchpad.support.sap.com/#/notes/2293011) and improved reading credentials file.
+- `examples/diag_login_brute_force.py`: Added SOLMAN [default](https://troopers.de/media/filer_public/37/34/3734ebb3-989c-4750-9d48-ea478674991a/an_easy_way_into_your_sap_systems_v30.pdf)
+  [credentials](https://me.sap.com/notes/2293011) and improved reading credentials file.
 
 
 v0.1.10 - 2016-03-25
@@ -191,10 +191,10 @@ v0.1.10 - 2016-03-25
 - Added support for handling SAP SAR file formats.
 - `pysap/SAPCAR.py`: New module for handling SAP SAR file formats.
 - `extra/dlmanager_decrypt.py`: Example PoC for [decrypting](https://www.coresecurity.com/advisories/sap-download-manager-password-weak-encryption)
-  [SAP Download Manager](https://support.sap.com/software/download-manager.html) stored passwords.
+  [SAP Download Manager](https://support.sap.com/en/my-support/software-downloads.html) stored passwords.
 - `examples/dlmanager_infector.py`: Example script to open a SAP SAR archive file and infect it by adding files with
   arbitrary filenames (e.g. including absolute or relative paths). It can be also used as a
-  [mitmproxy](https://mitmproxy.org/) script for on-the-fly infecting SAR files being downloaded.
+  [mitmproxy](https://www.mitmproxy.org/) script for on-the-fly infecting SAR files being downloaded.
 
 
 v0.1.9 - 2016-02-08
@@ -214,7 +214,7 @@ v0.1.8 - 2015-10-29
 - Enabled travis containers for more quick builds.
 - Minor documentation and README improvements.
 - `pysap/SAPRouter.py`: Documented some version numbers from old releases ([\#3](https://github.com/OWASP/pysap/pull/3)). Thanks [invisiblethreat](https://github.com/invisiblethreat)!
-- `pysapcompress/vpa108csulzh.cpp`: Improved the fix for CVE-2015-2278 by properly initializing arrays ([\#4](https://github.com/OWASP/pysap/pull/4)). Thanks [ret5ret](https://github.com/ret5ret)!
+- `pysapcompress/vpa108csulzh.cpp`: Improved the fix for CVE-2015-2278 by properly initializing arrays ([\#4](https://github.com/OWASP/pysap/pull/4)). Thanks [ret5et](https://github.com/ret5et)!
 - `examples/diag_render_login_screen.py`: Fail gracefully if `wx` is not found.
 - `examples/router_password_check.py`: Updating the `fau_timer` library in use and failing gracefully if it's not found.
 - `examples/router_fingerprint.py`: New example script for performing fingerprint over SAP Router versions.
@@ -257,7 +257,7 @@ v0.1.5 - 2015-01-16
 - `pysap/SAPDiag.py`: Diag item lookup now support looking up multiple items, and string lookups.
 - `pysap/SAPDiagClient.py`: Added support for specifying support bits when connecting, support for routing via SAP Router.
 - `pysap/SAPDiagClient.py`: If no terminal is supplied, use a random looking IP by default to avoid identification
-  ([SAP Note 1497445](https://launchpad.support.sap.com/#/notes/1497445)).
+  ([SAP Note 1497445](https://me.sap.com/notes/1497445)).
 - `pysap/SAPDiagItems.py`: Fixes on some atom items for old versions.
 - `pysap/SAPEnqueue.py`: Added trace max file size field.
 - `pysap/SAPNI.py`: Added helpers for creating new connections.
