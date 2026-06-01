@@ -158,7 +158,6 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
             pass
         self.server_thread.join(1)
 
-    @unittest.skip("Echo test hangs due to NI double-framing in Python 3 scapy")
     def test_saproutedstreamsocket(self):
         """Test SAPRoutedStreamSocket"""
         self.start_server(SAPRouterServerTestHandler)
@@ -167,7 +166,7 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
         sock.connect((self.test_address, self.test_port))
 
         route = [SAPRouterRouteHop(hostname=self.test_address,
-                                   port=self.test_port),
+                                   port=str(self.test_port)),
                  SAPRouterRouteHop(hostname="10.0.0.1",
                                    port="3200")]
 
@@ -212,14 +211,13 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
 
         self.stop_server()
 
-    @unittest.skip("Echo test hangs due to NI double-framing in Python 3 scapy")
     def test_saproutedstreamsocket_getnisocket(self):
         """Test SAPRoutedStreamSocket get nisocket class method"""
         self.start_server(SAPRouterServerTestHandler)
 
         # Test using a complete route
         route = [SAPRouterRouteHop(hostname=self.test_address,
-                                   port=self.test_port),
+                                   port=str(self.test_port)),
                  SAPRouterRouteHop(hostname="10.0.0.1",
                                    port="3200")]
         self.client = SAPRoutedStreamSocket.get_nisocket(route=route,
@@ -229,7 +227,7 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
 
         # Test using a route and a target host/port
         route = [SAPRouterRouteHop(hostname=self.test_address,
-                                   port=self.test_port)]
+                                   port=str(self.test_port))]
         self.client = SAPRoutedStreamSocket.get_nisocket("10.0.0.1",
                                                          "3200",
                                                          route=route,

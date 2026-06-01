@@ -315,8 +315,8 @@ class SAPCredv2_Cred_LPS(ASN1_Packet):
     ASN1_root = ASN1F_SEQUENCE(
         ASN1F_INTEGER("version", 2),
         ASN1F_SEQUENCE_OF("subject", _default_subject, X509_RDN),
-        ASN1F_UTF8_STRING("pse_path", None),
-        ASN1F_BIT_STRING("cipher", None),
+        ASN1F_UTF8_STRING("pse_path", ""),
+        ASN1F_BIT_STRING("cipher", ""),
     )
 
     def get_subject(self):

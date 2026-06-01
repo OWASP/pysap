@@ -189,9 +189,9 @@ class SAPPSE_Obj(ASN1_Packet):
     ASN1_codec = ASN1_Codecs.BER
     ASN1_root = ASN1F_SEQUENCE(
         ASN1F_PRINTABLE_STRING("object_name", "PKRoot"),
-        ASN1F_GENERALIZED_TIME("created", None),
+        ASN1F_GENERALIZED_TIME("created", "19700101000000Z"),
         ASN1F_OID("object_type", sappse_obj_oid["PKRoot"]),
-        ASN1F_CHOICE_SAFE("object_value", None,
+        ASN1F_CHOICE_SAFE("object_value", SAPPSE_Obj_PKRoot(),
                           X509_SubjectPublicKeyInfo,               # SKnew, SKold, DECSKnew, DECSKold, SignSK
                           X509_Cert,                               # Cert, SignCert, EncCert
                           SAPPSE_Obj_PKRoot,                       # PKRoot
@@ -215,7 +215,7 @@ class SAPPSE_Cont(ASN1_Packet):
     ASN1_root = ASN1F_SEQUENCE(
         ASN1F_PACKET("algorithm_identifier", PKCS5_Algorithm_Identifier(),
                      PKCS5_Algorithm_Identifier),
-        ASN1F_GENERALIZED_TIME("timestamp", None),
+        ASN1F_GENERALIZED_TIME("timestamp", "19700101000000Z"),
         ASN1F_INTEGER("unknown1", 1),
         ASN1F_SET_OF("pse_obj", SAPPSE_Obj(), SAPPSE_Obj),
     )

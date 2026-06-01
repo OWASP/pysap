@@ -18,9 +18,13 @@ test harness, and the recommended commands for local development and CI runs.
 Documentation
 -------------
 
-Documentation can be build using::
+Documentation can be built using::
 
     $ python3 setup.py doc
+
+This command invokes Sphinx directly and writes the HTML output under
+``docs/_build/html``. The ``docs/Makefile`` remains available for direct Sphinx
+workflows.
 
 A build is also available at `Read the Docs <https://pysap.readthedocs.io/en/latest/>`_.
 
@@ -47,9 +51,22 @@ graphical representations are built using `Scapy <https://scapy.net/>`_,
 `The Jupyter Notebook <https://ipython.org/notebook.html>`_ , `nbconvert <https://github.com/jupyter/nbconvert>`_ and
 `nbsphinx <https://github.com/spatialaudio/nbsphinx/>`_.
 
-Jupyter notebooks containing the protocol packets' representation can be re-build using the following command::
+Jupyter notebooks containing the protocol packets' representation can be
+re-built in place using the following command::
 
    $ python3 setup.py notebooks
+
+The command executes all protocol and file format notebooks by default and
+writes the executed outputs back to the source ``.ipynb`` files. A single
+notebook or subset can be selected with ``--notebooks`` using a pattern relative
+to ``docs/``::
+
+   $ python3 setup.py notebooks --notebooks protocols/SAPDiag.ipynb
+
+Notebook execution also accepts ``--timeout``, ``--kernel-name``,
+``--allow-errors`` and ``--clean`` options for slow notebooks, alternate
+kernels, diagnostic runs or validating notebooks without keeping executed cell
+outputs.
 
 
 Code contributions

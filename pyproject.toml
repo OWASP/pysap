@@ -17,6 +17,7 @@ markers = [
   "unit: fast unit tests that only exercise in-process logic",
   "integration: tests that require sockets, subprocesses, or platform-specific runtime behavior",
   "slow: tests that are valid but intentionally expensive",
+  "packet_visual: slow packet canvas rendering tests",
   "network: tests that require external network access",
 ]
 
