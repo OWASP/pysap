@@ -500,11 +500,16 @@ def get_router_version(connection):
 
     :return: version
     """
-    response = connection.sr(SAPRouter(type=SAPRouter.SAPROUTER_CONTROL,
-                                       version=SAPRouter.SAPROUTER_DEFAULT_VERSION,
-                                       opcode=1))
-    response.decode_payload_as(SAPRouter)
-    return response.version
+    orig_cls = getattr(connection, 'basecls', None)
+    connection.basecls = SAPRouter
+    try:
+        response = connection.sr(SAPRouter(type=SAPRouter.SAPROUTER_CONTROL,
+                                           version=SAPRouter.SAPROUTER_DEFAULT_VERSION,
+                                           opcode=1))
+        response.decode_payload_as(SAPRouter)
+        return response.version
+    finally:
+        connection.basecls = orig_cls
 
 
 class SAPRouteException(Exception):
@@ -601,8 +606,15 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
                                   route_string=route)
         log_saprouter.debug("Requesting route to %s using mode %d (%s)",
                             target, talk_mode, router_ni_talk_mode_values[talk_mode])
-        # Send the request and grab the response
-        response = self.sr(route_request)
+        # Send the request and grab the response; temporarily use SAPRouter as
+        # basecls so recv() decodes the router reply correctly before we switch
+        # to the final application-layer class.
+        orig_cls = self.basecls
+        self.basecls = SAPRouter
+        try:
+            response = self.sr(route_request)
+        finally:
+            self.basecls = orig_cls
         response.decode_payload_as(SAPRouter)
         if SAPRouter in response:
             response = response[SAPRouter]

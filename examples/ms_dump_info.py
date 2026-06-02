@@ -112,7 +112,10 @@ def main():
 
         if response.opcode_error != 0:
             print("Error:", ms_opcode_error_values[response.opcode_error])
-        print(response.opcode_value)
+        value = response.opcode_value
+        if isinstance(value, bytes):
+            value = value.rstrip(b'\x00').decode('utf-8', errors='replace')
+        print(value)
 
 
 if __name__ == "__main__":
