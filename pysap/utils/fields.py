@@ -118,10 +118,10 @@ class StrNullFixedLenField(StrFixedLenField):
     def i2repr(self, pkt, v):
         if self.null_terminated(pkt):
             if isinstance(v, bytes):
-                v = v.rstrip(b"\0")
+                return v.rstrip(b"\0").decode("utf-8", errors="replace")
             elif isinstance(v, str):
-                v = v.rstrip("\0")
-            return repr(v)
+                return v.rstrip("\0")
+            return str(v)
         return StrFixedLenField.i2repr(self, pkt, v)
 
     def getfield(self, pkt, s):
@@ -178,6 +178,11 @@ class StrNullFixedLenPaddedField(StrFixedLenField):
         StrFixedLenField.__init__(self, name, default, length, length_from)
         self.padd = padd.encode() if isinstance(padd, str) else padd
 
+    def i2repr(self, pkt, v):
+        if isinstance(v, bytes):
+            return v.rstrip(b"\x00").strip().decode("utf-8", errors="replace")
+        return str(v).strip() if v is not None else ""
+
     def getfield(self, pkt, s):
         l = self.length_from(pkt)
         lz = s.find(b"\x00")
@@ -191,6 +196,15 @@ class StrNullFixedLenPaddedField(StrFixedLenField):
             val = val.encode()
         val += self.padd * l
         return StrFixedLenField.addfield(self, pkt, s, val)
+
+
+class StrFixedLenDecodedField(StrFixedLenField):
+    """StrFixedLenField that decodes bytes to str in show() output."""
+
+    def i2repr(self, pkt, x):
+        if isinstance(x, bytes):
+            return x.rstrip(b"\x00").strip().decode("utf-8", errors="replace")
+        return str(x).strip() if x is not None else ""
 
 
 class IntToStrField(Field):
@@ -210,6 +224,8 @@ class IntToStrField(Field):
         self.format = "%" + "%d" % length + "d"
 
     def m2i(self, pkt, x):
+        if isinstance(x, bytes):
+            return x.decode("utf-8", errors="replace").strip()
         return str(x)
 
     def i2m(self, pkt, x):

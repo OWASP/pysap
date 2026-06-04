@@ -92,8 +92,8 @@ def main():
     p = SAPMS(flag=0x00, iflag=0x08, domain=domain, toname=client_string, fromname=client_string)
     response = conn.sr(p)[SAPMS]
 
-    print("[*] Login performed, server string: %s" % response.fromname)
-    server_string = response.fromname if isinstance(response.fromname, bytes) else response.fromname
+    server_string = response.fromname
+    print("[*] Login performed, server string: %s" % (server_string.decode("utf-8", errors="replace").strip() if isinstance(server_string, bytes) else server_string))
 
     # Send MS_SERVER_CHG packet
     print("[*] Sending server change packet")

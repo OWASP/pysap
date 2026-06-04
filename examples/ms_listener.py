@@ -92,7 +92,8 @@ def main():
     print("[*] Sending login packet")
     response = conn.sr(p)[SAPMS]
 
-    print("[*] Login performed, server string: %s" % response.fromname)
+    fromname = response.fromname
+    print("[*] Login performed, server string: %s" % (fromname.decode("utf-8", errors="replace").strip() if isinstance(fromname, bytes) else fromname))
 
     print("[*] Listening to server messages")
     try:

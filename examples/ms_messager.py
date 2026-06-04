@@ -97,7 +97,8 @@ def main():
     print("[*] Sending login packet")
     response = conn.sr(p)[SAPMS]
 
-    print("[*] Login performed, server string: %s" % response.fromname)
+    fromname = response.fromname
+    print("[*] Login performed, server string: %s" % (fromname.decode("utf-8", errors="replace").strip() if isinstance(fromname, bytes) else fromname))
 
     # Sends a message to another client
     p = SAPMS(flag=0x02, iflag=0x01, domain=domain, toname=options.target, fromname=client_string, opcode=1)

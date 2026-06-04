@@ -28,7 +28,7 @@ from scapy.layers.inet6 import IP6Field
 # Custom imports
 from pysap.SAPNI import SAPNI
 from pysap.utils.fields import (PacketNoPadded, IntToStrField, StrNullFixedLenPaddedField,
-                                StrNullFixedLenField)
+                                StrNullFixedLenField, StrFixedLenDecodedField)
 
 
 # Message Server Domain values
@@ -595,9 +595,9 @@ class SAPMSClient1(PacketNoPadded):
     """
     name = "SAP Message Server Client version 1"
     fields_desc = [
-        StrFixedLenField("client", None, 20),
-        StrFixedLenField("host", None, 20),
-        StrFixedLenField("service", None, 20),
+        StrFixedLenDecodedField("client", None, 20),
+        StrFixedLenDecodedField("host", None, 20),
+        StrFixedLenDecodedField("service", None, 20),
         FlagsField("msgtype", 0, 8, ["ICM", "ATP", "UP2", "SPO", "BTC", "ENQ", "UPD", "DIA"]),
         IPField("hostaddrv4", "0.0.0.0"),
         ShortField("servno", 0x00),
@@ -613,9 +613,9 @@ class SAPMSClient2(PacketNoPadded):
     """
     name = "SAP Message Server Client version 2"
     fields_desc = [
-        StrFixedLenField("client", None, 40),
-        StrFixedLenField("host", None, 32),
-        StrFixedLenField("service", None, 20),
+        StrFixedLenDecodedField("client", None, 40),
+        StrFixedLenDecodedField("host", None, 32),
+        StrFixedLenDecodedField("service", None, 20),
         FlagsField("msgtype", 0, 8, ["ICM", "ATP", "UP2", "SPO", "BTC", "ENQ", "UPD", "DIA"]),
         IPField("hostaddrv4", "0.0.0.0"),
         ShortField("servno", 0x00),
@@ -633,9 +633,9 @@ class SAPMSClient3(Packet):
     """
     name = "SAP Message Server Client version 3"
     fields_desc = [
-        StrFixedLenField("client", None, 40),
-        StrFixedLenField("host", None, 64),
-        StrFixedLenField("service", None, 20),
+        StrFixedLenDecodedField("client", None, 40),
+        StrFixedLenDecodedField("host", None, 64),
+        StrFixedLenDecodedField("service", None, 20),
         FlagsField("msgtype", 0, 8, ["ICM", "ATP", "UP2", "SPO", "BTC", "ENQ", "UPD", "DIA"]),
         IP6Field("hostaddrv6", "::1"),
         IPField("hostaddrv4", "0.0.0.0"),
@@ -654,9 +654,9 @@ class SAPMSClient4(PacketNoPadded):
     """
     name = "SAP Message Server Client version 4"
     fields_desc = [
-        StrFixedLenField("client", None, 40),
-        StrFixedLenField("host", None, 64),
-        StrFixedLenField("service", None, 20),
+        StrFixedLenDecodedField("client", None, 40),
+        StrFixedLenDecodedField("host", None, 64),
+        StrFixedLenDecodedField("service", None, 20),
         FlagsField("msgtype", 0, 8, ["ICM", "ATP", "UP2", "SPO", "BTC", "ENQ", "UPD", "DIA"]),
         IP6Field("hostaddrv6", "::1"),
         IPField("hostaddrv4", "0.0.0.0"),
@@ -1086,10 +1086,10 @@ class SAPMS(Packet):
     """
     name = "SAP Message Server"
     fields_desc = [
-        StrFixedLenField("eyecatcher", b"**MESSAGE**\x00", 12),
+        StrFixedLenDecodedField("eyecatcher", b"**MESSAGE**\x00", 12),
         ByteField("version", 0x04),
         ByteEnumKeysField("errorno", 0x00, ms_errorno_values),
-        StrFixedLenField("toname", b"-" + b" " * 39, 40),
+        StrFixedLenDecodedField("toname", b"-" + b" " * 39, 40),
         FlagsField("msgtype", 0, 8, ["DIA", "UPD", "ENQ", "BTC", "SPO", "UP2", "ATP", "ICM"]),
         ByteField("reserved", 0x00),
         ByteEnumKeysField("domain", 0x00, ms_domain_values),
@@ -1097,7 +1097,7 @@ class SAPMS(Packet):
         StrFixedLenField("key", b"\x00" * 8, 8),
         ByteEnumKeysField("flag", 0x01, ms_flag_values),
         ByteEnumKeysField("iflag", 0x01, ms_iflag_values),
-        StrFixedLenField("fromname", b"-" + b" " * 39, 40),
+        StrFixedLenDecodedField("fromname", b"-" + b" " * 39, 40),
         ConditionalField(ShortField("diag_port", 3200), lambda pkt:pkt.iflag == 0x08 and pkt.flag == 0x02),  # for MS_REQUEST+MS_LOGIN_2 it's the diag port
         ConditionalField(ShortField("padd", 0x0000), lambda pkt:pkt.iflag != 0x08 or pkt.flag != 0x02),
 
@@ -1118,7 +1118,7 @@ class SAPMS(Packet):
         ConditionalField(PacketLenField("dp_info3", SAPDPInfo3(), SAPDPInfo3, length_from=lambda x: 179), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0e),  # 749 kernel
 
         # MS ADM layer
-        ConditionalField(StrFixedLenField("adm_eyecatcher", b"AD-EYECATCH\x00", 12), lambda pkt: pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
+        ConditionalField(StrFixedLenDecodedField("adm_eyecatcher", b"AD-EYECATCH\x00", 12), lambda pkt: pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
         ConditionalField(ByteField("adm_version", 0x01), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
         ConditionalField(ByteEnumKeysField("adm_type", 0x01, ms_adm_type_values), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
         ConditionalField(IntToStrField("adm_recsize", 104, 11), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),

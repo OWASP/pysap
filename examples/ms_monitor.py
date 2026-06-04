@@ -130,7 +130,8 @@ class SAPMSMonitorConsole(BaseConsole):
 
         if response.errorno == 0:
             self.runtimeoptions["server_string"] = response.fromname.strip() + b"\x00"
-            self._debug("Login performed, server string: %s" % response.fromname)
+            fromname = response.fromname
+            self._debug("Login performed, server string: %s" % (fromname.decode("utf-8", errors="replace").strip() if isinstance(fromname, bytes) else fromname))
             self._print("pysap's Message Server monitor, connected to %s / %d" % (self.options.remote_host,
                                                                                   self.options.remote_port))
             self.connected = True
@@ -529,7 +530,10 @@ class SAPMSMonitorConsole(BaseConsole):
         response = self.connection.sr(p)[SAPMS]
 
         if response:
-            self._print("Parameter value: %s" % response.adm_records[0].parameter)
+            param = response.adm_records[0].parameter
+            if isinstance(param, bytes):
+                param = param.decode("utf-8", errors="replace").strip("\x00").strip()
+            self._print("Parameter value: %s" % param)
 
     def do_parameter_set(self, args):
         """ Set parameter value (requires monitor mode enabled).
@@ -566,7 +570,10 @@ class SAPMSMonitorConsole(BaseConsole):
             if response.error_code:
                 self._error("Error checking ACL, code %d" % response.error_code)
             else:
-                self._print("ACL: %s" % response.acl)
+                acl = response.acl
+                if isinstance(acl, bytes):
+                    acl = acl.decode("utf-8", errors="replace").strip("\x00").strip()
+                self._print("ACL: %s" % acl)
 
 
 # Command line options parser
