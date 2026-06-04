@@ -143,7 +143,7 @@ class SAPSSFSDataRecord(PacketNoPadded):
     fields_desc = [
         # Record Header
         StrFixedLenField("preamble", "RSecSSFsData", 12),
-        LenField("length", 0, fmt="I"),  # Max record length supported is 0x18150
+        LenField("length", 176, fmt="I"),  # Max record length supported is 0x18150
         ByteField("type", 1),   # Record type "1" supported
         StrFixedLenField("filler1", None, 7),
         # Data Header
@@ -157,7 +157,7 @@ class SAPSSFSDataRecord(PacketNoPadded):
         StrFixedLenField("filler2", None, 9),
         StrFixedLenField("hmac", None, 20),  # HMAC-SHA1 of the data header and payload
         # Data
-        StrFixedLenField("data", None, length_from=lambda pkt: pkt.length - 176),
+        StrFixedLenField("data", b"", length_from=lambda pkt: pkt.length - 176),
     ]
 
     def get_plain_data(self, key=None):

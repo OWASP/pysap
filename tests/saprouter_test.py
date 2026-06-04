@@ -18,17 +18,19 @@
 
 # Standard imports
 import sys
-import socket
 import unittest
-from struct import unpack
+import socket
 from threading import Thread
 # External imports
+import pytest
 
 # Custom imports
-from scapy.packet import Raw
-from pysap.SAPNI import SAPNIServerHandler, SAPNIServerThreaded, SAPNI
+from pysap.SAPNI import SAPNIServerHandler, SAPNIServerThreaded
 from pysap.SAPRouter import (SAPRouter, SAPRouterRouteHop, router_is_route,
                              SAPRoutedStreamSocket, SAPRouteException)
+
+
+pytestmark = pytest.mark.integration
 
 
 class PySAPRouterTest(unittest.TestCase):
@@ -156,7 +158,6 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
             pass
         self.server_thread.join(1)
 
-    @unittest.skip("Echo test hangs due to NI double-framing in Python 3 scapy")
     def test_saproutedstreamsocket(self):
         """Test SAPRoutedStreamSocket"""
         self.start_server(SAPRouterServerTestHandler)
@@ -210,7 +211,6 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
 
         self.stop_server()
 
-    @unittest.skip("Echo test hangs due to NI double-framing in Python 3 scapy")
     def test_saproutedstreamsocket_getnisocket(self):
         """Test SAPRoutedStreamSocket get nisocket class method"""
         self.start_server(SAPRouterServerTestHandler)
@@ -227,7 +227,7 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
 
         # Test using a route and a target host/port
         route = [SAPRouterRouteHop(hostname=self.test_address,
-                                   port=self.test_port)]
+                                   port=str(self.test_port))]
         self.client = SAPRoutedStreamSocket.get_nisocket("10.0.0.1",
                                                          "3200",
                                                          route=route,
@@ -245,7 +245,7 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
         self.stop_server()
 
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPRouterTest))
@@ -255,5 +255,5 @@ def test_suite():
 
 if __name__ == "__main__":
     test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
-    result = test_runner.run(test_suite())
+    result = test_runner.run(suite())
     sys.exit(not result.wasSuccessful())

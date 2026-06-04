@@ -6,6 +6,9 @@ Development
 If you are interested in contribute to the project, this part of the
 documentation should contain the start point.
 
+The :doc:`testing` guide covers the core unit and integration suites, the
+test harness, and the recommended commands for local development and CI runs.
+
 .. toctree::
    :maxdepth: 2
    :glob:
@@ -15,9 +18,13 @@ documentation should contain the start point.
 Documentation
 -------------
 
-Documentation can be build using::
+Documentation can be built using::
 
     $ python3 setup.py doc
+
+This command invokes Sphinx directly and writes the HTML output under
+``docs/_build/html``. The ``docs/Makefile`` remains available for direct Sphinx
+workflows.
 
 A build is also available at `Read the Docs <https://pysap.readthedocs.io/en/latest/>`_.
 
@@ -44,9 +51,22 @@ graphical representations are built using `Scapy <https://scapy.net/>`_,
 `The Jupyter Notebook <https://ipython.org/notebook.html>`_ , `nbconvert <https://github.com/jupyter/nbconvert>`_ and
 `nbsphinx <https://github.com/spatialaudio/nbsphinx/>`_.
 
-Jupyter notebooks containing the protocol packets' representation can be re-build using the following command::
+Jupyter notebooks containing the protocol packets' representation can be
+re-built in place using the following command::
 
    $ python3 setup.py notebooks
+
+The command executes all protocol and file format notebooks by default and
+writes the executed outputs back to the source ``.ipynb`` files. A single
+notebook or subset can be selected with ``--notebooks`` using a pattern relative
+to ``docs/``::
+
+   $ python3 setup.py notebooks --notebooks protocols/SAPDiag.ipynb
+
+Notebook execution also accepts ``--timeout``, ``--kernel-name``,
+``--allow-errors`` and ``--clean`` options for slow notebooks, alternate
+kernels, diagnostic runs or validating notebooks without keeping executed cell
+outputs.
 
 
 Code contributions
@@ -63,6 +83,9 @@ When contributing code, follow this checklists:
 4. Make the desired changes.
 5. Run the tests again and ensure they are passing again and remain valid.
 6. Send a GitHub Pull Request to the repository's master branch.
+
+For a focused guide to the test suites, harness layout, and recommended
+commands, see :doc:`testing`.
 
 
 Bug reporting

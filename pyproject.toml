@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["*_test.py", "test_*.py"]
+addopts = [
+  "-ra",
+  "--strict-markers",
+  "--cov=pysap",
+  "--cov=pysapcompress",
+  "--cov-report=term-missing",
+]
+markers = [
+  "unit: fast unit tests that only exercise in-process logic",
+  "integration: tests that require sockets, subprocesses, or platform-specific runtime behavior",
+  "slow: tests that are valid but intentionally expensive",
+  "packet_visual: slow packet canvas rendering tests",
+  "network: tests that require external network access",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["pysap", "pysapcompress"]
+
+[tool.coverage.report]
+skip_covered = true
+show_missing = true

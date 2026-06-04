@@ -26,16 +26,19 @@ from tests.utils import read_data_file
 class PySAPCompressTest(unittest.TestCase):
 
     test_string_plain = b"TEST" * 70
-    test_string_compr_lzc = b'\x18\x01\x00\x00\x11\x1f\x9d\x8dT\x8aL\xa1\x12p`A\x82\x02\x11\x1aLx\xb0!\xc3\x87\x0b#*\x9c\xe8' \
-                            b'PbE\x8a\x101Z\xccx\xb1#\xc7\x8f\x1bCj\x1c\xe9QdI\x92 Q\x9aLy\xf2 '
+    test_string_compr_lzc = (
+        b'\x18\x01\x00\x00\x11\x1f\x9d\x8dT\x8aL\xa1\x12p`A\x82\x02\x11\x1aLx\xb0!\xc3\x87\x0b#*\x9c\xe8'
+        b'PbE\x8a\x101Z\xccx\xb1#\xc7\x8f\x1bCj\x1c\xe9QdI\x92 Q\x9aLy\xf2 '
+    )
     test_string_compr_lzh = b'\x18\x01\x00\x00\x12\x1f\x9d\x02]\x88kpH\xc8(\xc6\xc0\x00\x00'
 
     def test_import(self):
         """Test import of the pysapcompress library"""
         try:
-            import pysapcompress  # @UnusedImport # noqa: F401
+            import pysapcompress
         except ImportError as e:
             self.Fail(str(e))
+        self.assertTrue(pysapcompress.__file__.endswith(".py"), pysapcompress.__file__)
 
     def test_compress_input(self):
         """Test compress function input"""
@@ -45,11 +48,24 @@ class PySAPCompressTest(unittest.TestCase):
 
     def test_decompress_input(self):
         """Test decompress function input"""
-        from pysapcompress import decompress, DecompressError
+        from pysapcompress import compress, decompress, ALG_LZC, DecompressError
         self.assertRaisesRegex(DecompressError, "invalid input length", decompress, b"", 1)
         self.assertRaisesRegex(DecompressError, "input not compressed", decompress, b"AAAAAAAA", 1)
-        self.assertRaisesRegex(DecompressError, "unknown algorithm", decompress,
-                                b"\x0f\x00\x00\x00\xff\x1f\x9d\x00\x00\x00\x00", 1)
+        self.assertRaisesRegex(
+            DecompressError,
+            "unknown algorithm",
+            decompress,
+            b"\x0f\x00\x00\x00\xff\x1f\x9d\x00\x00\x00\x00",
+            1,
+        )
+        _, _, compressed = compress(b"TestString", ALG_LZC)
+        self.assertRaisesRegex(
+            DecompressError,
+            "invalid output length",
+            decompress,
+            compressed,
+            len(b"TestString") + 1,
+        )
 
     def test_lzc(self):
         """Test compression and decompression using LZC algorithm"""
@@ -89,7 +105,9 @@ class PySAPCompressTest(unittest.TestCase):
     def test_lzh_decompress(self):
         """Test decompression using LZH algorithm"""
         from pysapcompress import decompress
-        status, out_length_decompressed, out_decompressed = decompress(self.test_string_compr_lzh, len(self.test_string_plain))
+        status, out_length_decompressed, out_decompressed = decompress(
+            self.test_string_compr_lzh, len(self.test_string_plain)
+        )
 
         self.assertTrue(status)
         self.assertEqual(out_length_decompressed, len(out_decompressed))
@@ -103,7 +121,9 @@ class PySAPCompressTest(unittest.TestCase):
         login_screen_compressed = read_data_file('nw_703_login_screen_compressed.data')
         login_screen_decompressed = read_data_file('nw_703_login_screen_decompressed.data')
 
-        status, out_length, decompressed = decompress(login_screen_compressed, len(login_screen_decompressed))
+        status, out_length, decompressed = decompress(
+            login_screen_compressed, len(login_screen_decompressed)
+        )
 
         self.assertTrue(status)
         self.assertEqual(out_length, len(login_screen_decompressed))
@@ -150,16 +170,24 @@ class PySAPCompressTest(unittest.TestCase):
         self.assertEqual(out_length, len(login_decompressed))
         self.assertEqual(decompressed, login_decompressed)
 
+    def test_truncated_compressed_streams(self):
+        """Test truncated streams fail instead of returning partial output"""
+        from pysapcompress import compress, decompress, ALG_LZC, ALG_LZH, DecompressError
+
+        plain = (bytes(range(256)) * 20) + (b"A" * 20000)
+        for algorithm in [ALG_LZC, ALG_LZH]:
+            _, _, compressed = compress(plain, algorithm)
+            with self.assertRaises(DecompressError):
+                decompress(compressed[:-5], len(plain))
+
     def test_invalid_write(self):
         """Test invalid write vulnerability in LZC code (CVE-2015-2282)"""
         from pysapcompress import decompress, DecompressError
 
         test_case = read_data_file('invalid_write_testcase.data', False)
 
-        try:
+        with self.assertRaises(DecompressError):
             decompress(test_case, 6716)
-        except Exception as e:
-            self.assertIsInstance(e, DecompressError)
 
     def test_invalid_read(self):
         """Test invalid read vulnerability in LZH code (CVE-2015-2278)"""
@@ -167,14 +195,11 @@ class PySAPCompressTest(unittest.TestCase):
 
         test_case = read_data_file('invalid_read_testcase.data', False)
 
-        try:
+        with self.assertRaises(DecompressError):
             decompress(test_case, 661)
-        except Exception as e:
-            self.assertIsInstance(e, DecompressError)
-            self.assertIn("bad hufman tree", str(e))
 
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPCompressTest))
@@ -183,5 +208,5 @@ def test_suite():
 
 if __name__ == "__main__":
     test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
-    result = test_runner.run(test_suite())
+    result = test_runner.run(suite())
     sys.exit(not result.wasSuccessful())

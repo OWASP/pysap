@@ -133,6 +133,10 @@ class StrNullFixedLenField(StrFixedLenField):
     def addfield(self, pkt, s, val):
         if self.null_terminated(pkt):
             l = self.length_from(pkt) - 1
+            if l < 0:
+                return s
+            if val is None:
+                val = b""
             return s + struct.pack("%is" % l, self.i2m(pkt, val)) + b"\x00"
         return StrFixedLenField.addfield(self, pkt, s, val)
 
@@ -162,6 +166,8 @@ class StrFixedLenPaddedField(StrFixedLenField):
 
     def addfield(self, pkt, s, val):
         l = self.length_from(pkt)
+        if val is None:
+            val = b""
         if isinstance(val, str):
             val = val.encode()
         val += self.padd * l
@@ -192,6 +198,8 @@ class StrNullFixedLenPaddedField(StrFixedLenField):
 
     def addfield(self, pkt, s, val):
         l = self.length_from(pkt)
+        if val is None:
+            val = b""
         if isinstance(val, str):
             val = val.encode()
         val += self.padd * l
@@ -332,7 +340,7 @@ class AdjustableFieldLenField(Field):
     def addfield(self, pkt, s, val):
         i2m = self.i2m(pkt, val)
         fmt = "B"
-        padd = ""
+        padd = b""
         if i2m > 0xf0:
             fmt = ">H"
             padd = struct.pack("B", 0xff)
@@ -361,6 +369,7 @@ class ASN1F_CHOICE_SAFE(ASN1F_CHOICE):
         self.default = default
         self.current_choice = None
         self.choices = args
+        self.pktchoices = {}
 
     def m2i(self, pkt, s):
         """Try to safely extract an ASN1_Packet from the choices list.

@@ -563,7 +563,7 @@ class SAPMSAdmRecord(PacketNoPadded):
         # TODO: Add more opcodes fields
 
         # AD_PROFILE and AD_SHARED_PARAMETER fields
-        ConditionalField(StrNullFixedLenPaddedField("parameter", "", 100), lambda pkt:pkt.opcode in [0x01, 0x2e]),
+        ConditionalField(StrNullFixedLenPaddedField("parameter", b"", 100), lambda pkt:pkt.opcode in [0x01, 0x2e]),
 
         # AD_RZL_STRG opcode
         ConditionalField(ByteEnumKeysField("rzl_strg_type", 1, ms_adm_rzl_strg_type_values), lambda pkt:pkt.opcode in [0x15]),
@@ -745,13 +745,13 @@ class SAPMSLogon(PacketNoPadded):
         ShortField("port", 0),
         IPField("address", "0.0.0.0"),
         FieldLenField("logonname_length", None, length_of="logonname", fmt="!H"),  # <= 80h bytes
-        StrLenField("logonname", "", length_from=lambda pkt:pkt.logonname_length),
+        StrLenField("logonname", b"", length_from=lambda pkt:pkt.logonname_length),
         FieldLenField("prot_length", None, length_of="prot", fmt="!H"),  # <= 80h bytes
-        StrLenField("prot", "", length_from=lambda pkt:pkt.prot_length),
+        StrLenField("prot", b"", length_from=lambda pkt:pkt.prot_length),
         FieldLenField("host_length", None, length_of="host", fmt="!H"),  # <= 100h bytes
-        StrLenField("host", "", length_from=lambda pkt:pkt.host_length),
+        StrLenField("host", b"", length_from=lambda pkt:pkt.host_length),
         FieldLenField("misc_length", None, length_of="misc", fmt="!H"),  # <= 100h bytes
-        StrLenField("misc", "", length_from=lambda pkt:pkt.misc_length),
+        StrLenField("misc", b"", length_from=lambda pkt:pkt.misc_length),
         FieldLenField("address6_length", 16, length_of="address6", fmt="!h"),  # == 16 bytes
         ConditionalField(IP6Field("address6", "::"), lambda pkt:pkt.address6_length > 0),
         ConditionalField(SignedIntField("end", -1), lambda pkt:pkt.address6_length > 0),
@@ -772,7 +772,7 @@ class SAPMSProperty(Packet):
         ConditionalField(ShortEnumKeysField("logon", 0, ms_logon_type_values), lambda pkt:pkt.id in [0x02]),
         ConditionalField(StrFixedLenField("pad", None, 12), lambda pkt:pkt.id in [0x02]),
         ConditionalField(ShortField("len", 0), lambda pkt:pkt.id in [0x02]),
-        ConditionalField(StrLenField("value", "", length_from=lambda pkt: pkt.len), lambda pkt:pkt.id in [0x02]),
+        ConditionalField(StrLenField("value", b"", length_from=lambda pkt: pkt.len), lambda pkt:pkt.id in [0x02]),
         ConditionalField(ShortField("pad2", 0xffff), lambda pkt:pkt.id in [0x02]),
 
         # MS_PROPERTY_IPADR
@@ -781,11 +781,11 @@ class SAPMSProperty(Packet):
 
         # MS_PROPERTY_PARAM
         ConditionalField(FieldLenField("param_len", 0, length_of="param", fmt="I"), lambda pkt:pkt.id in [0x04]),
-        ConditionalField(StrLenField("param", "", length_from=lambda pkt: pkt.param_len), lambda pkt:pkt.id in [0x04]),
-        ConditionalField(StrLenField("param_padding", "", length_from=lambda pkt: 100 - pkt.param_len), lambda pkt:pkt.id in [0x04]),
+        ConditionalField(StrLenField("param", b"", length_from=lambda pkt: pkt.param_len), lambda pkt:pkt.id in [0x04]),
+        ConditionalField(StrLenField("param_padding", b"", length_from=lambda pkt: 100 - pkt.param_len), lambda pkt:pkt.id in [0x04]),
         ConditionalField(ShortField("pad3", 0), lambda pkt:pkt.id in [0x04]),
         ConditionalField(FieldLenField("value_len", 0x0, length_of="param_value", fmt="H"), lambda pkt:pkt.id in [0x04]),
-        ConditionalField(StrLenField("param_value", "", length_from=lambda pkt:pkt.value_len), lambda pkt:pkt.id in [0x04]),
+        ConditionalField(StrLenField("param_value", b"", length_from=lambda pkt:pkt.value_len), lambda pkt:pkt.id in [0x04]),
 
         # MS_PROPERTY_SERVICE
         ConditionalField(ShortField("service", 0), lambda pkt:pkt.id in [0x05]),
@@ -819,10 +819,10 @@ class SAPMSJ2EECluster(Packet):
         IPField("hostaddrv4", "127.0.0.1"),
         ByteField("type", 0x02),
         ByteField("state", 0x00),
-        StrFixedLenField("service_mask", 32 * "\xff", 32),
+        StrFixedLenField("service_mask", 32 * b"\xff", 32),
         ByteField("version", 0x02),
         ByteField("modifiers", 0x02),
-        StrFixedLenField("reserved", 4 * "\x00", 4),
+        StrFixedLenField("reserved", 4 * b"\x00", 4),
         IP6Field("hostaddrv6", "::1")
     ]
 
@@ -1106,8 +1106,8 @@ class SAPMS(Packet):
         ConditionalField(ByteEnumKeysField("opcode_error", 0x00, ms_opcode_error_values), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x7]),
         ConditionalField(ByteField("opcode_version", 0x01), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),
         ConditionalField(ByteField("opcode_charset", 0x03), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),
-        ConditionalField(StrField("opcode_value", ""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2f, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a]),
-        ConditionalField(StrField("opcode_trailer", ""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x1e, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2f, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a]),
+        ConditionalField(StrField("opcode_value", b""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a]),
+        ConditionalField(StrField("opcode_trailer", b""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x1e, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a]),
 
         # Dispatcher info
         ConditionalField(ByteField("dp_version", 0x0), lambda pkt:pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)),
@@ -1178,9 +1178,9 @@ class SAPMS(Packet):
         ConditionalField(PacketField("logon", None, SAPMSLogon), lambda pkt:pkt.opcode in [0x2b, 0x2c, 0x2d]),
 
         # Server Disconnect/Shutdown fields
-        ConditionalField(PacketField("shutdown_client", None, SAPMSClient3), lambda pkt:pkt.opcode in [0x2e, 0x2f, 0x30, 0x4a]),
+        ConditionalField(PacketLenField("shutdown_client", SAPMSClient3(), SAPMSClient3, length_from=lambda pkt: 150), lambda pkt:pkt.opcode in [0x2e, 0x2f, 0x30, 0x4a]),
         ConditionalField(FieldLenField("shutdown_reason_length", None, length_of="shutdown_reason", fmt="!H"), lambda pkt:pkt.opcode in [0x2e, 0x2f, 0x30, 0x4a]),
-        ConditionalField(StrLenField("shutdown_reason", "", length_from=lambda pkt:pkt.shutdown_reason_length), lambda pkt:pkt.opcode in [0x2e, 0x2f, 0x30, 0x4a]),
+        ConditionalField(StrLenField("shutdown_reason", b"", length_from=lambda pkt:pkt.shutdown_reason_length), lambda pkt:pkt.opcode in [0x2e, 0x2f, 0x30, 0x4a]),
 
         # Get/Set Property fields
         ConditionalField(PacketField("property", None, SAPMSProperty), lambda pkt:pkt.opcode in [0x43, 0x44, 0x45]),
@@ -1190,7 +1190,7 @@ class SAPMS(Packet):
         ConditionalField(IP6Field("ip_to_name_address6", "::"), lambda pkt:pkt.opcode == 0x46 and pkt.opcode_version == 0x02),
         ConditionalField(ShortField("ip_to_name_port", 0), lambda pkt:pkt.opcode == 0x46),
         ConditionalField(FieldLenField("ip_to_name_length", None, length_of="ip_to_name", fmt="!I"), lambda pkt:pkt.opcode == 0x46),
-        ConditionalField(StrLenField("ip_to_name", "", length_from=lambda pkt:pkt.logonname_length), lambda pkt:pkt.opcode == 0x46),
+        ConditionalField(StrLenField("ip_to_name", b"", length_from=lambda pkt:pkt.ip_to_name_length), lambda pkt:pkt.opcode == 0x46),
 
         # Check ACL fields
         ConditionalField(ShortField("error_code", 0), lambda pkt:pkt.opcode == 0x47),
