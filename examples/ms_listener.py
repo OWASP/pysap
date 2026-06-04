@@ -98,11 +98,13 @@ def main():
     print("[*] Listening to server messages")
     try:
         while (True):
-            # Send MS_SERVER_LST packet
-            response = conn.recv()[SAPMS]
+            response = conn.recv()
 
             print("[*] Message received !")
-            response.show()
+            if SAPMS in response:
+                response[SAPMS].show()
+            else:
+                response.show()
 
     except SocketError:
         print("[*] Connection error")
