@@ -223,6 +223,11 @@ class IntToStrField(Field):
         # Stores the conversion format between representations
         self.format = "%" + "%d" % length + "d"
 
+    def getfield(self, pkt, s):
+        if len(s) < self.length:
+            return b'', self.default
+        return s[self.length:], self.m2i(pkt, self.struct.unpack(s[:self.length])[0])
+
     def m2i(self, pkt, x):
         if isinstance(x, bytes):
             return x.decode("utf-8", errors="replace").strip()

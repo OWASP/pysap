@@ -107,14 +107,26 @@ def main():
               opcode_charset=0x00)
     conn.send(p)
 
+    def decode_field(value):
+        if isinstance(value, bytes):
+            return value.decode("utf-8", errors="replace").rstrip("\x00").strip()
+        return str(value).strip() if value is not None else ""
+
+    def get_clients(response):
+        for field in ("clients_v4", "clients_v3", "clients_v2", "clients"):
+            value = getattr(response, field, None)
+            if value is not None:
+                return value
+        return []
+
     clients = []
 
     def print_client(msg, client):
         if options.verbose:
             print("[*] %s %s (host=%s, service=%s, port=%d)" % (msg,
-                                                                client.client.strip(),
-                                                                client.host.strip(),
-                                                                client.service.strip(),
+                                                                decode_field(client.client),
+                                                                decode_field(client.host),
+                                                                decode_field(client.service),
                                                                 client.servno))
 
     # Send MS_SERVER_LST packet
@@ -122,28 +134,34 @@ def main():
     p = SAPMS(flag=0x02, iflag=0x01, domain=domain, toname=server_string, fromname=client_string, opcode=0x05,
               opcode_version=0x68)
     response = conn.sr(p)[SAPMS]
-    for client in response.clients:
+    for client in get_clients(response):
         if client.client != client_string:
             clients.append(("LIST", client))
             print_client("Client", client)
 
+    print("[*] Current clients:")
+    for _, client in clients:
+        print("\t%s (host=%s, service=%s, port=%d)" % (decode_field(client.client),
+                                                       decode_field(client.host),
+                                                       decode_field(client.service),
+                                                       client.servno))
+    print("[*] Observing changes (press Ctrl+C to stop)...")
+
     try:
         while (True):
-            response = conn.recv()[SAPMS]
+            pkt = conn.recv()
+            if SAPMS not in pkt:
+                continue
+            response = pkt[SAPMS]
 
             response.show()
-            if response.opcode == 0x02:  # Added client
-                client = response.clients[0]
-                clients.append(("ADD", client))
-                print_client("Added client", client)
-            elif response.opcode == 0x03:  # Deleted client
-                client = response.clients[0]
-                clients.append(("DEL", client))
-                print_client("Deleted client", client)
-            elif response.opcode == 0x04:  # Modified client
-                client = response.clients[0]
-                clients.append(("MOD", client))
-                print_client("Modified client", client)
+            if response.opcode in (0x02, 0x03, 0x04):
+                label = {0x02: "ADD", 0x03: "DEL", 0x04: "MOD"}[response.opcode]
+                msg = {0x02: "Added client", 0x03: "Deleted client", 0x04: "Modified client"}[response.opcode]
+                cl = get_clients(response)
+                if cl:
+                    clients.append((label, cl[0]))
+                    print_client(msg, cl[0])
 
     except SocketError:
         print("[*] Connection error")
@@ -154,9 +172,9 @@ def main():
         print("[*] Observed clients:")
         for action, client in clients:
             print("\t%s\tclient %s (host=%s, service=%s, port=%d)" % (action,
-                                                                      client.client.strip(),
-                                                                      client.host.strip(),
-                                                                      client.service.strip(),
+                                                                      decode_field(client.client),
+                                                                      decode_field(client.host),
+                                                                      decode_field(client.service),
                                                                       client.servno))
 
 
