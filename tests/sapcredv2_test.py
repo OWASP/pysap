@@ -192,7 +192,6 @@ class PySAPCredV2Test(unittest.TestCase):
         with open(data_filename("credv2_lps_on_v2_int_aes256_composed_subject"), "rb") as fd:
             s = fd.read()
 
-        c = SAPCredv2(s)
         creds = SAPCredv2(s).creds
         self.assertEqual(len(creds), 1)
 
@@ -222,7 +221,7 @@ class PySAPCredV2Test(unittest.TestCase):
         self.validate_credv2_plain(cred)
 
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPCredV2Test))
@@ -231,5 +230,5 @@ def test_suite():
 
 if __name__ == "__main__":
     test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
-    result = test_runner.run(test_suite())
+    result = test_runner.run(suite())
     sys.exit(not result.wasSuccessful())

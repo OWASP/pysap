@@ -21,13 +21,13 @@ import unittest
 # External imports
 # Custom imports
 from tests.utils import data_filename
-from pysap.SAPSSFS import (SAPSSFSKey, SAPSSFSKeyE, SAPSSFSData, SAPSSFSLock)
+from pysap.SAPSSFS import (SAPSSFSKey, SAPSSFSKeyE, SAPSSFSData)
 
 
 class PySAPSSFSKeyTest(unittest.TestCase):
 
     USERNAME = b"SomeUser                "
-    HOST =     b"ubuntu                  "
+    HOST = b"ubuntu                  "
 
     def test_ssfs_key_parsing(self):
         """Test parsing of a SSFS Key file"""
@@ -46,7 +46,7 @@ class PySAPSSFSKeyTest(unittest.TestCase):
 class PySAPSSFSDataTest(unittest.TestCase):
 
     USERNAME = b"SomeUser                "
-    HOST =     b"ubuntu                  "
+    HOST = b"ubuntu                  "
 
     PLAIN_VALUES = {"HDB/KEYNAME/DB_CON_ENV": b"Env",
                     "HDB/KEYNAME/DB_DATABASE_NAME": b"Database",
@@ -107,17 +107,17 @@ class PySAPSSFSDataTest(unittest.TestCase):
             self.assertTrue(record.valid)
 
             # Now tamper with the data
-            orginal_data = record.data
-            record.data = orginal_data + b"AddedDataBytes"
+            original_data = record.data
+            record.data = original_data + b"AddedDataBytes"
             self.assertFalse(record.valid)
-            record.data = orginal_data
+            record.data = original_data
             self.assertTrue(record.valid)
 
             # Now tamper with the HMAC
-            orginal_hmac = record.hmac
-            record.hmac = orginal_hmac[:-1] + b"A"
+            original_hmac = record.hmac
+            record.hmac = original_hmac[:-1] + b"A"
             self.assertFalse(record.valid)
-            record.hmac = orginal_hmac
+            record.hmac = original_hmac
             self.assertTrue(record.valid)
 
 
@@ -145,6 +145,7 @@ class PySAPSSFSDataDecryptTest(unittest.TestCase):
             self.assertFalse(record.is_stored_as_plaintext)
             self.assertTrue(record.valid)
 
+
 class PySAPSSFSDataDecryptETest(unittest.TestCase):
 
     ENCRYPTED_VALUES = {"RS/CIPHERTEXT_VAL": b"hellow0rld"}
@@ -170,7 +171,7 @@ class PySAPSSFSDataDecryptETest(unittest.TestCase):
             self.assertTrue(record.valid)
 
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPSSFSKeyTest))
@@ -180,4 +181,4 @@ def test_suite():
 
 
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=2).run(test_suite())
+    unittest.TextTestRunner(verbosity=2).run(suite())

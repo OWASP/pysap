@@ -369,7 +369,7 @@ def diag_item_get_length(item):
         0x13: 2,                    # SLC
         0x15: 36,                   # SBA2
     }
-    return diag_item_sizes[item.item_type]
+    return diag_item_sizes.get(item.item_type, 0xffff)
 
 
 diag_item_classes = {}
@@ -440,7 +440,7 @@ class SAPDiagItem(PacketNoPadded):
                    ConditionalField(ByteMultiEnumKeysField("item_sid", 0, diag_appl_sids, depends_on=lambda item:item.item_id, fmt="B"), diag_item_is_appl_appl4),
                    ConditionalField(FieldLenField("item_length", None, length_of="item_value", fmt="!H"), diag_item_is_short),
                    ConditionalField(FieldLenField("item_length4", None, length_of="item_value", fmt="!I"), diag_item_is_long),
-                   MutablePacketField("item_value", None,
+                   MutablePacketField("item_value", b"",
                                       length_from=diag_item_get_length,
                                       get_class=diag_item_get_class,
                                       evaluators=[lambda item:item.item_type,

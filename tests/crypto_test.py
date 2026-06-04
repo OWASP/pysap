@@ -46,8 +46,8 @@ class PySAPCryptoUtilsTest(unittest.TestCase):
                      b"\xa7\xc3\x4c\x8a\x70\x90\x8e\xd5\xbe\x0b\x35\x42" \
                      b"\x70\x5f\x73\x8c"
         expected_scrambled_salt = b"\xe4\x7d\x8f\x24\x48\x55\xb9\x2d\xc9\x66\x39\x5d" \
-                       b"\x0d\x28\x25\x47\xb5\x4d\xfd\x09\x61\x4d\x44\x37\x4d\xf9\x4f" \
-                       b"\x29\x3c\x1a\x02\x0e"
+                                  b"\x0d\x28\x25\x47\xb5\x4d\xfd\x09\x61\x4d\x44\x37\x4d\xf9\x4f" \
+                                  b"\x29\x3c\x1a\x02\x0e"
 
         scram = SCRAM_SHA256(default_backend())
         scrambled_salt = scram.scramble_salt(password, salt, server_key, client_key)
@@ -73,7 +73,7 @@ class PySAPCryptoUtilsTest(unittest.TestCase):
         self.assertEqual(expected_scrambled_salt, scrambled_salt)
 
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPCryptoUtilsTest))
@@ -81,4 +81,4 @@ def test_suite():
 
 
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=2).run(test_suite())
+    unittest.TextTestRunner(verbosity=2).run(suite())

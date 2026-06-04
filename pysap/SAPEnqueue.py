@@ -134,8 +134,8 @@ class SAPEnqueueTracePattern(PacketNoPadded):
     """
     name = "SAP Enqueue Server Admin Trace Pattern"
     fields_desc = [
-        FieldLenField("len", None, length_of="pattern", fmt="B"),
-        StrNullFixedLenField("pattern", "", length_from=lambda pkt:pkt.len, max_length=0xff),
+        FieldLenField("len", 1, length_of="pattern", fmt="B"),
+        StrNullFixedLenField("pattern", b"", length_from=lambda pkt:pkt.len, max_length=0xff),
     ]
 
 

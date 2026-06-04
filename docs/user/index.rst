@@ -82,8 +82,11 @@ Once you have downloaded pysap's sources, you can install it easily using
 the Python's integration of ``setuptools`` scripts in pip:
 
 For development and unit testing:
-1) ``python3 -m pip install -e .``
-2) ``python3 -m unittest discover -s tests -p '*_test.py'``
+1) ``python3 -m pip install -e .[tests]``
+2) ``python3 -m tox -e unit``
+
+Socket-backed integration tests can be run separately with
+``python3 -m tox -e integration``.
 
 For creating your own build without PyPi: 
 1) ``python3 -m pip install build``

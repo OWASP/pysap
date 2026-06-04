@@ -37,3 +37,26 @@ def read_data_file(filename, unhex=True):
             data = f.read()
 
     return data
+
+
+def roundtrip_packet(packet):
+    """Build and dissect a packet instance back into the same class."""
+    return packet.__class__(bytes(packet))
+
+
+class DummyConnection(object):
+    """Simple stand-in for socket-like test doubles."""
+
+    def __init__(self, recv_values=None):
+        self.sent = []
+        self.recv_values = list(recv_values or [])
+        self.closed = False
+
+    def send(self, packet):
+        self.sent.append(packet)
+
+    def recv(self):
+        return self.recv_values.pop(0)
+
+    def close(self):
+        self.closed = True
