@@ -19,10 +19,11 @@
 # Standard imports
 import re
 import logging
+from struct import pack, unpack
 from socket import error as SocketError
 # External imports
 from scapy.layers.inet import TCP
-from scapy.packet import Packet, bind_layers, Raw
+from scapy.packet import Packet, bind_layers, Raw, raw
 from scapy.supersocket import socket, StreamSocket
 from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
                           IntField, StrNullField, PacketListField,
@@ -34,7 +35,7 @@ from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
 from pysap.SAPSNC import SAPSNCFrame
 from pysap.SAPNI import (SAPNI, SAPNIStreamSocket, SAPNIProxy,
                          SAPNIProxyHandler)
-from pysap.utils.fields import (PacketNoPadded, StrNullFixedLenField)
+from pysap.utils.fields import (PacketNoPadded, StrNullFixedLenField, StrNullDecodedField)
 
 
 # Create a logger for the SAPRouter layer
@@ -259,27 +260,27 @@ class SAPRouterError(PacketNoPadded):
     """
     name = "SAP Router Error Text"
     fields_desc = [
-        StrNullField("eyecatcher", "*ERR*"),
-        StrNullField("counter", "1"),
-        StrNullField("error", ""),
-        StrNullField("return_code", ""),
-        StrNullField("component", "NI (network interface)"),
-        StrNullField("release", ""),
-        StrNullField("version", ""),
-        StrNullField("module", "nirout.cpp"),
-        StrNullField("line", ""),
-        StrNullField("detail", ""),
-        StrNullField("error_time", ""),
-        StrNullField("system_call", ""),
-        StrNullField("errorno", ""),
-        StrNullField("errorno_text", ""),
-        StrNullField("error_count", ""),
-        StrNullField("location", ""),
-        StrNullField("XXX5", ""),
-        StrNullField("XXX6", ""),
-        StrNullField("XXX7", ""),
-        StrNullField("XXX8", ""),
-        StrNullField("eyecatcher_end", "*ERR*"),
+        StrNullDecodedField("eyecatcher", "*ERR*"),
+        StrNullDecodedField("counter", "1"),
+        StrNullDecodedField("error", ""),
+        StrNullDecodedField("return_code", ""),
+        StrNullDecodedField("component", "NI (network interface)"),
+        StrNullDecodedField("release", ""),
+        StrNullDecodedField("version", ""),
+        StrNullDecodedField("module", "nirout.cpp"),
+        StrNullDecodedField("line", ""),
+        StrNullDecodedField("detail", ""),
+        StrNullDecodedField("error_time", ""),
+        StrNullDecodedField("system_call", ""),
+        StrNullDecodedField("errorno", ""),
+        StrNullDecodedField("errorno_text", ""),
+        StrNullDecodedField("error_count", ""),
+        StrNullDecodedField("location", ""),
+        StrNullDecodedField("XXX5", ""),
+        StrNullDecodedField("XXX6", ""),
+        StrNullDecodedField("XXX7", ""),
+        StrNullDecodedField("XXX8", ""),
+        StrNullDecodedField("eyecatcher_end", "*ERR*"),
     ]
 
     time_format = "%a %b %d %H:%M:%S %Y"
@@ -591,7 +592,7 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         for hop in route:
             if hop.port is not None and isinstance(hop.port, int):
                 hop.port = str(hop.port)
-        router_strings = list(map(bytes, route))
+        router_strings = [raw(hop) for hop in route]
         hostname = route[-1].hostname
         if isinstance(hostname, bytes):
             hostname = hostname.decode("utf-8", errors="replace")
@@ -627,7 +628,8 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
                 raise SAPRouteException("Route request not accepted")
             else:
                 log_saprouter.warning("Error requesting route to %s", target)
-                raise Exception("Router error:", response.err_text_value)
+                err = response.err_text_value
+                raise Exception("Router error: %s" % (err.detail.decode("utf-8", errors="replace") if SAPRouterError in response else str(err)))
         else:
             log_saprouter.warning("Error requesting route to %s", target)
             raise Exception("Wrong response received")
@@ -813,8 +815,6 @@ class SAPRouterNativeProxy(SAPNIProxy):
         self.target_port = target_port
         self.target_pass = target_pass
         self.talk_mode = talk_mode
-        self.routed = False
-        self.route()
 
     def handle_connection(self):
         """Block until a connection is received from the listener, request
@@ -826,14 +826,21 @@ class SAPRouterNativeProxy(SAPNIProxy):
         """
         # Accept a client connection
         (client, __) = self.listener.ins.accept()
+        client_ni = SAPNIStreamSocket(client, self.keep_alive)
 
-        # Creates a remote socket
-        router = self.route()
+        if getattr(self.options, 'passthrough', False):
+            # Passthrough mode: connect to remote SAP Router with raw TCP and
+            # forward all bytes transparently.  The client (e.g. SAPGUI) handles
+            # its own NI_ROUTE handshake with the real SAP Router through the pipe.
+            (remote_address, remote_port) = self.remote_host
+            router = SAPNIStreamSocket(socket.create_connection((remote_address, remote_port)),
+                                       self.keep_alive)
+        else:
+            # Creates a remote socket (proxy establishes NI_ROUTE on behalf of client)
+            router = self.route()
 
         # Create the NI Stream Socket and handle it
-        proxy = self.handler(SAPNIStreamSocket(client, self.keep_alive),
-                             router,
-                             self.options)
+        proxy = self.handler(client_ni, router, self.options)
         return proxy
 
     def route(self):
@@ -851,15 +858,18 @@ class SAPRouterNativeProxy(SAPNIProxy):
                                                 keep_alive=self.keep_alive)
 
         # Build the Route request packet
-        if self.options.target_route_string is None:
+        if getattr(self.options, 'target_route_string', None) is None:
             router_string = [SAPRouterRouteHop(hostname=remote_address,
-                                               port=remote_port),
+                                               port=str(remote_port)),
                              SAPRouterRouteHop(hostname=self.target_address,
-                                               port=self.target_port,
+                                               port=str(self.target_port),
                                                password=self.target_pass)]
         else:
             router_string = SAPRouterRouteHop.from_string(self.options.target_route_string)
-        router_string_lens = list(map(len, list(map(str, router_string))))
+        for hop in router_string:
+            if hop.port is not None and isinstance(hop.port, int):
+                hop.port = str(hop.port)
+        router_string_lens = list(map(len, [raw(hop) for hop in router_string]))
         p = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
                       route_entries=len(router_string),
                       route_talk_mode=self.talk_mode,
@@ -868,16 +878,20 @@ class SAPRouterNativeProxy(SAPNIProxy):
                       route_offset=router_string_lens[0],
                       route_string=router_string)
 
+        log_saprouter.debug("Route request raw (talk_mode=%d): %r", self.talk_mode, raw(p))
         # Send the request and grab the response
         response = router.sr(p)
 
+        log_saprouter.debug("Route response raw: %r", raw(response)[:64])
         if SAPRouter in response:
             response = response[SAPRouter]
+            log_saprouter.debug("Route response: type=%r return_code=%s raw=%r",
+                                response.type, getattr(response, 'return_code', 'N/A'),
+                                raw(response)[:64])
             if router_is_pong(response):
                 log_saprouter.debug("Route request to %s:%d accepted by %s:%d",
                                     self.target_address, self.target_port,
                                     remote_address, remote_port)
-                self.routed = True
             elif router_is_error(response) and response.return_code == -94:
                 log_saprouter.debug("Route request to %s:%d not accepted by %s:%d",
                                     self.target_address, self.target_port,
@@ -885,7 +899,8 @@ class SAPRouterNativeProxy(SAPNIProxy):
                 raise SAPRouteException("Route request not accepted")
             else:
                 log_saprouter.error("Router send error: %s", response.err_text_value)
-                raise Exception("Router error: %s", response.err_text_value)
+                err = response.err_text_value
+                raise Exception("Router error: %s" % (err.detail.decode("utf-8", errors="replace") if SAPRouterError in response else str(err)))
         else:
             log_saprouter.error("Wrong response received")
             raise Exception("Wrong response received")
@@ -918,18 +933,55 @@ class SAPRouterNativeRouterHandler(SAPNIProxyHandler):
         :param process: the function that process the incoming data
         :type process: function
         """
-        # Receive a native packet (not SAP NI)
-        packet = local.ins.recv(self.mtu)
-        log_saprouter.debug("Received %d native bytes", len(packet))
+        talk_mode = getattr(self.options, 'talk_mode', ROUTER_TALK_MODE_NI_RAW_IO) if self.options else ROUTER_TALK_MODE_NI_RAW_IO
 
-        # Handle close connection
-        if len(packet) == 0:
-            local.close()
-            raise SocketError((100, "Underlying stream socket tore down"))
-
-        # Send the packet to the remote peer
-        remote.ins.sendall(packet)
-        log_saprouter.debug("Sent %d native bytes", len(packet))
+        if talk_mode == ROUTER_TALK_MODE_NI_MSG_IO:
+            if process == self.process_client:
+                # client → router: read raw bytes, prepend NI length header manually
+                packet = local.ins.recv(self.mtu)
+                log_saprouter.debug("Received %d native bytes from client, first bytes: %r", len(packet), packet[:32])
+                if len(packet) == 0:
+                    local.close()
+                    raise SocketError((100, "Underlying stream socket tore down"))
+                remote.ins.sendall(pack("!I", len(packet)) + packet)
+                log_saprouter.debug("Sent NI-wrapped %d bytes to router", len(packet))
+            else:
+                # router → client: read NI frame, preserve framing for NI-aware clients (e.g. SAPGUI)
+                # The router forwards the target's NI frames directly; clients expect end-to-end NI.
+                header = b""
+                while len(header) < 4:
+                    chunk = local.ins.recv(4 - len(header))
+                    if not chunk:
+                        local.close()
+                        raise SocketError((100, "Underlying stream socket tore down"))
+                    header += chunk
+                length = unpack("!I", header)[0]
+                # Skip NI keep-alive signals
+                if header in (b'\xff\xff\xff\xff', b'\xff\xff\xff\xfe'):
+                    log_saprouter.debug("Skipping NI keep-alive signal")
+                    return
+                payload = b""
+                while len(payload) < length:
+                    chunk = local.ins.recv(min(self.mtu, length - len(payload)))
+                    if not chunk:
+                        local.close()
+                        raise SocketError((100, "Underlying stream socket tore down"))
+                    payload += chunk
+                log_saprouter.debug("Received %d bytes from router, first bytes: %r", length, payload[:32])
+                if payload.startswith(b'NI_RTERR'):
+                    log_saprouter.debug("Router returned NI_RTERR, closing")
+                    local.close()
+                    raise SocketError((100, "Router returned NI_RTERR"))
+                remote.ins.sendall(header + payload)
+        else:
+            # Raw mode: bypass NI framing completely
+            packet = local.ins.recv(self.mtu)
+            log_saprouter.debug("Received %d native bytes", len(packet))
+            if len(packet) == 0:
+                local.close()
+                raise SocketError((100, "Underlying stream socket tore down"))
+            remote.ins.sendall(packet)
+            log_saprouter.debug("Sent %d native bytes", len(packet))
 
 
 # Bind SAP NI with the SAP Router port

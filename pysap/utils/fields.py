@@ -24,7 +24,8 @@ from scapy.config import conf
 from scapy.packet import Packet
 from scapy.asn1fields import (ASN1F_CHOICE, ASN1F_field, ASN1_Error, ASN1F_badsequence, BER_Decoding_Error)
 from scapy.volatile import (RandNum, RandTermString, RandBin)
-from scapy.fields import (MultiEnumField, StrLenField, Field, StrFixedLenField, StrField, PacketListField, LongField)
+from scapy.fields import (MultiEnumField, StrLenField, Field, StrFixedLenField, StrField, PacketListField, LongField,
+                          StrNullField)
 
 
 def saptimestamp_to_datetime(timestamp):
@@ -213,6 +214,15 @@ class StrFixedLenDecodedField(StrFixedLenField):
         if isinstance(x, bytes):
             return x.rstrip(b"\x00").strip().decode("utf-8", errors="replace")
         return str(x).strip() if x is not None else ""
+
+
+class StrNullDecodedField(StrNullField):
+    """StrNullField that decodes bytes to str in show() output."""
+
+    def i2repr(self, pkt, x):
+        if isinstance(x, bytes):
+            return x.decode("utf-8", errors="replace")
+        return str(x) if x is not None else ""
 
 
 class IntToStrField(Field):
