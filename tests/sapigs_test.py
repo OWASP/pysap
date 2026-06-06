@@ -66,9 +66,10 @@ class PySAPIGSTest(unittest.TestCase):
         with mock.patch.object(module, "Request", FakeRequest):
             request = SAPIGS.http("host", 8000, "ZIPPER")
 
-        self.assertIn("POST http://host:8000/ZIPPER HTTP/1.1", request)
-        self.assertIn("User-Agent: pysap", request)
-        self.assertTrue(request.endswith("body"))
+        self.assertIsInstance(request, bytes)
+        self.assertIn(b"POST http://host:8000/ZIPPER HTTP/1.1", request)
+        self.assertIn(b"User-Agent: pysap", request)
+        self.assertTrue(request.endswith(b"body"))
 
 
 def suite():
