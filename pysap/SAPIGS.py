@@ -201,11 +201,10 @@ class SAPIGS(Packet):
         # update User-Agent header
         req.headers['User-Agent'] = 'pysap'
         # format the request than could be send with SAP NI
-        req_format = ('{}\r\n{}\r\n\r\n{}'.format(
-                    req.method + ' ' + req.url + ' HTTP/1.1',
-                    '\r\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()),
-                    req.body)
-                 )
+        header_line = (req.method + ' ' + req.url + ' HTTP/1.1').encode()
+        headers = '\r\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()).encode()
+        body = req.body if isinstance(req.body, bytes) else req.body.encode()
+        req_format = header_line + b'\r\n' + headers + b'\r\n\r\n' + body
         return req_format
 
 
