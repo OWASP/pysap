@@ -73,10 +73,14 @@ def main():
                                                                  options.remote_port))
 
     # Initiate the connection
-    conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
-                                              options.remote_port,
-                                              options.route_string,
-                                              talk_mode=ROUTER_TALK_MODE_NI_RAW_IO)
+    try:
+        conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
+                                                  options.remote_port,
+                                                  options.route_string,
+                                                  talk_mode=ROUTER_TALK_MODE_NI_RAW_IO)
+    except (OSError, Exception) as e:
+        print("[-] Connection failed: %s" % e)
+        return
 
     # XML Data content
     data = '''<?xml version="1.0" encoding="utf-8"?>
@@ -90,19 +94,20 @@ def main():
               </ChartData>'''
 
     # http POST request type multipart/form-data
-    files = {'data': ('data', data)}
+    files = {'data': ('data', data.encode())}
     p = SAPIGS.http(options.remote_host, options.remote_port, 'XMLCHART', files)
 
     # Send/Receive request
     print("[*] Send request to IGS...")
     conn.send(p)
     print("[*] Response :")
-    response = conn.recv(1024)
+    response = conn.recv()
     response.show()
 
     # Extract picture from response
     print("[*] Generated file(s) :")
-    for url in str(response).split('href='):
+    body = response.load.decode('latin-1', errors='replace') if hasattr(response, 'load') else str(response)
+    for url in body.split('href='):
         if "output" in url:
             print("http://%s:%d%s" % (options.remote_host,
                                       options.remote_port,
