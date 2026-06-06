@@ -278,6 +278,8 @@ class SCRAM(object):
         return os.urandom(self.CLIENT_KEY_SIZE)
 
     def salt_key(self, password, salt, rounds):
+        if isinstance(password, str):
+            password = password.encode('utf-8')
         hmac = HMAC(password, self.ALGORITHM(), self.backend)
         hmac.update(salt)
         return hmac.finalize()
@@ -330,6 +332,8 @@ class SCRAM_PBKDF2SHA256(SCRAM_SHA256):
     """SCRAM scheme using PBKDF2 with SHA256"""
 
     def salt_key(self, password, salt, rounds):
+        if isinstance(password, str):
+            password = password.encode('utf-8')
         pbkdf2 = PBKDF2HMAC(self.ALGORITHM(), self.CLIENT_PROOF_SIZE, salt, rounds, self.backend)
         return pbkdf2.derive(password)
 

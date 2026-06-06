@@ -197,15 +197,19 @@ def main():
         logging.info("[*] Successfully authenticated against HANA database server")
 
         if hdb.auth_method.session_cookie is not None:
-            logging.info("[*] Session cookie assigned to this session: %s" % hdb.auth_method.session_cookie)
+            cookie = hdb.auth_method.session_cookie
+            if isinstance(cookie, bytes):
+                cookie = cookie.hex()
+            if cookie:
+                logging.info("[*] Session cookie assigned to this session: %s" % cookie)
 
         hdb.close()
         logging.debug("[*] Connection with HANA database server closed")
 
     except SAPHDBAuthenticationError as e:
-        logging.error("[-] Authentication error: %s" % e.message)
+        logging.error("[-] Authentication error: %s" % e)
     except SAPHDBConnectionError as e:
-        logging.error("[-] Connection error: %s" % e.message)
+        logging.error("[-] Connection error: %s" % e)
     except KeyboardInterrupt:
         logging.info("[-] Connection canceled")
 
