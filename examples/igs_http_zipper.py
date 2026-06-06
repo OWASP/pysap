@@ -85,32 +85,37 @@ def main():
         exit(2)
 
     # Initiate the connection
-    conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
-                                              options.remote_port,
-                                              options.route_string,
-                                              talk_mode=ROUTER_TALK_MODE_NI_RAW_IO)
+    try:
+        conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
+                                                  options.remote_port,
+                                                  options.route_string,
+                                                  talk_mode=ROUTER_TALK_MODE_NI_RAW_IO)
+    except (OSError, Exception) as e:
+        print("[-] Connection failed: %s" % e)
+        return
 
     # the xml request for zipper interpreter
     xml = '<?xml version="1.0"?><REQUEST><COMPRESS type="zip"><FILES>'
     xml += '<FILE name="%s" ' % (options.file_input)
     xml += 'path="%s" ' % (options.file_path)
     xml += 'size="%s"/>' % (len(file_input_content))
-    xml += '</FILES></COMPRESS></REQEST>'
+    xml += '</FILES></COMPRESS></REQUEST>'
 
     # http request type multipart/form-data
-    files = {"xml": ("xml", xml), "zipme": ("zipme", file_input_content)}
+    files = {"xml": ("xml", xml.encode()), "zipme": ("zipme", file_input_content)}
     p = SAPIGS.http(options.remote_host, options.remote_port, 'ZIPPER', files)
 
     # Send/Receive request
     print("[*] Send %s to ZIPPER interpreter..." % options.file_input)
     conn.send(p)
     print("[*] Response :")
-    response = conn.recv(1024)
+    response = conn.recv()
     response.show()
 
     # Extract zip from response
     print("[*] Generated file(s) :")
-    for url in str(response).split('href='):
+    body = response.load.decode('latin-1', errors='replace') if hasattr(response, 'load') else str(response)
+    for url in body.split('href='):
         if "output" in url:
             print("http://%s:%d%s" % (options.remote_host,
                                       options.remote_port,
