@@ -51,6 +51,8 @@ class SAPEnqueueAdminConsole(BaseConsole):
         self.runtimeoptions["client_recv_length"] = 1000
         self.runtimeoptions["client_send_length"] = 1000
         self.runtimeoptions["client_version"] = 3
+        self.runtimeoptions["server_name"] = ""
+        self.runtimeoptions["server_version"] = 0
 
     # Initialization
     def preloop(self):
@@ -174,7 +176,7 @@ class SAPEnqueueAdminConsole(BaseConsole):
         try:
             self.connection.sr(p)[SAPEnqueue]
             self._print("Server available, probably not vulnerable to CVE-2014-0995")
-        except:
+        except Exception:
             self._print("Server unavailable, probably vulnerable to CVE-2014-0995.")
 
 
