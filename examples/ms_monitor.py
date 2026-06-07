@@ -55,6 +55,22 @@ class SAPMSMonitorConsole(BaseConsole):
         self.do_connect(None)
         self.do_client_list(None)
 
+    @staticmethod
+    def _decode(value):
+        """Decode a bytes field and strip null/space padding."""
+        if isinstance(value, bytes):
+            value = value.decode("utf-8", errors="replace")
+        return value.rstrip("\x00").strip()
+
+    # Helper to extract the clients list from an MS_SERVER_LST response,
+    # regardless of which opcode_version the server echoed back.
+    def _get_clients(self, response):
+        for field in ("clients_v4", "clients_v3", "clients_v2", "clients"):
+            value = getattr(response, field, None)
+            if value is not None:
+                return value
+        return []
+
     # Helper for crafting packets
     def _build(self, flag, iflag, **args):
         return SAPMS(flag=flag, iflag=iflag,
@@ -114,7 +130,8 @@ class SAPMSMonitorConsole(BaseConsole):
 
         if response.errorno == 0:
             self.runtimeoptions["server_string"] = response.fromname.strip() + b"\x00"
-            self._debug("Login performed, server string: %s" % response.fromname)
+            fromname = response.fromname
+            self._debug("Login performed, server string: %s" % (fromname.decode("utf-8", errors="replace").strip() if isinstance(fromname, bytes) else fromname))
             self._print("pysap's Message Server monitor, connected to %s / %d" % (self.options.remote_host,
                                                                                   self.options.remote_port))
             self.connected = True
@@ -164,26 +181,32 @@ class SAPMSMonitorConsole(BaseConsole):
         # Send MS_SERVER_LST packet
         response = self._send_simple(0x02, 0x01, opcode=0x05, opcode_version=0x68)
 
+        if response is None:
+            return
+
+        clients = self._get_clients(response)
+
         # Print clients table
         table = [["#", "Client Name", "Host", "Service", "IPv4", "IPv6", "ServNo", "State", "Services"]]
         instance = self.runtimeoptions["server_string"]
         i = 0
-        for client in response.clients:
-            if client.status == 1:
-                instance = client.client
+        for client in clients:
+            status = getattr(client, "status", None)
+            if status == 1:
+                instance = self._decode(client.client)
             table.append([str(i),
-                          client.client,
-                          client.host,
-                          client.service,
+                          self._decode(client.client),
+                          self._decode(client.host),
+                          self._decode(client.service),
                           client.hostaddrv4,
                           client.hostaddrv6 if "hostaddrv6" in client.fields else None,
                           str(client.servno),
-                          ms_client_status_values[client.status]])
+                          ms_client_status_values[status] if status is not None else ""])
             i += 1
         self._tabulate(table)
 
         # Store clients for further use
-        self.clients = response.clients
+        self.clients = clients
 
         self._debug("Server instance: %s" % instance)
         self.runtimeoptions["instance"] = instance
@@ -251,7 +274,7 @@ class SAPMSMonitorConsole(BaseConsole):
                 return
             response = self._send_simple(0x02, 0x01, opcode=0x1e,
                                          dump_dest=0x02, dump_command=command,
-                                         dump_name=client.client)
+                                         dump_name=self._decode(client.client))
         elif command == 12:  # MS_DUMP_COUNTER
             try:
                 counter = args[1]
@@ -266,7 +289,10 @@ class SAPMSMonitorConsole(BaseConsole):
             response = self._send_simple(0x02, 0x01, opcode=0x1e, dump_dest=0x02, dump_command=command)
 
         if response:
-            self._print("Dump information:\n%s" % response.opcode_value)
+            value = response.opcode_value
+            if isinstance(value, bytes):
+                value = value.rstrip(b'\x00').decode('utf-8', errors='replace')
+            self._print("Dump information:\n%s" % value)
 
     def do_server_parameters(self, args):
         """ Dump server parameters. """
@@ -489,7 +515,7 @@ class SAPMSMonitorConsole(BaseConsole):
                                      property=prop)
         if response:
             self._print("Property %s for client %s:" % (ms_property_id_values[prop_id],
-                                                        prop_client.client.strip()))
+                                                        self._decode(prop_client.client)))
             response.property.show()
 
     def do_parameter_get(self, args):
@@ -504,7 +530,10 @@ class SAPMSMonitorConsole(BaseConsole):
         response = self.connection.sr(p)[SAPMS]
 
         if response:
-            self._print("Parameter value: %s" % response.adm_records[0].parameter)
+            param = response.adm_records[0].parameter
+            if isinstance(param, bytes):
+                param = param.decode("utf-8", errors="replace").strip("\x00").strip()
+            self._print("Parameter value: %s" % param)
 
     def do_parameter_set(self, args):
         """ Set parameter value (requires monitor mode enabled).
@@ -541,7 +570,10 @@ class SAPMSMonitorConsole(BaseConsole):
             if response.error_code:
                 self._error("Error checking ACL, code %d" % response.error_code)
             else:
-                self._print("ACL: %s" % response.acl)
+                acl = response.acl
+                if isinstance(acl, bytes):
+                    acl = acl.decode("utf-8", errors="replace").strip("\x00").strip()
+                self._print("ACL: %s" % acl)
 
 
 # Command line options parser

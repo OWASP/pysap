@@ -24,7 +24,8 @@ from scapy.config import conf
 from scapy.packet import Packet
 from scapy.asn1fields import (ASN1F_CHOICE, ASN1F_field, ASN1_Error, ASN1F_badsequence, BER_Decoding_Error)
 from scapy.volatile import (RandNum, RandTermString, RandBin)
-from scapy.fields import (MultiEnumField, StrLenField, Field, StrFixedLenField, StrField, PacketListField, LongField)
+from scapy.fields import (MultiEnumField, StrLenField, Field, StrFixedLenField, StrField, PacketListField, LongField,
+                          StrNullField)
 
 
 def saptimestamp_to_datetime(timestamp):
@@ -118,10 +119,10 @@ class StrNullFixedLenField(StrFixedLenField):
     def i2repr(self, pkt, v):
         if self.null_terminated(pkt):
             if isinstance(v, bytes):
-                v = v.rstrip(b"\0")
+                return v.rstrip(b"\0").decode("utf-8", errors="replace")
             elif isinstance(v, str):
-                v = v.rstrip("\0")
-            return repr(v)
+                return v.rstrip("\0")
+            return str(v)
         return StrFixedLenField.i2repr(self, pkt, v)
 
     def getfield(self, pkt, s):
@@ -184,6 +185,11 @@ class StrNullFixedLenPaddedField(StrFixedLenField):
         StrFixedLenField.__init__(self, name, default, length, length_from)
         self.padd = padd.encode() if isinstance(padd, str) else padd
 
+    def i2repr(self, pkt, v):
+        if isinstance(v, bytes):
+            return v.rstrip(b"\x00").strip().decode("utf-8", errors="replace")
+        return str(v).strip() if v is not None else ""
+
     def getfield(self, pkt, s):
         l = self.length_from(pkt)
         lz = s.find(b"\x00")
@@ -199,6 +205,24 @@ class StrNullFixedLenPaddedField(StrFixedLenField):
             val = val.encode()
         val += self.padd * l
         return StrFixedLenField.addfield(self, pkt, s, val)
+
+
+class StrFixedLenDecodedField(StrFixedLenField):
+    """StrFixedLenField that decodes bytes to str in show() output."""
+
+    def i2repr(self, pkt, x):
+        if isinstance(x, bytes):
+            return x.rstrip(b"\x00").strip().decode("utf-8", errors="replace")
+        return str(x).strip() if x is not None else ""
+
+
+class StrNullDecodedField(StrNullField):
+    """StrNullField that decodes bytes to str in show() output."""
+
+    def i2repr(self, pkt, x):
+        if isinstance(x, bytes):
+            return x.decode("utf-8", errors="replace")
+        return str(x) if x is not None else ""
 
 
 class IntToStrField(Field):
@@ -217,8 +241,15 @@ class IntToStrField(Field):
         # Stores the conversion format between representations
         self.format = "%" + "%d" % length + "d"
 
+    def getfield(self, pkt, s):
+        if len(s) < self.length:
+            return b'', self.default
+        return s[self.length:], self.m2i(pkt, self.struct.unpack(s[:self.length])[0])
+
     def m2i(self, pkt, x):
-        return bytes(x)
+        if isinstance(x, bytes):
+            return x.decode("utf-8", errors="replace").strip()
+        return str(x)
 
     def i2m(self, pkt, x):
         return (self.format % int(x)).encode()
@@ -230,7 +261,7 @@ class IntToStrField(Field):
 class StrEncodedPaddedField(StrField):
     __slots__ = ["remain", "encoding", "padd"]
 
-    def __init__(self, name, default, encoding="utf-16", padd="\x0c",
+    def __init__(self, name, default, encoding="utf-16", padd=b"\x0c",
                  fmt="H", remain=0):
         StrField.__init__(self, name, default, fmt, remain)
         self.encoding = encoding
@@ -252,7 +283,7 @@ class StrEncodedPaddedField(StrField):
     def getfield(self, pkt, s):
         l = s.find(self.padd)
         if l < 0:
-            return "", s
+            return b"", s
         return s[l + 1:], self.m2i(pkt, s[:l])
 
 

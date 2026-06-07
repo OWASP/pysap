@@ -93,7 +93,7 @@ fingerprint_targets = {
     # Connect to the SAP Route but not send any packet to trigger a timeout
     "Timeout": None,
     # Send a large packet
-    "Network packet too big": Raw("X" * 10025),
+    "Network packet too big": Raw(b"X" * 10025),
     # Use an invalid opcode
     "Invalid control opcode": SAPRouter(type=SAPRouter.SAPROUTER_CONTROL, version=38, opcode=3),
     # Do not send a route
@@ -206,11 +206,13 @@ class FingerprintDB(object):
             for finger in self.fingerprints_db[target]:
                 match = True
                 for key, value in list(finger.items()):
-                    if key in fingerprint_fields and hasattr(error_text, key) and getattr(error_text, key) != value:
-                        match = False
-                        logging.debug("[ ]\tUnmatched field: \"%s\" Value: \"%s\" vs \"%s\"" % (key, value,
-                                                                                                getattr(error_text,
-                                                                                                        key)))
+                    if key in fingerprint_fields and hasattr(error_text, key):
+                        actual = getattr(error_text, key)
+                        if isinstance(actual, bytes):
+                            actual = actual.decode('latin-1', errors='replace')
+                        if actual != value:
+                            match = False
+                            logging.debug("[ ]\tUnmatched field: \"%s\" Value: \"%s\" vs \"%s\"" % (key, value, actual))
                 if match:
                     matches.append(finger)
         return matches
@@ -249,13 +251,26 @@ def main():
         logging.info("[*] (%d/%d) Fingerprint for packet '%s'" % (i, l, target))
 
         # Initiate the connection and send the packet
-        conn = SAPNIStreamSocket.get_nisocket(options.remote_host,
-                                              options.remote_port,
-                                              keep_alive=False)
-        if packet is None:  # Timeout error
-            error_text = conn.recv().err_text_value
-        else:
-            error_text = conn.sr(packet).err_text_value
+        conn = None
+        try:
+            conn = SAPNIStreamSocket.get_nisocket(options.remote_host,
+                                                  options.remote_port,
+                                                  keep_alive=False)
+            if packet is None:  # Timeout error
+                error_text = conn.recv().err_text_value
+            else:
+                error_text = conn.sr(packet).err_text_value
+        except (OSError, Exception) as e:
+            logging.warning("[*] (%d/%d) Error probing '%s': %s" % (i, l, target, e))
+            misses.append((target, None))
+            i += 1
+            continue
+        finally:
+            if conn is not None:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
 
         matched = fingerprint_db.match_fingerprint(target, error_text)
 
@@ -287,7 +302,7 @@ def main():
         logging.info("\n[*] Probable versions (%d):" % len(versions))
         for version in versions:
             msg = " ".join(["%s: \"%s\"" % (field, version[field]) for field in version_info_fields
-                            if version[field] != ""])
+                            if version.get(field, "") != ""])
             logging.info("[*]\tHits: %d Version: %s" % (counts[str(version)], msg))
 
     if misses:
@@ -305,9 +320,14 @@ def main():
     if options.new_entries:
         new_fingerprint = {}
         for (target, error_text) in misses:
+            if error_text is None:
+                continue
             new_fingerprint[target] = [{}]
             for field in fingerprint_fields:
-                new_fingerprint[target][0][field] = getattr(error_text, field)
+                val = getattr(error_text, field)
+                if isinstance(val, bytes):
+                    val = val.decode('latin-1', errors='replace')
+                new_fingerprint[target][0][field] = val
         # Expand with matched targets also
         for (target, fingerprint) in matches:
             new_fingerprint[target] = fingerprint

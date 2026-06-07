@@ -86,10 +86,14 @@ def main():
         exit(2)
 
     # Initiate the connection
-    conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
-                                              options.remote_port,
-                                              options.route_string,
-                                              base_cls=SAPIGS)
+    try:
+        conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
+                                                  options.remote_port,
+                                                  options.route_string,
+                                                  base_cls=SAPIGS)
+    except (OSError, Exception) as e:
+        print("[-] Connection failed: %s" % e)
+        return
 
     # the xml request for zipper interpreter
     xml = '<?xml version="1.0"?><REQUEST><COMPRESS type="zip"><FILES>'
@@ -112,7 +116,7 @@ def main():
     offset = (len(table_xml) + len(table_file))
 
     # filling tables
-    content_xml = xml
+    content_xml = xml.encode()
     content_file = file_input_content
 
     # total size of packet

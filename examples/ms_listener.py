@@ -92,16 +92,19 @@ def main():
     print("[*] Sending login packet")
     response = conn.sr(p)[SAPMS]
 
-    print("[*] Login performed, server string: %s" % response.fromname)
+    fromname = response.fromname
+    print("[*] Login performed, server string: %s" % (fromname.decode("utf-8", errors="replace").strip() if isinstance(fromname, bytes) else fromname))
 
     print("[*] Listening to server messages")
     try:
         while (True):
-            # Send MS_SERVER_LST packet
-            response = conn.recv()[SAPMS]
+            response = conn.recv()
 
             print("[*] Message received !")
-            response.show()
+            if SAPMS in response:
+                response[SAPMS].show()
+            else:
+                response.show()
 
     except SocketError:
         print("[*] Connection error")

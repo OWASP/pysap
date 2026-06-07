@@ -914,7 +914,10 @@ class SAPHDBAuthMethod(object):
         auth_response_part = auth_response.segments[0].parts[0].buffer[0]
 
         # Check the method replied by the server
-        if self.METHOD != auth_response_part.auth_fields[0].value:
+        server_method = auth_response_part.auth_fields[0].value
+        if isinstance(server_method, bytes):
+            server_method = server_method.decode('utf-8', errors='replace')
+        if self.METHOD != server_method:
             raise SAPHDBAuthenticationError("Authentication method not supported on server")
 
         # Craft authentication part and return it
@@ -928,7 +931,8 @@ class SAPHDBAuthMethod(object):
            connect_reponse.segments[0].parts[0].partkind == 33 and \
            len(connect_reponse.segments[0].parts[0].buffer) and \
            len(connect_reponse.segments[0].parts[0].buffer[0].auth_fields) and \
-           connect_reponse.segments[0].parts[0].buffer[0].auth_fields[0].value == self.METHOD:
+           (connect_reponse.segments[0].parts[0].buffer[0].auth_fields[0].value == self.METHOD or
+            connect_reponse.segments[0].parts[0].buffer[0].auth_fields[0].value == self.METHOD.encode()):
             self.session_cookie = connect_reponse.segments[0].parts[0].buffer[0].auth_fields[1].value
 
 
@@ -1146,7 +1150,10 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
 
         first_auth_response_part = first_auth_response.segments[0].parts[0].buffer[0]
         # Check the method replied by the server
-        if self.METHOD != first_auth_response_part.auth_fields[0].value:
+        server_method = first_auth_response_part.auth_fields[0].value
+        if isinstance(server_method, bytes):
+            server_method = server_method.decode('utf-8', errors='replace')
+        if self.METHOD != server_method:
             raise SAPHDBAuthenticationError("Authentication method not supported on server")
 
         # The initial response from the server includes the NegTokenResp structure:
@@ -1186,7 +1193,10 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
         second_auth_response_part = second_auth_response.segments[0].parts[0].buffer[0]
 
         # Check the method replied by the server
-        if self.METHOD != second_auth_response_part.auth_fields[0].value:
+        server_method = second_auth_response_part.auth_fields[0].value
+        if isinstance(server_method, bytes):
+            server_method = server_method.decode('utf-8', errors='replace')
+        if self.METHOD != server_method:
             raise SAPHDBAuthenticationError("Authentication method not supported on server")
 
         # Craft authentication part and return it

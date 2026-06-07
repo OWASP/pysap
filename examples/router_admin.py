@@ -102,6 +102,12 @@ def parse_options():
     return options
 
 
+def decode_field(val):
+    if isinstance(val, bytes):
+        val = val.decode('latin-1', errors='replace')
+    return val.strip('\x00').replace('\x00', ' ')
+
+
 def print_table(clients):
     """Prints the client table"""
     if tabulate:
@@ -137,7 +143,7 @@ def main():
         if options.info_password:
             if len(options.info_password) > 19:
                 logging.info("[*] Password too long, truncated at 19 characters")
-            p.adm_password = options.info_password
+            p.adm_password = options.info_password.encode()
             logging.info("[*] Requesting info using password %s" % p.adm_password)
         else:
             logging.info("[*] Requesting info")
@@ -172,13 +178,13 @@ def main():
 
     elif options.set_peer:
         p.adm_command = 10
-        p.adm_address_mask = options.set_peer
+        p.adm_address_mask = options.set_peer.encode()
         logging.info("[*] Request a set peer trace for the address mask %s" % p.adm_address_mask)
         response = True
 
     elif options.clear_peer:
         p.adm_command = 11
-        p.adm_address_mask = options.clear_peer
+        p.adm_address_mask = options.clear_peer.encode()
         logging.info("[*] Request a clear peer trace for the address mask %s" % p.adm_address_mask)
         response = True
 
@@ -193,7 +199,11 @@ def main():
         return
 
     # Initiate the connection
-    conn = SAPNIStreamSocket.get_nisocket(options.remote_host, options.remote_port)
+    try:
+        conn = SAPNIStreamSocket.get_nisocket(options.remote_host, options.remote_port)
+    except (error, OSError) as e:
+        logging.error("[-] Failed to connect to %s:%d: %s" % (options.remote_host, options.remote_port, e))
+        return
     logging.info("[*] Connected to the SAP Router %s:%d" % (options.remote_host, options.remote_port))
 
     # Retrieve the router version used by the server if not specified
@@ -207,7 +217,11 @@ def main():
     logging.info("[*] Sending Router Admin packet")
     if options.verbose:
         p.show2()
-    conn.send(p)
+    try:
+        conn.send(p)
+    except (error, OSError) as e:
+        logging.error("[-] Failed to send request: %s" % e)
+        return
 
     # Grab the response if required
     if response:
@@ -246,9 +260,9 @@ def main():
                     flag = "(*)" if client.flag_traced else "(+)" if client.flag_routed else ""
 
                     fields = [str(client.id),
-                              client.address,
-                              "%s%s" % (flag, client.partner) if client.flag_routed else "(no partner)",
-                              client.service if client.flag_routed else "",
+                              decode_field(client.address),
+                              "%s%s" % (flag, decode_field(client.partner)) if client.flag_routed else "(no partner)",
+                              decode_field(client.service) if client.flag_routed else "",
                               saptimestamp_to_datetime(client.connected_on).ctime()]
                     clients.append(fields)
 

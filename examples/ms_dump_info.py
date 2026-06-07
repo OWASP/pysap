@@ -92,8 +92,8 @@ def main():
     print("[*] Sending login packet:")
     response = conn.sr(p)[SAPMS]
 
-    print("[*] Login OK, Server string: %s" % response.fromname)
-    server_string = response.fromname if isinstance(response.fromname, bytes) else response.fromname
+    server_string = response.fromname
+    print("[*] Login OK, Server string: %s" % (server_string.decode("utf-8", errors="replace").strip() if isinstance(server_string, bytes) else server_string))
 
     # Send a Dump Info packet for each possible Dump
     for i in ms_dump_command_values.keys():
@@ -112,7 +112,10 @@ def main():
 
         if response.opcode_error != 0:
             print("Error:", ms_opcode_error_values[response.opcode_error])
-        print(response.opcode_value)
+        value = response.opcode_value
+        if isinstance(value, bytes):
+            value = value.rstrip(b'\x00').decode('utf-8', errors='replace')
+        print(value)
 
 
 if __name__ == "__main__":

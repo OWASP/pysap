@@ -104,8 +104,8 @@ def main():
     print("[*] Sending login packet")
     response = conn.sr(p)[SAPMS]
 
-    print("[*] Login performed, server string: %s" % response.fromname)
-    server_string = response.fromname if isinstance(response.fromname, bytes) else response.fromname
+    server_string = response.fromname
+    print("[*] Login performed, server string: %s" % (server_string.decode("utf-8", errors="replace").strip() if isinstance(server_string, bytes) else server_string))
 
     print("[*] Retrieving current value of parameter: %s" % options.param_name)
 
@@ -122,6 +122,8 @@ def main():
         response.show()
 
     param_old_value = response.adm_records[0].parameter
+    if isinstance(param_old_value, bytes):
+        param_old_value = param_old_value.decode("utf-8", errors="replace").strip("\x00").strip()
     print("[*] Parameter %s" % param_old_value)
 
     # If a parameter change was requested, send an ADM AD_SHARED_PARAMETER request
