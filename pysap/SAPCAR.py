@@ -505,7 +505,12 @@ class SAPCARArchiveFile(object):
         :return: the CRC32 checksum
         :rtype: int
         """
-        return -crc32(data, -1) - 1
+        crc = crc32(data, -1)
+        # zlib.crc32 always returns an unsigned 32-bit value in Python 3, but the checksum
+        # field is a signed 32-bit integer, so convert to signed before negating
+        if crc >= 0x80000000:
+            crc -= 0x100000000
+        return -crc - 1
 
     @classmethod
     def from_file(cls, filename, version=SAPCAR_VERSION_201, archive_filename=None):

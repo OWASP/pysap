@@ -33,13 +33,17 @@ import pysap
 def parse_java(f):
 
     def h(s):
-        return ' '.join('%.2X' % ord(x) for x in s)  # format as hex
+        if isinstance(s, (bytes, bytearray)):
+            return ' '.join('%.2X' % x for x in s)
+        return ' '.join('%.2X' % ord(x) for x in s)
 
     def p(s):
-        return sum(ord(x)*256**i for i, x in enumerate(reversed(s)))  # parse integer
+        if isinstance(s, (bytes, bytearray)):
+            return sum(x * 256**i for i, x in enumerate(reversed(s)))
+        return sum(ord(x) * 256**i for i, x in enumerate(reversed(s)))
 
     magic = f.read(2)
-    assert magic == '\xAC\xED', h(magic)  # STREAM_MAGIC
+    assert magic == b'\xAC\xED', h(magic)  # STREAM_MAGIC
     assert p(f.read(2)) == 5  # STREAM_VERSION
     handles = []
 
@@ -47,17 +51,17 @@ def parse_java(f):
         b = f.read(1)
         if not b:
             raise StopIteration  # not necessarily the best thing to throw here.
-        if b == '\x70':  # p TC_NULL
+        if b == b'\x70':  # p TC_NULL
             return None
-        elif b == '\x71':  # q TC_REFERENCE
+        elif b == b'\x71':  # q TC_REFERENCE
             handle = p(f.read(4)) - 0x7E0000  # baseWireHandle
             o = handles[handle]
             return o[1]
-        elif b == '\x74':  # t TC_STRING
+        elif b == b'\x74':  # t TC_STRING
             string = f.read(p(f.read(2))).decode('utf-8')
             handles.append(('TC_STRING', string))
             return string
-        elif b == '\x75':  # u TC_ARRAY
+        elif b == b'\x75':  # u TC_ARRAY
             data = []
             cls = parse_obj()
             size = p(f.read(4))
@@ -66,32 +70,32 @@ def parse_java(f):
             for x in range(size):
                 data.append(f.read({'[B': 1, '[I': 4}[cls['_name']]))
             return data
-        elif b == '\x7E':  # ~ TC_ENUM
+        elif b == b'\x7E':  # ~ TC_ENUM
             enum = {}
             enum['_cls'] = parse_obj()
             handles.append(('TC_ENUM', enum))
             enum['_name'] = parse_obj()
             return enum
-        elif b == '\x72':  # r TC_CLASSDESC
+        elif b == b'\x72':  # r TC_CLASSDESC
             cls = {'fields': []}
-            full_name = f.read(p(f.read(2)))
+            full_name = f.read(p(f.read(2))).decode('latin-1')
             cls['_name'] = full_name.split('.')[-1]  # i don't care about full path
             f.read(8)  # uid
-            cls['flags'] = f.read(1)
+            cls['flags'] = f.read(1).decode('latin-1')
             handles.append(('TC_CLASSDESC', cls))
-            assert cls['flags'] in ('\2', '\3', '\x0C', '\x12'), h(cls['flags'])
+            assert cls['flags'] in ('\x02', '\x03', '\x0C', '\x12'), h(cls['flags'].encode('latin-1'))
             b = f.read(2)
             for i in range(p(b)):
-                typ = f.read(1)
-                name = f.read(p(f.read(2)))
+                typ = f.read(1).decode('latin-1')
+                name = f.read(p(f.read(2))).decode('latin-1')
                 fcls = parse_obj() if typ in 'L[' else ''
                 cls['fields'].append((name, typ, fcls.split('/')[-1]))  # don't care about full path
             b = f.read(1)
-            assert b == '\x78', h(b)
+            assert b == b'\x78', h(b)
             cls['parent'] = parse_obj()
             return cls
         # TC_OBJECT
-        assert b == '\x73', (h(b), h(f.read(4)), repr(f.read(50)))
+        assert b == b'\x73', (h(b), h(f.read(4)), repr(f.read(50)))
         obj = {'_cls': parse_obj()}
         obj['_name'] = obj['_cls']['_name']
         handle = len(handles)
@@ -100,7 +104,7 @@ def parse_java(f):
             parents.insert(0, parents[0]['parent'])
         handles.append(('TC_OBJECT', obj))
         for cls in parents:
-            for name, typ, fcls in cls['fields'] if cls['flags'] in ('\2', '\3') else []:
+            for name, typ, fcls in cls['fields'] if cls['flags'] in ('\x02', '\x03') else []:
                 if typ == 'I':  # Integer
                     obj[name] = p(f.read(4))
                 elif typ == 'S':  # Short
@@ -119,9 +123,9 @@ def parse_java(f):
                     obj[name] = parse_obj()
                 else:  # Unknown
                     assert False, (name, typ, fcls)
-            if cls['flags'] in ('\3', '\x0C'):  # SC_WRITE_METHOD, SC_BLOCKDATA
+            if cls['flags'] in ('\x03', '\x0C'):  # SC_WRITE_METHOD, SC_BLOCKDATA
                 b = f.read(1)
-                if b == '\x77':  # see the readObject / writeObject methods
+                if b == b'\x77':  # see the readObject / writeObject methods
                     block = f.read(p(f.read(1)))
                     if cls['_name'].endswith('HashMap') or cls['_name'].endswith('Hashtable'):
                         # http://javasourcecode.org/html/open-source/jdk/jdk-6u23/java/util/HashMap.java.html
@@ -153,7 +157,7 @@ def parse_java(f):
                     else:
                         assert False, cls['_name']
                     b = f.read(1)
-                assert b == '\x78', h(b) + ' ' + repr(f.read(30))  # TC_ENDBLOCKDATA
+                assert b == b'\x78', h(b) + ' ' + repr(f.read(30))  # TC_ENDBLOCKDATA
         handles[handle] = ('py', obj)
         return obj
     objs = []
@@ -168,7 +172,7 @@ def parse_config_file(filename, decrypt=False, serial_number=None):
     print("[*] Opening DLManager config file: %s" % filename)
 
     try:
-        with open(filename, 'r') as fil:
+        with open(filename, 'rb') as fil:
             data = parse_java(fil)[0]["data"]
     except:
         print("[-] Error reading configuration file or invalid file")
@@ -192,14 +196,15 @@ def build_key(serial_number):
     key = "hgjZ@Fk*0!N%0Un*"
     if serial_number:
         key = serial_number + key
-    return key[:16]
+    return key[:16].encode('utf-8')
 
 
 def decrypt(cipher_text, key):
-    iv = "\x00" * 16
+    iv = b"\x00" * 16
     decryptor = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend()).decryptor()
     plain_text = decryptor.update(cipher_text) + decryptor.finalize()
-    plain_text = plain_text[0:-ord(plain_text[-1])]     # Unpad the plain text
+    pad_len = plain_text[-1]                            # Python 3: bytes index returns int
+    plain_text = plain_text[:-pad_len]                  # Unpad the plain text
     return plain_text
 
 
@@ -223,7 +228,7 @@ def unwrap(value, encrypted=False, serial_number=None):
 
     else:
         try:
-            unwrapped = b"".join(map(chr, unwrapped))
+            unwrapped = "".join(map(chr, unwrapped))
         except ValueError:
             print("[-] Invalid stored value. Maybe it's encrypted?")
             unwrapped = None
@@ -259,7 +264,7 @@ def main():
     parser.add_argument("-f", "--filename", dest="filename", metavar="FILE",
                         help="DLManager config filename")
     parser.add_argument("-e", "--encrypted", dest="encrypted", action="store_true",
-                        help="If passwords are stored encrypted (version >= 2.1.140a)")
+                        help="If passwords are stored encrypted (version >= 2.1.140a) (Windows only!)")
     parser.add_argument("-s", "--serial-number", dest="serial_number",
                         help="The machine's BIOS serial number")
     parser.add_argument("-r", "--retrieve-serial-number", dest="retrieve", action="store_true",

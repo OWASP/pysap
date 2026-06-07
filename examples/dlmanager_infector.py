@@ -62,7 +62,7 @@ def parse_options(args=None, req_filename=True):
     usage = "%(prog)s [options] "
     if req_filename:
         usage += "-f <sar_filename> "
-    usage += "[<filename> <archive filename>]"
+    usage += "[<filename> <filename of file in archive>]"
 
     parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
 
@@ -159,7 +159,7 @@ def response(context, flow):
                 infect_sar_file(fil.name, context.inject_files)
                 context.log("SAR file infected !")
 
-                with open(fil.name, "r") as new_fil:
+                with open(fil.name, "rb") as new_fil:
                     content = new_fil.read()
 
                 flow.response.content = content
