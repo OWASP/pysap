@@ -910,7 +910,7 @@ class SAPRFC(PacketNoPadded):
 
         # answer from Anon GW
         ConditionalField(StrFixedLenField("anon_repl_sign", b'\x05\x00\x00\x00', 4), lambda pkt: pkt.version == 0x6 and 'F_V_RECEIVE' == str(pkt.vector)),
-        ConditionalField(PacketListField("repl", None, DEF_FIELDS, length_from=lambda pkt: pkt.codepage_size2), lambda pkt: pkt.version == 0x6 and 'F_V_RECEIVE' in str(pkt.vector) and pkt.codepage_size2 > 0),
+        ConditionalField(PacketListField("repl", None, DEF_FIELDS, length_from=lambda pkt: pkt.codepage_size2), lambda pkt: pkt.version == 0x6 and 'F_V_RECEIVE' in str(pkt.vector) and (pkt.codepage_size2 or 0) > 0),
 
         ConditionalField(ShortField("cpic_packet_size", 0x0), lambda pkt: pkt.version == 0x6 and 'F_V_SEND_DATA' in str(pkt.vector)),  # chipik
         ConditionalField(IntField("rfc_packet_size", 0x0), lambda pkt: pkt.version == 0x6 and 'F_V_SEND_DATA' in str(pkt.vector)),  # chipik

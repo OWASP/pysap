@@ -154,19 +154,48 @@ class StrNullFixedLenField(StrFixedLenField):
 class StrFixedLenPaddedField(StrFixedLenField):
     """Packet field that has a fixed length and is padded with a
     given character.
-    """
-    __slots__ = ["length_from", "padd"]
 
-    def __init__(self, name, default, length=None, length_from=None, padd=" "):
+    The optional *encoding* parameter enables transparent decoding of fields
+    that carry multi-byte character encodings in a fixed-width byte buffer.
+    This is required for SAP NetWeaver RFC SDK (NWRFC) connections, where
+    fixed-length string fields are encoded in **UTF-16LE** rather than ASCII.
+
+    When *encoding* is set:
+
+    * :meth:`getfield` attempts to decode the raw bytes with *encoding* and
+      strips trailing null and space padding from the decoded string. If
+      decoding fails the raw bytes are returned unchanged (graceful fallback).
+    * :meth:`addfield` encodes a ``str`` value with *encoding*, padding with
+      NUL bytes, before writing.
+    """
+    __slots__ = ["length_from", "padd", "encoding"]
+
+    def __init__(self, name, default, length=None, length_from=None, padd=" ", encoding=None):
         StrFixedLenField.__init__(self, name, default, length, length_from)
         self.padd = padd.encode() if isinstance(padd, str) else padd
+        self.encoding = encoding
 
     def getfield(self, pkt, s):
         l = self.length_from(pkt)
-        return s[l:], self.m2i(pkt, s[:l])
+        raw = s[:l]
+        if self.encoding:
+            try:
+                decoded = raw.decode(self.encoding).rstrip("\x00 ")
+                return s[l:], decoded
+            except (UnicodeDecodeError, AttributeError):
+                pass
+        return s[l:], self.m2i(pkt, raw)
 
     def addfield(self, pkt, s, val):
         l = self.length_from(pkt)
+        if self.encoding and isinstance(val, str):
+            # Pad with NUL bytes regardless of self.padd so that trailing
+            # padding can be safely stripped after decoding. (Padding with
+            # the default ASCII space b" " would produce 0x2020 dagger chars
+            # in UTF-16LE, which rstrip("\x00 ") would not remove.)
+            encoded = val.encode(self.encoding)
+            padded = (encoded + b'\x00' * l)[:l]
+            return s + padded
         if val is None:
             val = b""
         if isinstance(val, str):
