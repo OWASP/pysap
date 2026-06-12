@@ -25,7 +25,7 @@ from threading import Event
 from socketserver import BaseRequestHandler, ThreadingMixIn, TCPServer
 # External imports
 from scapy.fields import LenField
-from scapy.packet import Packet, Raw
+from scapy.packet import Packet, Raw, raw
 from scapy.supersocket import socket, StreamSocket
 # Custom imports
 from pysap.utils import Worker
@@ -144,10 +144,18 @@ class SAPNIStreamSocket(StreamSocket):
         # Decode the packet payload according to the base class defined
         packet = SAPNI(nidata)
         if self.basecls:
+            # If basecls is a callable that isn't a class itself, treat it as
+            # a dispatcher: call it with the packet and raw payload to pick
+            # the actual class to decode the payload as (e.g. to distinguish
+            # classic SAPRFC frames from NWRFC frames by their magic bytes).
+            if callable(self.basecls) and not isinstance(self.basecls, type):
+                cls = self.basecls(packet, raw(packet.payload))
+            else:
+                cls = self.basecls
             try:
-                packet.decode_payload_as(self.basecls)
+                packet.decode_payload_as(cls)
             except Exception as e:
-                log_sapni.debug("Failed to dissect packet as %s: %s", self.basecls.__name__, e)
+                log_sapni.debug("Failed to dissect packet as %s: %s", getattr(cls, "__name__", cls), e)
         return packet
 
     def sr(self, packet):
