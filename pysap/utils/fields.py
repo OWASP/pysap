@@ -234,7 +234,7 @@ class StrEncodedPaddedField(StrField):
                  fmt="H", remain=0):
         StrField.__init__(self, name, default, fmt, remain)
         self.encoding = encoding
-        self.padd = padd
+        self.padd = padd.encode() if isinstance(padd, str) else padd
 
     def h2i(self, pkt, x):
         if x:
@@ -252,7 +252,7 @@ class StrEncodedPaddedField(StrField):
     def getfield(self, pkt, s):
         l = s.find(self.padd)
         if l < 0:
-            return "", s
+            return b"", s
         return s[l + 1:], self.m2i(pkt, s[:l])
 
 
@@ -273,7 +273,7 @@ class PacketListStopField(PacketListField):
             c = self.count_from(pkt)
 
         lst = []
-        ret = ""
+        ret = b""
         remain = s
         if l is not None:
             remain, ret = s[:l], s[l:]
@@ -288,14 +288,14 @@ class PacketListStopField(PacketListField):
                 if conf.debug_dissector:
                     raise
                 p = conf.raw_layer(load=remain)
-                remain = ""
+                remain = b""
             else:
                 if conf.padding_layer in p:
                     pad = p[conf.padding_layer]
                     remain = pad.load
                     del (pad.underlayer.payload)
                 else:
-                    remain = ""
+                    remain = b""
             lst.append(p)
             # Evaluate the stop condition
             if self.stop and self.stop(p):
