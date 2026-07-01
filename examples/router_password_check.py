@@ -68,6 +68,8 @@ def parse_options():
                       help="Correct password to test [%(default)s]")
     misc.add_argument("-o", "--output", dest="output", default="output.csv",
                       help="Output file [%(default)s]")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=5.0,
+                      help="Socket timeout in seconds [%(default).1f]")
 
     options = parser.parse_args()
 
@@ -84,14 +86,18 @@ def try_password(options, password, output=None, k=0):
     p.adm_password = password.encode()
     data = raw(SAPNI() / p)
 
-    conn = socket.create_connection((options.remote_host, options.remote_port))
-    t_start = time.perf_counter_ns()
-    conn.sendall(data)
-    conn.recv(1024)
-    elapsed_ns = time.perf_counter_ns() - t_start
-    conn.close()
-
-    logging.debug("Request time: %s nanosec" % elapsed_ns)
+    try:
+        with socket.create_connection((options.remote_host, options.remote_port),
+                                      timeout=options.timeout) as conn:
+            t_start = time.perf_counter_ns()
+            conn.sendall(data)
+            conn.recv(1024)
+            elapsed_ns = time.perf_counter_ns() - t_start
+    except (socket.timeout, OSError) as e:
+        elapsed_ns = "ERROR:%s" % e.__class__.__name__
+        logging.debug("Request failed: %s", e)
+    else:
+        logging.debug("Request time: %s nanosec" % elapsed_ns)
 
     if output:
         output.write("%i,%s,%s\n" % (k, password, elapsed_ns))
