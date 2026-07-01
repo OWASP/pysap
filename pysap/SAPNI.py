@@ -144,10 +144,7 @@ class SAPNIStreamSocket(StreamSocket):
         # Decode the packet payload according to the base class defined
         packet = SAPNI(nidata)
         if self.basecls:
-            try:
-                packet.decode_payload_as(self.basecls)
-            except Exception as e:
-                log_sapni.debug("Failed to dissect packet as %s: %s", self.basecls.__name__, e)
+            packet.decode_payload_as(self.basecls)
         return packet
 
     def sr(self, packet):

@@ -362,6 +362,14 @@ def router_is_known_type(pkt):
     return pkt.type in SAPRouter.router_type_values
 
 
+def normalize_route_hops(route):
+    """Normalize route hop field types before serializing route requests."""
+    for hop in route:
+        if hop.port is not None and isinstance(hop.port, int):
+            hop.port = str(hop.port)
+    return route
+
+
 class SAPRouter(Packet):
     """SAP Router packet
 
@@ -587,11 +595,8 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         """
         # Build the route request packet
         talk_mode = talk_mode or ROUTER_TALK_MODE_NI_MSG_IO
-        # Ensure port values are strings/bytes — int ports serialise as N zero
-        # bytes in Python 3 (bytes(N) == b"\x00" * N), corrupting route_length.
-        for hop in route:
-            if hop.port is not None and isinstance(hop.port, int):
-                hop.port = str(hop.port)
+        # Ensure port values are strings/bytes before serializing route hops.
+        normalize_route_hops(route)
         router_strings = [raw(hop) for hop in route]
         hostname = route[-1].hostname
         if isinstance(hostname, bytes):
@@ -866,9 +871,7 @@ class SAPRouterNativeProxy(SAPNIProxy):
                                                password=self.target_pass)]
         else:
             router_string = SAPRouterRouteHop.from_string(self.options.target_route_string)
-        for hop in router_string:
-            if hop.port is not None and isinstance(hop.port, int):
-                hop.port = str(hop.port)
+        normalize_route_hops(router_string)
         router_string_lens = list(map(len, [raw(hop) for hop in router_string]))
         p = SAPRouter(type=SAPRouter.SAPROUTER_ROUTE,
                       route_entries=len(router_string),
