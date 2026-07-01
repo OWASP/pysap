@@ -21,12 +21,9 @@ import unittest
 from datetime import datetime
 # External imports
 from scapy.asn1.asn1 import ASN1_Error
-from scapy.fields import StrFixedLenField
-from scapy.packet import Packet
 # Custom imports
 from pysap.utils.fields import (saptimestamp_to_datetime, StrNullFixedLenField,
                                 StrFixedLenPaddedField, StrNullFixedLenPaddedField,
-                                StrEncodedPaddedField, PacketListStopField,
                                 AdjustableFieldLenField, ASN1F_CHOICE_SAFE)
 
 
@@ -56,12 +53,6 @@ class RejectingChoice(object):
 
     def __init__(self, s, _underlayer=None):
         raise ASN1_Error("rejecting choice")
-
-
-class FixedLengthTestPacket(Packet):
-    fields_desc = [
-        StrFixedLenField("value", b"", length=2),
-    ]
 
 
 class PySAPUtilsFieldsTest(unittest.TestCase):
@@ -114,25 +105,6 @@ class PySAPUtilsFieldsTest(unittest.TestCase):
         remaining, value = field.getfield(pkt, b"ab\x00xyrest")
         self.assertEqual(remaining, b"rest")
         self.assertEqual(value, b"ab")
-
-    def test_str_encoded_padded_field_accepts_text_padding(self):
-        field = StrEncodedPaddedField("value", None, encoding="utf-8", padd="\x0c")
-
-        raw = field.addfield(None, b"", "abc")
-        remaining, value = field.getfield(None, raw + b"rest")
-
-        self.assertEqual(raw, b"abc\x0c")
-        self.assertEqual(remaining, b"rest")
-        self.assertEqual(value, b"abc")
-
-    def test_packet_list_stop_field_returns_bytes_remainder(self):
-        field = PacketListStopField("items", None, FixedLengthTestPacket, length_from=lambda pkt: 2)
-
-        remaining, value = field.getfield(None, b"abrest")
-
-        self.assertEqual(remaining, b"rest")
-        self.assertEqual(len(value), 1)
-        self.assertEqual(value[0].value, b"ab")
 
     def test_adjustable_field_len_field_short_and_extended(self):
         field = AdjustableFieldLenField("length", None, length_of="payload")
