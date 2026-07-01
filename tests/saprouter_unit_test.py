@@ -76,6 +76,18 @@ class PySAPNIStreamSocketUnitTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             stream.recv()
 
+    def test_recv_keeps_ping_payload_raw_when_saprouter_is_bound(self):
+        stream = SAPNIStreamSocket.__new__(SAPNIStreamSocket)
+        stream.ins = FakeSocket(raw(SAPNI() / SAPNI.SAPNI_PING))
+        stream.keep_alive = False
+        stream.basecls = None
+
+        packet = stream.recv()
+
+        self.assertIn(SAPNI, packet)
+        self.assertEqual(packet[SAPNI].length, len(SAPNI.SAPNI_PING))
+        self.assertEqual(packet.payload.load, SAPNI.SAPNI_PING)
+
 
 class PySAPRouterRouteUnitTest(unittest.TestCase):
 

@@ -131,7 +131,8 @@ class SAPNIStreamSocket(StreamSocket):
 
         # If the packet received is a keep-alive request (NI_PING), send a
         # response (NI_PONG) and make a new receive call
-        if nilength == len(SAPNI.SAPNI_PING) and nidata[4:] == SAPNI.SAPNI_PING:
+        keep_alive_request = nilength == len(SAPNI.SAPNI_PING) and nidata[4:] == SAPNI.SAPNI_PING
+        if keep_alive_request:
             log_sapni.debug("Received NI_PING")
             if self.keep_alive:
                 log_sapni.debug("Keep alive set, sending NI_PONG")
@@ -145,6 +146,8 @@ class SAPNIStreamSocket(StreamSocket):
         packet = SAPNI(nidata)
         if self.basecls:
             packet.decode_payload_as(self.basecls)
+        elif keep_alive_request:
+            packet = SAPNI(length=nilength) / Raw(nidata[4:])
         return packet
 
     def sr(self, packet):
