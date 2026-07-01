@@ -211,6 +211,24 @@ def test_packet_examples_build_and_dissect(name, packet):
     packet.__class__(raw_packet)
 
 
+@pytest.mark.unit
+def test_saprfc_th_struct_default_builds_declared_length():
+    from scapy.config import conf
+    from pysap.SAPRFC import SAPCPICPARAM, SAPRFCTHStruct
+
+    old_debug_dissector = conf.debug_dissector
+    conf.debug_dissector = True
+    try:
+        raw_packet = bytes(SAPRFCTHStruct())
+        packet = SAPRFCTHStruct(raw_packet)
+    finally:
+        conf.debug_dissector = old_debug_dissector
+
+    assert len(raw_packet) == packet.th_len == 230
+    assert len(packet.th_some_cpic_params) == 1
+    assert isinstance(packet.th_some_cpic_params[0], SAPCPICPARAM)
+
+
 @pytest.mark.slow
 @pytest.mark.packet_visual
 @pytest.mark.skipif(not scapy_canvas_dump_available(),

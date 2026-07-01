@@ -145,10 +145,6 @@ class SAPNIStreamSocket(StreamSocket):
         # Decode the packet payload according to the base class defined
         packet = SAPNI(nidata)
         if self.basecls:
-            # If basecls is a callable that isn't a class itself, treat it as
-            # a dispatcher: call it with the packet and raw payload to pick
-            # the actual class to decode the payload as (e.g. to distinguish
-            # classic SAPRFC frames from NWRFC frames by their magic bytes).
             if callable(self.basecls) and not isinstance(self.basecls, type):
                 cls = self.basecls(packet, raw(packet.payload))
             else:

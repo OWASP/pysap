@@ -464,7 +464,7 @@ class SAPRFCTHStruct(PacketNoPadded):
         ShortField("th_acttype", 1),
         StrFixedLenPaddedField("th_id", b"", length=35),
         ByteField("th_unused_comm1", 0,),
-        PacketListField("th_some_cpic_params", None, SAPCPICPARAM, count_from=lambda pkt: 1),
+        PacketListField("th_some_cpic_params", [SAPCPICPARAM()], SAPCPICPARAM, count_from=lambda pkt: 1),
         StrFixedLenField("th_unused_comm2", b"\x00\x00\x00\xe2", length=4),
         StrFixedLenField("th_eyec2", b"*TH*", length=4),
     ]
