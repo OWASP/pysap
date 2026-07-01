@@ -147,6 +147,8 @@ def main():
                 for key, name in SAPHDBPartDBConnectInfo.option_keys.items():
                     value = hdb_get_part_kind_option(hdb_dbconnectinfo_response_part, key)
                     if value is not None:
+                        if isinstance(value, bytes):
+                            value = value.decode('utf-8', errors='replace')
                         results[tenant][name] = value
                     logging.debug("[*]\t{}:\t{}".format(name, value))
 

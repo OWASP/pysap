@@ -53,7 +53,9 @@ def filter_client(packet):
         print("[*] Input fields:")
         for atom in [atom for atom_item in atoms for atom in atom_item.item_value.items]:
             if atom.etype in [121, 122, 123, 130, 131, 132]:
-                text = atom.field1_text or atom.field2_text
+                text = atom.field1_text if atom.field1_text else atom.field2_text
+                if isinstance(text, bytes):
+                    text = text.decode("utf-8", errors="replace")
                 text = text.strip()
                 if atom.attr_DIAG_BSD_INVISIBLE and len(text) > 0:
                     # If the invisible flag was set, we're probably

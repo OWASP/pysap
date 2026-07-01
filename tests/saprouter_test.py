@@ -187,7 +187,7 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
         sock.connect((self.test_address, self.test_port))
 
         route = [SAPRouterRouteHop(hostname=self.test_address,
-                                   port=self.test_port),
+                                   port=str(self.test_port)),
                  SAPRouterRouteHop(hostname="10.0.0.2",
                                    port="3200")]
 

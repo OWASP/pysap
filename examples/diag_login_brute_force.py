@@ -292,11 +292,15 @@ def main():
                     if len(line) == 0 or line.startswith("#"):
                         continue
 
-                    (username, password, clients) = line.split(':')
-                    if clients == "*":
+                    parts = line.split(':', 2)
+                    if len(parts) == 2:
+                        username, password = parts
                         clients = client_list
+                    elif len(parts) == 3:
+                        username, password, client_field = parts
+                        clients = client_list if client_field == "*" else client_field.split(',')
                     else:
-                        clients = clients.split(',')
+                        raise ValueError("Invalid line: %s" % line)
 
                     for client in clients:
                         testcases.append((username, password, client))

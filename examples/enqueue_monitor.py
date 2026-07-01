@@ -51,6 +51,8 @@ class SAPEnqueueAdminConsole(BaseConsole):
         self.runtimeoptions["client_recv_length"] = 1000
         self.runtimeoptions["client_send_length"] = 1000
         self.runtimeoptions["client_version"] = 3
+        self.runtimeoptions["server_name"] = ""
+        self.runtimeoptions["server_version"] = 0
 
     # Initialization
     def preloop(self):
@@ -89,11 +91,14 @@ class SAPEnqueueAdminConsole(BaseConsole):
 
         # Walk over the server's parameters
         for param in response.params:
-            self._debug("Server parameter: %s=%s" % (enqueue_param_values[param.param],
-                                                     param.value if param.param not in [0x03] else param.set_name))
+            pval = param.set_name if param.param in [0x03] else param.value
+            if isinstance(pval, bytes):
+                pval = pval.decode('latin-1', errors='replace')
+            self._debug("Server parameter: %s=%s" % (enqueue_param_values[param.param], pval))
             # Save server version and name as runtime options
             if param.param == 0x03:
-                self.runtimeoptions["server_name"] = param.set_name
+                name = param.set_name
+                self.runtimeoptions["server_name"] = name.decode('latin-1', errors='replace') if isinstance(name, bytes) else name
             if param.param == 0x05:
                 self.runtimeoptions["server_version"] = param.value
 
@@ -171,7 +176,7 @@ class SAPEnqueueAdminConsole(BaseConsole):
         try:
             self.connection.sr(p)[SAPEnqueue]
             self._print("Server available, probably not vulnerable to CVE-2014-0995")
-        except:
+        except Exception:
             self._print("Server unavailable, probably vulnerable to CVE-2014-0995.")
 
 

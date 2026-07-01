@@ -193,7 +193,10 @@ def server_mode(options):
         logging.error("[*] Cancelled by the user")
 
     finally:
-        sock.shutdown(SHUT_RDWR)
+        try:
+            sock.shutdown(SHUT_RDWR)
+        except OSError:
+            pass
         sock.close()
 
 

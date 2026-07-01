@@ -97,8 +97,8 @@ def main():
         p = SAPMS(flag=0x00, iflag=0x08, toname=client_string, fromname=client_string)
         print("[*] Sending login packet:")
         response = conn.sr(p)[SAPMS]
-        print("[*] Login OK, Server string: %s\n" % response.fromname)
-        server_string = response.fromname if isinstance(response.fromname, bytes) else response.fromname
+        server_string = response.fromname
+        print("[*] Login OK, Server string: %s\n" % (server_string.decode("utf-8", errors="replace").strip() if isinstance(server_string, bytes) else server_string))
 
         try:
             with open(options.file_param) as list_param:

@@ -66,9 +66,55 @@ class PySAPIGSTest(unittest.TestCase):
         with mock.patch.object(module, "Request", FakeRequest):
             request = SAPIGS.http("host", 8000, "ZIPPER")
 
-        self.assertIn("POST http://host:8000/ZIPPER HTTP/1.1", request)
-        self.assertIn("User-Agent: pysap", request)
-        self.assertTrue(request.endswith("body"))
+        self.assertIsInstance(request, bytes)
+        self.assertIn(b"POST http://host:8000/ZIPPER HTTP/1.1", request)
+        self.assertIn(b"User-Agent: pysap", request)
+        self.assertTrue(request.endswith(b"body"))
+
+    def test_http_request_builder_preserves_bytes_body(self):
+        module = importlib.import_module("pysap.SAPIGS")
+
+        class FakePreparedRequest(object):
+            def __init__(self):
+                self.method = "POST"
+                self.url = "http://host:8000/ZIPPER"
+                self.headers = {"Host": "host:8000"}
+                self.body = b"\xff\x00body"
+
+        class FakeRequest(object):
+            def __init__(self, method, url, files=None):
+                pass
+
+            def prepare(self):
+                return FakePreparedRequest()
+
+        with mock.patch.object(module, "Request", FakeRequest):
+            request = SAPIGS.http("host", 8000, "ZIPPER")
+
+        self.assertTrue(request.endswith(b"\xff\x00body"))
+
+    def test_http_request_builder_allows_empty_body(self):
+        module = importlib.import_module("pysap.SAPIGS")
+
+        class FakePreparedRequest(object):
+            def __init__(self):
+                self.method = "GET"
+                self.url = "http://host:8000/ZIPPER"
+                self.headers = {"Host": "host:8000"}
+                self.body = None
+
+        class FakeRequest(object):
+            def __init__(self, method, url, files=None):
+                pass
+
+            def prepare(self):
+                return FakePreparedRequest()
+
+        with mock.patch.object(module, "Request", FakeRequest):
+            request = SAPIGS.http("host", 8000, "ZIPPER", method="GET")
+
+        self.assertIn(b"GET http://host:8000/ZIPPER HTTP/1.1", request)
+        self.assertTrue(request.endswith(b"\r\n\r\n"))
 
 
 def suite():

@@ -70,6 +70,11 @@ def parse_options():
                         help="Local port to listen [target-port]")
     target.add_argument("--talk-mode", dest="talk_mode", default="raw",
                         help="Talk mode to use when requesting the route (raw or ni) [%(default)s]")
+    target.add_argument("--passthrough", dest="passthrough", action="store_true", default=False,
+                        help="Passthrough mode: pipe all bytes to the remote SAP Router without "
+                             "establishing an NI_ROUTE. The client (e.g. SAPGUI) sends its own "
+                             "NI_ROUTE through the tunnel. Configure SAPGUI with this proxy's "
+                             "address as the SAP Router.")
 
     target.add_argument("--route-string", dest="target_route_string",
                         help="Route String for connecting through a SAP Router")
@@ -78,29 +83,35 @@ def parse_options():
 
     options = parser.parse_args()
 
-    if options.target_route_string and ( options.remote_host or options.target_host):
+    if options.target_route_string and (options.remote_host or options.target_host):
         print("[!] Route String specified, Remote and Target host ignored")
         route = SAPRouterRouteHop.from_string(options.target_route_string)
-        options.remote_host = route[0].hostname
+        options.remote_host = route[0].hostname.decode() if isinstance(route[0].hostname, bytes) else route[0].hostname
         options.remote_port = 3299
-        if route[0].port and route[0].port.isdigit(): options.remote_port = int(route[0].port)
-        options.target_host = route[-1].hostname
+        if route[0].port and route[0].port.isdigit():
+            options.remote_port = int(route[0].port)
+        options.target_host = route[-1].hostname.decode() if isinstance(route[-1].hostname, bytes) else route[-1].hostname
         options.target_port = 3299
-        if route[-1].port and route[-1].port.isdigit(): options.target_port = int(route[-1].port)
+        if route[-1].port and route[-1].port.isdigit():
+            options.target_port = int(route[-1].port)
         del route
     if not options.remote_host:
         parser.error("Remote host is required")
-    if not options.target_host:
-        parser.error("Target host to connect to is required")
-    if not options.target_port:
-        parser.error("Target port to connect to is required")
+    if options.passthrough:
+        options.talk_mode = "raw"
+        if not options.local_port:
+            options.local_port = options.remote_port
+    else:
+        if not options.target_host:
+            parser.error("Target host to connect to is required")
+        if not options.target_port:
+            parser.error("Target port to connect to is required")
+        if not options.local_port:
+            print("[*] No local port specified, using target port %d" % options.target_port)
+            options.local_port = options.target_port
     options.talk_mode = options.talk_mode.lower()
     if options.talk_mode not in ["raw", "ni"]:
         parser.error("Invalid talk mode")
-
-    if not options.local_port:
-        print("[*] No local port specified, using target port %d" % options.target_port)
-        options.local_port = options.target_port
 
     return options
 
@@ -121,7 +132,7 @@ def main():
                                                                                                    options.talk_mode))
 
     if options.target_route_string:
-    	logging.info("[*] using Route String %s" % (options.target_route_string))
+        logging.info("[*] using Route String %s" % (options.target_route_string))
     options.talk_mode = {"raw": ROUTER_TALK_MODE_NI_RAW_IO, "ni": ROUTER_TALK_MODE_NI_MSG_IO}[options.talk_mode]
 
     proxy = SAPRouterNativeProxy(options.local_host, options.local_port,
