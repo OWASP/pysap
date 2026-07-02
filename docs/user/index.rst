@@ -59,6 +59,7 @@ Some example scripts has additional required libraries:
 
 - ``tabulate``
 - ``netaddr``
+- ``PyJWT``
 - ``requests``
 - `wxPython <https://www.wxpython.org/>`_
 - `fau_timer <https://github.com/seecurity/mona-timing-lib>`_

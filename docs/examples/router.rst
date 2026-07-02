@@ -55,7 +55,7 @@ in the database:
 
 .. code-block:: none
 
-    $ python router_fingerprint.py -d <hostname>
+    $ examples/router_fingerprint.py -d <hostname>
     [*] Loading fingerprint database
     [*] Trying to fingerprint version using 13 packets
     [*] (1/13) Fingerprint for packet 'No route one entry'
@@ -93,7 +93,7 @@ not found in the database:
 
 .. code-block:: none
 
-    $ ./router_fingerprint.py -d <hostname>
+    $ examples/router_fingerprint.py -d <hostname>
     [*] Loading fingerprint database
     [*] Trying to fingerprint version using 13 packets
     [*] (1/13) Fingerprint for packet 'No route one entry'
@@ -147,7 +147,7 @@ database:
 
 .. code-block:: none
 
-    $ ./router_fingerprint.py -a --new-fingerprints-file saprouter_new_fingerprints.json -i '{
+    $ examples/router_fingerprint.py -a --new-fingerprints-file saprouter_new_fingerprints.json -i '{
     >     "comment": "A new comment to add to the fingerprint",
     >     "submitted_by": "GitHub username of the submitter",
     >     "update_level": "update level",
