@@ -48,7 +48,7 @@ Notebooks
 
 Documentation include a graphical representation of the most commonly used protocol packets and file formats. This
 graphical representations are built using `Scapy <https://scapy.net/>`_,
-`The Jupyter Notebook <https://ipython.org/notebook.html>`_ , `nbconvert <https://github.com/jupyter/nbconvert>`_ and
+`The Jupyter Notebook <https://docs.jupyter.org/en/latest/>`_ , `nbconvert <https://github.com/jupyter/nbconvert>`_ and
 `nbsphinx <https://github.com/spatialaudio/nbsphinx/>`_.
 
 Jupyter notebooks containing the protocol packets' representation can be

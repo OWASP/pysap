@@ -9,23 +9,22 @@ Message Server Example scripts
 
 This example script changes a parameter using SAP Message Server Administration requests. In order to
 be able to change a parameter the Message Server should be configured in monitoring mode
-(``ms/monitor=1``, see corresponding `help <https://help.sap.com/saphelp_nw70/helpdata/en/4e/cffdb69d10424e97eb1d993b1e2cfd/content.html>`_
-for more details) and the internal port should be reachable. Keep in mind that some of the
+(``ms/monitor=1``) and the internal port should be reachable. Keep in mind that some of the
 parameters are not "dynamic" and can't be changed using this method. If the parameter value is not
-specified, the script retrieve the current value.
+specified, the script retrieves the current value.
 
 
 ``ms_dos_exploit``
 ------------------
 
-This example script can be used to tests a Denial of Service vulnerability
-affecting the Message Server (`CVE-2017-5997 <://cve.mitre.org/cgi-bin/cvename.cgi?name=2017-5997>`_).
+This example script can be used to test a Denial of Service vulnerability
+affecting the Message Server (`CVE-2017-5997 <https://www.cve.org/CVERecord?id=CVE-2017-5997>`_).
 For more details about the vulnerability see
-`ERPScan's Security Advisory <https://erpscan.com/advisories/erpscan-16-038-sap-message-server-http-remote-dos/>`_
-and SAP `Security Note 2358972 <https://launchpad.support.sap.com/#/notes/2358972>`_.
+`ERPScan's Security Advisory <https://web.archive.org/web/20180125175227/https://erpscan.com/advisories/erpscan-16-038-sap-message-server-http-remote-dos/>`_
+and SAP `Security Note 2358972 <https://me.sap.com/notes/2358972>`_.
 
 This example script was contributed by `Vahagn Vardanyan <https://github.com/vah13>`_ and
-`Mathieu Geli <ttps://github.com/gelim>`_.
+`Mathieu Geli <https://github.com/gelim>`_.
 
 
 ``ms_dump_info``
@@ -152,12 +151,12 @@ The supported check types are:
 * ``REGEX``: The parameter is compared against a regular expression and expected to be matched.
 
 
-A set of of default recommended values is provided in ``examples/list_sap_parameters`` but each user should create their
+A set of default recommended values is provided in ``examples/list_sap_parameters`` but each user should create their
 own set of expected values. The script can be used then to create a baseline configuration and automate the validation
 of a set of Application Servers against it. It's worth noting that due to the way parameters are stored and made
 available to the Message Server service there might be false positives. Additionally, configuration stored in external
 files (e.g. ACL files, ``secinfo``, ``reginfo``) need to be checked by other means as the script will only point out
-the location of the file but not it's content. Other ``dump`` commands might be helpful as to obtain those values
+the location of the file but not its content. Other ``dump`` commands might be helpful as to obtain those values
 programmatically, check the output of ``ms_dump_info`` for more details.
 
 The following is an example result of running the command:
@@ -240,7 +239,7 @@ The script's output will contain a ``[+]`` mark if the value obtained from the M
 in the provided file or a ``[!]`` mark if that's not the case. Other parameters not checked will have an empty mark
 ``[ ]``.
 
-This example script was contributed by `Ivan Genuer <https://twitter.com/_1ggy>`_. The recommended values and
+This example script was contributed by `Ivan Genuer <https://x.com/_1ggy>`_. The recommended values and
 parameters related to the Gateway and Message Server services were obtained from the
 `May 2019 Security Notes Webinar <https://support.sap.com/content/dam/support/en_us/library/ssp/offerings-and-programs/support-services/sap-security-optimization-services-portfolio/SAP_Security_Notes_Webinar.pdf>`_
 by Frank Buchholz.
@@ -257,14 +256,14 @@ Dialog instance server.
 ``ms_listener``
 ---------------
 
-This example script connects with the Message Server service and listen for messages coming
-from the server. Along with the ``ms_messenger`` script, it can be used as an example for
+This example script connects with the Message Server service and listens for messages coming
+from the server. Along with the ``ms_messager`` script, it can be used as an example for
 using the Message Server as a messenger service and send packets from one client to
 another connected to the service.
 
 
-``ms_messenger``
-----------------
+``ms_messager``
+---------------
 
 This example script connects with the Message Server service and sends a message to another
 client connected to it. Along with the ``ms_listener`` script, it can be used as an example
@@ -277,11 +276,22 @@ another connected to the service.
 
 This script is an example implementation of SAP's Message Server Monitor program (``msmon``).
 It allows the monitoring of a Message Server service and allows sending different commands and
-opcodes. Includes some commands not available on the ``msmon`` program. Some commands requires the
-server running in monitor mode, while most of them requires access to the Message Server internal port.
+opcodes. It includes some commands not available on the ``msmon`` program. Some commands require the
+server to run in monitor mode, while most of them require access to the Message Server internal port.
 
 The script implements a console-like interface that can be used to specify the operations to
-perform on the Message Server. A list of implemented commands can be obtained by running ``help``.
+perform on the Message Server. It connects with ``--remote-host`` and ``--remote-port`` (default
+``3900``), or through a SAP Router route string with ``--route-string``. The domain can be selected
+with ``--domain`` and the client name can be changed with ``--client``. Packet logs can be written
+with ``--log-file``, console output can be written with ``--console-log``, and commands can be loaded
+from a file with ``--script``. A list of implemented commands can be obtained by running ``help``
+inside the console.
+
+Example usage:
+
+.. code-block:: console
+
+    $ examples/ms_monitor.py -d <message-server> -p 3900 --domain ABAP --script ms_commands.txt
 
 
 ``ms_observer``

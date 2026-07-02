@@ -310,9 +310,9 @@ def main():
         for (target, _) in misses:
             logging.info("[-] Request: %s" % target)
 
-        logging.info("\n[-] Some error values where not found in the fingerprint database. "
-                     "If you want to contribute submit a issue to https://github.com/OWASP/pysap/ "
-                     "or write an email to mgallo@secureauth.com with the following information along "
+        logging.info("\n[-] Some error values were not found in the fingerprint database. "
+                     "If you want to contribute, submit an issue to "
+                     "https://github.com/OWASP/pysap/issues with the following information along "
                      "with the SAP Router file information and how it was configured.\n")
         options.new_entries = True
 

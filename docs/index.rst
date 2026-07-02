@@ -7,8 +7,8 @@ Version v\ |release| (:ref:`installation`)
 Overview
 --------
 
-`SAP Netweaver <https://www.sap.com/platform/netweaver/index.epx>`_ and
-`SAP HANA <https://www.sap.com/products/hana.html>`_ are technology platforms for
+`SAP Netweaver <https://help.sap.com/docs/SAP_NETWEAVER?language=en-US>`_ and
+`SAP HANA <https://help.sap.com/docs/SAP_HANA_PLATFORM>`_ are technology platforms for
 building and integrating SAP business applications. Communication between components
 uses different network protocols and some services and tools make use of custom file
 formats as well. While some of them are standard and well-known protocols, others

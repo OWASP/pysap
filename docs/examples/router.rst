@@ -9,10 +9,10 @@ Router Example scripts
 This example script connects to a SAP Router instance and allows to perform administrative tasks.
 The commands available and their syntax is similar to the one found on the ``saprouter`` program.
 The operation codes and commands are documented in the SAP's help pages for the SAP Router.
-In addition to those commands found in the ``saprouter`` program, the scripts includes undocumented
-operations codes.
+In addition to those commands found in the ``saprouter`` program, the script includes undocumented
+operation codes.
 
-In order for administrative tasks to be run, the script need to be run from the same system where the
+In order for administrative tasks to be run, the script needs to be run from the same system where the
 SAP Router instance is running (connections identified as "local" by the Network Interface (``NI``)
 protocol), or the SAP Router needs to be configured as to allow remote connections to the SAP Router
 port. An example of such a routing table to allow this access is as follows:
@@ -40,7 +40,7 @@ processing certain type of malformed packets or when certain fault situations ar
 information contained in those error messages includes details such as the SAP Router's release
 number, name of the source code file where the error is thrown, and in some cases the code line
 where the error was identified. As the source file numbers are frequently changing between one
-version of the program an another, it can be very precise as to potentially identify build
+version of the program and another, it can be very precise as to potentially identify build
 numbers and pinpoint particular version numbers. This information can be valuable as to determine
 potential security risk in case of running old and potentially vulnerable versions of the SAP
 Router service.
@@ -55,7 +55,7 @@ in the database:
 
 .. code-block:: none
 
-    $ python router_fingerprint.py -d <hostname>
+    $ examples/router_fingerprint.py -d <hostname>
     [*] Loading fingerprint database
     [*] Trying to fingerprint version using 13 packets
     [*] (1/13) Fingerprint for packet 'No route one entry'
@@ -82,7 +82,7 @@ in the database:
     [+] Request: No route invalid length
 
     [*] Probable versions (1):
-    [*]	Hits: 13 Version: version: "40" release: "749" patch_number: "200" source_id: "0.200" update_level: "0" platform: "linux-x86-64" submitted_by: "mgallo@secureauth.com"
+    [*]	Hits: 13 Version: version: "40" release: "749" patch_number: "200" source_id: "0.200" update_level: "0" platform: "linux-x86-64" submitted_by: "@martingalloar"
 
 
 As can be observed, by matching the information in the error message with the fingerprint database
@@ -93,7 +93,7 @@ not found in the database:
 
 .. code-block:: none
 
-    $ ./router_fingerprint.py -d <hostname>
+    $ examples/router_fingerprint.py -d <hostname>
     [*] Loading fingerprint database
     [*] Trying to fingerprint version using 13 packets
     [*] (1/13) Fingerprint for packet 'No route one entry'
@@ -120,7 +120,7 @@ not found in the database:
     [-] Request: Empty route null offset
     [-] Request: No route invalid length
 
-    [-] Some error values where not found in the fingerprint database. If you want to contribute submit a issue to https://github.com/OWASP/pysap or write an email to mgallo@secureauth.com with the following information along with the SAP Router file information and how it was configured.
+    [-] Some error values were not found in the fingerprint database. If you want to contribute, submit an issue to https://github.com/OWASP/pysap/issues with the following information along with the SAP Router file information and how it was configured.
 
 
     New fingerprint saved to: saprouter_new_fingerprints.json
@@ -147,12 +147,12 @@ database:
 
 .. code-block:: none
 
-    $ ./router_fingerprint.py -a --new-fingerprints-file saprouter_new_fingerprints.json -i '{
+    $ examples/router_fingerprint.py -a --new-fingerprints-file saprouter_new_fingerprints.json -i '{
     >     "comment": "A new comment to add to the fingerprint",
-    >     "submitted_by": "email or contact of the submitter",
+    >     "submitted_by": "GitHub username of the submitter",
     >     "update_level": "update level",
     >     "patch_number": "patch number",
-    >     "file_version": "file vesion",
+    >     "file_version": "file version",
     >     "platform": "linux_x86_64",
     >     "source_id": "source id number"
     > }'
@@ -172,20 +172,28 @@ database:
     [*]	Added a new entry for the target Empty route null offset
     [*]	Added a new entry for the target No route invalid length
 
-Fingerprints for missing versions can be contributed in the form of GitHub issues reporting the
-version and build numbers or in the form of pull requests with the addition of new records to the
-database.
+Fingerprints for missing versions can be contributed through the GitHub repository as issues
+reporting the version and build numbers, or as pull requests with the addition of new records to
+the database.
 
 
 ``router_niping``
 -----------------
 
-This example scripts is a very basic implementation of the ``niping`` tool available with SAP kernel
+This example script is a very basic implementation of the ``niping`` tool available with SAP kernel
 distributions and the ``saprouter`` program. The ``niping`` utility establishes a communication
 between two ends (a "client" and a "server") and uses the ``NI`` protocol to send payloads. The tool
 is offered as a way to perform troubleshooting and network diagnostics, and it can help determining
-network speed and identify connectivity issues. Due to the implementation of the ``NI`` protocol is
+network speed and identify connectivity issues. Due to the implementation of the ``NI`` protocol it is
 also used to validate SAP Router configurations and ACLs.
+
+Example usage:
+
+.. code-block:: console
+
+    $ examples/router_niping.py --start-server -H 0.0.0.0 -S 3298
+    $ examples/router_niping.py --start-client -H <saprouter> -S 3298 -L 10 -B 1000
+    $ examples/router_niping.py --start-client --route-string /H/<saprouter>/S/3299/H/<target-host>/S/3298
 
 
 ``router_password_check``
@@ -195,12 +203,18 @@ This example and proof of concept script connects with a SAP Router service and 
 request using a provided password. It then records the time the remote service takes to respond to
 the request. Further analysis of the time records could be performed in order to identify whether
 the server is vulnerable to a timing attack on the password check
-(`CVE-2014-0984 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=2014-0984>`_).
+(`CVE-2014-0984 <https://www.cve.org/CVERecord?id=CVE-2014-0984>`_).
 More details about the vulnerability can be found in the
 `SAP Router Password Timing Attack security advisory <https://www.coresecurity.com/advisories/sap-router-password-timing-attack>`_.
 
-The script make use of the fau_timer library for measuring the timing of server's responses, which
+The script makes use of the optional ``fau_timer`` library for measuring the timing of server's responses, which
 can be installed from the `mona-timing-lib repository in GitHub <https://github.com/seecurity/mona-timing-lib>`_.
+
+Example usage:
+
+.. code-block:: console
+
+    $ examples/router_password_check.py -d <saprouter> -p 3299 --password <password> --tries 20 -o timings.csv
 
 
 ``router_portfw``
@@ -215,7 +229,14 @@ A route password can be optionally provided as well (with the ``--target-pass`` 
 The script can be used to route traffic to a remote destination through the SAP Router, for either
 testing ACLs or accessing internal resources exposed through it. It's worth mentioning that as the
 implementation relies on the use of a "proxy" pattern, the route is only requested to the SAP Router
-when there's traffic received on the local port binded.
+when there's traffic received on the bound local port.
+
+Example usage:
+
+.. code-block:: console
+
+    $ examples/router_portfw.py -d <saprouter> -p 3299 -t <target-host> -r 3200 -a 127.0.0.1 -l 3200
+    $ examples/router_portfw.py --route-string /H/<saprouter>/S/3299/H/<target-host>/S/3200 -l 3200
 
 The script is based on a similar functionality implemented in BizPloit's ``saprouterNative`` script.
 More information can be found in Onapsis' blogpost series about testing SAP Router security with
@@ -234,10 +255,17 @@ to the SAP Router. The script can be also used to discover and validate ACLs con
 Router instance.
 
 The list of hosts can be provided to the ``--target-hosts`` parameter as a comma-separated list of
-hostnames or IP addresses (e.g. ``10.0.0.1,10.0.0.10``), or if the Python's ``netaddr`` library is
-installed in ``CIDR`` representation (e.g. ``10.0.0.1/24``). In the same way, the ports to scan for
-can be provided in the ``--target-ports`` parameter using a commma-separated list (e.g. ``3200,3300``)
+hostnames or IP addresses (e.g. ``10.0.0.1,10.0.0.10``), or in ``CIDR`` representation
+(e.g. ``10.0.0.1/24``) when the optional Python ``netaddr`` library is installed. In the same way,
+the ports to scan for can be provided in the ``--target-ports`` parameter using a comma-separated list (e.g. ``3200,3300``)
 or a range (e.g. ``3200-3299``).
+
+Example usage:
+
+.. code-block:: console
+
+    $ examples/router_scanner.py -d <saprouter> -p 3299 -t <target-host> -r 3200,3300
+    $ examples/router_scanner.py -d <saprouter> -p 3299 -t 10.0.0.0/24 -r 3200-3299
 
 The script is based on a similar functionality implemented in BizPloit's ``saprouterSpy`` script.
 More information can be found in Onapsis' blogpost series about testing SAP Router security with
