@@ -107,6 +107,30 @@ class PySAPUtilsFieldsTest(unittest.TestCase):
         self.assertEqual(remaining, b"")
         self.assertEqual(value, b"ab  ")
 
+    def test_str_fixed_len_padded_field_utf16le_roundtrip(self):
+        pkt = DummyLengthPacket(8)
+        field = StrFixedLenPaddedField("value", b"", length_from=lambda pkt: pkt.size,
+                                       encoding="utf-16-le")
+
+        raw = field.addfield(pkt, b"", "AB")
+        self.assertEqual(raw, b"A\x00B\x00\x00\x00\x00\x00")
+
+        remaining, value = field.getfield(pkt, raw)
+        self.assertEqual(remaining, b"")
+        self.assertEqual(value, "AB")
+
+    def test_str_fixed_len_padded_field_utf16le_non_ascii(self):
+        pkt = DummyLengthPacket(8)
+        field = StrFixedLenPaddedField("value", b"", length_from=lambda pkt: pkt.size,
+                                       encoding="utf-16-le")
+
+        raw = field.addfield(pkt, b"", "Ä1")
+        self.assertEqual(raw, "Ä1".encode("utf-16-le") + b"\x00\x00\x00\x00")
+
+        remaining, value = field.getfield(pkt, raw)
+        self.assertEqual(remaining, b"")
+        self.assertEqual(value, "Ä1")
+
     def test_str_null_fixed_len_padded_field_getfield(self):
         pkt = DummyLengthPacket(4)
         field = StrNullFixedLenPaddedField("value", b"", length_from=lambda pkt: pkt.size, padd=" ")

@@ -150,6 +150,52 @@ class PySAPNIStreamSocketTest(PySAPBaseServerTest):
 
         self.stop_server()
 
+    def test_sapnistreamsocket_base_cls_dispatcher(self):
+        """Test SAPNIStreamSocket dispatching the base class dynamically based
+        on the raw payload (e.g. NWRFC vs classic SAPRFC magic bytes)"""
+        self.start_server(self.test_address, self.test_port, SAPNITestHandler)
+
+        class ClassA(Packet):
+            fields_desc = [StrField("text", None)]
+
+        class ClassB(Packet):
+            fields_desc = [StrField("text", None)]
+
+        def dispatcher(packet, payload):
+            if payload.startswith(b"AAAA"):
+                return ClassA
+            return ClassB
+
+        sock = socket.socket()
+        sock.connect((self.test_address, self.test_port))
+
+        self.client = SAPNIStreamSocket(sock, base_cls=dispatcher)
+        packet = self.client.sr(Raw(b"AAAA" + self.test_string))
+        self.client.close()
+
+        self.assertIn(SAPNI, packet)
+        self.assertIn(ClassA, packet)
+        self.assertNotIn(ClassB, packet)
+        self.assertEqual(packet[ClassA].text, b"AAAA" + self.test_string)
+
+        self.stop_server()
+
+        self.start_server(self.test_address, self.test_port + 1, SAPNITestHandler)
+
+        sock = socket.socket()
+        sock.connect((self.test_address, self.test_port + 1))
+
+        self.client = SAPNIStreamSocket(sock, base_cls=dispatcher)
+        packet = self.client.sr(Raw(self.test_string))
+        self.client.close()
+
+        self.assertIn(SAPNI, packet)
+        self.assertIn(ClassB, packet)
+        self.assertNotIn(ClassA, packet)
+        self.assertEqual(packet[ClassB].text, self.test_string)
+
+        self.stop_server()
+
     def test_sapnistreamsocket_getnisocket(self):
         """Test SAPNIStreamSocket get nisocket class method"""
         self.start_server(self.test_address, self.test_port, SAPNITestHandler)

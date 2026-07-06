@@ -25,7 +25,7 @@ from threading import Event
 from socketserver import BaseRequestHandler, ThreadingMixIn, TCPServer
 # External imports
 from scapy.fields import LenField
-from scapy.packet import Packet, Raw
+from scapy.packet import Packet, Raw, raw
 from scapy.supersocket import socket, StreamSocket
 # Custom imports
 from pysap.utils import Worker
@@ -145,7 +145,11 @@ class SAPNIStreamSocket(StreamSocket):
         # Decode the packet payload according to the base class defined
         packet = SAPNI(nidata)
         if self.basecls:
-            packet.decode_payload_as(self.basecls)
+            if callable(self.basecls) and not isinstance(self.basecls, type):
+                cls = self.basecls(packet, raw(packet.payload))
+            else:
+                cls = self.basecls
+            packet.decode_payload_as(cls)
         elif keep_alive_request:
             packet = SAPNI(length=nilength) / Raw(nidata[4:])
         return packet
