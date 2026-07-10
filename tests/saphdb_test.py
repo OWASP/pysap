@@ -84,52 +84,53 @@ class _FakeStreamSocket(object):
         self.ins = _FakeInputSocket(responses)
 
 
-def test_saphdb_recv_accepts_zero_length_varpart():
-    header = bytes(SAPHDB(varpartlength=0, noofsegm=0, segments=[]))
-    connection = SAPHDBConnection("127.0.0.1", 30015)
-    connection._stream_socket = _FakeStreamSocket([header])
+class PySAPHDBPython3Test(unittest.TestCase):
 
-    packet = connection.recv()
+    def test_saphdb_recv_accepts_zero_length_varpart(self):
+        header = bytes(SAPHDB(varpartlength=0, noofsegm=0, segments=[]))
+        connection = SAPHDBConnection("127.0.0.1", 30015)
+        connection._stream_socket = _FakeStreamSocket([header])
 
-    assert packet.varpartlength == 0
-    assert packet.noofsegm == 0
+        packet = connection.recv()
 
+        self.assertEqual(packet.varpartlength, 0)
+        self.assertEqual(packet.noofsegm, 0)
 
-def test_session_cookie_auth_request_accepts_byte_cookie():
-    connection = SAPHDBConnection("127.0.0.1", 30015,
-                                  pid="123", hostname="hana-client")
-    auth_method = SAPHDBAuthSessionCookieMethod("SYSTEM", b"cookie-")
+    def test_session_cookie_auth_request_accepts_byte_cookie(self):
+        connection = SAPHDBConnection("127.0.0.1", 30015,
+                                      pid="123", hostname="hana-client")
+        auth_method = SAPHDBAuthSessionCookieMethod("SYSTEM", b"cookie-")
 
-    request = auth_method.craft_authentication_request(connection=connection)
-    auth_part = request.segments[0].parts[1].buffer[0]
+        request = auth_method.craft_authentication_request(connection=connection)
+        auth_part = request.segments[0].parts[1].buffer[0]
 
-    assert auth_part.auth_fields[2].value == b"cookie-123@hana-client"
+        self.assertEqual(auth_part.auth_fields[2].value, b"cookie-123@hana-client")
 
+    def test_gss_connect_response_accepts_byte_session_cookie_marker(self):
+        gss_cookie = SAPHDBPartAuthentication(auth_fields=[
+            SAPHDBPartAuthenticationField(value=b"1.2.840.113554.1.2.2"),
+            SAPHDBPartAuthenticationField(value=b"\x07"),
+            SAPHDBPartAuthenticationField(value=b"session-cookie"),
+        ])
+        auth_payload = SAPHDBPartAuthentication(auth_fields=[
+            SAPHDBPartAuthenticationField(value=b"GSS"),
+            SAPHDBPartAuthenticationField(value=bytes(gss_cookie)),
+        ])
+        connect_response = SAPHDB(segments=[SAPHDBSegment(segmentkind=2, parts=[
+            SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_payload),
+        ])])
 
-def test_gss_connect_response_accepts_byte_session_cookie_marker():
-    gss_cookie = SAPHDBPartAuthentication(auth_fields=[
-        SAPHDBPartAuthenticationField(value=b"1.2.840.113554.1.2.2"),
-        SAPHDBPartAuthenticationField(value=b"\x07"),
-        SAPHDBPartAuthenticationField(value=b"session-cookie"),
-    ])
-    auth_payload = SAPHDBPartAuthentication(auth_fields=[
-        SAPHDBPartAuthenticationField(value=b"GSS"),
-        SAPHDBPartAuthenticationField(value=bytes(gss_cookie)),
-    ])
-    connect_response = SAPHDB(segments=[SAPHDBSegment(segmentkind=2, parts=[
-        SAPHDBPart(partkind=33, argumentcount=1, buffer=auth_payload),
-    ])])
+        auth_method = SAPHDBAuthGSSMethod("SYSTEM")
+        auth_method.process_connect_response(connect_response)
 
-    auth_method = SAPHDBAuthGSSMethod("SYSTEM")
-    auth_method.process_connect_response(connect_response)
-
-    assert auth_method.session_cookie == b"session-cookie"
+        self.assertEqual(auth_method.session_cookie, b"session-cookie")
 
 
 def suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPHDBConnectionTest))
+    suite.addTest(loader.loadTestsFromTestCase(PySAPHDBPython3Test))
     return suite
 
 
