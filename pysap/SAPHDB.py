@@ -1024,7 +1024,10 @@ class SAPHDBAuthSessionCookieMethod(SAPHDBAuthMethod):
         self.session_cookie = session_cookie
 
     def craft_authentication_request(self, value=None, connection=None):
-        return super(SAPHDBAuthSessionCookieMethod, self).craft_authentication_request(self.session_cookie + connection.client_id,
+        client_id = connection.client_id
+        if isinstance(self.session_cookie, bytes) and isinstance(client_id, str):
+            client_id = client_id.encode()
+        return super(SAPHDBAuthSessionCookieMethod, self).craft_authentication_request(self.session_cookie + client_id,
                                                                                        connection)
 
 
@@ -1213,7 +1216,7 @@ class SAPHDBAuthGSSMethod(SAPHDBAuthMethod):
             #  * commtype: communication type ("\x07")
             #  * session cookie: the SessionCookie established for the connection
             gss_token = SAPHDBPartAuthentication(self.session_cookie)
-            if gss_token.auth_fields[1].value == "\x07":
+            if gss_token.auth_fields[1].value in ("\x07", b"\x07"):
                 self.session_cookie = gss_token.auth_fields[2].value
             else:
                 self.session_cookie = None
@@ -1348,7 +1351,7 @@ class SAPHDBConnection(object):
         header_raw = self._stream_socket.ins.recv(32)
         header = SAPHDB(header_raw)
         # Then get the payload
-        payload = ""
+        payload = b""
         if header.varpartlength > 0:
             payload = self._stream_socket.ins.recv(header.varpartlength)
         # And finally construct the whole packet with header plus payload
