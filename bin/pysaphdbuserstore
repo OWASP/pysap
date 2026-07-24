@@ -79,7 +79,7 @@ class PySAPHDBUserStore(object):
         parser.add_argument_group("List command options")
 
         get = parser.add_argument_group("Get command options")
-        get.add_argument("--decrypt", dest="decrypt", action="store_false", help="Whether to try to decrypt the value")
+        get.add_argument("--decrypt", dest="decrypt", action="store_true", help="Whether to try to decrypt the value")
 
         misc = parser.add_argument_group("Misc options")
         misc.add_argument("--deleted", dest="deleted", action="store_true", help="Show deleted records")
@@ -139,29 +139,36 @@ class PySAPHDBUserStore(object):
         """
 
         try:
-            with open(filename) as f:
+            with open(filename, "rb") as f:
                 obj = cls(f.read())
             self.logger.info("pysaphdbuserstore: Reading {} file '{}'".format(type, filename))
-        except IOError as e:
-            self.logger.error("pysaphdbuserstore: Error reading {} file '{}' ({})".format(type, filename, e.message))
+        except Exception as e:
+            self.logger.error("pysaphdbuserstore: Error reading {} file '{}' ({})".format(type, filename, str(e)))
             return None
 
         return obj
+
+    @staticmethod
+    def _to_text(value):
+        """Convert bytes values to text for command-line display."""
+        if isinstance(value, bytes):
+            return value.decode("utf-8", errors="replace")
+        return value
 
     def list(self, options, args):
         """List records in a SSFS Data file
         """
 
         # Parse the data file
-        try:
-            ssfs_data = self.open_file(options.data_filename, SAPSSFSData, "SSFS Data")
-        except Exception:
+        ssfs_data = self.open_file(options.data_filename, SAPSSFSData, "SSFS Data")
+        if ssfs_data is None:
             self.logger.error("pysaphdbuserstore: Unable to read data in file {}\n".format(options.data_filename))
+            return
 
         for ssfs_record in ssfs_data.records:
             if options.deleted or not ssfs_record.deleted:
                 self.logger.info("%s\t%s\t%s",
-                                 ssfs_record.key_name.rstrip(" "),
+                                 self._to_text(ssfs_record.key_name.rstrip(b" ")),
                                  "Plaintext" if ssfs_record.is_stored_as_plaintext else "Encrypted",
                                  ssfs_record.timestamp)
 
@@ -169,17 +176,22 @@ class PySAPHDBUserStore(object):
         """Get a record value in a SSFS Data file
         """
 
-        # Parse the key file
-        try:
+        ssfs_key = None
+        if options.decrypt:
             ssfs_key = self.open_file(options.key_filename, SAPSSFSKey, "SSFS Key")
-        except Exception:
-            self.logger.error("pysaphdbuserstore: Unable to read key in file {}\n".format(options.key_filename))
+            if ssfs_key is None:
+                self.logger.error("pysaphdbuserstore: Unable to read key in file {}\n".format(options.key_filename))
+                return
 
         # Parse the data file
-        try:
-            ssfs_data = self.open_file(options.data_filename, SAPSSFSData, "SSFS Data")
-        except Exception:
+        ssfs_data = self.open_file(options.data_filename, SAPSSFSData, "SSFS Data")
+        if ssfs_data is None:
             self.logger.error("pysaphdbuserstore: Unable to read data in file {}\n".format(options.data_filename))
+            return
+
+        if not args:
+            self.logger.error("pysaphdbuserstore: No record key specified")
+            return
 
         for arg in args:
             if ssfs_data.has_record(arg):
@@ -187,11 +199,12 @@ class PySAPHDBUserStore(object):
                     if options.deleted or not ssfs_record.deleted:
                         self.logger.info("Is Deleted   : %s", ssfs_record.deleted)
                         self.logger.info("Is Valid     : %s", ssfs_record.valid)
-                        self.logger.info("Record Key   : %s", ssfs_record.key_name)
+                        self.logger.info("Record Key   : %s", self._to_text(ssfs_record.key_name.rstrip(b" ")))
                         self.logger.info("Time Stamp   : %s", ssfs_record.timestamp)
-                        self.logger.info("Host Name    : %s", ssfs_record.host)
-                        self.logger.info("OS-User      : %s", ssfs_record.user)
-                        self.logger.info("Record Value : %s", ssfs_record.get_plain_data(ssfs_key))
+                        self.logger.info("Host Name    : %s", self._to_text(ssfs_record.host.rstrip(b" ")))
+                        self.logger.info("OS-User      : %s", self._to_text(ssfs_record.user.rstrip(b" ")))
+                        value = ssfs_record.get_plain_data(ssfs_key) if options.decrypt else ssfs_record.data
+                        self.logger.info("Record Value : %s", value)
             else:
                 self.logger.info("Record with key %s not found in data file.", arg)
 

@@ -55,6 +55,9 @@ following command on a terminal::
 
     $ python3 -m pip install pysap
 
+Package installation also installs the :doc:`command-line tools <../tools/index>`
+``pysapcar``, ``pysapgenpse``, and ``pysaphdbuserstore``.
+
 Some example scripts has additional required libraries:
 
 - ``tabulate``

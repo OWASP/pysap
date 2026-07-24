@@ -140,11 +140,11 @@ class PySAPGenPSE(object):
         """
 
         try:
-            with open(filename) as f:
+            with open(filename, "rb") as f:
                 obj = cls(f.read())
             self.logger.info("pysapgenpse: Reading {} file '{}'".format(type, filename))
-        except IOError as e:
-            self.logger.error("pysapgenpse: Error reading {} file '{}' ({})".format(type, filename, e.message))
+        except Exception as e:
+            self.logger.error("pysapgenpse: Error reading {} file '{}' ({})".format(type, filename, str(e)))
             return None
 
         return obj
@@ -170,8 +170,11 @@ class PySAPGenPSE(object):
             self.logger.error("pysapgenpse: Unable to read certificates in PSE file {}\n".format(options.filename))
             return
 
-        if pse is None or not pse.enc_cont:
+        if pse is None:
+            return
+        if not pse.enc_cont:
             self.logger.error("pysapgenpse: No encrypted content found in file {}".format(options.filename))
+            return
 
         plain = pse.decrypt(options.pin)
         self.logger.info("Decrypted PSE, {} bytes".format(len(plain)))
@@ -205,7 +208,9 @@ class PySAPGenPSE(object):
             return
 
         # Validate that there are credentials there
-        if not (cred_v2 and cred_v2.creds):
+        if cred_v2 is None:
+            return
+        if not cred_v2.creds:
             self.logger.error("pysapgenpse: No credentials found in file {}\n".format(options.filename))
             return
 
@@ -259,7 +264,7 @@ class PySAPGenPSE(object):
                 pin = plain.decrypt_provider(cred)
             except Exception as e:
                 self.logger.error("pysapgenpse: Unable to decrypt using the provider {} ({}), writing plain blob".format(
-                    plain.option1.val, e.message))
+                    plain.option1.val, str(e)))
                 pin = plain.pin.val
         else:
             pin = plain.pin.val
@@ -283,6 +288,8 @@ class PySAPGenPSE(object):
         :type output: string
         """
         if output_filename:
+            if isinstance(output, str):
+                output = output.encode()
             with open(output_filename, "wb") as output_file:
                 output_file.write(output)
             self.logger.info("pysapgenpse: Output written to file '{}'".format(output_filename))

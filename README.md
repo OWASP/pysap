@@ -56,6 +56,9 @@ Features
 
 * Client, proxy and server classes implemented for some of the protocols.
 
+* Command-line tools for offline work with SAP archive, PSE, Credv2, and SSFS
+  files.
+
 * Example scripts to illustrate the use of the different modules and protocols.
 
 
