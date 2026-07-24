@@ -19,6 +19,12 @@ Integration tests
   They are marked with ``integration`` and are skipped automatically when the
   environment cannot bind sockets.
 
+Bin-script tests
+  Subprocess tests for installed command-line tools under ``bin/``. They are
+  marked with ``bin_script`` and run separately from core library tests so CLI
+  process handling, packaging assumptions, and stdout/stderr behavior do not
+  affect the module-level unit suite.
+
 Core test suites
 ----------------
 
@@ -36,6 +42,9 @@ The current test coverage is centered on these modules:
 * ``tests/saprfc_test.py`` covers RFC packet variants and field handling.
 * ``tests/sapcar_test.py``, ``tests/sapcredv2_test.py``, ``tests/sappse_test.py``,
   and ``tests/sapssfs_test.py`` cover the file-format and crypto-oriented paths.
+* ``tests/pysapcar_script_test.py``, ``tests/pysapgenpse_script_test.py``, and
+  ``tests/pysaphdbuserstore_script_test.py`` cover the command-line tools with
+  ``bin_script``-marked subprocess tests.
 * ``tests/sapdiag_test.py``, ``tests/sapni_test.py``, ``tests/saprouter_test.py``,
   and ``tests/saphdb_test.py`` cover protocol packet handling, with the socket
   heavy cases marked as integration.
@@ -66,6 +75,10 @@ Run the full unit suite with tox::
 
    $ python3 -m tox -e unit
 
+Run the bin-script suite separately::
+
+   $ python3 -m tox -e bin-scripts
+
 Run the integration suite separately::
 
    $ python3 -m tox -e integration
@@ -87,6 +100,7 @@ Good additions usually follow these rules:
 * deterministic inputs and outputs;
 * negative-path coverage for invalid versions, malformed fields, and error
   handling;
+* ``bin_script`` markers for subprocess tests of installed command-line tools;
 * integration markers only for code that must bind sockets or talk to a live
   service.
 

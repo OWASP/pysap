@@ -125,13 +125,14 @@ class PySAPCAR(object):
         # Opens the input/output file
         self.archive_fd = None
         if options.filename:
+            file_mode = {"r": "rb", "w": "wb", "r+": "r+b"}[self.mode]
             try:
-                self.archive_fd = open(options.filename, self.mode)
+                self.archive_fd = open(options.filename, file_mode)
             except IOError as e:
                 self.logger.error("pysapcar: error opening '%s' (%s)" % (options.filename, e.strerror))
                 return
         else:
-            self.archive_fd = stdin
+            self.archive_fd = stdin.buffer if hasattr(stdin, "buffer") else stdin
 
         # Execute the action
         try:
@@ -152,9 +153,17 @@ class PySAPCAR(object):
             sapcar = SAPCARArchive(self.archive_fd, mode=self.mode)
             self.logger.info("pysapcar: Processing archive '%s' (version %s)", self.archive_fd.name, sapcar.version)
         except Exception as e:
-            self.logger.error("pysapcar: Error processing archive '%s' (%s)", self.archive_fd.name, e.message)
+            self.logger.error("pysapcar: Error processing archive '%s' (%s)", self.archive_fd.name, str(e))
             return None
         return sapcar
+
+    @staticmethod
+    def _to_archive_filename(filename):
+        return filename.encode() if isinstance(filename, str) else filename
+
+    @staticmethod
+    def _to_path(filename):
+        return filename.decode() if isinstance(filename, bytes) else filename
 
     @staticmethod
     def target_files(filenames, target_filenames=None):
@@ -169,7 +178,8 @@ class PySAPCAR(object):
         """
         files = set(filenames)
         if target_filenames:
-            files = files.intersection(set(target_filenames))
+            target_filenames = set(PySAPCAR._to_archive_filename(filename) for filename in target_filenames)
+            files = files.intersection(target_filenames)
 
         for filename in files:
             yield filename
@@ -237,7 +247,7 @@ class PySAPCAR(object):
         for filename in self.target_files(sapcar.files_names, args):
             flag = CONTINUE
             fil = sapcar.files[filename]
-            filename = path.normpath(filename.replace("\x00", ""))  # Take out null bytes if found
+            filename = path.normpath(self._to_path(filename).replace("\x00", ""))  # Take out null bytes if found
             if options.outdir:
                 # Have to strip directory separator from the beginning of the file name, because path.join disregards
                 # all previous components if any of the following components is an absolute path
@@ -266,7 +276,7 @@ class PySAPCAR(object):
                 try:
                     data = fil.open(enforce_checksum=options.enforce_checksum).read()
                 except (SAPCARInvalidFileException, DecompressError) as e:
-                    self.logger.error("pysapcar: Invalid SAP CAR file '%s' (%s)", self.archive_fd.name, e.message)
+                    self.logger.error("pysapcar: Invalid SAP CAR file '%s' (%s)", self.archive_fd.name, str(e))
                     if options.break_on_error:
                         flag = STOP
                     else:

@@ -190,7 +190,7 @@ setup(name=read_metadata("__title__"),  # Package information
       py_modules=['pysapcompress'],
 
       # Script files
-      scripts=['bin/pysapcar', 'bin/pysapgenpse'],
+      scripts=['bin/pysapcar', 'bin/pysapgenpse', 'bin/pysaphdbuserstore'],
 
       # Documentation commands
       cmdclass={'doc': DocumentationCommand,

@@ -18,11 +18,23 @@
 
 # Standard imports
 from binascii import unhexlify
+from os import environ
 from os.path import join as join, dirname
+
+
+REPO_ROOT = dirname(dirname(__file__))
 
 
 def data_filename(filename):
     return join(dirname(__file__), 'data', filename)
+
+
+def script_env():
+    """Build an environment for subprocess tests that import the local checkout."""
+    env = environ.copy()
+    pythonpath = env.get("PYTHONPATH")
+    env["PYTHONPATH"] = REPO_ROOT if not pythonpath else REPO_ROOT + ":" + pythonpath
+    return env
 
 
 def read_data_file(filename, unhex=True):

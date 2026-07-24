@@ -10,6 +10,10 @@ installation, and ``router_password_check`` requires ``fau_timer`` from
 ``mona-timing-lib`` because those packages are not covered by
 ``requirements-examples.txt``.
 
+Installed utilities such as ``pysapcar``, ``pysapgenpse``, and
+``pysaphdbuserstore`` are documented separately in
+:doc:`../tools/index`.
+
 For practical offline workflows, see the file format notebooks for
 :doc:`SAPCAR archive inspection and extraction <../fileformats/SAPCAR>`,
 :doc:`SAP Credv2 parsing <../fileformats/SAPCredv2>`,

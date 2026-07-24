@@ -15,7 +15,8 @@ addopts = [
 ]
 markers = [
   "unit: fast unit tests that only exercise in-process logic",
-  "integration: tests that require sockets, subprocesses, or platform-specific runtime behavior",
+  "bin_script: subprocess tests for installed command-line tools in bin/",
+  "integration: tests that require sockets or live transport behavior",
   "slow: tests that are valid but intentionally expensive",
   "packet_visual: slow packet canvas rendering tests",
   "network: tests that require external network access",
