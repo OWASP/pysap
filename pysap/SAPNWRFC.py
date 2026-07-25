@@ -13,7 +13,6 @@
 #
 # Author:
 #   Martin Gallo (@martingalloar)
-#   Code contributed by SecureAuth to the OWASP CBAS project
 #
 
 """SAP NetWeaver RFC (NWRFC) protocol constants and TLV parser.

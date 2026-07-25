@@ -19,13 +19,12 @@ uses different network protocols and some services and tools make use of custom 
 formats as well. While some of them are standard and well-known protocols, others
 are proprietaries and public information is generally not available.
 
-[pysap](https://www.secureauth.com/labs/open-source-tools/pysap)
-is an open source Python library that provides modules for crafting and sending packets
-using SAP's `NI`, `Diag`, `Enqueue`, `Router`, `MS`, `SNC`, `IGS`, `RFC` and `HDB`
-protocols. In addition, support for creating and parsing different proprietary file
-formats is included. The modules are built on top of [Scapy](https://scapy.net/) and are
-based on information acquired at researching the different protocols, file formats
-and services.
+[pysap](https://github.com/OWASP/pysap) is an open source Python library that provides
+modules for crafting and sending packets using SAP's `NI`, `Diag`, `Enqueue`, `Router`,
+`MS`, `SNC`, `IGS`, `RFC` and `HDB` protocols. In addition, support for creating and
+parsing different proprietary file formats is included. The modules are built on top of
+[Scapy](https://scapy.net/) and are based on information acquired at researching the
+different protocols, file formats and services.
 
 
 Features
@@ -140,7 +139,10 @@ Contributions made by:
   * Jennifer Hornig ([@gloomicious](https://github.com/gloomicious))
   * RedRays Security Team
   * Vincent Berg
-  * WaseemAjrab ([@default-eshu](https://github.com/default-eshu))
+  * Waseem Ajrab ([@default-eshu](https://github.com/default-eshu))
+  * [@randomstr1ng](https://github.com/randomstr1ng)
+  * Tyrox ([@DominikHolzapfel](https://github.com/DominikHolzapfel))
+  * Hackbarth
 
 Disclaimer
 ----------
