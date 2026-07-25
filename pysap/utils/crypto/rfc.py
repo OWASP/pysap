@@ -78,19 +78,16 @@ _MAX_PASSWORD_BYTES = 80
 def ab_descramble(raw, encoding="ascii"):
     """Descramble an SAP RFC ab_scramble password field.
 
-    Args:
-        raw (bytes): Full password field — ``[4-byte LE seed][obfuscated bytes]``.
-        encoding (str): Character encoding of the obfuscated payload.
-            Use ``"ascii"`` (default) for classic SAPRFC / pyrfc clients.
-            Use ``"utf-16-le"`` for NetWeaver RFC SDK (npl_rfc, JCo) clients.
-
-    Returns:
-        str: Plaintext password.
-
-    Raises:
-        ValueError: If *raw* is shorter than :data:`_MIN_FIELD_SIZE` bytes.
-        UnicodeDecodeError: If the descrambled bytes cannot be decoded with
-            the given *encoding*.
+    :param bytes raw: Full password field,
+        ``[4-byte LE seed][obfuscated bytes]``.
+    :param str encoding: Character encoding of the obfuscated payload.  Use
+        ``"ascii"`` (default) for classic SAPRFC / pyrfc clients.  Use
+        ``"utf-16-le"`` for NetWeaver RFC SDK (npl_rfc, JCo) clients.
+    :returns: Plaintext password.
+    :rtype: str
+    :raises ValueError: If *raw* is shorter than :data:`_MIN_FIELD_SIZE` bytes.
+    :raises UnicodeDecodeError: If the descrambled bytes cannot be decoded with
+        the given *encoding*.
 
     Example::
 
@@ -121,19 +118,19 @@ def ab_descramble(raw, encoding="ascii"):
 def ab_scramble(password, seed=None, encoding="ascii"):
     """Scramble a plaintext password using SAP's ab_scramble algorithm.
 
-    Args:
-        password (str): Plaintext password to obfuscate (SAP enforces ≤ 40 chars).
-        seed (int | None): 32-bit unsigned seed value.  A cryptographically
-            random seed is generated when *seed* is ``None`` (default).
-        encoding (str): Character encoding to apply to *password* before
-            obfuscation.  Use ``"ascii"`` (default) for classic clients or
-            ``"utf-16-le"`` for NetWeaver RFC SDK clients.
-
-    Returns:
-        bytes: Full password field — ``[4-byte LE seed][obfuscated bytes]``.
-
-    Raises:
-        UnicodeEncodeError: If *password* cannot be encoded with *encoding*.
+    :param str password: Plaintext password to obfuscate. SAP enforces a
+        maximum length of 40 characters.
+    :param seed: 32-bit unsigned seed value. A cryptographically random seed is
+        generated when *seed* is ``None``.
+    :type seed: int or None
+    :param str encoding: Character encoding to apply to *password* before
+        obfuscation. Use ``"ascii"`` (default) for classic clients or
+        ``"utf-16-le"`` for NetWeaver RFC SDK clients.
+    :returns: Full password field,
+        ``[4-byte LE seed][obfuscated bytes]``.
+    :rtype: bytes
+    :raises UnicodeEncodeError: If *password* cannot be encoded with
+        *encoding*.
 
     Example::
 

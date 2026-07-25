@@ -171,7 +171,6 @@ setup(name=read_metadata("__title__"),  # Package information
                    'Intended Audience :: Developers',
                    'Intended Audience :: Information Technology',
                    'Intended Audience :: System Administrators',
-                   'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
                    'Programming Language :: Python :: 3',
                    'Programming Language :: Python :: 3 :: Only',
                    'Programming Language :: Python :: 3.10',
