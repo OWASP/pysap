@@ -18,10 +18,13 @@ The following projects, tools and repositories are known to be using pysap:
   low-interaction research-focused honeypot specific for SAP services. HoneySAP uses
   pysap as a library in order to craft and parse different protocol network packets.
 
-* `SAP dissection plug-in for Wireshark <https://github.com/SecureAuthCorp/SAP-Dissection-plug-in-for-Wireshark>`_:
-  This Wireshark plugin provides dissection of SAP's ``NI``, Message Server,
-  ``Router``, ``Diag``, ``Enqueue``, ``IGS``, ``SNC`` and ``HDB`` protocols. The Wireshark
-  plug-in makes use of pysap in order to craft packets used during unit tests.
+* `SAP Attack Surface Discovery <https://github.com/SecuritySilverbacks/SAP-AttackSurfaceDiscovery>`_:
+  Tooling for identifying and discovering exposed SAP services. Its container
+  image installs pysap's example tools and wordlists as part of the SAP
+  discovery toolkit.
+
+* `SAP SNC Scan <https://github.com/SecuritySilverbacks/sncscan>`_: Tool for analyzing
+  SAP Secure Network Communications (SNC).
 
 * `SAP Message Server research <https://github.com/gelim/sap_ms>`_: Exploit proof of
   concept code for two attacks against the Message Server service:
@@ -37,6 +40,10 @@ The following projects, tools and repositories are known to be using pysap:
   Script to export PSE's encryption PIN into a format that can be cracked with
   John the Ripper.
 
+* `SAP dissection plug-in for Wireshark <https://github.com/SecureAuthCorp/SAP-Dissection-plug-in-for-Wireshark>`_:
+  This Wireshark plugin provides dissection of SAP's ``NI``, Message Server,
+  ``Router``, ``Diag``, ``Enqueue``, ``IGS``, ``SNC`` and ``HDB`` protocols. The Wireshark
+  plug-in makes use of pysap in order to craft packets used during unit tests.
 
 .. _installation:
 

@@ -5,7 +5,7 @@ pysap - Python library for crafting SAP's network protocols packets
 [![Latest Version](https://img.shields.io/pypi/v/pysap.svg)](https://pypi.python.org/pypi/pysap/)
 [![Documentation Status](http://readthedocs.org/projects/pysap/badge/?version=latest)](http://pysap.readthedocs.io/en/latest/?badge=latest)
 
-Version 0.2.0.dev0 (in development)
+Version 0.2.0 (July 2026)
 
 The master branch runs on Python 3.
 
@@ -21,7 +21,7 @@ are proprietaries and public information is generally not available.
 
 [pysap](https://github.com/OWASP/pysap) is an open source Python library that provides
 modules for crafting and sending packets using SAP's `NI`, `Diag`, `Enqueue`, `Router`,
-`MS`, `SNC`, `IGS`, `RFC` and `HDB` protocols. In addition, support for creating and
+`MS`, `SNC`, `IGS`, `RFC`, `NWRFC` and `HDB` protocols. In addition, support for creating and
 parsing different proprietary file formats is included. The modules are built on top of
 [Scapy](https://scapy.net/) and are based on information acquired at researching the
 different protocols, file formats and services.
@@ -40,6 +40,7 @@ Features
     * SAP Secure Network Connection (`SNC`)
     * SAP Internet Graphic Server (`IGS`)
     * SAP Remote Function Call (`RFC`)
+    * SAP Netweaver RFC SDK (`NWRFC`)
     * SAP HANA SQL Command Network (`HDB`)
 
 * Client interfaces for handling the following file formats:
@@ -76,16 +77,21 @@ Roadmap
 
 ### Python 3 project
 
-As time passed, and Python 2 lost relevance, we decided to start a new effort to complete the project and move it to Python 3 only. The main reason is to avoid the introduction of backwards compatibility libraries that add complexity to the code and are not relevant in the current state of the Python project.
+After a long time and thanks to a great community effort, the project has been just ported to Python 3.
+The project now runs on Python 3, but bugs are still expected to raise as more functionality is tested
+and evaluated. Testing support by the community is highly appreciated.
 
-This project is actively being worked on by the OWASP CBAS project as part of the [master branch](https://github.com/OWASP/pysap/tree/master). The project now runs on Python 3. Testing support by the community is highly appreciated
+In addition, some of the recent Python 3 capabilities are not yet fully adapted, such as static typing,
+native concurrency and others.
 
 ### Further efforts
 
-  * Update documentation and PyPi release
-  * [Replace pysapcompress old C-code](https://github.com/OWASP/pysap/issues/73)
-  * [Port SAP Credv2 file format](https://github.com/OWASP/pysap/issues/64)
-  * Update depending OWASP projects such as honeysap & SAP attack surface monitoring
+  * Bug fixing all over the place
+  * Increment unit test coverage
+  * Incorporate static typing and other Python 3.10+ features
+  * Protocol completeness (e.g. `NWRFC`, `RFC`, `Diag`, `HDB`)
+  * Create more stable tools mimicking SAP' native ones (e.g. `genpse`, `dpmon`, `gwmon`)
+  * Update depending OWASP projects such as `honeysap` & SAP attack surface monitoring
 
 
 

@@ -16,7 +16,7 @@ are proprietaries and public information is generally not available.
 
 `pysap <https://owasp.org/www-project-core-business-application-security/>`_
 is an open source Python 3 library that provides modules for crafting and sending packets
-using SAP's ``NI``, ``Diag``, ``Enqueue``, ``Router``, ``MS``, ``SNC``, ``IGS``, ``RFC``
+using SAP's ``NI``, ``Diag``, ``Enqueue``, ``Router``, ``MS``, ``SNC``, ``IGS``, ``RFC``, ``NWRFC``,
 and ``HDB`` protocols. In addition, support for creating and parsing different proprietary
 file formats is included. The modules are built on top of `Scapy <https://scapy.net/>`_ and
 are based on information acquired at researching the different protocols, file formats
@@ -36,6 +36,7 @@ Features
     * SAP Secure Network Connection (``SNC``)
     * SAP Internet Graphic Server (``IGS``)
     * SAP Remote Function Call (``RFC``)
+    * SAP Netweaver RFC SDK (```NWRFC```)
     * SAP HANA SQL Command Network (``HDB``)
 
 * Client interfaces for handling the following file formats:
@@ -43,6 +44,7 @@ Features
     * SAP ``SAR`` archive files
     * SAP Personal Security Environment (``PSE``) files
     * SAP SSO Credential (``Credv2``) files
+    * SAP Secure Storage in File System (``SSFS``) files
 
 * Library implementing SAP's ``LZH`` and ``LZC`` compression algorithms.
 

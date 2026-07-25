@@ -1,8 +1,8 @@
 Changelog
 =========
 
-v0.2.0.dev0 - unreleased
-------------------------
+v0.2.0 - 2026-07-XX
+-------------------
 
 - Full remaining Python3 migration contributed by [Red Rays](https://redrays.io/). Thanks [@vah13](https://github.com/vah13)!
 - Source code review and change alignment. Thanks [@codehorse87](https://github.com/codehorse87)!
