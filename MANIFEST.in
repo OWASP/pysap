@@ -8,9 +8,6 @@ include requirements.txt
 include requirements-docs.txt
 include requirements-examples.txt
 
-# Include header files
-include pysapcompress/*.h
-
 # Include the docs
 recursive-include docs *
 prune docs/_build
@@ -20,3 +17,7 @@ recursive-include extra *.py
 
 # Include the example scripts
 recursive-include examples *
+
+# Exclude generated Python bytecode
+global-exclude *.py[cod]
+global-exclude __pycache__
