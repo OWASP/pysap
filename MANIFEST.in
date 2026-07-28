@@ -7,6 +7,8 @@ include SECURITY.md
 include requirements.txt
 include requirements-docs.txt
 include requirements-examples.txt
+include requirements-lint.txt
+include requirements-test.txt
 
 # Include the docs
 recursive-include docs *
