@@ -1,25 +1,33 @@
 Changelog
 =========
 
-v0.2.0.dev0 - unreleased
-------------------------
+v0.2.0 - 2026-07-28
+-------------------
 
-- Full remaining Python3 migration contributed by Red Rays. Thanks [@vah13]
-- Source code review and change aligment by [@codehorse87]
+- Full remaining Python 3 migration contributed by [Red Rays](https://redrays.io/). ([\#84](https://github.com/OWASP/pysap/pull/84)) Thanks [@vah13](https://github.com/vah13)!
+- Source code review and change alignment. Thanks [@codehorse87](https://github.com/codehorse87)!
 - Functional testing by various OWASP CBAS community members
-- `README.md` and documentation: Clarified that pysap now runs on Python 3 and requires Python 3.10 or newer.
-- Documentation: Updated the Sphinx build to Python 3.10, Sphinx 7.4, and MyST Parser.
+- `pysapcompress` model has been migrated from C code to a pure Python implementation. This makes the project more portable and packages easy to manage. Implementation is based on the TypeScript [sapcomp library by Max Jäger](https://git.sr.ht/~xje4/sapcomp). ([\#86](https://github.com/OWASP/pysap/pull/86)) Thanks [@randomstr1ng](https://github.com/randomstr1ng) and [@codehorse87](https://github.com/codehorse87)! 
+- Example scripts: Migrated the example scripts to Python 3 and fixed bytes/text handling, output formatting and routing edge cases across the migrated tools ([\#90](https://github.com/OWASP/pysap/pull/90)). Thanks [@randomstr1ng](https://github.com/randomstr1ng)!
+- Testing and documentation: Improved the test harness, coverage, notebook generation workflow and packet/file-format notebooks; added packet fixture coverage and `pysapcompress` failure tests ([\#91](https://github.com/OWASP/pysap/pull/91)).
+- `pysap/utils/fields.py`: Fixed string/byte handling in Scapy field helpers and added regression tests ([\#92](https://github.com/OWASP/pysap/pull/92)). Thanks [Tyrox](https://github.com/DominikHolzapfel)!
+- Honeysap compatibility: Added NWRFC support, RFC crypto helpers, NI/RFC compatibility fixes, keepalive handling and UTF-16LE field round-trip tests ([\#93](https://github.com/OWASP/pysap/pull/93)). Thanks [@randomstr1ng](https://github.com/randomstr1ng) and Hackbarth!
 - GitHub Actions: Updated the build matrix to cover Python 3.10 through 3.14 and added a documentation build job.
-- Read the Docs: Updated the build configuration for the new Python 3.10 documentation toolchain.
-
+- `pysap/SAPHDB.py`: Fixed Python 3 bytes/string handling in HDB packet fields and added test coverage for the affected packet paths ([\#95](https://github.com/OWASP/pysap/pull/95)).
+- Bin scripts: Fixed Python 3 binary-file handling and exception reporting in `pysapcar`, `pysapgenpse` and `pysaphdbuserstore`; added command-line tool docs, subprocess coverage and a separate `bin_script` test/tox layer ([\#96](https://github.com/OWASP/pysap/pull/96)).
 - `pysap/utils/crypto/rsec.py`: Fixed RSEC SSFS key decryption ([\#71](https://github.com/OWASP/pysap/pull/71)).
 - `examples/default_sap_credentials`: Updated default SAP credentials.
-- Project was contributed by SecureAuth to the OWASP CBAS Project in October 2022.
-- Added the security policy file and clarified the project disclaimer.
-- Documentation: Added references to SAP Secure Storage and SSFS research.
 - `pysap/SAPCredv2.py`: Added subject fields instead of commonName for LPS-enabled credentials ([\#35](https://github.com/OWASP/pysap/issues/35)). Thanks [@rstenet](https://github.com/rstenet)!
 - `pysap/SAPCredv2.py`: Add support for cipher format version 1 with 3DES ([\#35](https://github.com/OWASP/pysap/issues/35) and [\#37](https://github.com/OWASP/pysap/pull/37)). Thanks [@rstenet](https://github.com/rstenet)!
 - `pysap/SAPHDB.py`: Added missing `StatementContextOption` values (see [\#22](https://github.com/SecureAuthCorp/SAP-Dissection-plug-in-for-Wireshark/pull/22)).
+- Documentation:
+  - Updated the Sphinx build to Python 3.10, Sphinx 7.4, and MyST Parser.
+  - Clarified that pysap now runs on Python 3 and requires Python 3.10 or newer.
+  - Updated the build configuration in Read the Docs for the new Python 3.10 documentation toolchain.
+  - Updated the example-script documentation for the migrated Python 3 scripts and fixed broken documentation links ([\#94](https://github.com/OWASP/pysap/pull/94)).
+  - Added references to SAP Secure Storage and SSFS research.
+- Added the security policy file and clarified the project disclaimer.
+- Project was contributed by SecureAuth to the OWASP CBAS Project in October 2022.
 
 
 v0.1.19 - 2021-04-29

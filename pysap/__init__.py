@@ -19,7 +19,7 @@
 __title__ = 'pysap'
 """The title of the library"""
 
-__version__ = '0.2.0.dev0'
+__version__ = '0.2.0'
 """The version of pysap"""
 
 __url__ = "https://owasp.org/www-project-core-business-application-security/"
@@ -28,7 +28,7 @@ __url__ = "https://owasp.org/www-project-core-business-application-security/"
 __repo__ = "https://github.com/OWASP/pysap"
 """The URL for pysap's repository"""
 
-__license__ = "GNU General Public License v2 or later (GPLv2+)"
+__license__ = "GPL-2.0-or-later"
 """The license governing the use and distribution of pysap"""
 
 epilog = "pysap %(version)s - %(url)s - %(repo)s" % {"version": __version__,

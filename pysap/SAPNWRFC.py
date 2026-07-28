@@ -13,7 +13,6 @@
 #
 # Author:
 #   Martin Gallo (@martingalloar)
-#   Code contributed by SecureAuth to the OWASP CBAS project
 #
 
 """SAP NetWeaver RFC (NWRFC) protocol constants and TLV parser.
@@ -231,17 +230,16 @@ def find_tlv_field_by_marker(data, marker, search_start=0):
 
         [end-of-prev (2)][tag (2)][length (2)][value (length)]
 
-    Args:
-        data (bytes): Raw frame payload to scan.
-        marker (int | bytes): Tag to search for, either as an integer (e.g.
-            ``0x0117``) or as 2 raw bytes (e.g. ``b"\\x01\\x17"``).
-        search_start (int): Offset to start scanning from.
-
-    Returns:
-        tuple[bytes | None, int]: ``(value, end_offset)`` if found, where
-        *end_offset* is the offset just past the value (suitable as
-        *search_start* for a subsequent call); otherwise ``(None,
-        search_start)``.
+    :param bytes data: Raw frame payload to scan.
+    :param marker: Tag to search for, either as an integer (for example,
+        ``0x0117``) or as 2 raw bytes (for example, ``b"\\x01\\x17"``).
+    :type marker: int or bytes
+    :param int search_start: Offset to start scanning from.
+    :returns: ``(value, end_offset)`` if found, where *end_offset* is the
+        offset just past the value and can be passed as *search_start* for a
+        subsequent call.  Returns ``(None, search_start)`` when the field is
+        not found.
+    :rtype: tuple[bytes | None, int]
     """
     if isinstance(marker, int):
         marker = struct.pack(">H", marker)

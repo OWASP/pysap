@@ -13,7 +13,6 @@
 #
 # Author:
 #   Martin Gallo (@martingalloar)
-#   Code contributed by SecureAuth to the OWASP CBAS project
 
 import sys
 import unittest
