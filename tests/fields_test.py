@@ -212,6 +212,13 @@ class PySAPUtilsFieldsTest(unittest.TestCase):
         self.assertEqual(value, b"\x04\x03abc")
         self.assertEqual(remaining, b"\x02\x01\x01")
 
+    def test_asn1f_raw_tlv_builds_empty_value(self):
+        field = ASN1F_RAW_TLV("value", b"")
+
+        self.assertEqual(field.i2m(None, b""), b"")
+        self.assertEqual(field.i2m(None, field.default), b"")
+        self.assertEqual(field.m2i(None, b""), (b"", b""))
+
 
 def suite():
     loader = unittest.TestLoader()

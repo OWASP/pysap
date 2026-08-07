@@ -530,11 +530,19 @@ def asn1_decode_oid(data):
 class ASN1F_RAW_TLV(ASN1F_field):
     """ASN.1 field that preserves the next TLV as raw bytes."""
 
+    def __init__(self, name, default):
+        ASN1F_field.__init__(self, name, None)
+        self.default = default
+
     def m2i(self, pkt, s):
+        if not s:
+            return b"", b""
         _, start, _, _, end = asn1_read_tlv(s)
         return s[start:end], s[end:]
 
     def i2m(self, pkt, x):
+        if hasattr(x, "val"):
+            x = x.val
         return x or b""
 
 
