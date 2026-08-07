@@ -16,6 +16,8 @@
 #
 
 # Standard imports
+from importlib.machinery import SourceFileLoader
+from importlib.util import module_from_spec, spec_from_loader
 import subprocess
 import sys
 import tempfile
@@ -85,6 +87,37 @@ class PySAPGenPSESecLoginScriptTest(unittest.TestCase):
             self.assertIn("Output written to file", result.stdout)
             with open(output_file, "rb") as output:
                 self.assertEqual(b"1234567890", output.read())
+
+    def test_seclogin_displays_empty_decrypted_pin(self):
+        class EmptyPin(object):
+            val = b""
+
+        class PlainCred(object):
+            pin = EmptyPin()
+            option1 = None
+            option2 = None
+            option3 = None
+
+        class Cred(object):
+            def decrypt(self, username):
+                return PlainCred()
+
+        loader = SourceFileLoader("pysapgenpse", self.SCRIPT)
+        spec = spec_from_loader("pysapgenpse", loader)
+        pysapgenpse = module_from_spec(spec)
+        loader.exec_module(pysapgenpse)
+
+        with tempfile.TemporaryDirectory() as output_dir:
+            output_file = join(output_dir, "pin.txt")
+            tool = pysapgenpse.PySAPGenPSE()
+            tool.verbose = False
+
+            with self.assertLogs("pysap.pysapgenpse", level="INFO") as logs:
+                tool.decrypt_cred(Cred(), "username", output_file, decrypt_provider=False)
+
+            self.assertTrue(any("PIN:\t\t(empty)" in message for message in logs.output))
+            with open(output_file, "rb") as output:
+                self.assertEqual(b"", output.read())
 
     def test_missing_credential_file_returns_cleanly(self):
         result = self.run_script("-c", "seclogin", "-l", "-f", data_filename("does-not-exist"))

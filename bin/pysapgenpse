@@ -35,6 +35,14 @@ def to_ascii(value):
     return value
 
 
+def format_pin(pin):
+    """Formats a decrypted PIN for display."""
+    pin = to_ascii(pin)
+    if pin == "":
+        return "(empty)"
+    return pin
+
+
 pysapgenpse_usage = """
 
 seclogin command:
@@ -287,7 +295,7 @@ class PySAPGenPSE(object):
         else:
             pin = plain.pin.val
 
-        self.logger.info("\t\t PIN:\t\t{}".format(to_ascii(pin)))
+        self.logger.info("\t\t PIN:\t\t{}".format(format_pin(pin)))
         if plain.option1:
             self.logger.debug("\t\t Options:\t{}".format(to_ascii(plain.option1.val)))
         if plain.option2:
