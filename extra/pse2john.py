@@ -19,7 +19,7 @@
 
 # Standard imports
 from os import path
-from sys import stdout
+from sys import stdout, stderr
 from binascii import hexlify
 from argparse import ArgumentParser
 # Custom imports
@@ -28,7 +28,7 @@ from pysap.SAPPSE import (SAPPSEFile, PKCS12_ALGORITHM_PBE1_SHA_3DES_CBC)
 
 
 # Command line options parser
-def parse_options():
+def parse_options(argv=None):
 
     description = "This script can be used to parse PSE files and extract encrypted material and data in a format that" \
                   "John the Ripper or other cracking tools can use to look for the decryption PIN."
@@ -37,39 +37,48 @@ def parse_options():
 
     parser = ArgumentParser(usage=usage, description=description, epilog=pysap.epilog)
     parser.add_argument("-o", "--output", help="Filename to write the output to [stdout]")
+    parser.add_argument("input_files", metavar="input_file", nargs="+", help="PSE file to parse")
 
-    options, args = parser.parse_known_args()
+    options = parser.parse_args(argv)
 
-    return options, args
+    return options
 
 
-def parse_pse(filename):
-    """Parses a PSE file and produces """
-    with open(filename, "rb") as fp:
-        data = fp.read()
+def process_file(filename, output_file=stdout, error_file=stderr):
+    """Process a PSE file and write John the Ripper material if supported."""
+    try:
+        with open(filename, "rb") as fp:
+            data = fp.read()
 
-    pse_file = SAPPSEFile(data)
+        pse_file = SAPPSEFile(data)
 
-    if pse_file.enc_cont.algorithm_identifier.alg_id == PKCS12_ALGORITHM_PBE1_SHA_3DES_CBC:
-        pbe_algo = 1
-        salt = hexlify(pse_file.enc_cont.algorithm_identifier.parameters.salt.val)
-        salt_size = len(pse_file.enc_cont.algorithm_identifier.parameters.salt.val)
-        iterations = pse_file.enc_cont.algorithm_identifier.parameters.iterations.val
-        iv = ""
-        iv_size = len(iv)
-    else:
-        raise Exception("Unsupported encryption algorithm")
+        if not pse_file.is_encrypted():
+            raise Exception("Unsupported PSE file type")
 
-    encrypted_pin = hexlify(pse_file.enc_cont.encrypted_pin.val)
-    encrypted_pin_length = len(pse_file.enc_cont.encrypted_pin.val)
+        if pse_file.enc_cont.algorithm_identifier.alg_id == PKCS12_ALGORITHM_PBE1_SHA_3DES_CBC:
+            pbe_algo = 1
+            salt = hexlify(pse_file.enc_cont.algorithm_identifier.parameters.salt.val).decode("ascii")
+            salt_size = len(pse_file.enc_cont.algorithm_identifier.parameters.salt.val)
+            iterations = pse_file.enc_cont.algorithm_identifier.parameters.iterations.val
+            iv = ""
+            iv_size = len(iv)
+        else:
+            raise Exception("Unsupported encryption algorithm")
 
-    return "{}:$pse${}${}${}${}${}${}${}${}:::::\n".format(
+        encrypted_pin = hexlify(pse_file.enc_cont.encrypted_pin.val).decode("ascii")
+        encrypted_pin_length = len(pse_file.enc_cont.encrypted_pin.val)
+    except Exception as e:
+        error_file.write("{}: {}\n".format(filename, e))
+        return False
+
+    output_file.write("{}:$pse${}${}${}${}${}${}${}${}:::::\n".format(
         path.basename(filename), pbe_algo, iterations, salt_size, salt, iv_size, iv,
-        encrypted_pin_length, encrypted_pin)
+        encrypted_pin_length, encrypted_pin))
+    return True
 
 
-if __name__ == "__main__":
-    options, args = parse_options()
+def main(argv=None):
+    options = parse_options(argv)
 
     # Select the output file to write
     if options.output:
@@ -77,11 +86,17 @@ if __name__ == "__main__":
     else:
         f = stdout
 
-    # Parse all the files and write output
-    for i in range(0, len(args)):
-        line = parse_pse(args[i])
-        f.write(line)
+    try:
+        # Parse all the files and write output
+        for input_file in options.input_files:
+            process_file(input_file, f)
+    finally:
+        # Close the file descriptor
+        if options.output:
+            f.close()
 
-    # Close the file descriptor
-    if options.output:
-        f.close()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

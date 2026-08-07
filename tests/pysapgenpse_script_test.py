@@ -50,6 +50,9 @@ class PySAPGenPSESecLoginScriptTest(unittest.TestCase):
         self.assertEqual(0, result.returncode)
         self.assertIn("Reading credentials file", result.stdout)
         self.assertIn("CN=PSEOwner", result.stdout)
+        self.assertIn("/secudir/pse-v2-noreq-DSA-1024-SHA1.pse", result.stdout)
+        self.assertNotIn("b'CN=PSEOwner'", result.stdout)
+        self.assertNotIn("b'/secudir/", result.stdout)
         self.assertIn("1 readable SSO-Credentials available", result.stdout)
 
     def test_seclogin_decrypts_credentials(self):
@@ -64,6 +67,24 @@ class PySAPGenPSESecLoginScriptTest(unittest.TestCase):
         self.assertEqual(0, result.returncode)
         self.assertIn("PIN:", result.stdout)
         self.assertIn("1234567890", result.stdout)
+        self.assertNotIn("b'1234567890'", result.stdout)
+
+    def test_seclogin_writes_decrypted_pin_as_ascii(self):
+        with tempfile.TemporaryDirectory() as output_dir:
+            output_file = join(output_dir, "pin.txt")
+            result = self.run_script(
+                "-c", "seclogin",
+                "-d",
+                "-f", data_filename("credv2_lps_off_v1_aes256"),
+                "-u", "username",
+                "--no-decrypt-provider",
+                "-o", output_file,
+            )
+
+            self.assertEqual(0, result.returncode)
+            self.assertIn("Output written to file", result.stdout)
+            with open(output_file, "rb") as output:
+                self.assertEqual(b"1234567890", output.read())
 
     def test_missing_credential_file_returns_cleanly(self):
         result = self.run_script("-c", "seclogin", "-l", "-f", data_filename("does-not-exist"))
@@ -99,6 +120,36 @@ class PySAPGenPSEPSEScriptTest(unittest.TestCase):
         self.assertIn("Reading PSE file", result.stdout)
         self.assertIn("Decrypted PSE", result.stdout)
 
+    def test_get_pse_certs_reads_plain_pse_without_pin(self):
+        with tempfile.TemporaryDirectory() as output_dir:
+            output_file = join(output_dir, "certs.der")
+
+            result = self.run_script(
+                "-c", "get_pse_certs",
+                "-f", data_filename("pse_v2_lps_off_pbes1_3des_sha1_plain.pse"),
+                "-o", output_file,
+            )
+
+            self.assertEqual(0, result.returncode)
+            self.assertIn("Reading PSE file", result.stdout)
+            self.assertIn("Read plain PSE", result.stdout)
+            self.assertNotIn("No PIN provided", result.stdout)
+            self.assertTrue(exists(output_file))
+            with open(output_file, "rb") as output:
+                output_data = output.read()
+            with open(data_filename("pse_v2_lps_off_pbes1_3des_sha1_cert.der"), "rb") as expected:
+                self.assertEqual(expected.read(), output_data)
+
+    def test_get_pse_certs_requires_pin_for_encrypted_pse(self):
+        result = self.run_script(
+            "-c", "get_pse_certs",
+            "-f", data_filename("pse_v2_lps_off_pbes1_3des_sha1.pse"),
+        )
+
+        self.assertEqual(0, result.returncode)
+        self.assertIn("Reading PSE file", result.stdout)
+        self.assertIn("No PIN provided", result.stdout)
+
     def test_get_pse_certs_writes_output_file(self):
         with tempfile.TemporaryDirectory() as output_dir:
             output_file = join(output_dir, "certs.der")
@@ -113,7 +164,7 @@ class PySAPGenPSEPSEScriptTest(unittest.TestCase):
             self.assertIn("Output written to file", result.stdout)
             self.assertTrue(exists(output_file))
             with open(output_file, "rb") as output:
-                self.assertGreater(len(output.read()), 0)
+                self.assertTrue(output.read().startswith(b"\x30"))
 
     def test_missing_pse_file_returns_cleanly(self):
         result = self.run_script(

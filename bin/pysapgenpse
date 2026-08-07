@@ -28,6 +28,13 @@ from pysap.SAPPSE import SAPPSEFile
 from pysap.SAPCredv2 import SAPCredv2, cipher_algorithms
 
 
+def to_ascii(value):
+    """Converts a string-like value to an ASCII string for display."""
+    if isinstance(value, bytes):
+        return value.decode("ascii")
+    return value
+
+
 pysapgenpse_usage = """
 
 seclogin command:
@@ -43,9 +50,9 @@ seclogin command:
 
 
 get_pse_certs command:
--------------------
+---------------------
 
-- decrypt and show/export certificates in a PSE file
+- show/export a selected certificate in a PSE file
 
   pysapgenpse -c get_pse_certs -[v][f <pse_path>] [-x pin] [-n 0] [-o <output>]
 
@@ -158,11 +165,6 @@ class PySAPGenPSE(object):
             self.logger.error("pysapgenpse: No PSE file specified")
             return
 
-        # If no pin was specified
-        if not options.pin:
-            self.logger.error("pysapgenpse: No PIN provided")
-            return
-
         # Parse the PSE file
         try:
             pse = self.open_file(options.filename, SAPPSEFile, "PSE")
@@ -173,13 +175,29 @@ class PySAPGenPSE(object):
         if pse is None:
             return
         if not pse.enc_cont:
-            self.logger.error("pysapgenpse: No encrypted content found in file {}".format(options.filename))
+            self.logger.error("pysapgenpse: No PSE content found in file {}".format(options.filename))
             return
 
-        plain = pse.decrypt(options.pin)
-        self.logger.info("Decrypted PSE, {} bytes".format(len(plain)))
+        if pse.is_encrypted() and not options.pin:
+            self.logger.error("pysapgenpse: No PIN provided")
+            return
 
-        self.write_output(options.output, plain)
+        certificates = pse.get_certificates(options.pin)
+        if not certificates:
+            self.logger.error("pysapgenpse: No certificates found in PSE file {}".format(options.filename))
+            return
+
+        if pse.is_encrypted():
+            self.logger.info("Decrypted PSE, {} certificate(s) found".format(len(certificates)))
+        else:
+            self.logger.info("Read plain PSE, {} certificate(s) found".format(len(certificates)))
+
+        certificate_number = options.number or 0
+        if certificate_number >= len(certificates):
+            self.logger.error("pysapgenpse: Certificate number {} not found".format(certificate_number))
+            return
+
+        self.write_output(options.output, certificates[certificate_number])
 
     def seclogin(self, options, args):
         """Implements operations on SSO-credentials related files.
@@ -218,8 +236,8 @@ class PySAPGenPSE(object):
         i = 0
         for cred in cred_v2.creds:
             cred = cred.cred
-            cn = cred.common_name
-            pse_path = cred.pse_file_path
+            cn = to_ascii(cred.common_name)
+            pse_path = to_ascii(cred.pse_file_path)
             lps = cred.lps_type_str
 
             self.logger.info("\n {} (LPS:{}): {}".format(i, lps, cn))
@@ -269,13 +287,13 @@ class PySAPGenPSE(object):
         else:
             pin = plain.pin.val
 
-        self.logger.info("\t\t PIN:\t\t{}".format(pin))
+        self.logger.info("\t\t PIN:\t\t{}".format(to_ascii(pin)))
         if plain.option1:
-            self.logger.debug("\t\t Options:\t{}".format(plain.option1.val))
+            self.logger.debug("\t\t Options:\t{}".format(to_ascii(plain.option1.val)))
         if plain.option2:
-            self.logger.debug("\t\t\t\t{}".format(plain.option2.val))
+            self.logger.debug("\t\t\t\t{}".format(to_ascii(plain.option2.val)))
         if plain.option3:
-            self.logger.debug("\t\t\t\t{}".format(plain.option3.val))
+            self.logger.debug("\t\t\t\t{}".format(to_ascii(plain.option3.val)))
         self.write_output(output_filename, pin)
 
     def write_output(self, output_filename, output):
@@ -289,7 +307,7 @@ class PySAPGenPSE(object):
         """
         if output_filename:
             if isinstance(output, str):
-                output = output.encode()
+                output = output.encode("ascii")
             with open(output_filename, "wb") as output_file:
                 output_file.write(output)
             self.logger.info("pysapgenpse: Output written to file '{}'".format(output_filename))

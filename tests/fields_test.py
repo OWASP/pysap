@@ -26,7 +26,9 @@ from scapy.packet import Packet
 from pysap.utils.fields import (saptimestamp_to_datetime, StrNullFixedLenField,
                                 StrFixedLenPaddedField, StrNullFixedLenPaddedField,
                                 StrEncodedPaddedField, PacketListStopField,
-                                AdjustableFieldLenField, ASN1F_CHOICE_SAFE)
+                                AdjustableFieldLenField, ASN1F_CHOICE_SAFE,
+                                ASN1F_RAW_TLV, asn1_read_tlv, asn1_first_tlv,
+                                asn1_child_tlvs, asn1_decode_oid)
 
 
 class DummyLengthPacket(object):
@@ -185,6 +187,30 @@ class PySAPUtilsFieldsTest(unittest.TestCase):
 
         with self.assertRaises(ASN1_Error):
             field.m2i(None, b"\x01")
+
+    def test_asn1_read_tlv_short_length_and_children(self):
+        data = b"\x30\x06\x02\x01\x01\x04\x01a"
+
+        self.assertEqual(asn1_read_tlv(data), (0x30, 0, 2, 8, 8))
+        self.assertEqual(asn1_first_tlv(data + b"tail"), data)
+        self.assertEqual(asn1_child_tlvs(data), [b"\x02\x01\x01", b"\x04\x01a"])
+
+    def test_asn1_read_tlv_long_length(self):
+        data = b"\x04\x81\x80" + (b"a" * 128) + b"tail"
+
+        self.assertEqual(asn1_read_tlv(data), (0x04, 0, 3, 131, 131))
+        self.assertEqual(asn1_first_tlv(data), data[:-4])
+
+    def test_asn1_decode_oid(self):
+        self.assertEqual(asn1_decode_oid(b"\x06\x05\x2b\x24\x02\x01\x03"), "1.3.36.2.1.3")
+
+    def test_asn1f_raw_tlv_preserves_single_tlv(self):
+        field = ASN1F_RAW_TLV("value", b"")
+
+        value, remaining = field.m2i(None, b"\x04\x03abc\x02\x01\x01")
+
+        self.assertEqual(value, b"\x04\x03abc")
+        self.assertEqual(remaining, b"\x02\x01\x01")
 
 
 def suite():

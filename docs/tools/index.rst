@@ -54,13 +54,26 @@ Decrypt a credential PIN with a known user name::
 
     $ pysapgenpse -c seclogin -d -f cred_v2 -u username
 
-Decrypt PSE encrypted content with a known PIN::
+Export a certificate from a plain PSE as DER::
 
-    $ pysapgenpse -c get_pse_certs -f local.pse -x pin
+    $ pysapgenpse -c get_pse_certs -f local.pse -o output.der
 
-Write decrypted output to a file::
+Encrypted PSE files require the PIN::
 
-    $ pysapgenpse -c get_pse_certs -f local.pse -x pin -o output.der
+    $ pysapgenpse -c get_pse_certs -f encrypted.pse -x pin -o output.der
+
+Use ``-n`` to select which certificate to export. Certificate numbering is
+zero-based; by default the first certificate is exported.
+
+If the PIN is not known, encrypted PSE files can be converted to a format
+accepted by John the Ripper using the ``extra/pse2john.py`` helper script::
+
+    $ python3 extra/pse2john.py encrypted.pse > pse.hash
+    $ john pse.hash
+
+The converter writes hashes for supported encrypted PSE files and reports
+unsupported files on standard error while continuing with the remaining input
+files.
 
 If ``-f`` is omitted for ``seclogin`` and ``SECUDIR`` is set, the tool looks for
 ``cred_v2`` in that directory. The ``-u`` option controls the user name used for
