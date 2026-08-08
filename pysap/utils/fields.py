@@ -426,6 +426,126 @@ class ASN1F_CHOICE_SAFE(ASN1F_CHOICE):
         raise ASN1_Error
 
 
+def asn1_read_tlv(data, offset=0):
+    """Read an ASN.1 TLV from a byte string.
+
+    :param bytes data: ASN.1-encoded data
+    :param int offset: Offset of the TLV to read
+
+    :return: tag, TLV start, value start, value end and next TLV offset
+    :rtype: tuple
+    """
+
+    if len(data) < offset + 2:
+        raise ASN1_Error("Short ASN.1 field")
+
+    tag = data[offset]
+    length_start = offset + 1
+    length = data[length_start]
+    header_length = 2
+
+    if length & 0x80:
+        length_length = length & 0x7f
+        if length_length == 0:
+            raise ASN1_Error("Indefinite ASN.1 length is not supported")
+        length_end = length_start + 1 + length_length
+        if len(data) < length_end:
+            raise ASN1_Error("Truncated ASN.1 length")
+        length = int.from_bytes(data[length_start + 1:length_end], "big")
+        header_length = 1 + 1 + length_length
+
+    value_start = offset + header_length
+    value_end = value_start + length
+    if len(data) < value_end:
+        raise ASN1_Error("Truncated ASN.1 value")
+
+    return tag, offset, value_start, value_end, value_end
+
+
+def asn1_first_tlv(data):
+    """Return the first ASN.1 TLV from a byte string.
+
+    :param bytes data: ASN.1-encoded data
+
+    :return: encoded first ASN.1 TLV
+    :rtype: bytes
+    """
+
+    _, start, _, _, end = asn1_read_tlv(data)
+    return data[start:end]
+
+
+def asn1_child_tlvs(data):
+    """Return child TLVs contained in a constructed ASN.1 value.
+
+    :param bytes data: ASN.1-encoded constructed value
+
+    :return: encoded child ASN.1 TLVs
+    :rtype: list(bytes)
+    """
+
+    _, _, value_start, value_end, _ = asn1_read_tlv(data)
+    children = []
+    offset = value_start
+    while offset < value_end:
+        _, start, _, _, end = asn1_read_tlv(data, offset)
+        children.append(data[start:end])
+        offset = end
+    if offset != value_end:
+        raise ASN1_Error("Invalid ASN.1 child length")
+    return children
+
+
+def asn1_decode_oid(data):
+    """Decode an ASN.1 OBJECT IDENTIFIER TLV.
+
+    :param bytes data: ASN.1-encoded OBJECT IDENTIFIER
+
+    :return: dotted OID string
+    :rtype: string
+    """
+
+    tag, _, value_start, value_end, _ = asn1_read_tlv(data)
+    if tag != 0x06:
+        raise ASN1_Error("Invalid ASN.1 OID tag")
+
+    value = data[value_start:value_end]
+    if not value:
+        raise ASN1_Error("Empty ASN.1 OID")
+
+    first = value[0]
+    oid = [first // 40, first % 40]
+    current = 0
+    for byte in value[1:]:
+        current = (current << 7) | (byte & 0x7f)
+        if not byte & 0x80:
+            oid.append(current)
+            current = 0
+    if current:
+        raise ASN1_Error("Truncated ASN.1 OID component")
+
+    return ".".join(str(component) for component in oid)
+
+
+class ASN1F_RAW_TLV(ASN1F_field):
+    """ASN.1 field that preserves the next TLV as raw bytes."""
+
+    def __init__(self, name, default):
+        ASN1F_field.__init__(self, name, None)
+        self.default = default
+
+    def m2i(self, pkt, s):
+        if not s:
+            return b"", b""
+        _, start, _, _, end = asn1_read_tlv(s)
+        return s[start:end], s[end:]
+
+    def i2m(self, pkt, x):
+        if hasattr(x, "val"):
+            x = x.val
+        return x or b""
+
+
 class TimestampField(LongField):
     """Timestamp field"""
 

@@ -22,7 +22,8 @@ import unittest
 # External imports
 # Custom imports
 from tests.utils import data_filename
-from pysap.SAPPSE import (SAPPSEFile, PKCS12_ALGORITHM_PBE1_SHA_3DES_CBC)
+from pysap.SAPPSE import (SAPPSEFile, SAPPSE_Cont_Raw, SAPPSEv4_Enc_Cont,
+                          PKCS12_ALGORITHM_PBE1_SHA_3DES_CBC)
 
 
 class PySAPPSEv2Test(unittest.TestCase):
@@ -65,6 +66,52 @@ class PySAPPSEv2Test(unittest.TestCase):
         self.assertEqual(pse.enc_cont.algorithm_identifier.alg_id.val, PKCS12_ALGORITHM_PBE1_SHA_3DES_CBC)
         self.assertEqual(pse.enc_cont.algorithm_identifier.parameters.iterations, self.iterations)
         self.assertEqual(len(pse.enc_cont.algorithm_identifier.parameters.salt.val), 8)
+
+    def test_plain_v2_pse_content(self):
+        """Test parsing a sapgenpse-generated plain v2 PSE content container"""
+
+        with open(data_filename("pse_v2_lps_off_pbes1_3des_sha1_plain.pse"), "rb") as fd:
+            s = fd.read()
+        with open(data_filename("pse_v2_lps_off_pbes1_3des_sha1_cert.der"), "rb") as fd:
+            certificate = fd.read()
+
+        plain_pse = SAPPSEFile(s)
+
+        self.assertEqual(plain_pse.version, 2)
+        self.assertIsInstance(plain_pse.enc_cont, SAPPSE_Cont_Raw)
+        self.assertTrue(plain_pse.is_plain())
+        self.assertFalse(plain_pse.is_encrypted())
+        self.assertEqual([certificate], plain_pse.get_certificates())
+
+    def test_plain_v4_pse_content(self):
+        """Test parsing a sapgenpse-generated plain v4 PSE content container"""
+
+        with open(data_filename("pse_v4_lps_off_pbes1_3des_sha1_plain.pse"), "rb") as fd:
+            s = fd.read()
+        with open(data_filename("pse_v4_lps_off_pbes1_3des_sha1_cert.der"), "rb") as fd:
+            certificate = fd.read()
+
+        plain_pse = SAPPSEFile(s)
+
+        self.assertEqual(plain_pse.version, 4)
+        self.assertIsInstance(plain_pse.enc_cont, SAPPSEv4_Enc_Cont)
+        self.assertTrue(plain_pse.is_plain())
+        self.assertFalse(plain_pse.is_encrypted())
+        self.assertEqual([certificate], plain_pse.get_certificates())
+
+    def test_encrypted_pse_get_content_requires_pin(self):
+        """Test that encrypted PSE content requires a PIN"""
+
+        with open(data_filename("pse_v2_lps_off_pbes1_3des_sha1.pse"), "rb") as fd:
+            s = fd.read()
+
+        pse = SAPPSEFile(s)
+        self.assertTrue(pse.is_encrypted())
+        self.assertFalse(pse.is_plain())
+        self.assertRaisesRegex(ValueError, "PIN required", pse.get_content)
+        certificates = pse.get_certificates(self.decrypt_pin)
+        with open(data_filename("pse_v2_lps_off_pbes1_3des_sha1_cert.der"), "rb") as fd:
+            self.assertEqual([fd.read()], certificates)
 
 
 def suite():

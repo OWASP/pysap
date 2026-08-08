@@ -34,7 +34,8 @@ from scapy.asn1.mib import conf  # noqa: F401
 # Custom imports
 from pysap.SAPLPS import SAPLPSCipher
 from pysap.utils.crypto import PKCS12_PBES1
-from pysap.utils.fields import ASN1F_CHOICE_SAFE
+from pysap.utils.fields import (ASN1F_CHOICE_SAFE, ASN1F_RAW_TLV, asn1_first_tlv,
+                                asn1_child_tlvs, asn1_decode_oid)
 # External imports
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.hashes import SHA1
@@ -221,6 +222,35 @@ class SAPPSE_Cont(ASN1_Packet):
     )
 
 
+class SAPPSE_Cont_Raw(ASN1_Packet):
+    """SAP PSEv2 Content definition preserving the object set as raw DER."""
+    ASN1_codec = ASN1_Codecs.BER
+    ASN1_root = ASN1F_SEQUENCE(
+        ASN1F_PACKET("algorithm_identifier", PKCS5_Algorithm_Identifier(),
+                     PKCS5_Algorithm_Identifier),
+        ASN1F_GENERALIZED_TIME("timestamp", "19700101000000Z"),
+        ASN1F_INTEGER("unknown1", 1),
+        ASN1F_RAW_TLV("pse_obj", b""),
+    )
+
+    def get_certificates(self):
+        """Return certificate objects contained in the PSE content.
+
+        :return: DER-encoded X.509 certificates
+        :rtype: list(bytes)
+        """
+
+        certificates = []
+        for pse_obj in asn1_child_tlvs(self.pse_obj):
+            fields = asn1_child_tlvs(pse_obj)
+            if len(fields) < 4:
+                continue
+            object_type = asn1_decode_oid(fields[2])
+            if object_type == sappse_obj_oid["Cert"]:
+                certificates.append(fields[3])
+        return certificates
+
+
 class SAPPSEv2_Enc_Cont(ASN1_Packet):
     """SAP PSEv2 Encrypted content definition"""
     ASN1_codec = ASN1_Codecs.BER
@@ -252,8 +282,54 @@ class SAPPSEFile(ASN1_Packet):
         ASN1F_CHOICE("enc_cont", SAPPSEv2_Enc_Cont(),
                      SAPPSEv2_Enc_Cont,
                      SAPPSEv4_Enc_Cont,
+                     SAPPSE_Cont_Raw,
                      )
     )
+
+    def is_encrypted(self):
+        """Returns whether the PSE file contains an encrypted content container."""
+
+        return isinstance(self.enc_cont, SAPPSEv2_Enc_Cont) or (
+            isinstance(self.enc_cont, SAPPSEv4_Enc_Cont) and self.enc_cont.unknown != 0
+        )
+
+    def is_plain(self):
+        """Returns whether the PSE file contains a plain content container."""
+
+        return isinstance(self.enc_cont, SAPPSE_Cont_Raw) or (
+            isinstance(self.enc_cont, SAPPSEv4_Enc_Cont) and self.enc_cont.unknown == 0
+        )
+
+    def get_content(self, pin=None):
+        """Returns the plain PSE content, decrypting it first when needed.
+
+        :param pin: PIN to use when decrypting encrypted PSE files
+        :type pin: string
+
+        :return: plain PSE content
+        :rtype: bytes
+        """
+
+        if self.is_plain():
+            if isinstance(self.enc_cont, SAPPSEv4_Enc_Cont):
+                return self.enc_cont.cipher_text.val
+            return bytes(self.enc_cont)
+        if pin is None:
+            raise ValueError("PIN required for encrypted PSE file")
+        return self.decrypt(pin)
+
+    def get_certificates(self, pin=None):
+        """Returns DER-encoded X.509 certificates from the PSE content.
+
+        :param pin: PIN to use when decrypting encrypted PSE files
+        :type pin: string
+
+        :return: DER-encoded X.509 certificates
+        :rtype: list(bytes)
+        """
+
+        content = asn1_first_tlv(self.get_content(pin))
+        return SAPPSE_Cont_Raw(content).get_certificates()
 
     def decrypt(self, pin):
         """Decrypts a PSE file given a provided PIN. Calls the respective decryption function
