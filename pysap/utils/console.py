@@ -18,6 +18,7 @@
 
 # Standard imports
 from cmd import Cmd
+import shlex
 # Optional imports
 try:
     from tabulate import tabulate
@@ -35,6 +36,18 @@ class BaseConsole (Cmd, object):
         self._hist = []
         self.options = options
         self.runtimeoptions = {}
+        self._consolelog = None
+        self._owns_consolelog = False
+
+        consolelog = getattr(options, "consolelog", None)
+        if hasattr(consolelog, "write"):
+            self._consolelog = consolelog
+        elif consolelog:
+            try:
+                self._consolelog = open(consolelog, "a", encoding="utf-8")
+                self._owns_consolelog = True
+            except OSError as exc:
+                self._error("Error opening console log: %s" % exc)
 
     # Console Command definitions
     def do_history(self, args):
@@ -43,7 +56,21 @@ class BaseConsole (Cmd, object):
 
     def do_exit(self, args):
         """Exit console."""
+        self.close()
         return -1
+
+    def do_quit(self, args):
+        """Exit console."""
+        return self.do_exit(args)
+
+    def do_q(self, args):
+        """Exit console."""
+        return self.do_exit(args)
+
+    def do_EOF(self, args):
+        """Exit console on end-of-file."""
+        self._print()
+        return self.do_exit(args)
 
     def do_help(self, args):
         """Show help."""
@@ -63,10 +90,8 @@ class BaseConsole (Cmd, object):
                 self._print("[" + option + "] = " + str(self.runtimeoptions[option]))
         # Set a run-time option
         else:
-            args = args.split(" ", 1)
-            if len(args) == 2:
-                option = args.pop(0)  # Extract the option
-                value = args.pop(0)
+            option, separator, value = args.partition(" ")
+            if separator:
                 if option in list(self.runtimeoptions.keys()):
                     self.runtimeoptions[option] = value
                 else:
@@ -88,19 +113,39 @@ class BaseConsole (Cmd, object):
             self.do_help("script")
         else:
             try:
-                scriptfile = open(args, 'r')
-                for line in scriptfile:
-                    if not line[0] in ["\n", "#"]:
-                        self.precmd(line)
-                        self.onecmd(line)
-            except IOError:
+                with open(args, "r", encoding="utf-8") as scriptfile:
+                    for line in scriptfile:
+                        line = line.strip()
+                        if not line or line.startswith("#"):
+                            continue
+                        line = self.precmd(line)
+                        stop = self.onecmd(line)
+                        self.postcmd(stop, line)
+                        if stop:
+                            break
+            except OSError:
                 self._error("Error reading script file.")
+
+    def _parse_args(self, args):
+        """Parse console arguments with shell-like quoting."""
+        try:
+            return shlex.split(args or "")
+        except ValueError as exc:
+            self._error("Invalid arguments: %s" % exc)
+            return None
+
+    def _require_connection(self):
+        """Return whether a command can use the active connection."""
+        if not getattr(self, "connected", False):
+            self._error("You need to connect to the server first !")
+            return False
+        return True
 
     # Console output methods
 
     def _tabulate(self, table, **args):
         if tabulate:
-            tabular = tabulate(table, args)
+            tabular = tabulate(table, **args)
             self._print(tabular)
         else:
             self._print("\n".join("\t| ".join([str(col).strip() for col in line]).expandtabs(20) for line in table))
@@ -110,8 +155,9 @@ class BaseConsole (Cmd, object):
         self._log(string)
 
     def _log(self, string=""):
-        if self.options.consolelog:  # To console file if specified
-            self.options.consolelog.write(str(string) + "\n")
+        if self._consolelog:  # To console file if specified
+            self._consolelog.write(str(string) + "\n")
+            self._consolelog.flush()
 
     def _debug(self, string=""):
         if self.options.verbose:
@@ -119,6 +165,13 @@ class BaseConsole (Cmd, object):
 
     def _error(self, string):
         self._print("Error: " + string)  # To console if log file specified
+
+    def close(self):
+        """Close resources owned by the console."""
+        if self._owns_consolelog and self._consolelog:
+            self._consolelog.close()
+            self._consolelog = None
+            self._owns_consolelog = False
 
     # Override of cmd.Cmd methods and hooks
 
@@ -134,6 +187,7 @@ class BaseConsole (Cmd, object):
         self._debug("Exiting console " + self.intro)
         self._log(self.ruler * 24)
         self._log()
+        self.close()
 
     def precmd(self, line):
         self._hist += [line.strip()]
