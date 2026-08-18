@@ -23,7 +23,8 @@ from scapy.fields import (ByteField, ConditionalField, StrFixedLenField, FlagsFi
                           IPField, ShortField, IntField, StrField, PacketListField,
                           FieldLenField, PacketField, StrLenField, IntEnumField,
                           ByteEnumKeysField, ShortEnumKeysField, Field,
-                          PacketLenField, XByteField, SignedIntField)
+                          PacketLenField, XByteField, SignedIntField,
+                          MultipleTypeField)
 from scapy.layers.inet6 import IP6Field
 # Custom imports
 from pysap.SAPNI import SAPNI
@@ -758,6 +759,31 @@ class SAPMSLogon(PacketNoPadded):
     ]
 
 
+class SAPMSLogonResponse(PacketNoPadded):
+    """SAP Message Server logon data returned by ``MS_GET_LOGON``.
+
+    Recent kernels include seven bytes of opaque response data followed by a
+    variable response tail.  Keeping this layout separate from
+    :class:`SAPMSLogon` preserves the older request wire format.
+    """
+    name = "SAP Message Server Logon Response"
+    fields_desc = [
+        ShortEnumKeysField("type", 0, ms_logon_type_values),
+        ShortField("port", 0),
+        IPField("address", "0.0.0.0"),
+        FieldLenField("logonname_length", None, length_of="logonname", fmt="!H"),
+        StrLenField("logonname", b"", length_from=lambda pkt:pkt.logonname_length),
+        FieldLenField("prot_length", None, length_of="prot", fmt="!H"),
+        StrLenField("prot", b"", length_from=lambda pkt:pkt.prot_length),
+        FieldLenField("host_length", None, length_of="host", fmt="!H"),
+        StrLenField("host", b"", length_from=lambda pkt:pkt.host_length),
+        FieldLenField("misc_length", None, length_of="misc", fmt="!H"),
+        StrLenField("misc", b"", length_from=lambda pkt:pkt.misc_length),
+        StrFixedLenField("response_data", b"", 7),
+        StrField("response_tail", b""),
+    ]
+
+
 class SAPMSProperty(Packet):
     """SAP Message Server Property packet.
 
@@ -1158,10 +1184,10 @@ class SAPMS(Packet):
         ConditionalField(StrNullFixedLenField("hwid", b"", length=99), lambda pkt:pkt.opcode == 0x0a),
 
         # Statistics
-        ConditionalField(PacketField("stats", None, SAPMSStat3), lambda pkt:pkt.opcode == 0x11 and pkt.flag == 0x03),
+        ConditionalField(PacketField("stats", None, SAPMSStat3), lambda pkt:pkt.opcode == 0x11 and pkt.flag == 0x03 and pkt.opcode_error == 0x00),
 
         # Codepage
-        ConditionalField(IntField("codepage", 0), lambda pkt:pkt.opcode == 0x1c and pkt.flag == 0x03),
+        ConditionalField(IntField("codepage", 0), lambda pkt:pkt.opcode == 0x1c and pkt.flag == 0x03 and pkt.opcode_error == 0x00),
 
         # Dump Info Request fields
         ConditionalField(ByteField("dump_dest", 0x02), lambda pkt:pkt.opcode == 0x1E and pkt.flag == 0x02),
@@ -1175,7 +1201,10 @@ class SAPMS(Packet):
         ConditionalField(StrFixedLenField("file_padding", b"\x00\x00", 2), lambda pkt:pkt.opcode == 0x1f),
 
         # Get/Set/Del Logon fields
-        ConditionalField(PacketField("logon", None, SAPMSLogon), lambda pkt:pkt.opcode in [0x2b, 0x2c, 0x2d]),
+        ConditionalField(MultipleTypeField([
+            (PacketField("logon", None, SAPMSLogonResponse), lambda pkt:pkt.flag == 0x03),
+        ], PacketField("logon", None, SAPMSLogon)),
+                         lambda pkt:pkt.opcode in [0x2b, 0x2c, 0x2d]),
 
         # Server Disconnect/Shutdown fields
         ConditionalField(PacketLenField("shutdown_client", SAPMSClient3(), SAPMSClient3, length_from=lambda pkt: 150), lambda pkt:pkt.opcode in [0x2e, 0x2f, 0x30, 0x4a]),

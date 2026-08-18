@@ -17,8 +17,8 @@
 import sys
 import unittest
 
-from pysap.SAPMS import (SAPMS, SAPMSAdmRecord, SAPMSClient1, SAPMSProperty,
-                         SAPMSJ2EEHeader)
+from pysap.SAPMS import (SAPMS, SAPMSAdmRecord, SAPMSClient1, SAPMSLogon,
+                         SAPMSLogonResponse, SAPMSProperty, SAPMSJ2EEHeader)
 from tests.utils import roundtrip_packet
 
 
@@ -87,6 +87,39 @@ class PySAPMessageServerTest(unittest.TestCase):
         self.assertEqual(parsed.ip_to_name_address4, "127.0.0.1")
         self.assertEqual(parsed.ip_to_name_port, 3200)
         self.assertEqual(parsed.ip_to_name, b"server.example")
+
+    def test_message_server_logon_request_roundtrip(self):
+        packet = SAPMS(flag=0x02, iflag=0x01, opcode=0x2c,
+                       logon=SAPMSLogon(type=0, logonname="PUBLIC",
+                                        address6_length=-1))
+        parsed = roundtrip_packet(packet)
+
+        self.assertIsInstance(parsed.logon, SAPMSLogon)
+        self.assertEqual(parsed.logon.type, 0)
+        self.assertEqual(parsed.logon.logonname, b"PUBLIC")
+        self.assertEqual(parsed.logon.address6_length, -1)
+
+    def test_message_server_logon_response_roundtrip(self):
+        packet = SAPMS(flag=0x03, iflag=0x01, opcode=0x2c,
+                       logon=SAPMSLogonResponse(
+                           type=0, port=3200, address="127.0.0.1",
+                           logonname="PUBLIC", response_data=b"payload",
+                           response_tail=b"\x00\x10\x00\x00"))
+        parsed = roundtrip_packet(packet)
+
+        self.assertIsInstance(parsed.logon, SAPMSLogonResponse)
+        self.assertEqual(parsed.logon.port, 3200)
+        self.assertEqual(parsed.logon.logonname, b"PUBLIC")
+        self.assertEqual(parsed.logon.response_data, b"payload")
+        self.assertEqual(parsed.logon.response_tail, b"\x00\x10\x00\x00")
+
+    def test_message_server_codepage_error_without_payload(self):
+        packet = SAPMS(flag=0x03, iflag=0x01, opcode=0x1c,
+                       opcode_error=0x05)
+        parsed = roundtrip_packet(packet)
+
+        self.assertEqual(parsed.opcode_error, 0x05)
+        self.assertFalse(parsed.payload)
 
 
 def suite():

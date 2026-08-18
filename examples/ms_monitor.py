@@ -29,7 +29,8 @@ from pysap.utils.console import BaseConsole
 from pysap.SAPMS import (SAPMS, ms_client_status_values, ms_opcode_error_values,
                          ms_dump_command_values, SAPMSCounter, ms_opcode_values,
                          ms_errorno_values, SAPMSProperty, ms_property_id_values,
-                         SAPMSAdmRecord, ms_domain_values_inv)
+                         SAPMSAdmRecord, ms_domain_values_inv,
+                         ms_logon_type_values, SAPMSLogon)
 from pysap.SAPRouter import SAPRoutedStreamSocket
 
 
@@ -81,8 +82,7 @@ class SAPMSMonitorConsole(BaseConsole):
 
     # Helper for sending simple commands and opcodes
     def _send_simple(self, flag, iflag, **args):
-        if not self.connected:
-            self._error("You need to connect to the server first !")
+        if not self._require_connection():
             return
 
         if "opcode" in args:
@@ -201,7 +201,8 @@ class SAPMSMonitorConsole(BaseConsole):
                           client.hostaddrv4,
                           client.hostaddrv6 if "hostaddrv6" in client.fields else None,
                           str(client.servno),
-                          ms_client_status_values[status] if status is not None else ""])
+                          ms_client_status_values.get(status, str(status)) if status is not None else "",
+                          str(client.msgtype).replace("+", " ") if client.msgtype else "-"])
             i += 1
         self._tabulate(table)
 
@@ -245,20 +246,18 @@ class SAPMSMonitorConsole(BaseConsole):
     def do_dump(self, args):
         """ Dump information. Options [<dump command> | all] """
 
-        if args == "all":
+        arguments = self._parse_args(args)
+        if arguments is None:
+            return
+
+        if arguments == ["all"]:
             for key in ms_dump_command_values:
                 self.do_dump(key)
             return
 
-        # Split list of commands
         try:
-            args = args.split(" ")
-        except AttributeError:
-            args = [args]
-
-        try:
-            command = int(args[0])
-        except ValueError:
+            command = int(arguments[0])
+        except (IndexError, ValueError):
             self._error("Wrong dump command ! Valid values:")
             for key in ms_dump_command_values:
                 self._error("%d: %s" % (key, ms_dump_command_values[key]))
@@ -267,9 +266,9 @@ class SAPMSMonitorConsole(BaseConsole):
 
         if command == 1:  # MS_DUMP_MSADM
             try:
-                client_id = int(args[1])
+                client_id = int(arguments[1])
                 client = self.clients[client_id]
-            except (ValueError, KeyError, IndexError):
+            except (ValueError, IndexError):
                 self._error("Wrong parameters ! Specify client ID")
                 return
             response = self._send_simple(0x02, 0x01, opcode=0x1e,
@@ -277,7 +276,7 @@ class SAPMSMonitorConsole(BaseConsole):
                                          dump_name=self._decode(client.client))
         elif command == 12:  # MS_DUMP_COUNTER
             try:
-                counter = args[1]
+                counter = arguments[1]
             except IndexError:
                 self._error("Wrong parameters ! Specify counter number")
                 return
@@ -293,6 +292,121 @@ class SAPMSMonitorConsole(BaseConsole):
             if isinstance(value, bytes):
                 value = value.rstrip(b'\x00').decode('utf-8', errors='replace')
             self._print("Dump information:\n%s" % value)
+
+    def do_open_requests(self, args):
+        """List open Message Server requests."""
+        response = self._send_simple(0x02, 0x01, opcode=0x14)
+        if response:
+            value = response.opcode_value
+            if isinstance(value, bytes):
+                value = value.rstrip(b"\x00").decode("utf-8", errors="replace")
+            self._print("Open requests:\n%s" % value)
+
+    def do_dump_url_map(self, args):
+        """Dump the Message Server URL map."""
+        self.do_dump("15")
+
+    def do_dump_url_prefixes(self, args):
+        """Dump Message Server URL prefixes."""
+        self.do_dump("16")
+
+    def do_dump_url_handler(self, args):
+        """Dump Message Server URL handlers."""
+        self.do_dump("17")
+
+    def do_counter_dump(self, args):
+        """Dump a counter. Options: <counter>"""
+        arguments = self._parse_args(args)
+        if arguments is None:
+            return
+        if len(arguments) != 1:
+            self._error("Wrong parameters ! Specify counter number")
+            return
+        self.do_dump("12 %s" % arguments[0])
+
+    def do_logon_types(self, args):
+        """Display the supported Message Server logon types."""
+        arguments = self._parse_args(args)
+        if arguments is None:
+            return
+        if arguments:
+            self._error("This command does not accept parameters.")
+            return
+        table = [["#", "Logon type"]]
+        table.extend([str(key), value] for key, value in sorted(ms_logon_type_values.items()))
+        self._tabulate(table)
+
+    def _get_logon(self, args, fixed_type=None):
+        arguments = self._parse_args(args)
+        if arguments is None:
+            return
+        expected = [1] if fixed_type is not None else [1, 2]
+        if len(arguments) not in expected:
+            self._error("Wrong parameters ! Specify group name and optional logon type")
+            return
+
+        try:
+            logon_type = fixed_type if fixed_type is not None else (int(arguments[1]) if len(arguments) == 2 else 0)
+        except ValueError:
+            self._error("Invalid logon type")
+            return
+        if logon_type not in ms_logon_type_values:
+            self._error("Unknown logon type")
+            return
+
+        request = SAPMSLogon(type=logon_type, logonname=arguments[0],
+                             address6_length=-1)
+        response = self._send_simple(0x02, 0x01, opcode=0x2c, logon=request)
+        if response is None or response.logon is None:
+            return
+
+        logon = response.logon
+        table = [["Group", "Type", "Address", "Port", "Protocol", "Host", "Misc"]]
+        table.append([self._decode(logon.logonname),
+                      ms_logon_type_values.get(logon.type, str(logon.type)),
+                      logon.address,
+                      str(logon.port),
+                      self._decode(logon.prot),
+                      self._decode(logon.host),
+                      self._decode(logon.misc)])
+        self._tabulate(table)
+
+    def do_get_logon(self, args):
+        """Retrieve logon data. Options: <group name> [<logon type>]"""
+        return self._get_logon(args)
+
+    def do_logon_data(self, args):
+        """Alias for :meth:`get_logon`."""
+        return self.do_get_logon(args)
+
+    def do_logon_data_snc(self, args):
+        """Retrieve SNC logon data. Options: <group name>"""
+        return self._get_logon(args, fixed_type=3)
+
+    def do_logon_data_lb(self, args):
+        """Retrieve load-balanced logon data. Options: <group name>"""
+        return self._get_logon(args, fixed_type=0)
+
+    def do_logon_data_lb_snc(self, args):
+        """Retrieve SNC load-balanced logon data. Options: <group name>"""
+        return self._get_logon(args, fixed_type=1)
+
+    def do_logon_group_list(self, args):
+        """List logon groups."""
+        return self.do_client_list(args)
+
+    def do_logon_group_list_snc(self, args):
+        """List logon groups with SNC information."""
+        return self.do_client_list(args)
+
+    def do_logon_memory_free(self, args):
+        """Release cached logon data on the server."""
+        self._print("The Message Server exposes no separate free-logon-data request; refreshing the group list.")
+        return self.do_client_list(args)
+
+    def do_logon_reload(self, args):
+        """Force a refresh of the Message Server logon data."""
+        return self.do_client_list(args)
 
     def do_server_parameters(self, args):
         """ Dump server parameters. """
