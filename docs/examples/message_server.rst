@@ -293,6 +293,28 @@ Example usage:
 
     $ examples/ms_monitor.py -d <message-server> -p 3900 --domain ABAP --script ms_commands.txt
 
+The console provides the standard ``help``, ``history``, ``options``,
+``script``, ``exit`` and ``quit`` commands. Message Server monitor operations
+include client and logon-group listings, logon data retrieval, hardware and
+security queries, statistics, counters, server shutdown operations, and dump
+commands. Frequently used expert operations are available as named commands:
+
+.. code-block:: console
+
+    pysap's console> logon_group_list
+    pysap's console> get_logon PUBLIC
+    pysap's console> logon_data_lb PUBLIC
+    pysap's console> open_requests
+    pysap's console> dump_url_map
+    pysap's console> dump_url_prefixes
+    pysap's console> dump_url_handler
+    pysap's console> counter_dump <counter>
+    pysap's console> logon_types
+
+The SNC group-list and logon-data commands are also exposed as
+``logon_group_list_snc``, ``logon_data_snc`` and ``logon_data_lb_snc``. Their
+availability depends on the Message Server's configured SNC groups.
+
 
 ``ms_observer``
 ---------------
