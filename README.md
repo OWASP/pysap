@@ -1,9 +1,10 @@
 pysap - Python library for crafting SAP's network protocols packets
 ===================================================================
 
-[![Build and test pysap](https://github.com/OWASP/pysap/workflows/Build%20and%20test%20pysap/badge.svg)](https://github.com/OWASP/pysap/actions?query=workflow%3A%22Build+and+test+pysap%22)
-[![Latest Version](https://img.shields.io/pypi/v/pysap.svg)](https://pypi.python.org/pypi/pysap/)
-[![Documentation Status](http://readthedocs.org/projects/pysap/badge/?version=latest)](http://pysap.readthedocs.io/en/latest/?badge=latest)
+[![Build and test pysap](https://github.com/OWASP/pysap/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/OWASP/pysap/actions/workflows/build_and_test.yml)
+[![PyPI Version](https://img.shields.io/pypi/v/pysap?logo=pypi)](https://pypi.org/project/pysap/)
+[![Read the Docs](https://img.shields.io/readthedocs/pysap?logo=readthedocs)](https://pysap.readthedocs.io/)
+[![Discord](https://img.shields.io/discord/710814201358319676?logo=discord&label=Discord)](https://discord.com/channels/710814201358319676/1155823687329660948)
 
 Version 0.2.1.dev0 (in dev)
 
