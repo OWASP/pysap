@@ -178,7 +178,6 @@ setup(name=read_metadata("__title__"),  # Package information
                    'Programming Language :: Python :: 3.12',
                    'Programming Language :: Python :: 3.13',
                    'Programming Language :: Python :: 3.14',
-                   'Programming Language :: C++',
                    'Topic :: Security'],
       python_requires='>=3.10',
       # Packages list

@@ -58,7 +58,7 @@ Features
 * Example scripts to illustrate the use of the different modules and protocols.
 
 
-User guide
+User Guide
 ----------
 
 .. toctree::
@@ -70,8 +70,11 @@ User guide
    tools/index
    examples/index
 
-Development guide
+Development Guide
 -----------------
+
+If you are interested in contribute to the project, this part of the
+documentation should contain the start point.
 
 .. toctree::
    :maxdepth: 3
@@ -81,7 +84,7 @@ Development guide
 
 
 Indices and tables
-------------------
+==================
 
 * :ref:`genindex`
 * :ref:`modindex`

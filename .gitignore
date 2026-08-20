@@ -46,9 +46,6 @@ coverage.xml
 *.mo
 *.pot
 
-# Django stuff:
-*.log
-
 # Sphinx documentation
 docs/_build/
 docs/api/modules.rst
@@ -65,3 +62,5 @@ target/
 .project
 .pydevproject
 .settings
+.claude
+.DS_Store
