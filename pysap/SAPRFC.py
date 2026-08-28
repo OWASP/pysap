@@ -259,57 +259,57 @@ rfc_start_type = {
 
 
 cpic_padd = {
-    "cpic_start_padd": "\x01\x01\x00\x08",
-    "cpic_unk02_padd": "\x01\x01\x01\x01",
-    "cpic_unk01_padd": "\x01\x01\x01\x03",
-    "cpic_unk00_padd": "\x01\x03\x01\x06",
-    "cpic_ip_padd": "\x01\x06\x00\x07",
-    "cpic_ip_padd2": "\x00\x07\x00\x18",
-    "cpic_host_sid_inbr_padd": "\x00\x18\x00\x08",
-    "cpic_rfc_type_padd": "\x00\x08\x00\x11",
-    "cpic_kernel1_padd": "\x00\x11\x00\x13",
-    "cpic_kernel2_padd": "\x00\x13\x00\x12",
-    "cpic_dest_padd": "\x00\x12\x00\x06",
-    "cpic_program_padd": "\x00\x06\x01\x30",
-    "cpic_username1_padd": "\x01\x30\x01\x11",
-    "cpic_cli_nbr1_padd": "\x01\x11\x01\x14",
-    "cpic_unk1_padd": "\x01\x14\x01\x15",
-    "cpic_username2_padd": "\x01\x15\x00\x09",
-    "cpic_cli_nbr2_padd": "\x00\x09\x01\x34",
-    "cpic_unk2_padd": "\x01\x34\x05\x01",
-    "cpic_some_params_0_padd": "\x05\x01",
-    "cpic_some_params_1_padd": "\x01\x36",
-    "cpic_convid_label_padd": "\x01\x36\x05\x02",
-    "cpic_kernel3_padd": "\x05\x02\x00\x0b",
-    "cpic_RFC_f_padd": "\x00\x0b\x01\x02",
-    "cpic_unk4_padd": "\x01\x02\x05\x03",
-    "cpic_th_struct_padd": "\x05\x03\x01\x31",
-    "cpic_some_params2_padd": "\x01\x31\x05\x14",
-    "cpic_unk6_padd": "\x05\x14\x04\x20",
-    "cpic_unk7_padd": "\x04\x20\x05\x12",
-    "cpic_suff_padd": "\x03\x02\x01\x04",
-    "cpic_end_padd": "\x01\x04\xff\xff",
+    "cpic_start_padd": b"\x01\x01\x00\x08",
+    "cpic_unk02_padd": b"\x01\x01\x01\x01",
+    "cpic_unk01_padd": b"\x01\x01\x01\x03",
+    "cpic_unk00_padd": b"\x01\x03\x01\x06",
+    "cpic_ip_padd": b"\x01\x06\x00\x07",
+    "cpic_ip_padd2": b"\x00\x07\x00\x18",
+    "cpic_host_sid_inbr_padd": b"\x00\x18\x00\x08",
+    "cpic_rfc_type_padd": b"\x00\x08\x00\x11",
+    "cpic_kernel1_padd": b"\x00\x11\x00\x13",
+    "cpic_kernel2_padd": b"\x00\x13\x00\x12",
+    "cpic_dest_padd": b"\x00\x12\x00\x06",
+    "cpic_program_padd": b"\x00\x06\x01\x30",
+    "cpic_username1_padd": b"\x01\x30\x01\x11",
+    "cpic_cli_nbr1_padd": b"\x01\x11\x01\x14",
+    "cpic_unk1_padd": b"\x01\x14\x01\x15",
+    "cpic_username2_padd": b"\x01\x15\x00\x09",
+    "cpic_cli_nbr2_padd": b"\x00\x09\x01\x34",
+    "cpic_unk2_padd": b"\x01\x34\x05\x01",
+    "cpic_some_params_0_padd": b"\x05\x01",
+    "cpic_some_params_1_padd": b"\x01\x36",
+    "cpic_convid_label_padd": b"\x01\x36\x05\x02",
+    "cpic_kernel3_padd": b"\x05\x02\x00\x0b",
+    "cpic_RFC_f_padd": b"\x00\x0b\x01\x02",
+    "cpic_unk4_padd": b"\x01\x02\x05\x03",
+    "cpic_th_struct_padd": b"\x05\x03\x01\x31",
+    "cpic_some_params2_padd": b"\x01\x31\x05\x14",
+    "cpic_unk6_padd": b"\x05\x14\x04\x20",
+    "cpic_unk7_padd": b"\x04\x20\x05\x12",
+    "cpic_suff_padd": b"\x03\x02\x01\x04",
+    "cpic_end_padd": b"\x01\x04\xff\xff",
 }
 """RFC CPIC Padding values"""
 
 
 cpic_suff_padd = {
-    "suff_padd1": "\x10\x04\x02",
-    "suff_padd2": "\x10\x04\x0b",
-    "suff_padd3": "\x10\x04\x04",
-    "suff_padd4": "\x10\x04\x0d",
-    "suff_padd5": "\x10\x04\x16",
-    "suff_padd6": "\x10\x04\x17",
-    "suff_padd7": "\x10\x04\x19",
-    "suff_padd8": "\x10\x04\x1e",
-    "suff_padd9": "\x10\x04\x25",
-    "suff_padd10k": "\x10\x04\x09",
-    "suff_padd10": "\x10\x04\x1d",
-    "suff_padd11": "\x10\x04\x1f",
-    "suff_padd12": "\x10\x04\x20",
-    "suff_padd13": "\x10\x04\x21",
-    "suff_padd14": "\x10\x04\x24",
-    "suff_padd15": "\x10\x04\x24",
+    "suff_padd1": b"\x10\x04\x02",
+    "suff_padd2": b"\x10\x04\x0b",
+    "suff_padd3": b"\x10\x04\x04",
+    "suff_padd4": b"\x10\x04\x0d",
+    "suff_padd5": b"\x10\x04\x16",
+    "suff_padd6": b"\x10\x04\x17",
+    "suff_padd7": b"\x10\x04\x19",
+    "suff_padd8": b"\x10\x04\x1e",
+    "suff_padd9": b"\x10\x04\x25",
+    "suff_padd10k": b"\x10\x04\x09",
+    "suff_padd10": b"\x10\x04\x1d",
+    "suff_padd11": b"\x10\x04\x1f",
+    "suff_padd12": b"\x10\x04\x20",
+    "suff_padd13": b"\x10\x04\x21",
+    "suff_padd14": b"\x10\x04\x24",
+    "suff_padd15": b"\x10\x04\x24",
 }
 """RFC CPIC Stuff Padding values"""
 
@@ -395,21 +395,21 @@ class SAPCPICSUFFIX(PacketNoPadded):
         StrLenField("suff_unk9", "", length_from=lambda pkt: pkt.suff_unk9_len),
         StrFixedLenField("suff_padd10k", b"\x10\x04\x09", length=3),
         FieldLenField("suff_kernel_len", None, length_of="suff_kernel", fmt="!H"),
-        StrLenField("suff_kernel", "720", length_from=lambda pkt: pkt.suff_kernel_len),
+        StrLenField("suff_kernel", b"720", length_from=lambda pkt: pkt.suff_kernel_len),
 
-        # next fields exist only in win versions of clients suff_unk9 == "\x00\x01" (??)
-        ConditionalField(StrFixedLenField("suff_padd10", b"\x10\x04\x1d", length=3), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(FieldLenField("suff_unk10_len", None, length_of="suff_unk10", fmt="!H"), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(StrLenField("suff_unk10", "", length_from=lambda pkt: pkt.suff_unk10_len), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(StrFixedLenField("suff_padd11", b"\x10\x04\x1f", length=3), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(FieldLenField("suff_cli1_len", None, length_of="suff_cli1", fmt="!H"), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(StrLenField("suff_cli1", "", length_from=lambda pkt: pkt.suff_cli1_len), lambda pkt: pkt.suff_unk9 == "\x00\x01"),  # ip or OS name here
-        ConditionalField(StrFixedLenField("suff_padd12", b"\x10\x04\x20", length=3), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(FieldLenField("suff_cli2_len", None, length_of="suff_cli2", fmt="!H"), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(StrLenField("suff_cli2", "", length_from=lambda pkt: pkt.suff_cli2_len), lambda pkt: pkt.suff_unk9 == "\x00\x01"),  # browser name here
-        ConditionalField(StrFixedLenField("suff_padd13", b"\x10\x04\x21", length=3), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(FieldLenField("suff_cli3_len", None, length_of="suff_cli3", fmt="!H"), lambda pkt: pkt.suff_unk9 == "\x00\x01"),
-        ConditionalField(StrLenField("suff_cli3", "", length_from=lambda pkt: pkt.suff_cli3_len), lambda pkt: pkt.suff_unk9 == "\x00\x01"),  # office name here
+        # next fields exist only in win versions of clients suff_unk9 == b"\x00\x01" (??)
+        ConditionalField(StrFixedLenField("suff_padd10", b"\x10\x04\x1d", length=3), lambda pkt: pkt.suff_unk9 == b"\x00\x01"),
+        ConditionalField(FieldLenField("suff_unk10_len", None, length_of="suff_unk10", fmt="!H"), lambda pkt: pkt.suff_unk9 == b"\x00\x01"),
+        ConditionalField(StrLenField("suff_unk10", "", length_from=lambda pkt: pkt.suff_unk10_len), lambda pkt: pkt.suff_unk9 == b"\x00\x01"),
+        ConditionalField(StrFixedLenField("suff_padd11", b"\x10\x04\x1f", length=3), lambda pkt: pkt.suff_unk9 == b"\x00\x01"),
+        ConditionalField(FieldLenField("suff_cli1_len", None, length_of="suff_cli1", fmt="!H"), lambda pkt: pkt.suff_unk9 == b"\x00\x01"),
+        ConditionalField(StrLenField("suff_cli1", "", length_from=lambda pkt: pkt.suff_cli1_len), lambda pkt: pkt.suff_unk9 == b"\x00\x01"),  # ip or OS name here
+        ConditionalField(StrFixedLenField("suff_padd12", b"\x10\x04\x20", length=3), lambda pkt: pkt.suff_unk9 == b"\x00\x01"),
+        ConditionalField(FieldLenField("suff_cli2_len", None, length_of="suff_cli2", fmt="!H"), lambda pkt: pkt.suff_unk9 == b"\x00\x01"),
+        ConditionalField(StrLenField("suff_cli2", "", length_from=lambda pkt: pkt.suff_cli2_len), lambda pkt: pkt.suff_unk9 == b"\x00\x01"),  # browser name here
+        ConditionalField(StrFixedLenField("suff_padd13", b"\x10\x04\x21", length=3), lambda pkt: pkt.suff_unk9 == b"\x00\x01"),
+        ConditionalField(FieldLenField("suff_cli3_len", None, length_of="suff_cli3", fmt="!H"), lambda pkt: pkt.suff_unk9 == b"\x00\x01"),
+        ConditionalField(StrLenField("suff_cli3", "", length_from=lambda pkt: pkt.suff_cli3_len), lambda pkt: pkt.suff_unk9 == b"\x00\x01"),  # office name here
 
         StrFixedLenField("suff_padd14", b"\x10\x04\x24", length=3),
         FieldLenField("suff_unk14_len", None, length_of="suff_unk14", fmt="!H"),
@@ -653,12 +653,12 @@ class SAPCPIC2(PacketNoPadded):
         ConditionalField(StrLenField("cpic_unk7", "", length_from=lambda pkt: pkt.cpic_unk7_len), lambda pkt: pkt.cpic_padd023 == cpic_padd["cpic_unk7_padd"]),
 
         # Started PRG SAPXPG_START_XPG_LONG
-        ConditionalField(PacketField("xpg_p", None, SAPRFXPG), lambda pkt: pkt.cpic_RFC_f == 'SAPXPG_START_XPG_LONG'),
+        ConditionalField(PacketField("xpg_p", None, SAPRFXPG), lambda pkt: pkt.cpic_RFC_f == b'SAPXPG_START_XPG_LONG'),
         # End
-        ConditionalField(PacketField("xpg_end", None, SAPRFXPG_END), lambda pkt: pkt.cpic_RFC_f in ['SAPXPG_END_XPG']),
+        ConditionalField(PacketField("xpg_end", None, SAPRFXPG_END), lambda pkt: pkt.cpic_RFC_f in [b'SAPXPG_END_XPG']),
 
         # Started PRG RFC_PING
-        ConditionalField(PacketField("rfc_ping", None, SAPRFCPING), lambda pkt: pkt.cpic_RFC_f in ['RFC_PING']),
+        ConditionalField(PacketField("rfc_ping", None, SAPRFCPING), lambda pkt: pkt.cpic_RFC_f in [b'RFC_PING']),
 
         StrFixedLenField("cpic_padd024", b"", length=4),
         ConditionalField(FieldLenField("cpic_suff_len", None, length_of="cpic_suff", fmt="!H"), lambda pkt: pkt.cpic_padd024 == cpic_padd["cpic_suff_padd"]),
@@ -787,10 +787,12 @@ class SAPCPIC(PacketNoPadded):
         ConditionalField(StrLenField("cpic_unk7", "", length_from=lambda pkt: pkt.cpic_unk7_len), lambda pkt: pkt.cpic_padd023 == cpic_padd["cpic_unk7_padd"]),
 
         # Started PRG SAPXPG_START_XPG_LONG
-        ConditionalField(PacketField("xpg_p", None, SAPRFXPG), lambda pkt: pkt.cpic_RFC_f == 'SAPXPG_START_XPG_LONG'),
+        ConditionalField(PacketField("xpg_p", None, SAPRFXPG), lambda pkt: pkt.cpic_RFC_f == b'SAPXPG_START_XPG_LONG'),
+        # SAPXPG_END
+        ConditionalField(PacketField("xpg_end", None, SAPRFXPG_END), lambda pkt: pkt.cpic_RFC_f in [b'SAPXPG_END_XPG']),
 
         # Started PRG RFC_PING
-        ConditionalField(PacketField("rfc_ping", None, SAPRFCPING), lambda pkt: pkt.cpic_RFC_f == 'RFC_PING'),
+        ConditionalField(PacketField("rfc_ping", None, SAPRFCPING), lambda pkt: pkt.cpic_RFC_f == b'RFC_PING'),
 
         StrFixedLenField("cpic_padd024", b"", length=4),
         ConditionalField(FieldLenField("cpic_suff_len", None, length_of="cpic_suff", fmt="!H"), lambda pkt: pkt.cpic_padd024 == cpic_padd["cpic_suff_padd"]),
