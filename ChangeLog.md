@@ -4,6 +4,18 @@ Changelog
 v0.2.1.dev0 - in dev
 --------------------
 
+- `pysap/SAPMS.py`: Expanded Message Server enum coverage for domains, message
+  types, errors, administration records, opcodes, properties, dump/file
+  operations, and client status; added Message Server logon response parsing
+  and additional response fields.
+- `examples/ms_monitor.py`: Added named commands for logon data, logon groups,
+  open requests, URL maps, counters, and related Message Server operations;
+  improved connection checks, argument parsing, and client-list output.
+- `docs/examples/message_server.rst`: Documented the expanded Message Server
+  monitor commands and their SNC variants.
+- `pysap/utils/console.py`: Improved console argument parsing, script
+  execution, logging and resource cleanup; added `quit`, `q`, and EOF exit
+  handling and corrected table-formatting option forwarding.
 
 
 v0.2.0 - 2026-07-28

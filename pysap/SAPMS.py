@@ -37,6 +37,7 @@ ms_domain_values = {
     0x00: "ABAP",
     0x01: "J2EE",
     0x02: "JSTARTUP",
+    0x20: "WAS",
 }
 """Message Server Domain values"""
 
@@ -81,6 +82,11 @@ ms_iflag_values = {
 """Message Server IFlag values"""
 
 
+# Message Server message type flag values (least-significant bit first)
+ms_msgtype_values = ["DIA", "UPD", "ENQ", "BTC", "SPO", "UP2", "ATP", "ICM"]
+"""Message Server message type flag values"""
+
+
 # Message Server Error values
 ms_errorno_values = {
     0: "MSERECONNECTION",
@@ -88,6 +94,18 @@ ms_errorno_values = {
     2: "MSENISELREAD",
     3: "MSENIQUEUE",
     4: "MSENILAYER",
+    59: "MSEINVGENERATION",
+    60: "MSERESETSUBSYSTEM",
+    61: "MSESSLLAYER",
+    62: "MSENOTATTACHED",
+    63: "MSEINUSE",
+    64: "MSERESUME",
+    65: "MSESUSPEND",
+    66: "MSERESTART",
+    67: "MSECLIENTVERSREQUIRED",
+    68: "MSEREADFAILED",
+    69: "MSECONNECTFAILED",
+    70: "MSEINCOMPATIBLEKERNEL",
     71: "MSETESTSOFTSHUTDOWN",
     72: "MSENOTINIT",
     73: "MSEALREADYINIT",
@@ -97,6 +115,7 @@ ms_errorno_values = {
     77: "MSESNDTYPEFAILED",
     78: "MSEDUPKEY",
     79: "MSESOFTSHUTDOWN",
+    80: "MSEVARBUF",
     81: "MSENOMEM",
     82: "MSEHEADERINCOMPLETE",
     83: "MSETYPESNOTALLOWED",
@@ -132,6 +151,20 @@ ms_adm_type_values = {
 """Message Server Administration messages type values"""
 
 
+# Message Server Administration record error values
+ms_adm_error_values = {
+    250: "ADNOTRACE",
+    251: "ADACCESSDENIED",
+    252: "ADEHEAPOVERFLOW",
+    253: "ADEHEAD_DESTROYED",
+    254: "ADEBLKTOOLARGE",
+    255: "ADEINVAL",
+    0: "SAP_O_K",
+    1: "ADCALLBACKNOTDEFINED",
+}
+"""Message Server Administration record error values"""
+
+
 # Message Server Administration messages opcode values
 ms_adm_opcode_values = {
     0x00: "AD_GENERAL",
@@ -153,6 +186,7 @@ ms_adm_opcode_values = {
     0x10: "AD_WPCONF2",
     0x11: "AD_GENERAL2",
     0x12: "AD_SET_LIST_PARAM",
+    # Compatibility label; absent from the release-916 canonical table.
     0x13: "AD_DUMP_STATUS",
     0x14: "AD_RZL",
     0x15: "AD_RZL_STRG",  # *
@@ -171,7 +205,7 @@ ms_adm_opcode_values = {
     0x2a: "AD_ENQID_INFO",
     0x2b: "AD_DEL_USER",
     0x2c: "AD_SPO_ADM",
-    0x2d: "AD_NTAB_SYNC",
+    0x2d: "AD_CATALOG_SYNC",
     0x2e: "AD_SHARED_PARAMETER",  # *
     0x2f: "AD_RESET_TRACE",
     0x30: "AD_RESET_USR02",
@@ -185,22 +219,43 @@ ms_adm_opcode_values = {
     0x3f: "AD_DP_CALL_DELAYED",
     0x40: "AD_GW_ADM",
     0x41: "AD_DP_WAKEUP_MODE",
-    0x42: "AD_VMC_SYS_EVENT",
+    0x42: "AD_FREE_66",
     0x43: "AD_SHARED_PARAM_ALL_WPS",
     0x44: "AD_SECSESSION_UPDATE",
     0x45: "AD_SECSESSION_TERMINATE",
     0x46: "AD_ASRF_REQUEST",
     0x47: "AD_GET_NILIST",
-    0x48: "AD_LOAD_INFO",
+    0x48: "AD_FREE_72",
     0x49: "AD_TEST",
     0x4a: "AD_HANDLE_ACL",
-    0x4b: "AD_PROFILE2",  # from here, extracted from bin analysis
-    0x4c: "AD_RSCP_ASYNC",
-    0x4d: "AD_BATCH_INFO",
-    0x4e: "AD_SOFT_CANCEL",
+    0x4b: "AD_FREE_75",
+    0x4c: "AD_OAUTHBUFFRESET",
+    0x4d: "AD_RESET_BUFFERED_TABLE",
+    0x4e: "AD_SESSION_REQUEST",
+    0x4f: "AD_PROFILE2",
+    0x50: "AD_RSCP_ASYNC",
+    0x51: "AD_BATCH_INFO",
+    0x52: "AD_SOFT_CANCEL",
+    0x53: "AD_CREATE_SNAPSHOT",
+    0x54: "AD_KERNEL_UPDATE_INFO",
     0x55: "AD_SYNC_LOAD_FMT",
     0x56: "AD_GET_NILIST_PORT",
-    0x5a: "AD_UNKNOWN",  # added for avoiding error on dict access in some cases
+    0x57: "AD_CHECK_SERVICE",
+    0x58: "AD_KRB_UPDATE_KEYTAB",
+    0x59: "AD_RSAU_CHECK_FILE",
+    0x5a: "AD_ARFC_NOREQ_2",
+    0x5b: "AD_RESET_BUF_TAB_PARAM",
+    0x5c: "AD_VIRTUAL_DDIC_MODE",
+    0x5d: "AD_GENERAL3",
+    0x5e: "AD_LOAD_INFO",
+    0x5f: "AD_UNDISP_REQ_INFO",
+    0x60: "AD_CA_BLK_INFO",
+    0x61: "AD_SERVER_INFO",
+    0x62: "AD_AMDP_DEBUGGER_ACTION",
+    0x63: "AD_VIRTUAL_USER",
+    0x64: "AD_RESOURCE_INFO",
+    0x65: "AD_GET_SERVER_STATUS",
+    0x66: "AD_APG_NOTIFY",
 }
 """Message Server Administration messages opcode values"""
 
@@ -307,9 +362,18 @@ ms_opcode_values = {
     70: "MS_IP_PORT_TO_NAME",
     71: "MS_CHECK_ACL",
     72: "MS_LICENSE_SRV",
+    73: "MS_SERVER_INC",
     74: "MS_SERVER_TEST_SOFT_SHUTDOWN",
     75: "MS_J2EE_RECONNECT_P1",
     76: "MS_J2EE_RECONNECT_P2",
+    77: "MS_SERVER_LST_SUBSYSTEM",
+    78: "MS_GET_SID",
+    79: "MS_SERVER_LST_SERVERGENERATION",
+    80: "MS_READ_LG_COUNTER",
+    81: "MS_RESET_LG_COUNTER",
+    82: "MS_ASCS_GW_LOGON",
+    83: "MS_ASCS_GW_STATUS",
+    84: "MS_ASCS_GW_KEEPALIVE",
 }
 """Message Server OpCode values"""
 
@@ -348,6 +412,12 @@ ms_opcode_error_values = {
     29: "MSOP_KERNEL_INCOMPATIBLE",
     30: "MSOP_NIACLCREATE_FAILED",
     31: "MSOP_NIACLSYNTAX_ERROR",
+    32: "MSOP_CLIENT_VER_REQUIRED",
+    33: "MSOP_RESTART",
+    34: "MSOP_TOOSMALL",
+    35: "MSOP_CLONED",
+    36: "MSOP_INV_GENERATION",
+    37: "MSOP_INV_ACTIVEGENERATION",
 }
 """Message Server OpCode Error Values"""
 
@@ -360,7 +430,11 @@ ms_property_id_values = {
     4: "MS_PROPERTY_PARAM",  # ZDI Bugs are here
     5: "MS_PROPERTY_SERVICE",
     6: "MS_PROPERTY_DELALT",
-    7: "Release information"
+    7: "MS_PROPERTY_RELINFO",
+    8: "MS_PROPERTY_INFO",
+    9: "MS_PROPERTY_HOSTNAME",
+    10: "MS_PROPERTY_FQN",
+    11: "MS_PROPERTY_SERVERGEN",
 }
 """Message Server Property ID Values"""
 
@@ -394,6 +468,11 @@ ms_dump_command_values = {
     25: "MS_DUMP_ACL_FILE_EXTBND",
     26: "MS_DUMP_ACL_FILE_HTTP",
     27: "MS_DUMP_ACL_FILE_HTTPS",
+    28: "MS_DUMP_PROCESSINFO",
+    29: "MS_DUMP_SRVLIST_GUI",
+    30: "MS_DUMP_SRVLIST_RFC",
+    31: "MS_DUMP_GRPLIST_GUI",
+    32: "MS_DUMP_GRPLIST_RFC",
 }
 """Message Server Dump Info ID Values"""
 
@@ -414,6 +493,7 @@ ms_file_reload_values = {
     12: "MS_RELOAD_ACL_FILE_EXTBND",
     13: "MS_RELOAD_ACL_FILE_HTTP",
     14: "MS_RELOAD_ACL_FILE_HTTPS",
+    15: "MS_RELOAD_CRED_FILE",
 }
 """Message Server File Reload values"""
 
@@ -470,6 +550,7 @@ ms_client_status_values = {
     4: "MS_STATE_STOP",
     5: "MS_STATE_STARTING",
     6: "MS_STATE_INIT",
+    7: "MS_STATE_RECONNECT",
 }
 """Message Server Client status values"""
 
@@ -556,7 +637,7 @@ class SAPMSAdmRecord(PacketNoPadded):
         ByteEnumKeysField("opcode", 0x00, ms_adm_opcode_values),
         ByteField("serial_number", 0x00),
         ByteField("executed", 0x00),
-        ByteField("errorno", 0x00),  # TODO: Look for error names
+        ByteEnumKeysField("errorno", 0x00, ms_adm_error_values),
         ConditionalField(StrFixedLenField("record", None, 75), lambda pkt:pkt.opcode not in [0x01, 0x15, 0x2e] and pkt.executed == 0x01),
         ConditionalField(StrFixedLenField("record_pad", None, 25), lambda pkt:pkt.opcode not in [0x01, 0x15, 0x2e] and pkt.executed == 0x01),
         ConditionalField(StrFixedLenField("record_full", None, 100), lambda pkt:pkt.opcode not in [0x01, 0x15, 0x2e] and pkt.executed == 0x00),
@@ -599,7 +680,7 @@ class SAPMSClient1(PacketNoPadded):
         StrFixedLenDecodedField("client", None, 20),
         StrFixedLenDecodedField("host", None, 20),
         StrFixedLenDecodedField("service", None, 20),
-        FlagsField("msgtype", 0, 8, ["ICM", "ATP", "UP2", "SPO", "BTC", "ENQ", "UPD", "DIA"]),
+        FlagsField("msgtype", 0, 8, ms_msgtype_values),
         IPField("hostaddrv4", "0.0.0.0"),
         ShortField("servno", 0x00),
     ]
@@ -617,7 +698,7 @@ class SAPMSClient2(PacketNoPadded):
         StrFixedLenDecodedField("client", None, 40),
         StrFixedLenDecodedField("host", None, 32),
         StrFixedLenDecodedField("service", None, 20),
-        FlagsField("msgtype", 0, 8, ["ICM", "ATP", "UP2", "SPO", "BTC", "ENQ", "UPD", "DIA"]),
+        FlagsField("msgtype", 0, 8, ms_msgtype_values),
         IPField("hostaddrv4", "0.0.0.0"),
         ShortField("servno", 0x00),
         ByteEnumKeysField("status", 0x00, ms_client_status_values),
@@ -637,7 +718,7 @@ class SAPMSClient3(Packet):
         StrFixedLenDecodedField("client", None, 40),
         StrFixedLenDecodedField("host", None, 64),
         StrFixedLenDecodedField("service", None, 20),
-        FlagsField("msgtype", 0, 8, ["ICM", "ATP", "UP2", "SPO", "BTC", "ENQ", "UPD", "DIA"]),
+        FlagsField("msgtype", 0, 8, ms_msgtype_values),
         IP6Field("hostaddrv6", "::1"),
         IPField("hostaddrv4", "0.0.0.0"),
         ShortField("servno", 0x00),
@@ -658,7 +739,7 @@ class SAPMSClient4(PacketNoPadded):
         StrFixedLenDecodedField("client", None, 40),
         StrFixedLenDecodedField("host", None, 64),
         StrFixedLenDecodedField("service", None, 20),
-        FlagsField("msgtype", 0, 8, ["ICM", "ATP", "UP2", "SPO", "BTC", "ENQ", "UPD", "DIA"]),
+        FlagsField("msgtype", 0, 8, ms_msgtype_values),
         IP6Field("hostaddrv6", "::1"),
         IPField("hostaddrv4", "0.0.0.0"),
         ShortField("servno", 0x00),
@@ -1116,7 +1197,7 @@ class SAPMS(Packet):
         ByteField("version", 0x04),
         ByteEnumKeysField("errorno", 0x00, ms_errorno_values),
         StrFixedLenDecodedField("toname", b"-" + b" " * 39, 40),
-        FlagsField("msgtype", 0, 8, ["DIA", "UPD", "ENQ", "BTC", "SPO", "UP2", "ATP", "ICM"]),
+        FlagsField("msgtype", 0, 8, ms_msgtype_values),
         ByteField("reserved", 0x00),
         ByteEnumKeysField("domain", 0x00, ms_domain_values),
         ByteField("reserved2", 0x00),
@@ -1132,8 +1213,8 @@ class SAPMS(Packet):
         ConditionalField(ByteEnumKeysField("opcode_error", 0x00, ms_opcode_error_values), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x7]),
         ConditionalField(ByteField("opcode_version", 0x01), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),
         ConditionalField(ByteField("opcode_charset", 0x03), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),
-        ConditionalField(StrField("opcode_value", b""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a]),
-        ConditionalField(StrField("opcode_trailer", b""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x1e, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a]),
+        ConditionalField(StrField("opcode_value", b""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x1e, 0x1f, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a, 0x4d, 0x4e]),
+        ConditionalField(StrField("opcode_trailer", b""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x1e, 0x1f, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a, 0x4d, 0x4e]),
 
         # Dispatcher info
         ConditionalField(ByteField("dp_version", 0x0), lambda pkt:pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)),
@@ -1141,7 +1222,7 @@ class SAPMS(Packet):
 
         ConditionalField(PacketLenField("dp_info2", SAPDPInfo2(), SAPDPInfo2, length_from=lambda x: 203), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0b),  # 720 kernel
 
-        ConditionalField(PacketLenField("dp_info3", SAPDPInfo3(), SAPDPInfo3, length_from=lambda x: 179), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0e),  # 749 kernel
+        ConditionalField(PacketLenField("dp_info3", SAPDPInfo3(), SAPDPInfo3, length_from=lambda x: 180), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0e),  # 749 kernel
 
         # MS ADM layer
         ConditionalField(StrFixedLenDecodedField("adm_eyecatcher", b"AD-EYECATCH\x00", 12), lambda pkt: pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
@@ -1152,10 +1233,10 @@ class SAPMS(Packet):
         ConditionalField(PacketListField("adm_records", None, SAPMSAdmRecord), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
 
         # Server List fields
-        ConditionalField(PacketListField("clients", None, SAPMSClient1), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05] and pkt.opcode_version == 0x01),
-        ConditionalField(PacketListField("clients_v2", None, SAPMSClient2), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05] and pkt.opcode_version == 0x02),
-        ConditionalField(PacketListField("clients_v3", None, SAPMSClient3), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05] and pkt.opcode_version == 0x03),
-        ConditionalField(PacketListField("clients_v4", None, SAPMSClient4), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05] and pkt.opcode_version == 0x04),
+        ConditionalField(PacketListField("clients", None, SAPMSClient1), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05, 0x4d] and pkt.opcode_version == 0x01),
+        ConditionalField(PacketListField("clients_v2", None, SAPMSClient2), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05, 0x4d] and pkt.opcode_version == 0x02),
+        ConditionalField(PacketListField("clients_v3", None, SAPMSClient3), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05, 0x4d] and pkt.opcode_version == 0x03),
+        ConditionalField(PacketListField("clients_v4", None, SAPMSClient4), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05, 0x4d] and pkt.opcode_version == 0x04),
 
         # Change IP fields
         ConditionalField(IPField("change_ip_addressv4", "0.0.0.0"), lambda pkt:pkt.opcode == 0x06),
@@ -1224,6 +1305,9 @@ class SAPMS(Packet):
         # Check ACL fields
         ConditionalField(ShortField("error_code", 0), lambda pkt:pkt.opcode == 0x47),
         ConditionalField(StrFixedLenField("acl", b"", 46), lambda pkt:pkt.opcode == 0x47),
+
+        # Get system ID field
+        ConditionalField(StrFixedLenField("sid", b"", 8), lambda pkt: pkt.opcode == 0x4e and pkt.flag == 0x03 and pkt.opcode_error == 0x00),
     ]
 
 
