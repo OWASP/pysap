@@ -19,14 +19,15 @@
 
 # Standard imports
 import logging
+import sys
 from sys import stdin
 from os import makedirs, utime, path
-from os import sep as dir_separator
 from argparse import ArgumentParser
 # Custom imports
 import pysap
 from pysapcompress import DecompressError
 from pysap.SAPCAR import SAPCARArchive, SAPCARInvalidChecksumException, SAPCARInvalidFileException
+from pysap.SAPCARManifest import SAPCARManifestError, normalize_manifest_path
 
 
 # Try to import OS-dependent functions
@@ -49,6 +50,12 @@ pysapcar -x[v][f archive] [-o outdir] [file1 file2 ...]
 
 append files to an archive:
 pysapcar -a[v][f archive] [file1 file2 [/n filename] ...]
+
+validate archive signature:
+pysapcar -tvf archive --strict-manifest
+
+create signed archive:
+pysapcar -cvf archive --sign-manifest certificate --signing-key key [file1 ...]
 
 """
 
@@ -87,6 +94,24 @@ class PySAPCAR(object):
                                "extracted. When not set, only a warning would be thrown if checksum is invalid.")
         misc.add_argument("-b", "--break-on-error", dest="break_on_error", action="store_true",
                           help="Whether the extraction would continue if an error is identified.")
+
+        manifest = parser.add_argument_group("Manifest options")
+        manifest.add_argument("--validate-manifest", action="store_true",
+                          help="Validate a discovered archive manifest before listing/extraction")
+        manifest.add_argument("--strict-manifest", action="store_true",
+                          help="Require a valid trusted signature in addition to manifest integrity")
+        manifest.add_argument("--manifest-trust-store", metavar="FILE",
+                          help="Trust store used for manifest signature verification")
+        manifest.add_argument("--manifest-certificate-dir", metavar="DIR",
+                          help="Certificate directory used for manifest signature verification")
+        manifest.add_argument("--sign-manifest", metavar="CERTIFICATE",
+                          help="Sign the archive manifest with this certificate")
+        manifest.add_argument("--signing-key", metavar="FILE",
+                          help="Private key for --sign-manifest")
+        manifest.add_argument("--timestamp-certificate", metavar="CERTIFICATE",
+                          help="Certificate for the local RFC3161 test TSA")
+        manifest.add_argument("--timestamp-key", metavar="FILE",
+                          help="Private key for --timestamp-certificate")
 
         (options, args) = parser.parse_known_args()
 
@@ -130,18 +155,18 @@ class PySAPCAR(object):
                 self.archive_fd = open(options.filename, file_mode)
             except IOError as e:
                 self.logger.error("pysapcar: error opening '%s' (%s)" % (options.filename, e.strerror))
-                return
+                return 1
         else:
             self.archive_fd = stdin.buffer if hasattr(stdin, "buffer") else stdin
 
         # Execute the action
         try:
             if options.create or options.append:
-                self.append(options, args)
+                return self.append(options, args)
             elif options.list:
-                self.list(options, args)
+                return self.list(options, args)
             elif options.extract:
-                self.extract(options, args)
+                return self.extract(options, args)
         finally:
             self.archive_fd.close()
 
@@ -151,7 +176,8 @@ class PySAPCAR(object):
         """
         try:
             sapcar = SAPCARArchive(self.archive_fd, mode=self.mode)
-            self.logger.info("pysapcar: Processing archive '%s' (version %s)", self.archive_fd.name, sapcar.version)
+            self.logger.info("pysapcar: Processing archive '%s' (version %s)",
+                             self.archive_fd.name, self._to_path(sapcar.version))
         except Exception as e:
             self.logger.error("pysapcar: Error processing archive '%s' (%s)", self.archive_fd.name, str(e))
             return None
@@ -188,17 +214,18 @@ class PySAPCAR(object):
         """Appends a file to the archive file.
         """
 
-        if len(args) < 1:
+        if len(args) < 1 and not options.sign_manifest:
             self.logger.error("pysapcar: no files specified for appending")
             return
 
         # Open the archive file
         sapcar = self.open_archive()
         if not sapcar:
-            return
+            return 1
 
         while len(args):
-            filename = filename_in_archive = args.pop(0)
+            filename = args.pop(0)
+            filename_in_archive = path.basename(filename) if options.sign_manifest else filename
 
             self.logger.debug(args)
             if len(args) >= 2 and args[0] == "/n":
@@ -211,6 +238,25 @@ class PySAPCAR(object):
             else:
                 self.logger.info("d %s", filename)
 
+        if options.sign_manifest:
+            if not options.signing_key:
+                self.logger.error("pysapcar: --signing-key is required with --sign-manifest")
+                return 1
+            if bool(options.timestamp_certificate) != bool(options.timestamp_key):
+                self.logger.error("pysapcar: --timestamp-certificate and --timestamp-key must be used together")
+                return 1
+            try:
+                sapcar.sign_manifest(
+                    options.sign_manifest, options.signing_key,
+                    timestamp_certificate=options.timestamp_certificate,
+                    timestamp_private_key=options.timestamp_key)
+            except (SAPCARManifestError, SAPCARInvalidFileException,
+                    SAPCARInvalidChecksumException, DecompressError,
+                    OSError, ValueError, TypeError) as exc:
+                self.logger.error("pysapcar: failed to sign manifest (%s)", exc)
+                return 1
+            self.logger.info("s SIGNATURE.SMF")
+
         sapcar.write()
 
     def list(self, options, args):
@@ -220,11 +266,19 @@ class PySAPCAR(object):
         # Open the archive file
         sapcar = self.open_archive()
         if not sapcar:
-            return
+            return 1
+        validation = self.validate_manifest(sapcar, options)
+        if validation is not None:
+            self.logger.info("pysapcar: manifest integrity=%s signature=%s",
+                             "valid" if validation["integrity_valid"] else "invalid",
+                             validation["signature_status"])
+            if (options.validate_manifest or options.strict_manifest) and not validation["valid"]:
+                return 1
         # Print the info of each file
         for filename in self.target_files(sapcar.files_names, args):
             fil = sapcar.files[filename]
-            self.logger.info("{}  {:>10}    {} {}".format(fil.permissions, fil.size, fil.timestamp, fil.filename))
+            self.logger.info("{}  {:>10}    {} {}".format(
+                fil.permissions, fil.size, fil.timestamp, self._to_path(fil.filename)))
 
     def extract(self, options, args):
         """Extract files from the archive file.
@@ -236,7 +290,16 @@ class PySAPCAR(object):
         # Open the archive file
         sapcar = self.open_archive()
         if not sapcar:
-            return
+            return 1
+
+        validation = self.validate_manifest(sapcar, options)
+        if validation is not None:
+            self.logger.info("pysapcar: manifest integrity=%s signature=%s",
+                             "valid" if validation["integrity_valid"] else "invalid",
+                             validation["signature_status"])
+            if (options.validate_manifest or options.strict_manifest) and not validation["valid"]:
+                self.logger.error("pysapcar: manifest validation failed")
+                return 1
 
         # Warn if permissions can't be set
         if not chmod:
@@ -244,14 +307,32 @@ class PySAPCAR(object):
 
         # Extract each file in the archive
         no = 0
+        failed = False
         for filename in self.target_files(sapcar.files_names, args):
             flag = CONTINUE
             fil = sapcar.files[filename]
-            filename = path.normpath(self._to_path(filename).replace("\x00", ""))  # Take out null bytes if found
-            if options.outdir:
-                # Have to strip directory separator from the beginning of the file name, because path.join disregards
-                # all previous components if any of the following components is an absolute path
-                filename = path.join(path.normpath(options.outdir), filename.lstrip(dir_separator))
+            try:
+                archive_path = normalize_manifest_path(self._to_path(filename))
+            except SAPCARManifestError as exc:
+                self.logger.error("pysapcar: unsafe archive member '%s' (%s)",
+                                  self._to_path(filename), exc)
+                failed = True
+                if options.break_on_error:
+                    break
+                continue
+            output_root = path.realpath(options.outdir or ".")
+            filename = path.realpath(path.join(output_root, archive_path))
+            try:
+                contained = path.commonpath((output_root, filename)) == output_root
+            except ValueError:
+                contained = False
+            if not contained:
+                self.logger.error("pysapcar: unsafe archive member '%s' (path escapes output directory)",
+                                  self._to_path(fil.filename))
+                failed = True
+                if options.break_on_error:
+                    break
+                continue
 
             if fil.is_directory():
                 # If the directory doesn't exist, create it and set permissions and timestamp
@@ -277,18 +358,20 @@ class PySAPCAR(object):
                     data = fil.open(enforce_checksum=options.enforce_checksum).read()
                 except (SAPCARInvalidFileException, DecompressError) as e:
                     self.logger.error("pysapcar: Invalid SAP CAR file '%s' (%s)", self.archive_fd.name, str(e))
+                    failed = True
                     if options.break_on_error:
                         flag = STOP
                     else:
                         flag = SKIP
                 except SAPCARInvalidChecksumException:
-                    self.logger.error("pysapcar: Invalid checksum found for file '%s'", fil.filename)
+                    self.logger.error("pysapcar: Invalid checksum found for file '%s'", self._to_path(fil.filename))
+                    failed = True
                     if options.enforce_checksum:
                         flag = STOP
 
                 # Check the result before starting to write the file
                 if flag == SKIP:
-                    self.logger.info("pysapcar: Skipping execution of file '%s'", fil.filename)
+                    self.logger.info("pysapcar: Skipping execution of file '%s'", self._to_path(fil.filename))
                     continue
                 elif flag == STOP:
                     self.logger.info("pysapcar: Stopping extraction")
@@ -302,6 +385,7 @@ class PySAPCAR(object):
                             fchmod(new_file.fileno(), fil.perm_mode)
                 except IOError as e:
                     self.logger.error("pysapcar: Failed to extract file '%s', reason: %s", filename, e.strerror)
+                    failed = True
                     if options.break_on_error:
                         break
 
@@ -317,10 +401,48 @@ class PySAPCAR(object):
                 no += 1
             else:
                 self.logger.warning("pysapcar: Invalid file type '%s'", filename)
+                failed = True
 
         self.logger.info("pysapcar: %d file(s) processed", no)
+        return 1 if failed else 0
+
+    def validate_manifest(self, sapcar, options):
+        """Validate a manifest when requested and return its status."""
+        requested = options.validate_manifest or options.strict_manifest
+        if not requested:
+            return None
+        report = sapcar.validate_manifest(strict=options.strict_manifest,
+                                          trust_store=options.manifest_trust_store,
+                                          certificate_dir=options.manifest_certificate_dir)
+        if report["manifest_status"] == "not-present":
+            self.logger.info("pysapcar: no manifest found")
+        if options.strict_manifest:
+            self.log_manifest_issues(report)
+        return report
+
+    def log_manifest_issues(self, report):
+        """Log each issue which makes strict manifest validation fail."""
+        for filename in report["missing"]:
+            self.logger.error("pysapcar: manifest member is missing: %s", filename)
+        for filename in report["unexpected"]:
+            self.logger.error("pysapcar: unlisted archive member: %s", filename)
+        for item in report["size_mismatches"]:
+            self.logger.error("pysapcar: size mismatch for %s (expected %s, actual %s)",
+                              item["filename"], item["expected"], item["actual"])
+        for item in report["digest_mismatches"]:
+            self.logger.error("pysapcar: digest mismatch for %s (%s, expected %s, actual %s)",
+                              item["filename"], item["algorithm"],
+                              item["expected"], item["actual"])
+        for item in report["malformed_entries"]:
+            location = item.get("filename") or item.get("manifest")
+            self.logger.error("pysapcar: malformed or unsafe manifest content%s: %s",
+                              " in %s" % location if location else "",
+                              item["error"])
+        if report["signature_status"] != "valid":
+            self.logger.error("pysapcar: manifest signature is %s",
+                              report["signature_status"])
 
 
 if __name__ == "__main__":
     pysapcar = PySAPCAR()
-    pysapcar.main()
+    sys.exit(pysapcar.main() or 0)

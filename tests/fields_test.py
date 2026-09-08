@@ -203,6 +203,9 @@ class PySAPUtilsFieldsTest(unittest.TestCase):
 
     def test_asn1_decode_oid(self):
         self.assertEqual(asn1_decode_oid(b"\x06\x05\x2b\x24\x02\x01\x03"), "1.3.36.2.1.3")
+        self.assertEqual(asn1_decode_oid(b"\x06\x03\x81\x34\x03"), "2.100.3")
+        with self.assertRaises(ASN1_Error):
+            asn1_decode_oid(b"\x06\x01\x80")
 
     def test_asn1f_raw_tlv_preserves_single_tlv(self):
         field = ASN1F_RAW_TLV("value", b"")

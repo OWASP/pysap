@@ -23,6 +23,8 @@ from struct import pack
 from datetime import datetime, timezone
 from os import stat as os_stat
 from io import BytesIO
+import hashlib
+from time import time as time_time
 # External imports
 from scapy.packet import Packet
 from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
@@ -33,6 +35,9 @@ from scapy.fields import (ByteField, ByteEnumField, LEIntField, FieldLenField,
 from pysap.utils.fields import (PacketNoPadded, StrNullFixedLenField, PacketListStopField)
 from pysapcompress import (decompress, compress, ALG_LZH, CompressError,
                            DecompressError)
+from pysap.SAPCARManifest import (SAPCARManifest, SAPCARManifestError,
+                                  is_manifest_name, normalize_manifest_path,
+                                  create_signed_manifest)
 
 
 # Filemode code obtained from Python 3 stat.py
@@ -515,6 +520,32 @@ class SAPCARArchiveFile(object):
         return -crc - 1
 
     @classmethod
+    def from_data(cls, data, archive_filename, version=SAPCAR_VERSION_201):
+        """Build an archive member from bytes without a temporary file."""
+        if version not in sapcar_archive_file_versions:
+            raise ValueError("Invalid version")
+        ff = sapcar_archive_file_versions[version]
+        archive_file = cls()
+        archive_file._file_format = ff()
+        archive_file._file_format.perm_mode = stat.S_IFREG | 0o644
+        archive_file._file_format.timestamp = int(time_time())
+        archive_file._file_format.file_length = len(data)
+        archive_file._file_format.filename = archive_filename
+        archive_file._file_format.filename_length = len(archive_filename)
+        if archive_file._file_format.version == SAPCAR_VERSION_201:
+            archive_file._file_format.filename_length += 1
+        try:
+            (_, out_length, out_buffer) = compress(data, ALG_LZH)
+        except CompressError:
+            return None
+        block = SAPCARCompressedBlockFormat()
+        block.type = SAPCAR_BLOCK_TYPE_COMPRESSED_LAST
+        block.compressed = SAPCARCompressedBlobFormat(pack("<I", out_length) + out_buffer)
+        block.checksum = cls.calculate_checksum(data)
+        archive_file._file_format.blocks.append(block)
+        return archive_file
+
+    @classmethod
     def from_file(cls, filename, version=SAPCAR_VERSION_201, archive_filename=None):
         """Populates the file format object from an actual file on the
         local file system.
@@ -818,6 +849,39 @@ class SAPCARArchive(object):
         fil = SAPCARArchiveFile.from_file(filename, self.version, archive_filename)
         self._files.append(fil._file_format)
 
+    def sign_manifest(self, certificate, private_key, manifest_filename="SIGNATURE.SMF",
+                      timestamp_certificate=None, timestamp_private_key=None,
+                      strict=True):
+        """Create and add a signed manifest for the archive's regular files.
+
+        Set ``strict=False`` to preserve duplicate or unsafe member names when
+        intentionally crafting malformed archives for research.
+        """
+        entries = []
+        member_names = set()
+        for file_format in self._files:
+            filename = file_format.filename
+            member = SAPCARArchiveFile(file_format)
+            if is_manifest_name(filename) or not member.is_file():
+                continue
+            normalized = (normalize_manifest_path(self._member_name_text(filename)) if strict
+                          else self._member_name_text(filename))
+            if strict and normalized in member_names:
+                raise SAPCARManifestError("duplicate archive member: %s" % normalized)
+            member_names.add(normalized)
+            entries.append((normalized, member.open(enforce_checksum=True).read()))
+        manifest = create_signed_manifest(
+            entries, certificate, private_key,
+            timestamp_certificate=timestamp_certificate,
+            timestamp_private_key=timestamp_private_key,
+            strict=strict)
+        manifest_filename = manifest_filename.encode() if isinstance(manifest_filename, str) else manifest_filename
+        self._files[:] = [member for member in self._files
+                          if member.filename != manifest_filename and not is_manifest_name(member.filename)]
+        manifest_file = SAPCARArchiveFile.from_data(manifest, manifest_filename, self.version)
+        self._files.append(manifest_file._file_format)
+        return manifest
+
     def open(self, filename):
         """Returns a file-like object that can be used to access a file
         inside the SAP CAR archive.
@@ -831,6 +895,157 @@ class SAPCARArchive(object):
         if filename not in self.files:
             raise Exception("Invalid filename")
         return self.files[filename].open()
+
+    def find_manifests(self):
+        """Return archive members which contain a recognized manifest."""
+        return [member.filename for member in self._files
+                if is_manifest_name(member.filename)]
+
+    @staticmethod
+    def _member_name_text(filename):
+        """Return an archive member name as displayable text."""
+        return filename.decode("utf-8", "replace") if isinstance(filename, bytes) else filename
+
+    def _normalized_member_index(self):
+        """Index normalized archive names and report unsafe or duplicate names."""
+        members = {}
+        malformed = []
+        for file_format in self._files:
+            filename = self._member_name_text(file_format.filename)
+            try:
+                normalized = normalize_manifest_path(filename)
+            except SAPCARManifestError as exc:
+                malformed.append({"filename": filename, "error": str(exc)})
+                continue
+            if normalized in members:
+                malformed.append({
+                    "filename": normalized,
+                    "error": "duplicate archive member",
+                })
+            members[normalized] = file_format.filename
+        return members, malformed
+
+    def read_manifest(self, filename=None):
+        """Read and parse a manifest member, or ``None`` when absent."""
+        manifests = self.find_manifests()
+        if filename is None:
+            if not manifests:
+                return None
+            filename = manifests[0]
+        if filename not in self.files:
+            raise SAPCARManifestError("manifest member not found: %s" % filename)
+        member = self.files[filename]
+        if not member.is_file():
+            raise SAPCARManifestError("manifest member is not a regular file")
+        return SAPCARManifest.from_bytes(
+            member.open(enforce_checksum=True).read(),
+            name=self._member_name_text(filename))
+
+    def validate_manifest(self, strict=False, trust_store=None, certificate_dir=None):
+        """Validate archive members against its manifest.
+
+        Signature verification uses an explicit trust store or certificate
+        directory when supplied, otherwise it uses the certificates embedded
+        by SAPCAR. Trust is a direct certificate or issuer match, not full PKI
+        path, policy, or revocation validation.
+        """
+        manifests = self.find_manifests()
+        report = {"manifest_files": sorted(self._member_name_text(x) for x in manifests),
+                  "manifest_status": "not-present" if not manifests else "present",
+                  "members": [], "missing": [], "unexpected": [],
+                  "size_mismatches": [], "digest_mismatches": [],
+                  "malformed_entries": [], "signature_status": "not-present",
+                  "integrity_valid": True, "valid": True, "strict": bool(strict)}
+        if not manifests:
+            if strict:
+                report["valid"] = False
+            return report
+        if len(manifests) != 1:
+            report["malformed_entries"].append({
+                "error": "multiple manifest files are ambiguous",
+                "manifests": sorted(self._member_name_text(name) for name in manifests),
+            })
+            report["integrity_valid"] = False
+            report["valid"] = False
+            return report
+        manifest_name = manifests[0]
+        try:
+            manifest = self.read_manifest(manifest_name)
+        except (SAPCARManifestError, SAPCARInvalidFileException, DecompressError,
+                SAPCARInvalidChecksumException) as exc:
+            report["malformed_entries"].append({"manifest": self._member_name_text(manifest_name),
+                                                "error": str(exc)})
+            report["integrity_valid"] = False
+            report["valid"] = False
+            report["signature_status"] = "invalid"
+            return report
+        if manifest.signature:
+            report["signature_status"] = manifest.verify_signature(
+                trust_store=trust_store, certificate_dir=certificate_dir)
+        archive_names, malformed_names = self._normalized_member_index()
+        report["malformed_entries"].extend(malformed_names)
+        listed = set()
+        for entry in manifest.entries:
+            item = entry.as_dict()
+            report["members"].append(item)
+            listed.add(entry.filename)
+            if strict and not entry.digest:
+                report["malformed_entries"].append({
+                    "filename": entry.filename,
+                    "error": "strict validation requires a content digest",
+                })
+            elif strict and entry.digest_algorithm not in ("sha256", "sha512"):
+                report["malformed_entries"].append({
+                    "filename": entry.filename,
+                    "error": "weak digest algorithm in strict mode: %s" %
+                             entry.digest_algorithm,
+                })
+            archive_name = archive_names.get(entry.filename)
+            if archive_name is None:
+                report["missing"].append(entry.filename)
+                continue
+            member = self.files[archive_name]
+            try:
+                data = member.open(enforce_checksum=True).read()
+            except Exception as exc:
+                report["malformed_entries"].append({"filename": entry.filename,
+                                                    "error": str(exc)})
+                continue
+            if entry.size is not None and len(data) != entry.size:
+                report["size_mismatches"].append({"filename": entry.filename,
+                                                  "expected": entry.size, "actual": len(data)})
+            if entry.digest:
+                try:
+                    actual = hashlib.new(entry.digest_algorithm, data).hexdigest()
+                except (ValueError, TypeError) as exc:
+                    report["malformed_entries"].append({"filename": entry.filename,
+                                                        "error": str(exc)})
+                else:
+                    if actual.lower() != entry.digest.lower():
+                        report["digest_mismatches"].append({"filename": entry.filename,
+                                                            "algorithm": entry.digest_algorithm,
+                                                            "expected": entry.digest,
+                                                            "actual": actual})
+        archive_members = set()
+        for normalized, archive_name in archive_names.items():
+            if is_manifest_name(archive_name):
+                continue
+            if not self.files[archive_name].is_file():
+                continue
+            archive_members.add(normalized)
+        report["unexpected"] = sorted(archive_members - listed)
+        if manifest.signature and report["signature_status"] == "unsupported":
+            report["signature_status"] = "unverified"
+        integrity_errors = (report["missing"] + report["unexpected"] +
+                            report["size_mismatches"] + report["digest_mismatches"] +
+                            report["malformed_entries"])
+        report["integrity_valid"] = not integrity_errors
+        report["valid"] = report["integrity_valid"]
+        if strict and report["signature_status"] != "valid":
+            report["valid"] = False
+            if report["signature_status"] == "not-present":
+                report["signature_status"] = "not-present"
+        return report
 
     def close(self):
         """Close the file descriptor object associated to the archive file.
