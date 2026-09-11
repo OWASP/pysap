@@ -91,6 +91,9 @@ def main():
 
     print("[*] Sending login packet")
     response = conn.sr(p)[SAPMS]
+    if response.errorno != 0:
+        conn.close()
+        raise RuntimeError("Message Server login failed with error %d" % response.errorno)
 
     fromname = response.fromname
     print("[*] Login performed, server string: %s" % (fromname.decode("utf-8", errors="replace").strip() if isinstance(fromname, bytes) else fromname))
@@ -110,6 +113,8 @@ def main():
         print("[*] Connection error")
     except KeyboardInterrupt:
         print("[*] Cancelled by the user")
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":

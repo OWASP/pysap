@@ -42,7 +42,7 @@ The following is an example result of running the command:
     [*] Connected to the message server XXX.XXX.XXX.XXX:3901
     [*] Sending login packet:
     [*] Login OK, Server string: MSG_SERVER
-    ('[*] Sending dump info', 'MS_DUMP_CON')
+    [*] Sending dump info MS_DUMP_CON
     -------------------------- dump of mscon table -----------------------------
       NR ADDRESS > Unique key                      FIHDL NEXTREQ NEXTREP
     ----------------------------------------------------------------------------
@@ -50,7 +50,7 @@ The following is an example result of running the command:
     #entries = 0
 
 
-    ('[*] Sending dump info', 'MS_DUMP_PARAMS')
+    [*] Sending dump info MS_DUMP_PARAMS
 
     Release = 753
     Release no = 7530
@@ -285,7 +285,9 @@ perform on the Message Server. It connects with ``--remote-host`` and ``--remote
 with ``--domain`` and the client name can be changed with ``--client``. Packet logs can be written
 with ``--log-file``, console output can be written with ``--console-log``, and commands can be loaded
 from a file with ``--script``. A list of implemented commands can be obtained by running ``help``
-inside the console.
+inside the console. Interactive sessions support tab completion for command
+names and for known SAPMS values such as clients, dump and reload operations,
+logon types, and property identifiers.
 
 Example usage:
 
@@ -296,24 +298,50 @@ Example usage:
 The console provides the standard ``help``, ``history``, ``options``,
 ``script``, ``exit`` and ``quit`` commands. Message Server monitor operations
 include client and logon-group listings, logon data retrieval, hardware and
-security queries, statistics, counters, server shutdown operations, and dump
-commands. Frequently used expert operations are available as named commands:
+security queries, client registration updates, statistics, counters, server
+shutdown operations, property management, and dump commands. Frequently used
+expert operations are available as named commands:
 
 .. code-block:: console
 
     pysap's console> logon_group_list
     pysap's console> get_logon PUBLIC
     pysap's console> logon_data_lb PUBLIC
+    pysap's console> set_logon 6 PUBLIC 127.0.0.1 50000 HTTP host
+    pysap's console> del_logon 6 PUBLIC
     pysap's console> open_requests
     pysap's console> dump_url_map
     pysap's console> dump_url_prefixes
     pysap's console> dump_url_handler
     pysap's console> counter_dump <counter>
     pysap's console> logon_types
+    pysap's console> statistics_get
+    pysap's console> nitrace_get <client>
+    pysap's console> server_generation_list
+    pysap's console> subsystem_list
+    pysap's console> log_counter_read
+    pysap's console> log_counter_reset
+    pysap's console> ip_port_to_name 127.0.0.1 3200
+    pysap's console> change_ip 127.0.0.2
+    pysap's console> set_security_key SERVER secret
+    pysap's console> text_get SERVER
+    pysap's console> text_set SERVER "description"
+    pysap's console> property_get 0 1
+    pysap's console> property_set 0 1 "description"
+    pysap's console> property_delete 0 1
+    pysap's console> file_reload 4
+    pysap's console> noop
+    pysap's console> soft_shutdown
 
-The SNC group-list and logon-data commands are also exposed as
-``logon_group_list_snc``, ``logon_data_snc`` and ``logon_data_lb_snc``. Their
-availability depends on the Message Server's configured SNC groups.
+``dump all`` runs every dump command that takes no additional operand. The
+``MS_DUMP_MSADM`` and ``MS_DUMP_COUNTER`` commands are skipped and can be run
+individually with a client ID or counter name.
+
+The native ``msmon`` SNC group-list and logon-cache maintenance operations use
+the Lg API rather than SAPMS packets and are therefore not exposed by this
+SAPMS-only console. SNC logon data retrieval remains available through
+``logon_data_snc`` and ``logon_data_lb_snc`` when the server has configured SNC
+groups.
 
 
 ``ms_observer``

@@ -97,6 +97,9 @@ def main():
         p = SAPMS(flag=0x00, iflag=0x08, toname=client_string, fromname=client_string)
         print("[*] Sending login packet:")
         response = conn.sr(p)[SAPMS]
+        if response.errorno != 0:
+            conn.close()
+            raise RuntimeError("Message Server login failed with error %d" % response.errorno)
         server_string = response.fromname
         print("[*] Login OK, Server string: %s\n" % (server_string.decode("utf-8", errors="replace").strip() if isinstance(server_string, bytes) else server_string))
 
@@ -113,7 +116,7 @@ def main():
                     # param2c = the SAP parameter to check
                     # check_type = EQUAL, SUP, INF, REGEX, <none>
                     # value2c = the expect value for 'ok' status
-                    (param2c, check_type, value2c) = line.split(':')
+                    (param2c, check_type, value2c) = line.split(':', 2)
                     status = '[!]'
 
                     # create request
@@ -123,6 +126,10 @@ def main():
 
                     # send request
                     respond = conn.sr(p)[SAPMS]
+                    if (not respond.adm_records or
+                            respond.adm_records[0].errorno != 0):
+                        print("[!] %s = ACCESS_DENIED_OR_UNAVAILABLE" % param2c)
+                        continue
                     param_val = respond.adm_records[0].parameter
                     if isinstance(param_val, bytes):
                         param_val = param_val.decode('utf-8', errors='replace').rstrip('\x00')
@@ -156,8 +163,10 @@ def main():
             exit(0)
         except ValueError as e:
             import traceback; traceback.print_exc()
-            print("Invalid parameters file format or access denied: %s" % e)
+            print("Invalid parameters file format: %s" % e)
             exit(0)
+        finally:
+            conn.close()
 
 
 if __name__ == '__main__':

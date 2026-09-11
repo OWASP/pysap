@@ -4,18 +4,29 @@ Changelog
 v0.2.1.dev0 - in dev
 --------------------
 
+- `examples/ms_*.py`: Corrected Message Server response decoding, connection
+  validation, argument parsing, socket cleanup, and monitor command handling;
+  expanded `ms_monitor` with SAPMS monitor operations and removed non-SAPMS
+  aliases; added command and SAPMS argument completion.
+- `docs`: Updated the Message Server examples and regenerated the SAPMS packet
+  notebook with the new protocol structures.
+- `pysap/SAPMS.py`: Added ASCS gateway logon tags and corrected versioned
+  IP-to-name, ACL-check, file-reload, ASCS gateway status, and ASCS gateway
+  keepalive layouts.
+- `pysap/SAPMS.py`: Added layouts for statistics, open-request, NI trace,
+  server-generation-list, and log-counter operations.
 - `pysap/SAPMS.py`: Expanded Message Server enum coverage for domains, message
   types, errors, administration records, opcodes, properties, dump/file
   operations, and client status; added Message Server logon response parsing
-  and additional response fields.
+  and additional response fields. ([\#105](https://github.com/OWASP/pysap/pull/105))
 - `examples/ms_monitor.py`: Added named commands for logon data, logon groups,
   open requests, URL maps, counters, and related Message Server operations;
-  improved connection checks, argument parsing, and client-list output.
+  improved client-list output. ([\#105](https://github.com/OWASP/pysap/pull/105))
 - `docs/examples/message_server.rst`: Documented the expanded Message Server
-  monitor commands and their SNC variants.
+  monitor commands and their SNC variants. ([\#105](https://github.com/OWASP/pysap/pull/105))
 - `pysap/utils/console.py`: Improved console argument parsing, script
   execution, logging and resource cleanup; added `quit`, `q`, and EOF exit
-  handling and corrected table-formatting option forwarding.
+  handling and corrected table-formatting option forwarding. ([\#105](https://github.com/OWASP/pysap/pull/105))
 
 
 v0.2.0 - 2026-07-28
