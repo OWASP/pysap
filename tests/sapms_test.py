@@ -17,8 +17,13 @@
 import sys
 import unittest
 
-from pysap.SAPMS import (SAPMS, SAPMSAdmRecord, SAPMSClient1, SAPMSLogon,
-                         SAPMSLogonResponse, SAPMSProperty, SAPMSJ2EEHeader)
+from pysap.SAPMS import (SAPMS, SAPMSAdmRecord, SAPMSASCSGatewayLogon,
+                         SAPMSASCSGatewayLogonTag, SAPMSASCSGatewayKeepalive,
+                         SAPMSClient1, SAPMSLogon,
+                         SAPMSLogCounter, SAPMSLogCounterRecord,
+                         SAPMSLogonResponse, SAPMSOpenRequest,
+                         SAPMSOpenRequestList, SAPMSProperty,
+                         SAPMSJ2EEHeader)
 from tests.utils import roundtrip_packet
 
 
@@ -52,6 +57,66 @@ class PySAPMessageServerTest(unittest.TestCase):
         self.assertEqual(parsed.supplvl, 2)
         self.assertEqual(parsed.platform, 3)
 
+    def test_property_raw_value_roundtrip(self):
+        parsed = roundtrip_packet(SAPMSProperty(client="CLIENT", id=0x08,
+                                                raw_value=b"opaque"))
+
+        self.assertEqual(parsed.id, 0x08)
+        self.assertEqual(parsed.raw_value, b"opaque")
+
+    def test_security_key_direction_and_version_roundtrip(self):
+        request = roundtrip_packet(SAPMS(flag=0x02, iflag=0x01, opcode=0x08,
+                                         security_name=b"CLIENT"))
+        response = roundtrip_packet(SAPMS(flag=0x03, iflag=0x01, opcode=0x08,
+                                          security_key=b"K" * 256))
+        request_v2 = roundtrip_packet(SAPMS(flag=0x02, iflag=0x01, opcode=0x09,
+                                            opcode_version=2,
+                                            security2_addressv6="2001:db8::1",
+                                            security2_port=3200))
+
+        self.assertEqual(request.security_name.rstrip(b"\x00"), b"CLIENT")
+        self.assertEqual(response.security_key, b"K" * 256)
+        self.assertEqual(request_v2.security2_addressv6, "2001:db8::1")
+        self.assertEqual(request_v2.security2_port, 3200)
+
+    def test_hwid_and_dump_direction_roundtrip(self):
+        request = roundtrip_packet(SAPMS(flag=0x02, iflag=0x01, opcode=0x0a,
+                                         hwid_request_magic=b"HWID"))
+        response = roundtrip_packet(SAPMS(flag=0x03, iflag=0x01, opcode=0x0a,
+                                          hwid=b"H" * 100))
+        dump = roundtrip_packet(SAPMS(flag=0x03, iflag=0x01, opcode=0x1e,
+                                      dump_response=b"one\ntwo\n"))
+
+        self.assertEqual(request.hwid_request_magic, b"HWID")
+        self.assertEqual(response.hwid, b"H" * 100)
+        self.assertEqual(dump.dump_response, b"one\ntwo\n")
+
+    def test_opcode_structures_roundtrip(self):
+        stats = roundtrip_packet(SAPMS(
+            flag=0x03, iflag=0x01, opcode=0x11, opcode_version=3,
+            stats=b"S" * 712))
+        requests = roundtrip_packet(SAPMS(
+            flag=0x03, iflag=0x01, opcode=0x14,
+            open_requests=SAPMSOpenRequestList(requests=[
+                SAPMSOpenRequest(data=b"R" * 88)])))
+        nitrace = roundtrip_packet(SAPMS(
+            flag=0x02, iflag=0x01, opcode=0x3f,
+            nitrace_client=b"CLIENT", nitrace_operation=1,
+            nitrace_level=2))
+        log_counter = roundtrip_packet(SAPMS(
+            flag=0x03, iflag=0x01, opcode=0x50,
+            log_counter=SAPMSLogCounter(index=3, records=[
+                SAPMSLogCounterRecord(data=b"L" * 48)])))
+
+        self.assertEqual(stats.stats, b"S" * 712)
+        self.assertEqual(len(bytes(stats)), 114 + 712)
+        self.assertEqual(len(requests.open_requests.requests), 1)
+        self.assertEqual(requests.open_requests.requests[0].data, b"R" * 88)
+        self.assertEqual(nitrace.nitrace_operation, 1)
+        self.assertEqual(nitrace.nitrace_level, 2)
+        self.assertEqual(log_counter.log_counter.index, 3)
+        self.assertEqual(log_counter.log_counter.count, 1)
+
     def test_j2ee_header_roundtrip(self):
         parsed = roundtrip_packet(SAPMSJ2EEHeader())
 
@@ -77,7 +142,7 @@ class PySAPMessageServerTest(unittest.TestCase):
             self.assertEqual(parsed.shutdown_reason, b"maintenance")
 
     def test_message_server_ip_to_name_roundtrip(self):
-        packet = SAPMS(iflag=0x01, opcode=0x46,
+        packet = SAPMS(iflag=0x01, opcode=0x46, opcode_version=0,
                        ip_to_name_address4="127.0.0.1",
                        ip_to_name_port=3200,
                        ip_to_name="server.example")
@@ -87,6 +152,56 @@ class PySAPMessageServerTest(unittest.TestCase):
         self.assertEqual(parsed.ip_to_name_address4, "127.0.0.1")
         self.assertEqual(parsed.ip_to_name_port, 3200)
         self.assertEqual(parsed.ip_to_name, b"server.example")
+
+    def test_message_server_check_acl_roundtrip(self):
+        request = roundtrip_packet(SAPMS(
+            flag=0x02, iflag=0x01, opcode=0x47, opcode_version=2,
+            check_acl_address="2001:db8::1"))
+        response = roundtrip_packet(SAPMS(
+            flag=0x03, iflag=0x01, opcode=0x47, opcode_version=2,
+            error_code=0, acl=b"ALLOW\x00HOST=*\x00"))
+
+        self.assertEqual(request.check_acl_address, "2001:db8::1")
+        self.assertEqual(response.error_code, 0)
+        self.assertEqual(response.acl, b"ALLOW\x00HOST=*\x00")
+
+    def test_message_server_ascs_gateway_logon_roundtrip(self):
+        packet = SAPMS(
+            flag=0x02, iflag=0x01, opcode=0x52,
+            ascs_gateway=SAPMSASCSGatewayLogon(tags=[
+                SAPMSASCSGatewayLogonTag(tag=1, value=3301),
+                SAPMSASCSGatewayLogonTag(tag=2, value=3302),
+                SAPMSASCSGatewayLogonTag(tag=3, value=1234),
+                SAPMSASCSGatewayLogonTag(tag=4, value="2001:db8::1"),
+                SAPMSASCSGatewayLogonTag(tag=0),
+            ]))
+        parsed = roundtrip_packet(packet)
+
+        self.assertEqual([tag.tag for tag in parsed.ascs_gateway.tags],
+                         [1, 2, 3, 4, 0])
+        self.assertEqual(parsed.ascs_gateway.tags[0].value, 3301)
+        self.assertEqual(parsed.ascs_gateway.tags[3].value, "2001:db8::1")
+
+    def test_message_server_ascs_gateway_status_and_keepalive_roundtrip(self):
+        status_request = roundtrip_packet(SAPMS(
+            flag=0x02, iflag=0x01, opcode=0x53))
+        status_response = roundtrip_packet(SAPMS(
+            flag=0x03, iflag=0x01, opcode=0x53,
+            ascs_gateway=SAPMSASCSGatewayLogon(tags=[
+                SAPMSASCSGatewayLogonTag(tag=1, value=3301),
+                SAPMSASCSGatewayLogonTag(tag=0),
+            ])))
+        keepalive_request = roundtrip_packet(SAPMS(
+            flag=0x02, iflag=0x01, opcode=0x54,
+            ascs_gateway_keepalive=SAPMSASCSGatewayKeepalive()))
+        keepalive_response = roundtrip_packet(SAPMS(
+            flag=0x03, iflag=0x01, opcode=0x54))
+
+        self.assertFalse(status_request.haslayer(SAPMSASCSGatewayLogon))
+        self.assertEqual(status_response.ascs_gateway.tags[0].value, 3301)
+        self.assertEqual(len(keepalive_request.ascs_gateway_keepalive.data),
+                         0x1030)
+        self.assertFalse(keepalive_response.haslayer(SAPMSASCSGatewayKeepalive))
 
     def test_message_server_logon_request_roundtrip(self):
         packet = SAPMS(flag=0x02, iflag=0x01, opcode=0x2c,

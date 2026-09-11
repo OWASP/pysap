@@ -92,6 +92,10 @@ def main():
     print("[*] Sending login packet:")
     response = conn.sr(p)[SAPMS]
 
+    if response.errorno != 0:
+        conn.close()
+        raise RuntimeError("Message Server login failed with error %d" % response.errorno)
+
     server_string = response.fromname
     print("[*] Login OK, Server string: %s" % (server_string.decode("utf-8", errors="replace").strip() if isinstance(server_string, bytes) else server_string))
 
@@ -112,10 +116,13 @@ def main():
 
         if response.opcode_error != 0:
             print("Error:", ms_opcode_error_values[response.opcode_error])
-        value = response.opcode_value
+            continue
+        value = response.dump_response
         if isinstance(value, bytes):
             value = value.rstrip(b'\x00').decode('utf-8', errors='replace')
         print(value)
+
+    conn.close()
 
 
 if __name__ == "__main__":

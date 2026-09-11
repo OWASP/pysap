@@ -18,6 +18,7 @@
 #
 
 # Standard imports
+import ipaddress
 import logging
 from argparse import ArgumentParser
 from socket import error as SocketError
@@ -30,7 +31,8 @@ from pysap.SAPMS import (SAPMS, ms_client_status_values, ms_opcode_error_values,
                          ms_dump_command_values, SAPMSCounter, ms_opcode_values,
                          ms_errorno_values, SAPMSProperty, ms_property_id_values,
                          SAPMSAdmRecord, ms_domain_values_inv,
-                         ms_logon_type_values, SAPMSLogon)
+                         ms_file_reload_values, ms_logon_type_values,
+                         SAPMSLogon)
 from pysap.SAPRouter import SAPRoutedStreamSocket
 
 
@@ -71,6 +73,48 @@ class SAPMSMonitorConsole(BaseConsole):
             if value is not None:
                 return value
         return []
+
+    def _show_clients(self, response):
+        """Display and retain a versioned Message Server client list."""
+        clients = self._get_clients(response)
+        table = [["#", "Client Name", "Host", "Service", "IPv4", "IPv6",
+                  "ServNo", "State", "Services"]]
+        instance = self.runtimeoptions["server_string"]
+        for index, client in enumerate(clients):
+            status = getattr(client, "status", None)
+            if status == 1:
+                instance = self._decode(client.client)
+            table.append([str(index), self._decode(client.client),
+                          self._decode(client.host),
+                          self._decode(client.service), client.hostaddrv4,
+                          client.hostaddrv6 if "hostaddrv6" in client.fields else None,
+                          str(client.servno),
+                          ms_client_status_values.get(status, str(status))
+                          if status is not None else "",
+                          str(client.msgtype).replace("+", " ")
+                          if client.msgtype else "-"])
+        self._tabulate(table)
+        self.clients = clients
+        self.runtimeoptions["instance"] = instance
+        self._debug("Server instance: %s" % instance)
+
+    @staticmethod
+    def _complete_values(text, values):
+        """Complete a token from a finite set of SAPMS values."""
+        return sorted(value for value in (str(item) for item in values)
+                      if value.startswith(text))
+
+    @staticmethod
+    def _completion_arg(line, begidx):
+        """Return the zero-based argument currently being completed."""
+        return max(0, len(line[:begidx].split()) - 1)
+
+    def _complete_client_ids(self, text):
+        return self._complete_values(text, range(len(self.clients)))
+
+    def _complete_client_names(self, text):
+        return self._complete_values(
+            text, (self._decode(client.client) for client in self.clients))
 
     # Helper for crafting packets
     def _build(self, flag, iflag, **args):
@@ -184,33 +228,7 @@ class SAPMSMonitorConsole(BaseConsole):
         if response is None:
             return
 
-        clients = self._get_clients(response)
-
-        # Print clients table
-        table = [["#", "Client Name", "Host", "Service", "IPv4", "IPv6", "ServNo", "State", "Services"]]
-        instance = self.runtimeoptions["server_string"]
-        i = 0
-        for client in clients:
-            status = getattr(client, "status", None)
-            if status == 1:
-                instance = self._decode(client.client)
-            table.append([str(i),
-                          self._decode(client.client),
-                          self._decode(client.host),
-                          self._decode(client.service),
-                          client.hostaddrv4,
-                          client.hostaddrv6 if "hostaddrv6" in client.fields else None,
-                          str(client.servno),
-                          ms_client_status_values.get(status, str(status)) if status is not None else "",
-                          str(client.msgtype).replace("+", " ") if client.msgtype else "-"])
-            i += 1
-        self._tabulate(table)
-
-        # Store clients for further use
-        self.clients = clients
-
-        self._debug("Server instance: %s" % instance)
-        self.runtimeoptions["instance"] = instance
+        self._show_clients(response)
 
     def do_hardware_id(self, args):
         """ Retrieve the installation's hardware ID. """
@@ -222,14 +240,16 @@ class SAPMSMonitorConsole(BaseConsole):
         """ Get Security Key by name. """
         response = self._send_simple(0x02, 0x01, opcode=0x08, security_name=args)
         if response:
-            self._print("Security Name: %s" % response.security_name)
             self._print("Security Key: %s" % response.security_key)
+
+    def complete_get_security_by_name(self, text, line, begidx, endidx):
+        return self._complete_client_names(text)
 
     def do_get_security_by_ip(self, args):
         """ Get Security Key by ip/port. Options <IPv4 address> <port> """
 
         try:
-            ip, port = args.split(" ")
+            ip, port = args.split()
             port = int(port)
         except ValueError:
             self._error("Wrong parameters !")
@@ -238,10 +258,67 @@ class SAPMSMonitorConsole(BaseConsole):
         # Send MS_GET_SECURITY
         response = self._send_simple(0x02, 0x01, opcode=0x09, security2_addressv4=ip, security2_port=port)
         if response:
-            self._print("Security IPv4 Address: %s" % response.security2_addressv4)
-            self._print("Security Port: %s" % response.security2_port)
             self._print("Security Key: %s" % response.security2_key)
-            self._print("Security IPv6 Address: %s" % response.security2_addressv6)
+
+    def do_set_security_key(self, args):
+        """Set a client security key. Options: <client name> <key>"""
+        arguments = self._parse_args(args)
+        if arguments is None:
+            return
+        if len(arguments) != 2 or len(arguments[1].encode("utf-8")) > 256:
+            self._error("Wrong parameters ! Specify client name and a key up to 256 bytes")
+            return
+        if self._send_simple(0x02, 0x01, opcode=0x07,
+                             security_name=arguments[0],
+                             security_key=arguments[1]):
+            self._print("Security key set")
+
+    def complete_set_security_key(self, text, line, begidx, endidx):
+        if self._completion_arg(line, begidx) == 0:
+            return self._complete_client_names(text)
+        return []
+
+    def do_ip_port_to_name(self, args):
+        """Resolve an IP address and port. Options: <IP address> <port>"""
+        arguments = self._parse_args(args)
+        if arguments is None:
+            return
+        try:
+            address = ipaddress.ip_address(arguments[0])
+            port = int(arguments[1])
+            if len(arguments) != 2 or not 0 <= port <= 65535:
+                raise ValueError
+        except (IndexError, ValueError):
+            self._error("Wrong parameters ! Specify an IP address and port")
+            return
+
+        request = {"opcode": 0x46,
+                   "opcode_version": 1 if address.version == 4 else 2,
+                   "ip_to_name_port": port}
+        if address.version == 4:
+            request["ip_to_name_address4"] = str(address)
+        else:
+            request["ip_to_name_address6"] = str(address)
+        response = self._send_simple(0x02, 0x01, **request)
+        if response:
+            self._print("Client name: %s" % self._decode(response.ip_to_name))
+
+    def do_change_ip(self, args):
+        """Change this client's registered IP address. Options: <IP address>"""
+        try:
+            address = ipaddress.ip_address((args or "").strip())
+        except ValueError:
+            self._error("Invalid IP address")
+            return
+        request = {"opcode": 0x06,
+                   "opcode_version": 1 if address.version == 4 else 2}
+        if address.version == 4:
+            request["change_ip_addressv4"] = str(address)
+        else:
+            request.update(change_ip_addressv4="0.0.0.0",
+                           change_ip_addressv6=str(address))
+        if self._send_simple(0x02, 0x01, **request):
+            self._print("Registered IP address changed")
 
     def do_dump(self, args):
         """ Dump information. Options [<dump command> | all] """
@@ -252,7 +329,11 @@ class SAPMSMonitorConsole(BaseConsole):
 
         if arguments == ["all"]:
             for key in ms_dump_command_values:
-                self.do_dump(key)
+                if key in (1, 12):
+                    self._print("Skipping %s: requires an argument" %
+                                ms_dump_command_values[key])
+                    continue
+                self._do_dump(key, [])
             return
 
         try:
@@ -264,9 +345,23 @@ class SAPMSMonitorConsole(BaseConsole):
             self._error("all: dumps all the available information")
             return
 
+        self._do_dump(command, arguments[1:])
+
+    def complete_dump(self, text, line, begidx, endidx):
+        argument = self._completion_arg(line, begidx)
+        if argument == 0:
+            return self._complete_values(
+                text, list(ms_dump_command_values) + ["all"])
+        tokens = line[:begidx].split()
+        if argument == 1 and len(tokens) > 1 and tokens[1] == "1":
+            return self._complete_client_ids(text)
+        return []
+
+    def _do_dump(self, command, arguments):
+        """Execute one parsed dump command."""
         if command == 1:  # MS_DUMP_MSADM
             try:
-                client_id = int(arguments[1])
+                client_id = int(arguments[0])
                 client = self.clients[client_id]
             except (ValueError, IndexError):
                 self._error("Wrong parameters ! Specify client ID")
@@ -276,7 +371,7 @@ class SAPMSMonitorConsole(BaseConsole):
                                          dump_name=self._decode(client.client))
         elif command == 12:  # MS_DUMP_COUNTER
             try:
-                counter = arguments[1]
+                counter = arguments[0]
             except IndexError:
                 self._error("Wrong parameters ! Specify counter number")
                 return
@@ -288,7 +383,7 @@ class SAPMSMonitorConsole(BaseConsole):
             response = self._send_simple(0x02, 0x01, opcode=0x1e, dump_dest=0x02, dump_command=command)
 
         if response:
-            value = response.opcode_value
+            value = response.dump_response
             if isinstance(value, bytes):
                 value = value.rstrip(b'\x00').decode('utf-8', errors='replace')
             self._print("Dump information:\n%s" % value)
@@ -296,11 +391,12 @@ class SAPMSMonitorConsole(BaseConsole):
     def do_open_requests(self, args):
         """List open Message Server requests."""
         response = self._send_simple(0x02, 0x01, opcode=0x14)
-        if response:
-            value = response.opcode_value
-            if isinstance(value, bytes):
-                value = value.rstrip(b"\x00").decode("utf-8", errors="replace")
-            self._print("Open requests:\n%s" % value)
+        if response and response.open_requests is not None:
+            table = [["#", "Raw request record"]]
+            table.extend([str(index), request.data.hex()]
+                         for index, request in enumerate(
+                             response.open_requests.requests))
+            self._tabulate(table)
 
     def do_dump_url_map(self, args):
         """Dump the Message Server URL map."""
@@ -375,6 +471,11 @@ class SAPMSMonitorConsole(BaseConsole):
         """Retrieve logon data. Options: <group name> [<logon type>]"""
         return self._get_logon(args)
 
+    def complete_get_logon(self, text, line, begidx, endidx):
+        if self._completion_arg(line, begidx) == 1:
+            return self._complete_values(text, ms_logon_type_values)
+        return []
+
     def do_logon_data(self, args):
         """Alias for :meth:`get_logon`."""
         return self.do_get_logon(args)
@@ -391,22 +492,99 @@ class SAPMSMonitorConsole(BaseConsole):
         """Retrieve SNC load-balanced logon data. Options: <group name>"""
         return self._get_logon(args, fixed_type=1)
 
+    complete_logon_data = complete_get_logon
+
     def do_logon_group_list(self, args):
-        """List logon groups."""
-        return self.do_client_list(args)
+        """Dump GUI and RFC logon-group lists."""
+        self.do_dump("31")
+        self.do_dump("32")
 
-    def do_logon_group_list_snc(self, args):
-        """List logon groups with SNC information."""
-        return self.do_client_list(args)
+    def do_set_logon(self, args):
+        """Set logon data. Options: <type> <group> <address> <port> <protocol> <host> [misc]"""
+        arguments = self._parse_args(args)
+        if arguments is None:
+            return
+        if len(arguments) not in (6, 7):
+            self._error("Wrong parameters ! Specify type, group, address, port, protocol, host and optional misc")
+            return
+        try:
+            logon_type = int(arguments[0])
+            address = ipaddress.ip_address(arguments[2])
+            port = int(arguments[3])
+            if logon_type not in ms_logon_type_values or not 0 <= port <= 65535:
+                raise ValueError
+        except ValueError:
+            self._error("Invalid logon type, address or port")
+            return
+        values = {"type": logon_type, "logonname": arguments[1],
+                  "port": port, "prot": arguments[4], "host": arguments[5],
+                  "misc": arguments[6] if len(arguments) == 7 else ""}
+        if address.version == 4:
+            values.update(address=str(address), address6_length=-1)
+        else:
+            values.update(address="0.0.0.0", address6_length=16,
+                          address6=str(address))
+        if self._send_simple(0x02, 0x01, opcode=0x2b,
+                             logon=SAPMSLogon(**values)):
+            self._print("Logon data set")
 
-    def do_logon_memory_free(self, args):
-        """Release cached logon data on the server."""
-        self._print("The Message Server exposes no separate free-logon-data request; refreshing the group list.")
-        return self.do_client_list(args)
+    def complete_set_logon(self, text, line, begidx, endidx):
+        if self._completion_arg(line, begidx) == 0:
+            return self._complete_values(text, ms_logon_type_values)
+        return []
 
-    def do_logon_reload(self, args):
-        """Force a refresh of the Message Server logon data."""
-        return self.do_client_list(args)
+    def do_del_logon(self, args):
+        """Delete logon data. Options: <type> <group>"""
+        arguments = self._parse_args(args)
+        if arguments is None:
+            return
+        try:
+            logon_type = int(arguments[0])
+            if len(arguments) != 2 or logon_type not in ms_logon_type_values:
+                raise ValueError
+        except (IndexError, ValueError):
+            self._error("Wrong parameters ! Specify logon type and group")
+            return
+        request = SAPMSLogon(type=logon_type, logonname=arguments[1],
+                             address6_length=-1)
+        if self._send_simple(0x02, 0x01, opcode=0x2d, logon=request):
+            self._print("Logon data deleted")
+
+    def complete_del_logon(self, text, line, begidx, endidx):
+        if self._completion_arg(line, begidx) == 0:
+            return self._complete_values(text, ms_logon_type_values)
+        return []
+
+    def do_text_set(self, args):
+        """Set client text. Options: <client name> <text>"""
+        arguments = self._parse_args(args)
+        if arguments is None:
+            return
+        if len(arguments) != 2 or len(arguments[1].encode("utf-8")) > 80:
+            self._error("Wrong parameters ! Specify client name and text up to 80 bytes")
+            return
+        if self._send_simple(0x02, 0x01, opcode=0x22,
+                             text_name=arguments[0],
+                             text_value=arguments[1]):
+            self._print("Client text set")
+
+    def do_text_get(self, args):
+        """Get client text. Options: <client name>"""
+        arguments = self._parse_args(args)
+        if arguments is None:
+            return
+        if len(arguments) != 1:
+            self._error("Wrong parameters ! Specify client name")
+            return
+        response = self._send_simple(0x02, 0x01, opcode=0x23,
+                                     text_name=arguments[0])
+        if response:
+            self._print("Client text: %s" % self._decode(response.text_value))
+
+    def complete_text_get(self, text, line, begidx, endidx):
+        return self._complete_client_names(text)
+
+    complete_text_set = complete_set_security_key
 
     def do_server_parameters(self, args):
         """ Dump server parameters. """
@@ -469,10 +647,54 @@ class SAPMSMonitorConsole(BaseConsole):
 
         # Send MS_GET_STATISTIC
         response = self._send_simple(0x02, 0x01, opcode=0x11)
-        # TODO: Statistics fields are not correctly defined, just showing the
-        # complete packet now
         if response:
-            response.show()
+            self._print("Statistics version %d: %d bytes" %
+                        (response.opcode_version, len(response.stats)))
+
+    def do_nitrace_get(self, args):
+        """Get NI trace settings for a Message Server client."""
+        response = self._send_simple(
+            0x02, 0x01, opcode=0x3f, nitrace_client=args,
+            nitrace_operation=0, nitrace_level=0)
+        if response:
+            self._print("NI trace operation=%d level=%d" %
+                        (response.nitrace_operation,
+                         response.nitrace_level))
+
+    def complete_nitrace_get(self, text, line, begidx, endidx):
+        return self._complete_client_names(text)
+
+    def do_server_generation_list(self, args):
+        """List clients from the active server generation."""
+        response = self._send_simple(0x02, 0x01, opcode=0x4f)
+        if response:
+            clients = getattr(response, "clients_v%d" %
+                              response.opcode_version, None)
+            if response.opcode_version == 1:
+                clients = response.clients
+            self._print("Server generation clients: %d" %
+                        len(clients or []))
+
+    def do_subsystem_list(self, args):
+        """List Message Server clients in the current subsystem."""
+        response = self._send_simple(0x02, 0x01, opcode=0x4d)
+        if response:
+            self._show_clients(response)
+
+    def do_log_counter_read(self, args):
+        """Read one page of Message Server log counters."""
+        response = self._send_simple(0x02, 0x01, opcode=0x50)
+        if response and response.log_counter is not None:
+            counter = response.log_counter
+            self._print("Log counters: index=%d count=%d end=%d" %
+                        (counter.index, counter.count, counter.end))
+            for index, record in enumerate(counter.records):
+                self._print("%d: %s" % (index, record.data.hex()))
+
+    def do_log_counter_reset(self, args):
+        """Reset Message Server log counters."""
+        if self._send_simple(0x02, 0x01, opcode=0x51):
+            self._print("Log counters reset")
 
     def do_network_buffer_dump(self, args):
         """ Dump network buffer. """
@@ -489,6 +711,29 @@ class SAPMSMonitorConsole(BaseConsole):
         response = self._send_simple(0x02, 0x01, opcode=0x13)
         if response:
             self._print("Network buffer reset")
+
+    def do_noop(self, args):
+        """Send a Message Server keepalive request."""
+        if self._send_simple(0x02, 0x01, opcode=0x21):
+            self._print("NOOP sent")
+
+    def do_file_reload(self, args):
+        """Reload a Message Server file/table. Options: <reload operation>"""
+        try:
+            operation = int((args or "").strip())
+            if operation not in ms_file_reload_values:
+                raise ValueError
+        except ValueError:
+            self._error("Invalid reload operation ! Valid values:")
+            for key, value in sorted(ms_file_reload_values.items()):
+                self._error("%d: %s" % (key, value))
+            return
+        if self._send_simple(0x02, 0x01, opcode=0x1f,
+                             file_reload=operation):
+            self._print("Reloaded %s" % ms_file_reload_values[operation])
+
+    def complete_file_reload(self, text, line, begidx, endidx):
+        return self._complete_values(text, ms_file_reload_values)
 
     def do_get_codepage(self, args):
         """ Get code page. """
@@ -531,7 +776,7 @@ class SAPMSMonitorConsole(BaseConsole):
     def do_counter_increment(self, args):
         """ Increment Counter. Options: <counter> <value> """
         try:
-            counter, count = args.split(" ")
+            counter, count = args.split()
             count = int(count)
         except ValueError:
             self._error("Invalid parameters !")
@@ -542,7 +787,7 @@ class SAPMSMonitorConsole(BaseConsole):
     def do_counter_decrement(self, args):
         """ Decrement Counter. Options: <counter> <value> """
         try:
-            counter, count = args.split(" ")
+            counter, count = args.split()
             count = int(count)
         except ValueError:
             self._error("Invalid parameters !")
@@ -558,10 +803,10 @@ class SAPMSMonitorConsole(BaseConsole):
         """ Server disconnect. Options: <client id> <reason> """
 
         try:
-            client_id, reason = args.split(" ", 2)
+            client_id, reason = args.split(None, 1)
             client_id = int(client_id)
             client = self.clients[client_id]
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, IndexError):
             self._error("Invalid parameters !")
             self.do_client_list(None)
             return
@@ -577,10 +822,10 @@ class SAPMSMonitorConsole(BaseConsole):
         """ Server shutdown. Options: <client id> <reason> """
 
         try:
-            client_id, reason = args.split(" ", 2)
+            client_id, reason = args.split(None, 1)
             client_id = int(client_id)
             client = self.clients[client_id]
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, IndexError):
             self._error("Invalid parameters !")
             self.do_client_list(None)
             return
@@ -596,10 +841,10 @@ class SAPMSMonitorConsole(BaseConsole):
         """ Server soft shutdown. Options: <client id> <reason> """
 
         try:
-            client_id, reason = args.split(" ", 2)
+            client_id, reason = args.split(None, 1)
             client_id = int(client_id)
             client = self.clients[client_id]
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, IndexError):
             self._error("Invalid parameters !")
             self.do_client_list(None)
             return
@@ -611,14 +856,30 @@ class SAPMSMonitorConsole(BaseConsole):
         if response:
             self._print("Server soft shutdown")
 
+    def complete_server_client(self, text, line, begidx, endidx):
+        if self._completion_arg(line, begidx) == 0:
+            return self._complete_client_ids(text)
+        return []
+
+    complete_server_disconnect = complete_server_client
+    complete_server_shutdown = complete_server_client
+    complete_server_soft_shutdown = complete_server_client
+
+    def do_soft_shutdown(self, args):
+        """Request a soft shutdown of the Message Server."""
+        if self._send_simple(0x02, 0x01, opcode=0x1d):
+            self._print("Message Server soft shutdown requested")
+
     def do_property_get(self, args):
         """ Get property. Options: <client id> <prop id> """
 
         try:
-            prop_client, prop_id = args.split(" ")
+            prop_client, prop_id = args.split()
             prop_client = self.clients[int(prop_client)]
             prop_id = int(prop_id)
-        except (ValueError, KeyError):
+            if prop_id not in ms_property_id_values:
+                raise ValueError
+        except (ValueError, KeyError, IndexError):
             self._error("Invalid parameters !")
             return
 
@@ -632,8 +893,92 @@ class SAPMSMonitorConsole(BaseConsole):
                                                         self._decode(prop_client.client)))
             response.property.show()
 
+    def do_property_set(self, args):
+        """Set a property. Options: <client id> <property id> <value>"""
+        arguments = self._parse_args(args)
+        if arguments is None:
+            return
+        try:
+            client = self.clients[int(arguments[0])]
+            property_id = int(arguments[1])
+            values = arguments[2:]
+            if property_id not in ms_property_id_values:
+                raise ValueError
+            prop_args = {"client": client.client, "id": property_id}
+            if property_id == 2:
+                if len(values) != 2:
+                    raise ValueError
+                prop_args.update(logon=int(values[0]), value=values[1])
+            elif property_id == 3:
+                if len(values) != 1:
+                    raise ValueError
+                address = ipaddress.ip_address(values[0])
+                if address.version == 4:
+                    prop_args["address"] = str(address)
+                else:
+                    prop_args["address6"] = str(address)
+            elif property_id == 4:
+                if len(values) != 2:
+                    raise ValueError
+                prop_args.update(param=values[0], param_value=values[1])
+            elif property_id == 5:
+                if len(values) != 2:
+                    raise ValueError
+                prop_args.update(service=int(values[0]),
+                                 service_value=int(values[1]))
+            elif property_id == 7:
+                if len(values) != 4:
+                    raise ValueError
+                prop_args.update(release=values[0], patchno=int(values[1]),
+                                 supplvl=int(values[2]), platform=int(values[3]))
+            else:
+                if len(values) != 1:
+                    raise ValueError
+                prop_args["raw_value"] = values[0]
+        except (IndexError, KeyError, ValueError):
+            self._error("Invalid client, property id or property value")
+            return
+
+        prop = SAPMSProperty(**prop_args)
+        if self._send_simple(0x02, 0x01, opcode=0x43, property=prop):
+            self._print("Property %s set for client %s" %
+                        (ms_property_id_values[property_id],
+                         self._decode(client.client)))
+
+    def do_property_delete(self, args):
+        """Delete a property. Options: <client id> <property id>"""
+        try:
+            client_id, property_id = (args or "").split()
+            client = self.clients[int(client_id)]
+            property_id = int(property_id)
+            if property_id not in ms_property_id_values:
+                raise ValueError
+        except (IndexError, KeyError, ValueError):
+            self._error("Invalid client or property id")
+            return
+        prop = SAPMSProperty(client=client.client, id=property_id)
+        if self._send_simple(0x02, 0x01, opcode=0x45, property=prop):
+            self._print("Property %s deleted for client %s" %
+                        (ms_property_id_values[property_id],
+                         self._decode(client.client)))
+
+    def complete_property(self, text, line, begidx, endidx):
+        argument = self._completion_arg(line, begidx)
+        if argument == 0:
+            return self._complete_client_ids(text)
+        if argument == 1:
+            return self._complete_values(text, ms_property_id_values)
+        return []
+
+    complete_property_get = complete_property
+    complete_property_set = complete_property
+    complete_property_delete = complete_property
+
     def do_parameter_get(self, args):
         """ Get parameter value. Options: <parameter name> """
+
+        if not self._require_connection():
+            return
 
         parameter_name = args
 
@@ -643,18 +988,22 @@ class SAPMSMonitorConsole(BaseConsole):
 
         response = self.connection.sr(p)[SAPMS]
 
-        if response:
+        if response.adm_records and response.adm_records[0].errorno == 0:
             param = response.adm_records[0].parameter
             if isinstance(param, bytes):
                 param = param.decode("utf-8", errors="replace").strip("\x00").strip()
             self._print("Parameter value: %s" % param)
+        else:
+            self._error("Error retrieving the parameter !")
 
     def do_parameter_set(self, args):
         """ Set parameter value (requires monitor mode enabled).
             Options: <parameter name> <parameter value> """
 
+        if not self._require_connection():
+            return
         try:
-            parameter_name, parameter_value = args.split(" ", 2)
+            parameter_name, parameter_value = args.split(None, 1)
         except ValueError:
             self._error("Invalid parameters !")
             return
@@ -667,22 +1016,40 @@ class SAPMSMonitorConsole(BaseConsole):
 
         response = self.connection.sr(p)[SAPMS]
 
-        if response:
-            if response.adm_records[0].errorno != 0:
-                self._error("Error changing the parameter !")
-            else:
-                self._print("Parameter %s set to %s !" % (parameter_name,
-                                                          parameter_value))
+        if not response.adm_records or response.adm_records[0].errorno != 0:
+            self._error("Error changing the parameter !")
+        else:
+            self._print("Parameter %s set to %s !" % (parameter_name,
+                                                       parameter_value))
 
     def do_check_acl(self, args):
-        """ Set parameter value (requires monitor mode enabled).
-            Options: <parameter name> <parameter value> """
+        """ Check the effective Message Server ACL.
+            Options: [IP address] """
 
-        response = self._send_simple(0x02, 0x01, opcode=71, opcode_version=1, opcode_charset=0)[SAPMS]
+        address = args.strip() if args else ""
+        request = {"opcode": 71, "opcode_version": 1,
+                   "opcode_charset": 0}
+        if address:
+            try:
+                parsed_address = ipaddress.ip_address(address)
+            except ValueError:
+                self._error("Invalid IP address")
+                return
+            if parsed_address.version == 4:
+                address = "::ffff:%s" % parsed_address
+            else:
+                address = str(parsed_address)
+            request.update(opcode_version=2,
+                           check_acl_address=address)
+
+        response = self._send_simple(0x02, 0x01, **request)
 
         if response:
             if response.error_code:
-                self._error("Error checking ACL, code %d" % response.error_code)
+                error = ms_opcode_error_values.get(response.error_code,
+                                                   "UNKNOWN")
+                self._error("Error checking ACL: %s (%d)" %
+                            (error, response.error_code))
             else:
                 acl = response.acl
                 if isinstance(acl, bytes):

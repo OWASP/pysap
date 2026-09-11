@@ -91,6 +91,9 @@ def main():
     print("[*] Sending login packet")
     p = SAPMS(flag=0x00, iflag=0x08, domain=domain, toname=client_string, fromname=client_string)
     response = conn.sr(p)[SAPMS]
+    if response.errorno != 0:
+        conn.close()
+        raise RuntimeError("Message Server login failed with error %d" % response.errorno)
 
     server_string = response.fromname
     print("[*] Login performed, server string: %s" % (server_string.decode("utf-8", errors="replace").strip() if isinstance(server_string, bytes) else server_string))
@@ -135,7 +138,7 @@ def main():
               opcode_version=0x68)
     response = conn.sr(p)[SAPMS]
     for client in get_clients(response):
-        if client.client != client_string:
+        if decode_field(client.client) != decode_field(client_string):
             clients.append(("LIST", client))
             print_client("Client", client)
 
@@ -176,6 +179,7 @@ def main():
                                                                       decode_field(client.host),
                                                                       decode_field(client.service),
                                                                       client.servno))
+        conn.close()
 
 
 if __name__ == "__main__":

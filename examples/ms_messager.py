@@ -96,16 +96,20 @@ def main():
 
     print("[*] Sending login packet")
     response = conn.sr(p)[SAPMS]
+    if response.errorno != 0:
+        conn.close()
+        raise RuntimeError("Message Server login failed with error %d" % response.errorno)
 
     fromname = response.fromname
     print("[*] Login performed, server string: %s" % (fromname.decode("utf-8", errors="replace").strip() if isinstance(fromname, bytes) else fromname))
 
     # Sends a message to another client
     p = SAPMS(flag=0x02, iflag=0x01, domain=domain, toname=options.target, fromname=client_string, opcode=1)
-    p /= Raw(options.message)
+    p /= Raw(options.message.encode("utf-8"))
 
     print("[*] Sending packet to: %s" % options.target)
     conn.send(p)
+    conn.close()
 
 
 if __name__ == "__main__":

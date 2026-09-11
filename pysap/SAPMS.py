@@ -19,12 +19,12 @@
 # External imports
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
-from scapy.fields import (ByteField, ConditionalField, StrFixedLenField, FlagsField,
-                          IPField, ShortField, IntField, StrField, PacketListField,
+from scapy.fields import (ByteField, ByteEnumField, ConditionalField, StrFixedLenField, FlagsField,
+                          IPField, ShortField, ShortEnumField, IntField, StrField, PacketListField,
                           FieldLenField, PacketField, StrLenField, IntEnumField,
                           ByteEnumKeysField, ShortEnumKeysField, Field,
                           PacketLenField, XByteField, SignedIntField,
-                          MultipleTypeField)
+                          LongField, MultipleTypeField)
 from scapy.layers.inet6 import IP6Field
 # Custom imports
 from pysap.SAPNI import SAPNI
@@ -186,7 +186,6 @@ ms_adm_opcode_values = {
     0x10: "AD_WPCONF2",
     0x11: "AD_GENERAL2",
     0x12: "AD_SET_LIST_PARAM",
-    # Compatibility label; absent from the release-916 canonical table.
     0x13: "AD_DUMP_STATUS",
     0x14: "AD_RZL",
     0x15: "AD_RZL_STRG",  # *
@@ -213,7 +212,7 @@ ms_adm_opcode_values = {
     0x32: "AD_WALL_DELETE",
     0x33: "AD_WALL_MODIFY",
     0x34: "AD_SERVER_STATE",
-    0x3c: "AD_SELFIDENT",  # *
+    0x3c: "AD_SELFIDENT",
     0x3d: "AD_DP_TRACE_CHANGE",
     0x3e: "AD_DP_DUMP_NIHDL",
     0x3f: "AD_DP_CALL_DELAYED",
@@ -232,7 +231,7 @@ ms_adm_opcode_values = {
     0x4c: "AD_OAUTHBUFFRESET",
     0x4d: "AD_RESET_BUFFERED_TABLE",
     0x4e: "AD_SESSION_REQUEST",
-    0x4f: "AD_PROFILE2",
+    0x4f: "AD_PROFILE2",  # *s
     0x50: "AD_RSCP_ASYNC",
     0x51: "AD_BATCH_INFO",
     0x52: "AD_SOFT_CANCEL",
@@ -542,6 +541,16 @@ ms_logon_type_values = {
 """Message Server Logon type values"""
 
 
+ms_ascs_gateway_tag_values = {
+    0: "MS_ASCS_GW_END",
+    1: "MS_ASCS_GW_INTERNAL_PORT",
+    2: "MS_ASCS_GW_EXTERNAL_PORT",
+    3: "MS_ASCS_GW_PID",
+    4: "MS_ASCS_GW_NODE_ADDRESS",
+}
+"""Message Server ASCS gateway logon tag values"""
+
+
 ms_client_status_values = {
     0: "MS_STATE_UNKNOWN",
     1: "ACTIVE",
@@ -803,6 +812,39 @@ class SAPMSStat3(PacketNoPadded):
     ]
 
 
+class SAPMSOpenRequest(PacketNoPadded):
+    """Opaque 88-byte entry returned by ``MS_OPEN_REQ_LST``."""
+    name = "SAP Message Server Open Request"
+    fields_desc = [StrFixedLenField("data", b"", 88)]
+
+
+class SAPMSOpenRequestList(PacketNoPadded):
+    """Reply body returned by ``MS_OPEN_REQ_LST``."""
+    name = "SAP Message Server Open Request List"
+    fields_desc = [
+        PacketListField("requests", None, SAPMSOpenRequest),
+    ]
+
+
+class SAPMSLogCounterRecord(PacketNoPadded):
+    """Opaque 48-byte entry in an ``MS_READ_LG_COUNTER`` page."""
+    name = "SAP Message Server Log Counter Record"
+    fields_desc = [StrFixedLenField("data", b"", 48)]
+
+
+class SAPMSLogCounter(PacketNoPadded):
+    """Paged reply body returned by ``MS_READ_LG_COUNTER``."""
+    name = "SAP Message Server Log Counter"
+    fields_desc = [
+        IntField("index", 0),
+        FieldLenField("count", None, count_of="records", fmt="!I"),
+        ByteField("end", 1),
+        StrFixedLenField("padding", b"\x00" * 3, 3),
+        PacketListField("records", None, SAPMSLogCounterRecord,
+                        count_from=lambda pkt: pkt.count),
+    ]
+
+
 class SAPMSCounter(PacketNoPadded):
     """SAP Message Server Counter packet.
 
@@ -813,6 +855,45 @@ class SAPMSCounter(PacketNoPadded):
         StrFixedLenField("uuid", b"", 40),
         IntField("count", 0),
         IntField("no", 0),
+    ]
+
+
+class SAPMSASCSGatewayLogonTag(PacketNoPadded):
+    """One fixed-width tag in an ``MS_ASCS_GW_LOGON`` payload."""
+    name = "SAP Message Server ASCS Gateway Logon Tag"
+    fields_desc = [
+        ByteEnumField("tag", 0, ms_ascs_gateway_tag_values),
+        ConditionalField(
+            MultipleTypeField([
+                (IntField("value", 0), lambda pkt: pkt.tag in [1, 2]),
+                (LongField("value", 0), lambda pkt: pkt.tag == 3),
+                (IP6Field("value", "::"), lambda pkt: pkt.tag == 4),
+            ], StrField("value", b"")),
+            lambda pkt: pkt.tag != 0),
+    ]
+
+
+def _next_ascs_gateway_logon_tag(_pkt, _lst, previous, _remain):
+    """Continue after known value tags; zero and unknown tags terminate."""
+    if previous is None or previous.tag in [1, 2, 3, 4]:
+        return SAPMSASCSGatewayLogonTag
+    return None
+
+
+class SAPMSASCSGatewayLogon(PacketNoPadded):
+    """Tagged ASCS gateway payload used by opcodes 82 and 83."""
+    name = "SAP Message Server ASCS Gateway Logon"
+    fields_desc = [
+        PacketListField("tags", [], SAPMSASCSGatewayLogonTag,
+                        next_cls_cb=_next_ascs_gateway_logon_tag),
+    ]
+
+
+class SAPMSASCSGatewayKeepalive(PacketNoPadded):
+    """Opaque request payload used by ``MS_ASCS_GW_KEEPALIVE``."""
+    name = "SAP Message Server ASCS Gateway Keepalive"
+    fields_desc = [
+        StrFixedLenField("data", b"", 0x1030),
     ]
 
 
@@ -903,6 +984,9 @@ class SAPMSProperty(Packet):
         ConditionalField(IntField("patchno", 0), lambda pkt:pkt.id in [0x07]),
         ConditionalField(IntField("supplvl", 0), lambda pkt:pkt.id in [0x07]),
         ConditionalField(IntField("platform", 0), lambda pkt:pkt.id in [0x07]),
+
+        # Properties without a publicly known typed value layout
+        ConditionalField(StrField("raw_value", b""), lambda pkt:pkt.id not in [0x02, 0x03, 0x04, 0x05, 0x07]),
     ]
 
 
@@ -1213,8 +1297,8 @@ class SAPMS(Packet):
         ConditionalField(ByteEnumKeysField("opcode_error", 0x00, ms_opcode_error_values), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x7]),
         ConditionalField(ByteField("opcode_version", 0x01), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),
         ConditionalField(ByteField("opcode_charset", 0x03), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),
-        ConditionalField(StrField("opcode_value", b""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x1e, 0x1f, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a, 0x4d, 0x4e]),
-        ConditionalField(StrField("opcode_trailer", b""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x1e, 0x1f, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a, 0x4d, 0x4e]),
+        ConditionalField(StrField("opcode_value", b""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x14, 0x1c, 0x1e, 0x1f, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x3f, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a, 0x4d, 0x4e, 0x4f, 0x50, 0x51, 0x52, 0x53, 0x54]),
+        ConditionalField(StrField("opcode_trailer", b""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x14, 0x1c, 0x1e, 0x1f, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x3f, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a, 0x4d, 0x4e, 0x4f, 0x50, 0x51, 0x52, 0x53, 0x54]),
 
         # Dispatcher info
         ConditionalField(ByteField("dp_version", 0x0), lambda pkt:pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)),
@@ -1233,10 +1317,10 @@ class SAPMS(Packet):
         ConditionalField(PacketListField("adm_records", None, SAPMSAdmRecord), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
 
         # Server List fields
-        ConditionalField(PacketListField("clients", None, SAPMSClient1), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05, 0x4d] and pkt.opcode_version == 0x01),
-        ConditionalField(PacketListField("clients_v2", None, SAPMSClient2), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05, 0x4d] and pkt.opcode_version == 0x02),
-        ConditionalField(PacketListField("clients_v3", None, SAPMSClient3), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05, 0x4d] and pkt.opcode_version == 0x03),
-        ConditionalField(PacketListField("clients_v4", None, SAPMSClient4), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05, 0x4d] and pkt.opcode_version == 0x04),
+        ConditionalField(PacketListField("clients", None, SAPMSClient1), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05, 0x4d, 0x4f] and pkt.opcode_version == 0x01),
+        ConditionalField(PacketListField("clients_v2", None, SAPMSClient2), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05, 0x4d, 0x4f] and pkt.opcode_version == 0x02),
+        ConditionalField(PacketListField("clients_v3", None, SAPMSClient3), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05, 0x4d, 0x4f] and pkt.opcode_version == 0x03),
+        ConditionalField(PacketListField("clients_v4", None, SAPMSClient4), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05, 0x4d, 0x4f] and pkt.opcode_version == 0x04),
 
         # Change IP fields
         ConditionalField(IPField("change_ip_addressv4", "0.0.0.0"), lambda pkt:pkt.opcode == 0x06),
@@ -1252,20 +1336,26 @@ class SAPMS(Packet):
         ConditionalField(PacketListField("counters", None, SAPMSCounter), lambda pkt:pkt.opcode in [0x2a]),
 
         # Security Key 1 fields
-        ConditionalField(StrFixedLenField("security_name", None, 40), lambda pkt:pkt.opcode in [0x07, 0x08]),
-        ConditionalField(StrFixedLenField("security_key", None, 256), lambda pkt:pkt.opcode in [0x07, 0x08]),
+        ConditionalField(StrFixedLenField("security_name", None, 40), lambda pkt:pkt.opcode == 0x07 or (pkt.opcode == 0x08 and pkt.flag == 0x02)),
+        ConditionalField(StrFixedLenField("security_key", None, 256), lambda pkt:pkt.opcode == 0x07 or (pkt.opcode == 0x08 and pkt.flag == 0x03)),
 
         # Security Key 2 fields
-        ConditionalField(IPField("security2_addressv4", "0.0.0.0"), lambda pkt:pkt.opcode == 0x09),
-        ConditionalField(ShortField("security2_port", 0), lambda pkt:pkt.opcode == 0x09),
-        ConditionalField(StrFixedLenField("security2_key", None, 256), lambda pkt:pkt.opcode == 0x09),
-        ConditionalField(IP6Field("security2_addressv6", "::"), lambda pkt:pkt.opcode == 0x09),
+        ConditionalField(IPField("security2_addressv4", "0.0.0.0"), lambda pkt:pkt.opcode == 0x09 and pkt.flag == 0x02 and pkt.opcode_version <= 0x01),
+        ConditionalField(IP6Field("security2_addressv6", "::"), lambda pkt:pkt.opcode == 0x09 and pkt.flag == 0x02 and pkt.opcode_version > 0x01),
+        ConditionalField(ShortField("security2_port", 0), lambda pkt:pkt.opcode == 0x09 and pkt.flag == 0x02),
+        ConditionalField(StrFixedLenField("security2_key", None, 256), lambda pkt:pkt.opcode == 0x09 and pkt.flag == 0x03),
 
         # Hardware ID field
-        ConditionalField(StrNullFixedLenField("hwid", b"", length=99), lambda pkt:pkt.opcode == 0x0a),
+        ConditionalField(StrField("hwid_request_magic", b""), lambda pkt:pkt.opcode == 0x0a and pkt.flag == 0x02),
+        ConditionalField(StrFixedLenField("hwid", b"", length=100), lambda pkt:pkt.opcode == 0x0a and pkt.flag == 0x03),
 
         # Statistics
-        ConditionalField(PacketField("stats", None, SAPMSStat3), lambda pkt:pkt.opcode == 0x11 and pkt.flag == 0x03 and pkt.opcode_error == 0x00),
+        ConditionalField(StrField("stats", b""),
+            lambda pkt:pkt.opcode == 0x11 and pkt.flag == 0x03 and pkt.opcode_error == 0x00),
+
+        # Open request list
+        ConditionalField(PacketField("open_requests", None, SAPMSOpenRequestList),
+                         lambda pkt:pkt.opcode == 0x14 and pkt.flag == 0x03 and pkt.opcode_error == 0x00),
 
         # Codepage
         ConditionalField(IntField("codepage", 0), lambda pkt:pkt.opcode == 0x1c and pkt.flag == 0x03 and pkt.opcode_error == 0x00),
@@ -1276,10 +1366,18 @@ class SAPMS(Packet):
         ConditionalField(ShortField("dump_index", 0x00), lambda pkt:pkt.opcode == 0x1E and pkt.flag == 0x02),
         ConditionalField(ShortEnumKeysField("dump_command", 0x01, ms_dump_command_values), lambda pkt:pkt.opcode == 0x1E and pkt.flag == 0x02),
         ConditionalField(StrFixedLenField("dump_name", b"\x00" * 40, 40), lambda pkt:pkt.opcode == 0x1E and pkt.flag == 0x02),
+        ConditionalField(StrField("dump_response", b""), lambda pkt:pkt.opcode == 0x1E and pkt.flag == 0x03),
 
         # File Reload fields
         ConditionalField(ByteEnumKeysField("file_reload", 0, ms_file_reload_values), lambda pkt:pkt.opcode == 0x1f),
-        ConditionalField(StrFixedLenField("file_padding", b"\x00\x00", 2), lambda pkt:pkt.opcode == 0x1f),
+        ConditionalField(StrFixedLenField("file_padding", b"\x00\x00\x00", 3), lambda pkt:pkt.opcode == 0x1f),
+
+        # NI trace set/get
+        ConditionalField(StrFixedLenField("nitrace_client", b"", 40), lambda pkt:pkt.opcode == 0x3f and (pkt.flag == 0x02 or pkt.opcode_error == 0)),
+        ConditionalField(ByteField("nitrace_padding1", 0), lambda pkt:pkt.opcode == 0x3f and (pkt.flag == 0x02 or pkt.opcode_error == 0)),
+        ConditionalField(ByteField("nitrace_operation", 0), lambda pkt:pkt.opcode == 0x3f and (pkt.flag == 0x02 or pkt.opcode_error == 0)),
+        ConditionalField(ByteField("nitrace_padding2", 0), lambda pkt:pkt.opcode == 0x3f and (pkt.flag == 0x02 or pkt.opcode_error == 0)),
+        ConditionalField(ByteField("nitrace_level", 0), lambda pkt:pkt.opcode == 0x3f and (pkt.flag == 0x02 or pkt.opcode_error == 0)),
 
         # Get/Set/Del Logon fields
         ConditionalField(MultipleTypeField([
@@ -1296,18 +1394,29 @@ class SAPMS(Packet):
         ConditionalField(PacketField("property", None, SAPMSProperty), lambda pkt:pkt.opcode in [0x43, 0x44, 0x45]),
 
         # IP/Port to name fields
-        ConditionalField(IPField("ip_to_name_address4", "0.0.0.0"), lambda pkt:pkt.opcode == 0x46 and pkt.opcode_version == 0x01),
+        ConditionalField(IPField("ip_to_name_address4", "0.0.0.0"), lambda pkt:pkt.opcode == 0x46 and pkt.opcode_version in [0x00, 0x01]),
         ConditionalField(IP6Field("ip_to_name_address6", "::"), lambda pkt:pkt.opcode == 0x46 and pkt.opcode_version == 0x02),
         ConditionalField(ShortField("ip_to_name_port", 0), lambda pkt:pkt.opcode == 0x46),
         ConditionalField(FieldLenField("ip_to_name_length", None, length_of="ip_to_name", fmt="!I"), lambda pkt:pkt.opcode == 0x46),
         ConditionalField(StrLenField("ip_to_name", b"", length_from=lambda pkt:pkt.ip_to_name_length), lambda pkt:pkt.opcode == 0x46),
 
         # Check ACL fields
-        ConditionalField(ShortField("error_code", 0), lambda pkt:pkt.opcode == 0x47),
-        ConditionalField(StrFixedLenField("acl", b"", 46), lambda pkt:pkt.opcode == 0x47),
+        ConditionalField(IP6Field("check_acl_address", "::"), lambda pkt:pkt.opcode == 0x47 and pkt.flag == 0x02 and pkt.opcode_version == 0x02),
+        ConditionalField(ShortEnumField("error_code", 0, ms_opcode_error_values), lambda pkt:pkt.opcode == 0x47 and pkt.flag == 0x03),
+        ConditionalField(StrField("acl", b""), lambda pkt:pkt.opcode == 0x47 and pkt.flag == 0x03),
 
         # Get system ID field
         ConditionalField(StrFixedLenField("sid", b"", 8), lambda pkt: pkt.opcode == 0x4e and pkt.flag == 0x03 and pkt.opcode_error == 0x00),
+
+        # Message Server log counter
+        ConditionalField(PacketField("log_counter", None, SAPMSLogCounter),
+                         lambda pkt:pkt.opcode == 0x50 and pkt.flag == 0x03 and pkt.opcode_error == 0x00),
+
+        # ASCS gateway logon/status and keepalive payloads
+        ConditionalField(PacketField("ascs_gateway", None, SAPMSASCSGatewayLogon),
+                         lambda pkt:pkt.opcode == 0x52 or (pkt.opcode == 0x53 and pkt.flag == 0x03 and pkt.opcode_error == 0x00)),
+        ConditionalField(PacketField("ascs_gateway_keepalive", None, SAPMSASCSGatewayKeepalive),
+                         lambda pkt:pkt.opcode == 0x54 and pkt.flag == 0x02),
     ]
 
 

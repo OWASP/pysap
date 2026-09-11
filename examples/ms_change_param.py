@@ -40,7 +40,7 @@ def parse_options():
                   "(ms/monitor=1)[1] and the internal port should be reachable. Keep in mind that some of the " \
                   "parameters are not dynamic and can't be changed using this method. If the parameter value is not " \
                   "specified, the script retrieve the current value. " \
-                  "[1] https://help.sap.com/saphelp_nw70/helpdata/en/4e/cffdb69d10424e97eb1d993b1e2cfd/content.htm"
+                  "[1] https://help.sap.com/docs/ABAP_PLATFORM_NEW/77b3972f873044acb3a70258f3984c64/47c56a6938fb2d65e10000000a42189c.html?q=ms/monitor#administration-using-profile-parameters"
 
     usage = "%(prog)s [options] -d <remote host> -n <parameter name> [-l <parameter value>]"
 
@@ -104,6 +104,10 @@ def main():
     print("[*] Sending login packet")
     response = conn.sr(p)[SAPMS]
 
+    if response.errorno != 0:
+        conn.close()
+        raise RuntimeError("Message Server login failed with error %d" % response.errorno)
+
     server_string = response.fromname
     print("[*] Login performed, server string: %s" % (server_string.decode("utf-8", errors="replace").strip() if isinstance(server_string, bytes) else server_string))
 
@@ -121,13 +125,16 @@ def main():
         print("[*] Response:")
         response.show()
 
+    if not response.adm_records or response.adm_records[0].errorno != 0:
+        conn.close()
+        raise RuntimeError("Unable to retrieve parameter")
     param_old_value = response.adm_records[0].parameter
     if isinstance(param_old_value, bytes):
         param_old_value = param_old_value.decode("utf-8", errors="replace").strip("\x00").strip()
     print("[*] Parameter %s" % param_old_value)
 
     # If a parameter change was requested, send an ADM AD_SHARED_PARAMETER request
-    if options.param_value:
+    if options.param_value is not None:
         print("[*] Changing parameter value from: %s to: %s" % (param_old_value,
                                                                 options.param_value))
 
@@ -150,6 +157,8 @@ def main():
             print("[*] Error requesting parameter change (error number %d)" % response.adm_records[0].errorno)
         else:
             print("[*] Parameter changed for the current session !")
+
+    conn.close()
 
 
 if __name__ == "__main__":
