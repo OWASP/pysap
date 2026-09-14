@@ -29,6 +29,7 @@ from scapy.fields import (IntField, BitField, ShortField, ByteField,
 # Custom imports
 from pysap.utils.fields import PacketNoPadded
 from pysap.SAPDiag import bind_diagitem, SAPDiagItem
+from pysap.SAPEPP import SAPEPP
 
 
 # Diag User connect item
@@ -313,6 +314,9 @@ class SAPDiagSupportBits(Packet):
 
 bind_diagitem(SAPDiagSupportBits, "APPL", 0x04, 0x0b)
 bind_diagitem(SAPDiagSupportBits, "APPL", 0x06, 0x11)
+
+# Extended Passport data is carried by the ST_USER/PASSPORT_DATA item.
+bind_diagitem(SAPEPP, "APPL", 0x04, 0x18)
 
 
 # Support Bits for common SAP Software versions

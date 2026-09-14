@@ -13,6 +13,7 @@
 #
 # Author:
 #   Martin Gallo (@martingalloar)
+#   @randomstr1ng
 #
 
 """SAP NetWeaver RFC (NWRFC) protocol constants and TLV parser.
@@ -54,6 +55,7 @@ are not yet confirmed.
     0x0114  SAP client number        UTF-16LE    2 – 8   ("001", "100", …)
     0x0117  ab_scramble password     binary      6 – 84  [4B LE seed][UTF-16LE]
     0x0119  Username (secondary)     UTF-16LE    4 – 48
+    0x0131  Extended Passport        binary      153 – 65535
     0x0152  Language key             UTF-16LE    2 – 4   ("E", "D", …)
     0x0201  RFC param name           UTF-16LE    2 – 120
     0x0203  RFC param value          UTF-16LE    variable
@@ -116,6 +118,7 @@ NWRFC_TAGS = {
     0x0114: "client",           # SAP client number ("001", "100", …)
     0x0117: "password",         # ab_scramble field: [4B seed][UTF-16LE bytes]
     0x0119: "username",         # SAP username (secondary tag)
+    0x0131: "extended_passport",  # binary SAP Extended Passport
     0x0152: "language",         # Language key ("E", "D", …)
     0x0201: "param_name",       # RFC call parameter name
     0x0203: "param_value",      # RFC call parameter value
@@ -139,6 +142,7 @@ NWRFC_TAG_CONSTRAINTS = {
     0x0114: (2,    8),   # client
     0x0117: (6,   84),   # password (4-byte seed + scrambled UTF-16LE)
     0x0119: (4,   48),   # username (secondary)
+    0x0131: (153, 65535),  # binary SAP Extended Passport
     0x0152: (2,    4),   # language
     0x0201: (2,  120),   # param_name
     # 0x0203 (param_value): no constraint, value length varies widely
@@ -328,6 +332,14 @@ def decode_value(raw):
             pass
 
     return raw.decode("ascii", errors="replace").strip("\x00 ")
+
+
+def decode_extended_passport(raw):
+    """Decode an NWRFC ``0x0131`` value as an Extended Passport."""
+    if raw is None:
+        return None
+    from pysap.SAPEPP import SAPEPP
+    return SAPEPP(raw)
 
 
 # ── RFC call payload extraction ─────────────────────────────────────────────

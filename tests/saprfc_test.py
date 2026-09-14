@@ -18,11 +18,22 @@ import struct
 import sys
 import unittest
 
-from pysap.SAPRFC import DEF_FIELDS, SAPRFCDTStruct, SAPRFCEXTEND, SAPRFCPING, SAPRFC
+from pysap.SAPEPP import SAPEPP
+from pysap.SAPRFC import (DEF_FIELDS, RFCID_CONNECTION, RFCID_END,
+                          RFCID_EXTENDED_PASSPORT, SAPRFCDTStruct, SAPRFCEXTEND,
+                          SAPRFCPartnerLU, SAPRFCPartnerLUParameters,
+                          SAPRFCPING, SAPRFC, SAPRFCRFCIDBody,
+                          SAPRFCRFCIDCallBody,
+                          SAPRFCRFCIDTransition)
 from tests.utils import roundtrip_packet
 
 
 class PySAPRFCTest(unittest.TestCase):
+
+    def test_rfc_id_constants(self):
+        self.assertEqual(RFCID_EXTENDED_PASSPORT, 0x0131)
+        self.assertEqual(RFCID_CONNECTION, 0x0514)
+        self.assertEqual(RFCID_END, 0xffff)
 
     def test_rfc_extend_roundtrip(self):
         packet = SAPRFCEXTEND(short_dest_name="DEST", ncpic_lu="LU", ncpic_tp="TP")
@@ -64,6 +75,109 @@ class PySAPRFCTest(unittest.TestCase):
 
         self.assertEqual(parsed.version, 6)
         self.assertEqual(parsed.func_type, 0xca)
+
+    def test_rfc_partner_long_lu_roundtrip(self):
+        packet = SAPRFC(
+            version=6, func_type=0x0f, protocol=2, uid=0xffff,
+            info2="WITH_LONG_LU_NAME", info="WITH_GW_SAP_PARAMS_HDR",
+            conv_id=b"12345678",
+            partner_lu_parameters=SAPRFCPartnerLUParameters(
+                short_lu=b"192.168.", long_lu_length=13,
+                comm_idx=0xffff, conn_idx=2),
+            partner_lu=SAPRFCPartnerLU(long_lu=b"192.168.68.67"))
+
+        parsed = roundtrip_packet(packet)
+
+        self.assertEqual(len(bytes(packet)), 224)
+        self.assertEqual(parsed.sap_param_len, 144)
+        self.assertEqual(parsed.partner_lu_parameters.long_lu_length, 13)
+        self.assertEqual(parsed.partner_lu.long_lu.rstrip(), b"192.168.68.67")
+
+    def test_rfc_id_body_epp_roundtrip(self):
+        passport = SAPEPP(component=b"RFCID")
+        body = SAPRFCRFCIDBody(transitions=[
+            SAPRFCRFCIDTransition(
+                current_rfc_id=0x0503, next_rfc_id=0x0131,
+                value=passport),
+            SAPRFCRFCIDTransition(
+                current_rfc_id=0x0131, next_rfc_id=0xffff,
+                value=b""),
+        ])
+        packet = SAPRFC(
+            version=6, func_type=0xcb, protocol=2, uid=0xffff,
+            sap_param_len=8,
+            info="SYNC_CPIC_FUNCTION+WITH_GW_SAP_PARAMS_HDR",
+            vector="F_V_SEND_DATA+F_V_RECEIVE", conv_id=b"12345678",
+            rfc_id_body=body)
+
+        parsed = roundtrip_packet(packet)
+
+        self.assertIsNone(body.rfc_packet_size)
+        self.assertEqual(parsed.rfc_id_body.rfc_packet_size,
+                         len(bytes(body)) - 8)
+        self.assertEqual(len(parsed.rfc_id_body.transitions), 2)
+        self.assertIsInstance(parsed.rfc_id_body.transitions[0].value, SAPEPP)
+        self.assertEqual(bytes(parsed.rfc_id_body.transitions[0].value),
+                         bytes(passport))
+        self.assertEqual(parsed.rfc_id_body.transitions[1].next_rfc_id,
+                         0xffff)
+
+    def test_rfc_id_body_early_epp_roundtrip(self):
+        passport = SAPEPP(component=b"RFCID-EARLY")
+        body = SAPRFCRFCIDBody(transitions=[
+            SAPRFCRFCIDTransition(current_rfc_id=0x0106,
+                                  next_rfc_id=0x0131, value=passport),
+            SAPRFCRFCIDTransition(current_rfc_id=0x0131,
+                                  next_rfc_id=0x0514,
+                                  value=b"CONNECTION-ID-01"),
+        ])
+
+        parsed = SAPRFCRFCIDBody(bytes(body))
+
+        self.assertIsInstance(parsed.transitions[0].value, SAPEPP)
+        self.assertEqual(parsed.transitions[0].current_rfc_id, 0x0106)
+        self.assertEqual(parsed.transitions[0].next_rfc_id, 0x0131)
+        self.assertEqual(parsed.transitions[1].next_rfc_id, 0x0514)
+
+    def test_rfc_id_body_empty_roundtrip(self):
+        parsed = roundtrip_packet(SAPRFCRFCIDBody())
+
+        self.assertEqual(parsed.transitions, [])
+        self.assertEqual(parsed.end_signature, 0xffff)
+
+    def test_rfc_id_call_body_epp_slot_roundtrip(self):
+        passport = SAPEPP(component=b"RFCID-CALL")
+        padded_passport = bytes(passport).ljust(512, b"\x00")
+        body = SAPRFCRFCIDCallBody(transitions=[
+            SAPRFCRFCIDTransition(current_rfc_id=0x0502,
+                                  next_rfc_id=0x000b,
+                                  value="754".encode("utf-16-be")),
+            SAPRFCRFCIDTransition(current_rfc_id=0x000b,
+                                  next_rfc_id=0x0102,
+                                  value="RFC_PING".encode("utf-16-be")),
+            SAPRFCRFCIDTransition(current_rfc_id=0x0102,
+                                  next_rfc_id=0x0131,
+                                  value=padded_passport),
+            SAPRFCRFCIDTransition(current_rfc_id=0x0131,
+                                  next_rfc_id=0x0512, value=b""),
+            SAPRFCRFCIDTransition(current_rfc_id=0x0512,
+                                  next_rfc_id=0xffff, value=b""),
+        ])
+        parsed = SAPRFCRFCIDCallBody(bytes(body))
+
+        self.assertEqual(parsed.initial_rfc_id, 0x0502)
+        self.assertEqual(parsed.transitions[2].value_length, 512)
+        self.assertIsInstance(parsed.transitions[2].value, SAPEPP)
+        self.assertEqual(parsed.transitions[-1].next_rfc_id, 0xffff)
+
+        packet = SAPRFC(version=6, func_type=0xcb, protocol=2, uid=0xffff,
+                        sap_param_len=8,
+                        info="SYNC_CPIC_FUNCTION+WITH_GW_SAP_PARAMS_HDR",
+                        vector="F_V_SEND_DATA+F_V_RECEIVE",
+                        conv_id=b"12345678", rfc_id_body=body)
+        parsed_packet = roundtrip_packet(packet)
+        self.assertIsInstance(parsed_packet.rfc_id_body,
+                              SAPRFCRFCIDCallBody)
 
     def test_rfc_f_sap_send_receive_without_codepage(self):
         # F_SAP_SEND (0xcb) with vector=F_V_RECEIVE and info3 lacking

@@ -20,6 +20,7 @@
 import sys
 import socket
 import unittest
+from unittest import mock
 from threading import Thread
 from struct import pack, unpack
 from socketserver import BaseRequestHandler, ThreadingTCPServer
@@ -28,8 +29,9 @@ import pytest
 from scapy.fields import StrField
 from scapy.packet import Packet, Raw
 # Custom imports
-from pysap.SAPNI import (SAPNI, SAPNIStreamSocket, SAPNIServerThreaded,
-                         SAPNIServerHandler, SAPNIProxy, SAPNIProxyHandler)
+from pysap.SAPNI import (SAPNI, SAPNIFrameLengthError, SAPNIStreamSocket,
+                         SAPNIServerThreaded, SAPNIServerHandler, SAPNIProxy,
+                         SAPNIProxyHandler)
 
 
 pytestmark = pytest.mark.integration
@@ -103,6 +105,27 @@ class SAPNITestHandlerClose(SAPNITestHandler):
 
     def handle(self):
         self.request.send(b"")
+
+
+class SAPNITestHandlerPartialFrame(BaseRequestHandler):
+    """Return a declared frame only partially, then close the connection."""
+
+    def handle(self):
+        self.request.sendall(pack("!I", 8) + b"short")
+
+
+class SAPNITestHandlerOversizedFrame(BaseRequestHandler):
+    """Return only an NI header declaring a frame beyond the test limit."""
+
+    def handle(self):
+        self.request.sendall(pack("!I", 1025))
+
+
+class SAPNITestHandlerPartialHeader(BaseRequestHandler):
+    """Return only part of an NI header, then close the connection."""
+
+    def handle(self):
+        self.request.sendall(b"\x00\x00")
 
 
 class PySAPNIStreamSocketTest(PySAPBaseServerTest):
@@ -276,6 +299,85 @@ class PySAPNIStreamSocketTest(PySAPBaseServerTest):
             self.client.sr(Raw(self.test_string))
 
         self.stop_server()
+
+    def test_sapnistreamsocket_partial_frame_eof(self):
+        """Test that EOF after a partial frame fails instead of looping"""
+        self.start_server(self.test_address, self.test_port,
+                          SAPNITestHandlerPartialFrame)
+        sock = socket.socket()
+        sock.connect((self.test_address, self.test_port))
+        self.client = SAPNIStreamSocket(sock, keep_alive=False, timeout=1)
+
+        with self.assertRaises(socket.error):
+            self.client.recv()
+
+        self.client.close()
+        self.stop_server()
+
+    def test_sapnistreamsocket_partial_header_eof(self):
+        """Test deterministic failure when the peer truncates the NI header"""
+        self.start_server(self.test_address, self.test_port,
+                          SAPNITestHandlerPartialHeader)
+        sock = socket.socket()
+        sock.connect((self.test_address, self.test_port))
+        self.client = SAPNIStreamSocket(sock, keep_alive=False, timeout=1)
+
+        with self.assertRaises(socket.error):
+            self.client.recv()
+
+        self.client.close()
+        self.stop_server()
+
+    def test_sapnistreamsocket_frame_length_bound(self):
+        """Test rejection of a peer-declared frame beyond the configured bound"""
+        self.start_server(self.test_address, self.test_port,
+                          SAPNITestHandlerOversizedFrame)
+        sock = socket.socket()
+        sock.connect((self.test_address, self.test_port))
+        self.client = SAPNIStreamSocket(sock, keep_alive=False,
+                                        max_frame_length=1024)
+
+        with self.assertRaises(SAPNIFrameLengthError):
+            self.client.recv()
+
+        self.client.close()
+        self.stop_server()
+
+    def test_sapnistreamsocket_timeout(self):
+        """Test applying a read/write timeout to an existing socket"""
+        left, right = socket.socketpair()
+        try:
+            self.client = SAPNIStreamSocket(left, timeout=0.25)
+            self.assertEqual(self.client.ins.gettimeout(), 0.25)
+            self.client.close()
+        finally:
+            right.close()
+
+    def test_sapnistreamsocket_invalid_frame_length_bound(self):
+        """Test rejecting negative NI frame bounds"""
+        left, right = socket.socketpair()
+        try:
+            with self.assertRaises(ValueError):
+                SAPNIStreamSocket(left, max_frame_length=-1)
+        finally:
+            left.close()
+            right.close()
+
+    def test_sapnistreamsocket_connection_timeout(self):
+        """Test passing a distinct timeout to connection establishment"""
+        left, right = socket.socketpair()
+        try:
+            with mock.patch("pysap.SAPNI.socket.create_connection",
+                            return_value=left) as create_connection:
+                self.client = SAPNIStreamSocket.get_nisocket(
+                    "example.invalid", 3299, connect_timeout=1.5,
+                    timeout=0.25)
+            create_connection.assert_called_once_with(
+                ("example.invalid", 3299), 1.5)
+            self.assertEqual(self.client.ins.gettimeout(), 0.25)
+            self.client.close()
+        finally:
+            right.close()
 
 
 class SAPNIServerTestHandler(SAPNIServerHandler):
