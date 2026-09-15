@@ -93,6 +93,8 @@ def parse_options():
 
     misc = parser.add_argument_group("Misc options")
     misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=2.0,
+                      help="Connection and response timeout in seconds [%(default).1f]")
 
     options = parser.parse_args()
 
@@ -138,13 +140,13 @@ def main():
         logging.info("[*] Requesting a soft shutdown of the remote SAP Router")
         response = True
 
-    elif options.info:
+    elif options.info or options.info_password:
         p.adm_command = 2
         if options.info_password:
             if len(options.info_password) > 19:
                 logging.info("[*] Password too long, truncated at 19 characters")
             p.adm_password = options.info_password.encode()
-            logging.info("[*] Requesting info using password %s" % p.adm_password)
+            logging.info("[*] Requesting info using a password")
         else:
             logging.info("[*] Requesting info")
         response = True
@@ -200,7 +202,10 @@ def main():
 
     # Initiate the connection
     try:
-        conn = SAPNIStreamSocket.get_nisocket(options.remote_host, options.remote_port)
+        conn = SAPNIStreamSocket.get_nisocket(options.remote_host,
+                                              options.remote_port,
+                                              connect_timeout=options.timeout,
+                                              timeout=options.timeout)
     except (error, OSError) as e:
         logging.error("[-] Failed to connect to %s:%d: %s" % (options.remote_host, options.remote_port, e))
         return
@@ -221,6 +226,22 @@ def main():
         conn.send(p)
     except (error, OSError) as e:
         logging.error("[-] Failed to send request: %s" % e)
+        conn.close()
+        return
+
+    if not response:
+        try:
+            raw_response = conn.recv()[SAPNI]
+        except (error, OSError):
+            logging.info("[*] No admin acknowledgement received")
+        else:
+            router_response = raw_response.getlayer(SAPRouter)
+            if router_response is not None and router_is_error(router_response):
+                logging.error(router_response.err_text_value.error)
+            elif raw_response.length:
+                logging.info("[*] Admin acknowledgement: %s", raw_response.payload)
+        finally:
+            conn.close()
         return
 
     # Grab the response if required
@@ -229,17 +250,22 @@ def main():
         # Some responses has no SAPRouter's packet format and are raw strings,
         # we need to get the SAP NI layer first and then check if we could go
         # down to the SAPRouter layer.
-        raw_response = conn.recv()[SAPNI]
-        if SAPRouter in raw_response:
-            router_response = raw_response[SAPRouter]
+        try:
+            raw_response = conn.recv()[SAPNI]
+        except (error, OSError) as e:
+            logging.error("[-] Failed to receive admin response: %s" % e)
+            conn.close()
+            return
+        router_response = raw_response.getlayer(SAPRouter)
 
         # If the response was null, just return
-        elif raw_response.length == 0:
+        if raw_response.length == 0:
+            conn.close()
             return
 
         # If the response is an error, print and exit
-        if router_is_error(router_response):
-            logging.info("[*] Error requesting info:")
+        if router_response is not None and router_is_error(router_response):
+            logging.info("[*] Error requesting admin command:")
             if options.verbose:
                 router_response.show2()
             else:
@@ -249,7 +275,7 @@ def main():
         else:
             logging.info("[*] Response:\n")
 
-            if options.info:
+            if options.info or options.info_password:
                 # Decode the first packet as a list of info client
                 raw_response.decode_payload_as(SAPRouterInfoClients)
 
@@ -286,6 +312,7 @@ def main():
                     raw_response = conn.recv()
             except error:
                 pass
+    conn.close()
 
 
 if __name__ == "__main__":

@@ -935,7 +935,8 @@ class SAPRouterNativeProxy(SAPNIProxy):
                       route_offset=router_string_lens[0],
                       route_string=router_string)
 
-        log_saprouter.debug("Route request raw (talk_mode=%d): %r", self.talk_mode, raw(p))
+        log_saprouter.debug("Route request (talk_mode=%d, hops=%d, length=%d)",
+                            self.talk_mode, len(router_string), len(p))
         # Send the request and grab the response
         response = router.sr(p)
 

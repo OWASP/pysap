@@ -19,12 +19,11 @@
 
 # Standard imports
 import time
-import socket
 import logging
 from argparse import ArgumentParser
 # External imports
 from scapy.config import conf
-from scapy.packet import bind_layers, raw
+from scapy.packet import bind_layers
 # Custom imports
 import pysap
 from pysap.SAPNI import SAPNI, SAPNIStreamSocket
@@ -84,16 +83,19 @@ def try_password(options, password, output=None, k=0):
     p = SAPRouter(type=SAPRouter.SAPROUTER_ADMIN, version=options.router_version)
     p.adm_command = 2
     p.adm_password = password.encode()
-    data = raw(SAPNI() / p)
-
     try:
-        with socket.create_connection((options.remote_host, options.remote_port),
-                                      timeout=options.timeout) as conn:
+        conn = SAPNIStreamSocket.get_nisocket(options.remote_host,
+                                              options.remote_port,
+                                              connect_timeout=options.timeout,
+                                              timeout=options.timeout)
+        try:
             t_start = time.perf_counter_ns()
-            conn.sendall(data)
-            conn.recv(1024)
+            conn.send(p)
+            conn.recv()
             elapsed_ns = time.perf_counter_ns() - t_start
-    except (socket.timeout, OSError) as e:
+        finally:
+            conn.close()
+    except OSError as e:
         elapsed_ns = "ERROR:%s" % e.__class__.__name__
         logging.debug("Request failed: %s", e)
     else:
@@ -114,14 +116,19 @@ def main():
         level = logging.DEBUG
     logging.basicConfig(level=level, format='%(message)s')
 
-    # Initiate the connection
-    conn = SAPNIStreamSocket.get_nisocket(options.remote_host, options.remote_port)
-    logging.info("[*] Connected to the SAP Router %s:%d" % (options.remote_host, options.remote_port))
-
     # Retrieve the router version used by the server if not specified
     if options.router_version is None:
-        options.router_version = get_router_version(conn)
-        conn.close()
+        conn = SAPNIStreamSocket.get_nisocket(options.remote_host,
+                                              options.remote_port,
+                                              connect_timeout=options.timeout,
+                                              timeout=options.timeout)
+        try:
+            options.router_version = get_router_version(conn)
+        finally:
+            conn.close()
+
+    logging.info("[*] Connected to the SAP Router %s:%d" %
+                 (options.remote_host, options.remote_port))
 
     logging.info("[*] Using SAP Router version %d" % options.router_version)
 

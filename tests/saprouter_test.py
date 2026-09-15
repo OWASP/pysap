@@ -18,11 +18,13 @@
 
 # Standard imports
 import socket
+import io
+import logging
 import unittest
 from struct import pack
 from threading import Thread
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 # External imports
 import pytest
 from scapy.packet import Packet, raw
@@ -33,12 +35,41 @@ from pysap.SAPNI import (SAPNI, SAPNIServerHandler, SAPNIServerThreaded,
 from pysap.SAPRouter import (ROUTER_TALK_MODE_NI_MSG_IO,
                              ROUTER_TALK_MODE_NI_RAW_IO, SAPRouteException,
                              SAPRoutedStreamSocket, SAPRouter,
-                             SAPRouterError, SAPRouterNativeRouterHandler,
+                             SAPRouterError, SAPRouterNativeProxy,
+                             SAPRouterNativeRouterHandler,
                              SAPRouterResponseError, SAPRouterRouteHop,
                              normalize_route_hops, router_is_route)
 
 
 class PySAPRouterErrorHandlingUnitTest(unittest.TestCase):
+
+    def test_native_proxy_route_debug_log_omits_password(self):
+        proxy = SAPRouterNativeProxy.__new__(SAPRouterNativeProxy)
+        proxy.remote_host = ("127.0.0.1", 3299)
+        proxy.target_address = "127.0.0.2"
+        proxy.target_port = 3700
+        proxy.target_pass = "synthetic-secret"
+        proxy.talk_mode = ROUTER_TALK_MODE_NI_RAW_IO
+        proxy.keep_alive = False
+        proxy.options = SimpleNamespace(target_route_string=None)
+        router = Mock()
+        router.sr.return_value = SAPNI() / SAPRouter(
+            type=SAPRouter.SAPROUTER_PONG, version=40)
+        logger = logging.getLogger("pysap.saprouter")
+        captured = io.StringIO()
+        handler = logging.StreamHandler(captured)
+        previous_level = logger.level
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+        try:
+            with patch.object(SAPNIStreamSocket, "get_nisocket",
+                              return_value=router):
+                self.assertIs(proxy.route(), router)
+        finally:
+            logger.removeHandler(handler)
+            logger.setLevel(previous_level)
+        self.assertIn("Route request (talk_mode=", captured.getvalue())
+        self.assertNotIn("synthetic-secret", captured.getvalue())
 
     def test_non_denial_router_error_has_typed_code_and_text(self):
         stream = SAPRoutedStreamSocket.__new__(SAPRoutedStreamSocket)
