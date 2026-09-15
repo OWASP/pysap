@@ -28,7 +28,7 @@ from scapy.config import conf
 # Custom imports
 import pysap
 from pysap.SAPNI import SAPNIStreamSocket
-from pysap.SAPRouter import SAPRoutedStreamSocket
+from pysap.SAPRouter import SAPRoutedStreamSocket, SAPRouterResponseError
 
 
 # Set the verbosity to 0
@@ -115,8 +115,13 @@ def client_mode(options):
 
     except SocketError:
         logging.error("[*] Connection error")
+        return 1
+    except SAPRouterResponseError as exc:
+        logging.error("[*] Router connection error: %s", exc)
+        return 1
     except KeyboardInterrupt:
         logging.error("[*] Cancelled by the user")
+        return 1
 
     if times:
         logging.info("")
@@ -146,6 +151,8 @@ def client_mode(options):
         logging.info("av2  {:8.3f} ms".format(times2_avg))
         logging.info("tr2  {:8.3f} kB/s".format(times2_tr))
         logging.info("")
+
+    return 0
 
 
 def server_mode(options):
@@ -215,11 +222,11 @@ def main():
 
     # Client running mode
     if options.client:
-        client_mode(options)
+        return client_mode(options)
     # Server running mode
     elif options.server:
         server_mode(options)
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

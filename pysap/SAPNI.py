@@ -520,9 +520,9 @@ class SAPNIServerHandler(BaseRequestHandler):
                 # Pass the control to the handle_data function
                 self.handle_data()
 
-            except socket.error as e:
+            except (socket.error, EOFError) as e:
                 log_sapni.debug("SAPNIServerHandler: Error handling data or client %s disconnected, %s (errno %s)",
-                                self.client_address, str(e), e.errno)
+                                self.client_address, str(e), getattr(e, "errno", None))
                 break
 
     def handle_data(self):

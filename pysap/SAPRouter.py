@@ -526,6 +526,22 @@ class SAPRouteException(Exception):
     """Exception for SAP Router routing errors"""
 
 
+class SAPRouterResponseError(Exception):
+    """A router returned an error other than route-permission denial."""
+
+    def __init__(self, return_code, error="", detail=""):
+        self.return_code = return_code
+        self.error = (error.decode("utf-8", errors="replace")
+                      if isinstance(error, bytes) else str(error))
+        self.detail = (detail.decode("utf-8", errors="replace")
+                       if isinstance(detail, bytes) else str(detail))
+        message = self.error or self.detail or "router error"
+        if self.detail and self.detail != message:
+            message = "%s (%s)" % (message, self.detail)
+        super(SAPRouterResponseError, self).__init__(
+            "Router returned %d: %s" % (return_code, message))
+
+
 class SAPRoutedStreamSocket(SAPNIStreamSocket):
     """Stream socket implementation for a connection routed through a SAP
     Router server. It works by wrapping a :class:`SAPNIStreamSocket` and connecting
@@ -583,9 +599,13 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
                                    max_frame_length=max_frame_length)
         # Now that we've a NIStreamSocket, retrieve the router version if
         # was not specified
-        if self.router_version is None:
-            self.router_version = get_router_version(self)
-        self.route_to(route, talk_mode)
+        try:
+            if self.router_version is None:
+                self.router_version = get_router_version(self)
+            self.route_to(route, talk_mode)
+        except BaseException:
+            self.close()
+            raise
 
     def route_to(self, route, talk_mode):
         """Make the route request to the target host/service.
@@ -600,7 +620,8 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
             was not accepted by the SAP Router
 
         :raise socket.error: if the connection to the target host/port failed
-            or the SAP Router returned an error
+
+        :raise SAPRouterResponseError: if the router returns another error
         """
         # Build the route request packet
         talk_mode = talk_mode or ROUTER_TALK_MODE_NI_MSG_IO
@@ -640,6 +661,14 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
             elif router_is_error(response) and response.return_code == -94:
                 log_saprouter.debug("Route to %s denied", target)
                 raise SAPRouteException("Route request not accepted")
+            elif router_is_error(response):
+                log_saprouter.warning("Router returned %d for route to %s",
+                                      response.return_code, target)
+                err = response.err_text_value
+                raise SAPRouterResponseError(
+                    response.return_code,
+                    err.error if SAPRouterError in response else "",
+                    err.detail if SAPRouterError in response else "")
             else:
                 log_saprouter.warning("Error requesting route to %s", target)
                 err = response.err_text_value

@@ -29,6 +29,12 @@
 ### Fixes
 
 
+- `pysap/SAPRouter.py`, `examples/router_niping.py`: Report non-denial router
+  replies as typed `SAPRouterResponseError` values and close failed routed
+  sockets instead of leaking them or showing an uncaught traceback; the
+  example now exits nonzero on connection failure.
+- `pysap/SAPNI.py`: Treat a clean stream EOF as normal NI server-handler
+  disconnect instead of surfacing an unhandled exception.
 - **Breaking:** Replaced the incompatible `SAPRFCTHStruct` name with
   `pysap.SAPEPP.SAPEPP` and its canonical fields ([#107](https://github.com/OWASP/pysap/pull/107)).
 - `pysap/SAPCAR.py`: Fixed multi-block extraction ([#104](https://github.com/OWASP/pysap/pull/104)).

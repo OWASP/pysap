@@ -22,6 +22,7 @@ import unittest
 from struct import pack
 from threading import Thread
 from types import SimpleNamespace
+from unittest.mock import Mock
 # External imports
 import pytest
 from scapy.packet import Packet, raw
@@ -32,8 +33,30 @@ from pysap.SAPNI import (SAPNI, SAPNIServerHandler, SAPNIServerThreaded,
 from pysap.SAPRouter import (ROUTER_TALK_MODE_NI_MSG_IO,
                              ROUTER_TALK_MODE_NI_RAW_IO, SAPRouteException,
                              SAPRoutedStreamSocket, SAPRouter,
-                             SAPRouterNativeRouterHandler, SAPRouterRouteHop,
+                             SAPRouterError, SAPRouterNativeRouterHandler,
+                             SAPRouterResponseError, SAPRouterRouteHop,
                              normalize_route_hops, router_is_route)
+
+
+class PySAPRouterErrorHandlingUnitTest(unittest.TestCase):
+
+    def test_non_denial_router_error_has_typed_code_and_text(self):
+        stream = SAPRoutedStreamSocket.__new__(SAPRoutedStreamSocket)
+        stream.router_version = 40
+        stream.basecls = SAPRouter
+        stream.sr = Mock(return_value=SAPRouter(
+            type=SAPRouter.SAPROUTER_ERROR, version=40, return_code=-92,
+            err_text_value=SAPRouterError(
+                error="partner 'localhost:3200' not reached",
+                detail="H<1> NiPConnect2: 127.0.0.1:3200")))
+        route = [SAPRouterRouteHop(hostname="127.0.0.1", port="3299"),
+                 SAPRouterRouteHop(hostname="127.0.0.1", port="3200")]
+        with self.assertRaises(SAPRouterResponseError) as caught:
+            stream.route_to(route, ROUTER_TALK_MODE_NI_MSG_IO)
+        self.assertEqual(caught.exception.return_code, -92)
+        self.assertIn("partner 'localhost:3200' not reached",
+                      str(caught.exception))
+        self.assertIn("NiPConnect2", caught.exception.detail)
 
 
 @pytest.mark.integration
@@ -199,6 +222,7 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
         with self.assertRaises(SAPRouteException):
             self.client = SAPRoutedStreamSocket(sock, route=route,
                                                 router_version=40)
+        self.assertEqual(sock.fileno(), -1)
 
         self.stop_server()
 
