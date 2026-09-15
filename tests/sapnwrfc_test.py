@@ -13,6 +13,7 @@
 #
 # Author:
 #   Martin Gallo (@martingalloar)
+#
 
 # Standard imports
 import struct
