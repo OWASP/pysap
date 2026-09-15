@@ -22,6 +22,7 @@ import unittest
 from pysap.SAPNWRFC import (NWRFC_MAGIC, SAPRFC_MAGIC, NWRFC_TAGS,
                              NWRFC_TAG_CONSTRAINTS, NWRFC_USERNAME_TAGS,
                              NWRFC_SID_RE, parse_tlv, decode_string, decode_value,
+                             decode_extended_passport,
                              find_tlv_field_by_marker, find_tlv_field_by_padd,
                              extract_rfc_params, extract_xml_data)
 from pysap.utils.crypto.rfc import ab_scramble, ab_descramble
@@ -148,6 +149,16 @@ class PySAPNWRFCTest(unittest.TestCase):
 
         self.assertEqual(decode_string(tags[0x0006]), "BACKEND")
         self.assertEqual(decode_string(tags[0x0007]), "10.0.0.1")
+
+    def test_extended_passport_tlv(self):
+        from pysap.SAPEPP import SAPEPP
+
+        passport = SAPEPP(component=b"NGRFC")
+        tags = dict(parse_tlv(build_tlv(0x0131, bytes(passport))))
+        decoded = decode_extended_passport(tags[0x0131])
+
+        self.assertEqual(decoded.component.rstrip(b" "), b"NGRFC")
+        self.assertEqual(bytes(decoded), bytes(passport))
 
     def test_parse_tlv_param_name_and_value(self):
         name = build_tlv(0x0201, "IV_NAME".encode("utf-16-le"))

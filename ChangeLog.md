@@ -4,6 +4,17 @@ Changelog
 v0.2.1.dev0 - in dev
 --------------------
 
+- `pysap/SAPEPP.py`: Added SAP Extended Passport versions 1 through 3, including
+  variable parts and items, hexadecimal `SAP-PASSPORT` HTTP header conversion,
+  and native decoding in SAP Diag, classic RFC, and NWRFC envelopes.
+- **Breaking change:** Removed the incompatible `SAPRFCTHStruct` compatibility
+  name from `pysap.SAPRFC`. RFC Extended Passports are now represented directly
+  by `pysap.SAPEPP.SAPEPP` and use its canonical member and field names.
+- `pysap/SAPNI.py`: Added bounded NI frame reception, deterministic partial-EOF
+  handling, and separate connection and stream timeouts.
+- `pysap/SAPRFC.py`: Added named constants for confirmed RFCID values.
+- `docs/protocols`: Documented the shared Extended Passport model and its HTTP,
+  SAP Diag, classic RFC, and NWRFC envelopes, plus bounded NI stream options.
 - `examples/ms_*.py`: Corrected Message Server response decoding, connection
   validation, argument parsing, socket cleanup, and monitor command handling;
   expanded `ms_monitor` with SAPMS monitor operations and removed non-SAPMS

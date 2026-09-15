@@ -63,10 +63,11 @@ def documented_packet_examples():
                              SAPMSStat3, ms_adm_opcode_values, ms_iflag_values,
                              ms_opcode_values)
     from pysap.SAPNI import SAPNI
+    from pysap.SAPEPP import SAPEPP
     from pysap.SAPRFC import (SAPCPIC, SAPCPIC2, SAPCPICPARAM, SAPCPICPARAM2,
                               SAPCPICSUFFIX, SAPCPIC_CUT, SAPRFC, SAPRFCDTStruct,
-                              SAPRFCEXTEND, SAPRFCPING, SAPRFCTHStruct,
-                              SAPRFXPG, SAPRFXPG_END, rfc_monitor_cmd_values,
+                              SAPRFCEXTEND, SAPRFCPING, SAPRFXPG, SAPRFXPG_END,
+                              rfc_monitor_cmd_values,
                               rfc_req_type_values)
     from pysap.SAPRouter import (SAPRouter, SAPRouterError, SAPRouterInfoClient,
                                  SAPRouterInfoClients, SAPRouterInfoServer,
@@ -148,7 +149,7 @@ def documented_packet_examples():
     yield "SAPCPICSUFFIX", SAPCPICSUFFIX()
     yield "SAPCPICPARAM", SAPCPICPARAM(ip="0.0.0.0", mask="0.0.0.0")
     yield "SAPCPICPARAM2", SAPCPICPARAM2(ip="0.0.0.0", mask="0.0.0.0")
-    yield "SAPRFCTHStruct", SAPRFCTHStruct()
+    yield "SAPEPP", SAPEPP()
     yield "SAPRFXPG", SAPRFXPG()
     yield "SAPRFCPING", SAPRFCPING()
     yield "SAPCPIC", SAPCPIC()
@@ -212,21 +213,21 @@ def test_packet_examples_build_and_dissect(name, packet):
 
 
 @pytest.mark.unit
-def test_saprfc_th_struct_default_builds_declared_length():
+def test_sapepp_default_builds_declared_length():
     from scapy.config import conf
-    from pysap.SAPRFC import SAPCPICPARAM, SAPRFCTHStruct
+    from pysap.SAPEPP import SAPEPP
 
     old_debug_dissector = conf.debug_dissector
     conf.debug_dissector = True
     try:
-        raw_packet = bytes(SAPRFCTHStruct())
-        packet = SAPRFCTHStruct(raw_packet)
+        raw_packet = bytes(SAPEPP())
+        packet = SAPEPP(raw_packet)
     finally:
         conf.debug_dissector = old_debug_dissector
 
-    assert len(raw_packet) == packet.th_len == 230
-    assert len(packet.th_some_cpic_params) == 1
-    assert isinstance(packet.th_some_cpic_params[0], SAPCPICPARAM)
+    assert len(raw_packet) == packet.length == 230
+    assert packet.variable_part_count == 0
+    assert packet.variable_part_offset == 0xe2
 
 
 @pytest.mark.slow

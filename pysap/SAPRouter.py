@@ -33,8 +33,8 @@ from scapy.fields import (ByteField, ShortField, ConditionalField, StrField,
                           MultipleTypeField)
 # Custom imports
 from pysap.SAPSNC import SAPSNCFrame
-from pysap.SAPNI import (SAPNI, SAPNIStreamSocket, SAPNIProxy,
-                         SAPNIProxyHandler)
+from pysap.SAPNI import (SAPNI, SAPNI_DEFAULT_MAX_FRAME_LENGTH,
+                         SAPNIStreamSocket, SAPNIProxy, SAPNIProxyHandler)
 from pysap.utils.fields import (PacketNoPadded, StrNullFixedLenField, StrNullDecodedField)
 
 
@@ -535,7 +535,8 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
     desc = "NI Stream socket routed trough a SAP Router"
 
     def __init__(self, sock, route, talk_mode=None, router_version=None,
-                 keep_alive=True, base_cls=None):
+                 keep_alive=True, base_cls=None, timeout=None,
+                 max_frame_length=SAPNI_DEFAULT_MAX_FRAME_LENGTH):
         """Initialize the routed stream socket. It should receive a socket
         connected with the SAP Router, and a route to specify to it. After
         initialization and if the route is accepted all calls to send() and
@@ -565,13 +566,21 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
             SAPNI as default if no class specified
         :type base_cls: :class:`Packet` class
 
+        :param timeout: optional read/write socket timeout in seconds
+        :type timeout: ``float`` or ``None``
+
+        :param max_frame_length: maximum accepted NI payload length. Use
+            ``None`` to disable the bound.
+        :type max_frame_length: ``int`` or ``None``
+
         """
         self.routed = False
         self.talk_mode = talk_mode
         self.router_version = router_version
         # Connect to the SAP Router
         SAPNIStreamSocket.__init__(self, sock, keep_alive=keep_alive,
-                                   base_cls=base_cls)
+                                   base_cls=base_cls, timeout=timeout,
+                                   max_frame_length=max_frame_length)
         # Now that we've a NIStreamSocket, retrieve the router version if
         # was not specified
         if self.router_version is None:
@@ -698,6 +707,8 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
             route
         :type router_version: ``int``
 
+        :keyword connect_timeout: optional connection timeout in seconds
+
         :keyword kwargs: arguments to pass to :class:`SAPRoutedStreamSocket`
             constructor
 
@@ -710,12 +721,21 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
         :raise socket.error: if the connection to the target host/port failed
             or the SAP Router returned an error
         """
+        connect_timeout = kwargs.pop("connect_timeout", None)
+
         # If no route was provided, check the talk mode
         if route is None:
             # If talk mode is raw, create a new StreamSocket and get rid of the
             # NI layer completely and force the base class to Raw.
             if talk_mode == ROUTER_TALK_MODE_NI_RAW_IO:
-                sock = socket.create_connection((host, port))
+                if connect_timeout is None:
+                    sock = socket.create_connection((host, port))
+                else:
+                    sock = socket.create_connection((host, port), connect_timeout)
+                timeout = kwargs.pop("timeout", None)
+                kwargs.pop("max_frame_length", None)
+                if timeout is not None:
+                    sock.settimeout(timeout)
                 if "base_cls" in kwargs:
                     kwargs["basecls"] = Raw
                     del(kwargs["base_cls"])
@@ -723,7 +743,8 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
 
             # Otherwise use the standard SAPNIStreamSocket get_nisocket method
             else:
-                return SAPNIStreamSocket.get_nisocket(host, port, **kwargs)
+                return SAPNIStreamSocket.get_nisocket(
+                    host, port, connect_timeout=connect_timeout, **kwargs)
 
         # If the route was provided using a route string, convert it to a
         # list of hops
@@ -738,7 +759,11 @@ class SAPRoutedStreamSocket(SAPNIStreamSocket):
                                            password=password))
 
         # Connect to the first hop in the route (it should be the SAP Router)
-        sock = socket.create_connection((route[0].hostname, int(route[0].port)))
+        router_address = (route[0].hostname, int(route[0].port))
+        if connect_timeout is None:
+            sock = socket.create_connection(router_address)
+        else:
+            sock = socket.create_connection(router_address, connect_timeout)
 
         # Create a SAPRoutedStreamSocket instance specifying the route
         return cls(sock, route, talk_mode, router_version, **kwargs)

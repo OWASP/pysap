@@ -35,6 +35,14 @@ from pysap.utils import Worker
 log_sapni = logging.getLogger("pysap.sapni")
 
 
+#: Default maximum accepted NI payload length (16 MiB).
+SAPNI_DEFAULT_MAX_FRAME_LENGTH = 16 * 1024 * 1024
+
+
+class SAPNIFrameLengthError(ValueError):
+    """Raised when an NI frame declares a payload larger than the limit."""
+
+
 class SAPNI(Packet):
     """SAP NI (Network Interface) packet
 
@@ -73,8 +81,11 @@ class SAPNIStreamSocket(StreamSocket):
     """
 
     desc = "NI Stream socket"
+    timeout = None
+    max_frame_length = SAPNI_DEFAULT_MAX_FRAME_LENGTH
 
-    def __init__(self, sock, keep_alive=True, base_cls=None):
+    def __init__(self, sock, keep_alive=True, base_cls=None, timeout=None,
+                 max_frame_length=SAPNI_DEFAULT_MAX_FRAME_LENGTH):
         """Initializes the NI stream socket.
 
         :param sock: socket to wrap
@@ -88,10 +99,36 @@ class SAPNIStreamSocket(StreamSocket):
         :param base_cls: the base class to use when receiving packets, it uses
             :class:`SAPNI` as default if no class specified
         :type base_cls: :class:`Packet` class
+
+        :param timeout: optional read/write socket timeout in seconds
+        :type timeout: ``float`` or ``None``
+
+        :param max_frame_length: maximum accepted NI payload length. Use
+            ``None`` to disable the bound.
+        :type max_frame_length: ``int`` or ``None``
         """
+        if max_frame_length is not None and max_frame_length < 0:
+            raise ValueError("max_frame_length must be non-negative or None")
         StreamSocket.__init__(self, sock, Raw)
+        if timeout is not None:
+            self.ins.settimeout(timeout)
         self.keep_alive = keep_alive
         self.basecls = base_cls
+        self.timeout = timeout
+        self.max_frame_length = max_frame_length
+
+    def _recv_exact(self, length):
+        """Receive exactly *length* bytes or fail on a partial EOF."""
+        chunks = []
+        remaining = length
+        while remaining:
+            chunk = self.ins.recv(remaining)
+            if not chunk:
+                raise socket.error(
+                    (100, "Underlying stream socket tore down with %d bytes pending" % remaining))
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        return b"".join(chunks)
 
     def send(self, packet):
         """Send a packet at the NI layer, prepending the length field.
@@ -115,19 +152,18 @@ class SAPNIStreamSocket(StreamSocket):
 
         :raise socket.error: if the connection was close
         """
-        # Receive the NI length field
-        nidata = self.ins.recv(4, socket.MSG_PEEK)
-        if len(nidata) == 0:
-            raise socket.error((100, "Underlying stream socket tore down"))
-        (nilength, ) = unpack("!I", nidata)
+        # Receive and consume the complete NI length field.
+        niheader = self._recv_exact(4)
+        (nilength, ) = unpack("!I", niheader)
+        if (self.max_frame_length is not None and
+                nilength > self.max_frame_length):
+            raise SAPNIFrameLengthError(
+                "NI frame length %d exceeds limit %d" %
+                (nilength, self.max_frame_length))
         log_sapni.debug("Received 4 bytes NI header, to receive %d bytes data", nilength)
 
-        # Receive the whole NI packet (length+payload)
-        nidata = b''
-        while len(nidata) < nilength + 4:
-            nidata += self.ins.recv(nilength - len(nidata) + 4)
-            if len(nidata) == 0:
-                raise socket.error((100, "Underlying stream socket tore down"))
+        # Receive the whole NI payload.
+        nidata = niheader + self._recv_exact(nilength)
 
         # If the packet received is a keep-alive request (NI_PING), send a
         # response (NI_PONG) and make a new receive call
@@ -168,7 +204,7 @@ class SAPNIStreamSocket(StreamSocket):
         return self.recv()
 
     @classmethod
-    def get_nisocket(cls, host, port, **kwargs):
+    def get_nisocket(cls, host, port, connect_timeout=None, **kwargs):
         """Helper function to obtain a :class:`SAPNIStreamSocket`.
 
         :param host: host to connect to
@@ -177,6 +213,9 @@ class SAPNIStreamSocket(StreamSocket):
         :param port: port to connect to
         :type port: ``int``
 
+        :param connect_timeout: optional connection timeout in seconds
+        :type connect_timeout: ``float`` or ``None``
+
         :keyword kwargs: arguments to pass to :class:`SAPNIStreamSocket` constructor
 
         :return: connected socket
@@ -184,7 +223,10 @@ class SAPNIStreamSocket(StreamSocket):
 
         :raise socket.error: if the connection to the target host/port failed
         """
-        sock = socket.create_connection((host, port))
+        if connect_timeout is None:
+            sock = socket.create_connection((host, port))
+        else:
+            sock = socket.create_connection((host, port), connect_timeout)
         return cls(sock, **kwargs)
 
 
