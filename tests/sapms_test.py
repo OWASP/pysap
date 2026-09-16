@@ -17,8 +17,11 @@
 
 import sys
 import unittest
+from scapy.packet import Raw
 
-from pysap.SAPMS import (SAPMS, SAPMSAdmRecord, SAPMSASCSGatewayLogon,
+from pysap.SAPNI import SAPNI
+from pysap.SAPMS import (SAPMS, SAPMSPeerMessage, SAPMSAdmRecord,
+                         SAPMSASCSGatewayLogon,
                          SAPMSASCSGatewayLogonTag, SAPMSASCSGatewayKeepalive,
                          SAPMSClient1, SAPMSLogon,
                          SAPMSLogCounter, SAPMSLogCounterRecord,
@@ -29,6 +32,46 @@ from tests.utils import roundtrip_packet
 
 
 class PySAPMessageServerTest(unittest.TestCase):
+
+    def test_forwarded_peer_messages_keep_short_and_long_data(self):
+        for body in (b"", b"hi", b"hello from a separate client"):
+            with self.subTest(body=body):
+                packet = SAPMSPeerMessage(
+                    flag=0x02, iflag=0x00, toname=b"listener",
+                    fromname=b"sender", opcode=0x01, message=body)
+                wire = bytes(packet)
+                parsed = SAPMS(wire)
+
+                self.assertEqual(len(wire), 114 + len(body))
+                self.assertIsInstance(parsed, SAPMSPeerMessage)
+                self.assertEqual(parsed.message, body)
+                self.assertEqual(parsed.opcode, 0x01)
+                self.assertEqual(bytes(parsed), wire)
+                self.assertNotIn("adm_eyecatcher", parsed.fields)
+                framed = SAPNI(length=len(wire)) / Raw(wire)
+                framed.decode_payload_as(SAPMS)
+                self.assertIn(SAPMS, framed)
+                self.assertIsInstance(framed[SAPMS], SAPMSPeerMessage)
+
+    def test_peer_opcode_zero_does_not_select_adm_layout(self):
+        packet = SAPMSPeerMessage(
+            flag=0x02, iflag=0x00, toname=b"listener",
+            fromname=b"sender", opcode=0x00, message=b"hi")
+        parsed = SAPMS(bytes(packet))
+
+        self.assertIsInstance(parsed, SAPMSPeerMessage)
+        self.assertEqual(parsed.message, b"hi")
+
+    def test_adm_target_keeps_existing_layout(self):
+        for flag, iflag in ((0x04, 0x05), (0x02, 0x00)):
+            with self.subTest(flag=flag, iflag=iflag):
+                packet = SAPMS(
+                    flag=flag, iflag=iflag, toname=b"MSG_SERVER",
+                    adm_records=[SAPMSAdmRecord(opcode=0x08)])
+                parsed = SAPMS(bytes(packet))
+
+                self.assertIs(type(parsed), SAPMS)
+                self.assertEqual(parsed.adm_records[0].opcode, 0x08)
 
     def test_adm_record_roundtrip(self):
         packet = SAPMSAdmRecord(opcode=0x01, parameter="PROFILE")

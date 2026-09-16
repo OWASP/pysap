@@ -1276,6 +1276,27 @@ class SAPMS(Packet):
     This packet is used for the Message Server protocol.
     """
     name = "SAP Message Server"
+
+    @classmethod
+    def dispatch_hook(cls, _pkt=None, *args, **kwargs):
+        """Use the peer layout for forwarded MS_SEND_NAME messages.
+
+        The Message Server forwards these with ``iflag=0``. Their four-byte
+        send prefix is followed by opaque peer data, not an ADM record.
+        Dissect the modeled common header before selecting the layout.
+        """
+        if _pkt is None or len(_pkt) < 114:
+            return cls
+        peer = SAPMSPeerMessage(_pkt)
+        if peer.flag != 0x02 or peer.iflag != 0x00:
+            return cls
+        name = peer.toname
+        if isinstance(name, str):
+            name = name.encode()
+        if name.rstrip(b"\x00 ") in (b"", b"-", b"MSG_SERVER"):
+            return cls
+        return SAPMSPeerMessage
+
     fields_desc = [
         StrFixedLenDecodedField("eyecatcher", b"**MESSAGE**\x00", 12),
         ByteField("version", 0x04),
@@ -1418,6 +1439,29 @@ class SAPMS(Packet):
         ConditionalField(PacketField("ascs_gateway_keepalive", None, SAPMSASCSGatewayKeepalive),
                          lambda pkt:pkt.opcode == 0x54 and pkt.flag == 0x02),
     ]
+
+
+class SAPMSPeerMessage(SAPMS):
+    """Peer-directed frame forwarded by the Message Server.
+
+    Keep the common SAPMS and four-byte send prefix. The remaining bytes are
+    application message data, regardless of the prefix's opcode value.
+    """
+    name = "SAP Message Server Peer Message"
+    fields_desc = SAPMS.fields_desc[:18] + [StrField("message", b"")]
+
+    def haslayer(self, cls, _subclass=None):
+        # Scapy defaults to exact-class lookup. Keep existing SAPMS checks
+        # valid when a peer frame is decoded as this subtype.
+        if cls is SAPMS:
+            _subclass = True
+        return super(SAPMSPeerMessage, self).haslayer(cls, _subclass=_subclass)
+
+    def getlayer(self, cls, nb=1, _track=None, _subclass=None, **flt):
+        if cls is SAPMS:
+            _subclass = True
+        return super(SAPMSPeerMessage, self).getlayer(
+            cls, nb=nb, _track=_track, _subclass=_subclass, **flt)
 
 
 # Bind SAP NI with the MS ports (both internal & external)

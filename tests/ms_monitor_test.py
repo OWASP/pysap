@@ -15,8 +15,6 @@
 #   Martin Gallo (@martingalloar)
 #
 
-import io
-import socket
 import unittest
 from types import SimpleNamespace
 from unittest import mock
@@ -24,30 +22,10 @@ from unittest import mock
 from pysap.SAPMS import (SAPMS, SAPMSAdmRecord, SAPMSClient3,
                          SAPMSLogonResponse, SAPMSProperty,
                          ms_logon_type_values, ms_property_id_values)
-from pysap.SAPNI import SAPNI
-
-from examples import ms_impersonator, ms_monitor, router_password_check
+from examples import ms_monitor
 
 
-class FakeTimingSocket(object):
-    def __init__(self):
-        self.sent = []
-        self.closed = False
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.closed = True
-
-    def sendall(self, data):
-        self.sent.append(data)
-
-    def recv(self, size):
-        return b"response"
-
-
-class PySAPExamplesRegressionTest(unittest.TestCase):
+class MSMonitorTest(unittest.TestCase):
 
     def test_ms_monitor_dump_all_uses_parsed_commands_and_dump_response(self):
         options = SimpleNamespace(client="test", domain="ABAP",
@@ -170,42 +148,6 @@ class PySAPExamplesRegressionTest(unittest.TestCase):
             sorted(str(value) for value in ms_property_id_values))
         self.assertEqual(console.complete_text_get(
             "SE", "text_get SE", 9, 11), ["SENDER", "SERVER"])
-
-    def test_ms_impersonator_requires_sapms_layer(self):
-        response = SAPMS()
-
-        self.assertIs(ms_impersonator.require_sapms_response(response, "testing"), response)
-
-        with self.assertRaises(ValueError):
-            ms_impersonator.require_sapms_response(SAPNI() / b"not-ms", "testing")
-
-    def test_router_password_check_uses_timeout_and_closes_socket(self):
-        options = SimpleNamespace(remote_host="router", remote_port=3299,
-                                  router_version=40, timeout=2.5)
-        conn = FakeTimingSocket()
-        output = io.StringIO()
-
-        with mock.patch.object(router_password_check.socket, "create_connection",
-                               return_value=conn) as create_connection:
-            elapsed = router_password_check.try_password(options, "secret", output, 3)
-
-        create_connection.assert_called_once_with(("router", 3299), timeout=2.5)
-        self.assertIsInstance(elapsed, int)
-        self.assertTrue(conn.closed)
-        self.assertEqual(output.getvalue().split(",")[:2], ["3", "secret"])
-
-    def test_router_password_check_records_socket_errors(self):
-        options = SimpleNamespace(remote_host="router", remote_port=3299,
-                                  router_version=40, timeout=2.5)
-        output = io.StringIO()
-
-        with mock.patch.object(router_password_check.socket, "create_connection",
-                               side_effect=socket.timeout("timed out")):
-            elapsed = router_password_check.try_password(options, "secret", output, 4)
-
-        self.assertEqual(elapsed, "ERROR:TimeoutError")
-        self.assertEqual(output.getvalue(), "4,secret,ERROR:TimeoutError\n")
-
 
 if __name__ == "__main__":
     unittest.main()

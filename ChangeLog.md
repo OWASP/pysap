@@ -2,9 +2,7 @@
 
 ## v0.2.1.dev0 - in dev
 
-
 ### New features
-
 
 - `pysap/SAPEPP.py`: Added EPP v1–v3 structures, variable items,
   `SAP-PASSPORT` HTTP conversion, and SAP Diag/RFC/NWRFC bindings
@@ -13,7 +11,6 @@
   PSE certificate export support ([#99](https://github.com/OWASP/pysap/pull/99)).
 
 ### Enhancements and improvements
-
 
 - `pysap/SAPMS.py`, `examples/ms_monitor.py`, and Message Server docs: Added
   monitor operations, structures, enums, response fields, and SNC variants
@@ -28,7 +25,17 @@
 
 ### Fixes
 
-
+- `pysap/SAPMS.py`: Decode Message Server-forwarded peer frames with
+  `iflag=0` as messages rather than ADM records, avoiding short-message
+  parser failures in `ms_listener.py`.
+- `examples/router_admin.py`, `examples/router_password_check.py`: Accept
+  password-only info requests without logging the password, bound admin
+  acknowledgements, and use bounded NI-stream framing for password-check
+  timings instead of a partial raw read.
+- `pysap/SAPRouter.py`: Omit route passwords from native-proxy debug logs.
+- `examples/router_scanner.py`: Serialize expanded network targets as host
+  strings, distinguish denied routes from unreachable targets, and detect
+  quick raw-mode closes before reporting a target open.
 - `pysap/SAPRouter.py`, `examples/router_niping.py`: Report non-denial router
   replies as typed `SAPRouterResponseError` values and close failed routed
   sockets instead of leaking them or showing an uncaught traceback; the

@@ -253,22 +253,26 @@ a SAP Netweaver Application Server and impersonates an application server regist
 Dialog instance server.
 
 
-``ms_listener``
----------------
+``ms_listener`` and ``ms_messager``
+-----------------------------------
 
-This example script connects with the Message Server service and listens for messages coming
-from the server. Along with the ``ms_messager`` script, it can be used as an example for
-using the Message Server as a messenger service and send packets from one client to
-another connected to the service.
+These scripts form a pair that demonstrates sending a message between two
+clients through the Message Server. The ``ms_listener`` script registers a
+client and waits for incoming messages, while ``ms_messager`` registers a
+second client and sends a message to the listener.
 
+Each process must use a distinct client name. Start the listener first, then
+address that client name from the messager, using the Message Server port
+appropriate for the instance:
 
-``ms_messager``
----------------
+.. code-block:: console
 
-This example script connects with the Message Server service and sends a message to another
-client connected to it. Along with the ``ms_listener`` script, it can be used as an example
-for using the Message Server as a messenger service and send packets from one client to
-another connected to the service.
+    $ examples/ms_listener.py -d <host> -p <port> -c listener-one
+    $ examples/ms_messager.py -d <host> -p <port> -c sender-one -t listener-one -m hello
+
+Messages forwarded to the listener are decoded as ``SAPMSPeerMessage``
+packets. The packet's ``message`` field contains the bytes supplied with the
+messager's ``--message`` option.
 
 
 ``ms_monitor``
