@@ -25,7 +25,8 @@ from scapy.config import conf
 # Custom imports
 import pysap
 from pysap.SAPRouter import SAPRoutedStreamSocket
-from pysap.SAPMS import SAPMS, ms_dump_command_values, ms_opcode_error_values, ms_domain_values_inv
+from pysap.SAPMS import (SAPMS, SAPMSPayload, ms_dump_command_values,
+                         ms_opcode_error_values, ms_domain_values_inv)
 
 
 # Set the verbosity to 0
@@ -57,6 +58,8 @@ def parse_options():
     misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
     misc.add_argument("-c", "--client", dest="client", default="pysap's-dumper",
                       help="Client name [%(default)s]")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=10.0,
+                      help="Connection and response timeout in seconds [%(default)s]")
 
     options = parser.parse_args()
 
@@ -64,6 +67,8 @@ def parse_options():
         parser.error("Remote host or route string is required")
     if options.domain not in ms_domain_values_inv.keys():
         parser.error("Invalid domain specified")
+    if options.timeout <= 0:
+        parser.error("Timeout must be positive")
 
     return options
 
@@ -81,48 +86,52 @@ def main():
     conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
                                               options.remote_port,
                                               options.route_string,
-                                              base_cls=SAPMS)
+                                              base_cls=SAPMS,
+                                              connect_timeout=options.timeout,
+                                              timeout=options.timeout,
+                                              max_frame_length=16 << 20)
     print("[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port))
 
     client_string = options.client.encode() if isinstance(options.client, str) else options.client
 
-    # Send MS_LOGIN_2 packet
-    p = SAPMS(flag=0x00, iflag=0x08, domain=domain, toname=client_string, fromname=client_string)
-
-    print("[*] Sending login packet:")
-    response = conn.sr(p)[SAPMS]
-
-    if response.errorno != 0:
-        conn.close()
-        raise RuntimeError("Message Server login failed with error %d" % response.errorno)
-
-    server_string = response.fromname
-    print("[*] Login OK, Server string: %s" % (server_string.decode("utf-8", errors="replace").strip() if isinstance(server_string, bytes) else server_string))
-
-    # Send a Dump Info packet for each possible Dump
-    for i in ms_dump_command_values.keys():
-
-        # Skip MS_DUMP_MSADM and MS_DUMP_COUNTER commands as the info
-        # is included in other dump commands
-        if i in [1, 12]:
-            continue
-
-        p = SAPMS(flag=0x02, iflag=0x01, domain=domain, toname=server_string,
-                  fromname=client_string, opcode=0x1e, dump_dest=0x02,
-                  dump_command=i)
-
-        print("[*] Sending dump info", ms_dump_command_values[i])
+    try:
+        # Send MS_LOGIN_2 packet
+        p = SAPMS(flag=0x00, iflag=0x08, domain=domain,
+                  toname=client_string, fromname=client_string)
+        print("[*] Sending login packet:")
         response = conn.sr(p)[SAPMS]
+        if response.errorno != 0:
+            raise RuntimeError("Message Server login failed with error %d" %
+                               response.errorno)
 
-        if response.opcode_error != 0:
-            print("Error:", ms_opcode_error_values[response.opcode_error])
-            continue
-        value = response.dump_response
-        if isinstance(value, bytes):
-            value = value.rstrip(b'\x00').decode('utf-8', errors='replace')
-        print(value)
+        server_string = response.fromname
+        server_name = (server_string.decode("utf-8", errors="replace").strip()
+                       if isinstance(server_string, bytes) else server_string)
+        print("[*] Login OK, Server string: %s" % server_name)
 
-    conn.close()
+        # Send a Dump Info packet for each possible Dump.
+        for command, command_name in ms_dump_command_values.items():
+            if command in (1, 12):
+                continue
+            p = SAPMS(flag=0x02, iflag=0x01, domain=domain,
+                      toname=server_string, fromname=client_string)
+            p /= SAPMSPayload(opcode=0x1e, dump_dest=0x02,
+                              dump_command=command)
+            print("[*] Sending dump info", command_name)
+            response = conn.sr(p)[SAPMSPayload]
+            if response.opcode_error != 0:
+                error = ms_opcode_error_values.get(
+                    response.opcode_error,
+                    "Unknown error %d" % response.opcode_error)
+                print("Error:", error)
+                continue
+            value = response.dump_response
+            if isinstance(value, bytes):
+                value = value.rstrip(b'\x00').decode('utf-8',
+                                                     errors='replace')
+            print(value)
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":

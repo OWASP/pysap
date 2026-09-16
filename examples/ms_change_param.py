@@ -25,7 +25,8 @@ from scapy.config import conf
 # Custom imports
 import pysap
 from pysap.SAPRouter import SAPRoutedStreamSocket
-from pysap.SAPMS import SAPMS, SAPMSAdmRecord, ms_domain_values_inv
+from pysap.SAPMS import (SAPMS, SAPMSPayload, SAPMSAdmRecord,
+                         ms_domain_values_inv)
 
 
 # Set the verbosity to 0
@@ -66,6 +67,8 @@ def parse_options():
     misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
     misc.add_argument("-c", "--client", dest="client", default="pysap's-paramchanger",
                       help="Client name [%(default)s]")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=10.0,
+                      help="Connection and response timeout in seconds [%(default)s]")
 
     options = parser.parse_args()
 
@@ -75,6 +78,8 @@ def parse_options():
         parser.error("Parameter name is required")
     if options.domain not in ms_domain_values_inv.keys():
         parser.error("Invalid domain specified")
+    if options.timeout <= 0:
+        parser.error("Timeout must be positive")
 
     return options
 
@@ -92,73 +97,79 @@ def main():
     conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
                                               options.remote_port,
                                               options.route_string,
-                                              base_cls=SAPMS)
+                                              base_cls=SAPMS,
+                                              connect_timeout=options.timeout,
+                                              timeout=options.timeout,
+                                              max_frame_length=16 << 20)
     print("[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port))
 
     client_string = options.client.encode() if isinstance(options.client, str) else options.client
 
-    # Build MS_LOGIN_2 packet
-    p = SAPMS(flag=0x00, iflag=0x08, domain=domain, toname=client_string, fromname=client_string)
+    try:
+        # Build MS_LOGIN_2 packet
+        p = SAPMS(flag=0x00, iflag=0x08, domain=domain, toname=client_string, fromname=client_string)
 
-    # Send MS_LOGIN_2 packet
-    print("[*] Sending login packet")
-    response = conn.sr(p)[SAPMS]
+        # Send MS_LOGIN_2 packet
+        print("[*] Sending login packet")
+        response = conn.sr(p)[SAPMS]
 
-    if response.errorno != 0:
-        conn.close()
-        raise RuntimeError("Message Server login failed with error %d" % response.errorno)
+        if response.errorno != 0:
+            raise RuntimeError("Message Server login failed with error %d" % response.errorno)
 
-    server_string = response.fromname
-    print("[*] Login performed, server string: %s" % (server_string.decode("utf-8", errors="replace").strip() if isinstance(server_string, bytes) else server_string))
+        server_string = response.fromname
+        print("[*] Login performed, server string: %s" % (server_string.decode("utf-8", errors="replace").strip() if isinstance(server_string, bytes) else server_string))
 
-    print("[*] Retrieving current value of parameter: %s" % options.param_name)
+        print("[*] Retrieving current value of parameter: %s" % options.param_name)
 
     # Send ADM AD_PROFILE request
-    adm = SAPMSAdmRecord(opcode=0x1, parameter=options.param_name)
-    p = SAPMS(toname=server_string, fromname=client_string, version=4,
-              flag=0x04, iflag=0x05, domain=domain, adm_records=[adm])
-
-    print("[*] Sending packet")
-    response = conn.sr(p)[SAPMS]
-
-    if options.verbose:
-        print("[*] Response:")
-        response.show()
-
-    if not response.adm_records or response.adm_records[0].errorno != 0:
-        conn.close()
-        raise RuntimeError("Unable to retrieve parameter")
-    param_old_value = response.adm_records[0].parameter
-    if isinstance(param_old_value, bytes):
-        param_old_value = param_old_value.decode("utf-8", errors="replace").strip("\x00").strip()
-    print("[*] Parameter %s" % param_old_value)
-
-    # If a parameter change was requested, send an ADM AD_SHARED_PARAMETER request
-    if options.param_value is not None:
-        print("[*] Changing parameter value from: %s to: %s" % (param_old_value,
-                                                                options.param_value))
-
-        # Build the packet
-        adm = SAPMSAdmRecord(opcode=0x2e,
-                             parameter="%s=%s" % (options.param_name,
-                                                  options.param_value))
+        adm = SAPMSAdmRecord(opcode=0x1, parameter=options.param_name)
         p = SAPMS(toname=server_string, fromname=client_string, version=4,
-                  iflag=5, flag=4, domain=domain, adm_records=[adm])
+                  flag=0x04, iflag=0x05, domain=domain)
+        p /= SAPMSPayload(adm_records=[adm])
 
-        # Send the packet
         print("[*] Sending packet")
-        response = conn.sr(p)[SAPMS]
+        response = conn.sr(p)[SAPMSPayload]
 
         if options.verbose:
             print("[*] Response:")
             response.show()
 
-        if response.adm_records[0].errorno != 0:
-            print("[*] Error requesting parameter change (error number %d)" % response.adm_records[0].errorno)
-        else:
-            print("[*] Parameter changed for the current session !")
+        if not response.adm_records or response.adm_records[0].errorno != 0:
+            raise RuntimeError("Unable to retrieve parameter")
+        param_old_value = response.adm_records[0].parameter
+        if isinstance(param_old_value, bytes):
+            param_old_value = param_old_value.decode("utf-8", errors="replace").strip("\x00").strip()
+        print("[*] Parameter %s" % param_old_value)
 
-    conn.close()
+    # If a parameter change was requested, send an ADM AD_SHARED_PARAMETER request
+        if options.param_value is not None:
+            print("[*] Changing parameter value from: %s to: %s" % (param_old_value,
+                                                                    options.param_value))
+
+        # Build the packet
+            adm = SAPMSAdmRecord(opcode=0x2e,
+                                 parameter="%s=%s" % (options.param_name,
+                                                      options.param_value))
+            p = SAPMS(toname=server_string, fromname=client_string, version=4,
+                      iflag=5, flag=4, domain=domain)
+            p /= SAPMSPayload(adm_records=[adm])
+
+        # Send the packet
+            print("[*] Sending packet")
+            response = conn.sr(p)[SAPMSPayload]
+
+            if options.verbose:
+                print("[*] Response:")
+                response.show()
+
+            if not response.adm_records:
+                raise RuntimeError("Parameter change returned no ADM record")
+            if response.adm_records[0].errorno != 0:
+                raise RuntimeError("Parameter change failed with error %d" %
+                                   response.adm_records[0].errorno)
+            print("[*] Parameter changed for the current session !")
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":

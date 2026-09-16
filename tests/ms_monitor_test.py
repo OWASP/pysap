@@ -19,7 +19,7 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from pysap.SAPMS import (SAPMS, SAPMSAdmRecord, SAPMSClient3,
+from pysap.SAPMS import (SAPMS, SAPMSPayload, SAPMSAdmRecord, SAPMSClient3,
                          SAPMSLogonResponse, SAPMSProperty,
                          ms_logon_type_values, ms_property_id_values)
 from examples import ms_monitor
@@ -56,7 +56,7 @@ class MSMonitorTest(unittest.TestCase):
         console.runtimeoptions.update(server_string=b"MSG_SERVER",
                                       client_string=b"test")
         console._send_simple = mock.Mock(return_value=None)
-        response = SAPMS(flag=0x04, iflag=0x05, adm_records=[
+        response = SAPMS(flag=0x04, iflag=0x05) / SAPMSPayload(adm_records=[
             SAPMSAdmRecord(opcode=0x2e, errorno=0)])
         console.connection = SimpleNamespace(sr=mock.Mock(return_value=response))
 
@@ -67,7 +67,7 @@ class MSMonitorTest(unittest.TestCase):
             console._send_simple.call_args.kwargs["shutdown_reason"],
             "planned maintenance window")
         request = console.connection.sr.call_args.args[0]
-        self.assertEqual(request.adm_records[0].parameter.rstrip(b"\x00"),
+        self.assertEqual(request[SAPMSPayload].adm_records[0].parameter.rstrip(b"\x00"),
                          b"ms/example=value with spaces")
 
     def test_ms_monitor_expanded_opcode_commands(self):
@@ -148,6 +148,38 @@ class MSMonitorTest(unittest.TestCase):
             sorted(str(value) for value in ms_property_id_values))
         self.assertEqual(console.complete_text_get(
             "SE", "text_get SE", 9, 11), ["SENDER", "SERVER"])
+
+    def test_script_mode_runs_console_lifecycle(self):
+        options = SimpleNamespace(verbose=False, script="commands.txt")
+        console = mock.Mock(connected=True)
+        with mock.patch.object(ms_monitor, "parse_options",
+                               return_value=options), \
+                mock.patch.object(ms_monitor, "SAPMSMonitorConsole",
+                                  return_value=console):
+            ms_monitor.main()
+
+        console.run_script.assert_called_once_with("commands.txt")
+
+    def test_rejected_login_closes_bounded_connection(self):
+        options = SimpleNamespace(
+            client="test", domain="ABAP", consolelog=None, verbose=False,
+            remote_host="127.0.0.1", remote_port=3900, route_string=None,
+            timeout=3.5)
+        connection = mock.Mock()
+        connection.sr.return_value = SAPMS(errorno=1)
+        console = ms_monitor.SAPMSMonitorConsole(options)
+        with mock.patch.object(ms_monitor.SAPRoutedStreamSocket,
+                               "get_nisocket",
+                               return_value=connection) as get_nisocket:
+            console.do_connect(None)
+
+        get_nisocket.assert_called_once_with(
+            "127.0.0.1", 3900, None, base_cls=SAPMS,
+            connect_timeout=3.5, timeout=3.5,
+            max_frame_length=16 << 20)
+        connection.close.assert_called_once_with()
+        self.assertFalse(console.connected)
+        self.assertIsNone(console.connection)
 
 if __name__ == "__main__":
     unittest.main()

@@ -60,6 +60,7 @@ def documented_packet_examples():
                               hdb_partkind_values, hdb_segmentkind_values)
     from pysap.SAPIGS import SAPIGS, SAPIGSTable
     from pysap.SAPMS import (SAPDPInfo1, SAPDPInfo2, SAPDPInfo3, SAPMS,
+                             SAPMSPayload,
                              SAPMSAdmRecord, SAPMSClient1, SAPMSClient2,
                              SAPMSClient3, SAPMSClient4, SAPMSCounter,
                              SAPMSJ2EECluster, SAPMSJ2EEHeader,
@@ -125,7 +126,8 @@ def documented_packet_examples():
                       0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c,
                       0x2d, 0x2e, 0x2f, 0x30, 0x43, 0x44, 0x45, 0x46,
                       0x47, 0x4a]:
-            yield "SAPMS opcode %d" % opcode, SAPMS(iflag=1, opcode=opcode)
+            yield "SAPMS opcode %d" % opcode, (SAPMS(iflag=1) /
+                                                SAPMSPayload(opcode=opcode))
     for client_cls in [SAPMSClient1, SAPMSClient2, SAPMSClient3, SAPMSClient4]:
         yield client_cls.__name__, client_cls()
     yield "SAPMSStat3", SAPMSStat3()

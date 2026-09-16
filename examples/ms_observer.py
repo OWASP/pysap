@@ -20,13 +20,13 @@
 # Standard imports
 import logging
 from argparse import ArgumentParser
-from socket import error as SocketError
+from socket import error as SocketError, timeout as SocketTimeout
 # External imports
 from scapy.config import conf
 # Custom imports
 import pysap
 from pysap.SAPRouter import SAPRoutedStreamSocket
-from pysap.SAPMS import SAPMS, ms_domain_values_inv
+from pysap.SAPMS import SAPMS, SAPMSPayload, ms_domain_values_inv
 
 
 # Set the verbosity to 0
@@ -57,6 +57,8 @@ def parse_options():
     misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
     misc.add_argument("-c", "--client", dest="client", default="pysap's-observer",
                       help="Client name [%(default)s]")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=10.0,
+                      help="Connection and response timeout in seconds [%(default)s]")
 
     options = parser.parse_args()
 
@@ -64,6 +66,8 @@ def parse_options():
         parser.error("Remote host or route string is required")
     if options.domain not in ms_domain_values_inv.keys():
         parser.error("Invalid domain specified")
+    if options.timeout <= 0:
+        parser.error("Timeout must be positive")
 
     return options
 
@@ -81,7 +85,10 @@ def main():
     conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
                                               options.remote_port,
                                               options.route_string,
-                                              base_cls=SAPMS)
+                                              base_cls=SAPMS,
+                                              connect_timeout=options.timeout,
+                                              timeout=options.timeout,
+                                              max_frame_length=16 << 20)
     print("[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port))
 
     # Generate a random client string to differentiate our connection
@@ -100,14 +107,20 @@ def main():
 
     # Send MS_SERVER_CHG packet
     print("[*] Sending server change packet")
-    p = SAPMS(flag=0x02, iflag=0x01, domain=domain, toname=server_string, fromname=client_string, opcode=0x01,
-              opcode_version=4)
-    response = conn.sr(p)[SAPMS]
+    p = SAPMS(flag=0x02, iflag=0x01, domain=domain,
+              toname=server_string, fromname=client_string)
+    p /= SAPMSPayload(opcode=0x01, opcode_version=4)
+    response = conn.sr(p)[SAPMSPayload]
+    if response.opcode_error != 0:
+        conn.close()
+        raise RuntimeError("Message Server observer subscription failed with error %d" %
+                           response.opcode_error)
 
     # Send MS_SERVER_LONG_LIST packet
     print("[*] Sending server long list packet")
-    p = SAPMS(flag=0x01, iflag=0x01, domain=domain, toname=server_string, fromname=client_string, opcode=0x40,
-              opcode_charset=0x00)
+    p = SAPMS(flag=0x01, iflag=0x01, domain=domain,
+              toname=server_string, fromname=client_string)
+    p /= SAPMSPayload(opcode=0x40, opcode_charset=0x00)
     conn.send(p)
 
     def decode_field(value):
@@ -134,9 +147,10 @@ def main():
 
     # Send MS_SERVER_LST packet
     print("[*] Retrieving list of current clients")
-    p = SAPMS(flag=0x02, iflag=0x01, domain=domain, toname=server_string, fromname=client_string, opcode=0x05,
-              opcode_version=0x68)
-    response = conn.sr(p)[SAPMS]
+    p = SAPMS(flag=0x02, iflag=0x01, domain=domain,
+              toname=server_string, fromname=client_string)
+    p /= SAPMSPayload(opcode=0x05, opcode_version=0x68)
+    response = conn.sr(p)[SAPMSPayload]
     for client in get_clients(response):
         if decode_field(client.client) != decode_field(client_string):
             clients.append(("LIST", client))
@@ -155,7 +169,7 @@ def main():
             pkt = conn.recv()
             if SAPMS not in pkt:
                 continue
-            response = pkt[SAPMS]
+            response = pkt[SAPMSPayload]
 
             response.show()
             if response.opcode in (0x02, 0x03, 0x04):
@@ -166,6 +180,8 @@ def main():
                     clients.append((label, cl[0]))
                     print_client(msg, cl[0])
 
+    except SocketTimeout:
+        print("[*] Response timeout reached")
     except SocketError:
         print("[*] Connection error")
     except KeyboardInterrupt:

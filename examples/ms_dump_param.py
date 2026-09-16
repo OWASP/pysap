@@ -27,7 +27,7 @@ from scapy.config import conf
 # Custom imports
 import pysap
 from pysap.SAPRouter import SAPRoutedStreamSocket
-from pysap.SAPMS import SAPMS, SAPMSAdmRecord
+from pysap.SAPMS import SAPMS, SAPMSPayload, SAPMSAdmRecord
 
 # Set the verbosity to 0
 conf.verb = 0
@@ -61,6 +61,8 @@ def parse_options():
     misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
     misc.add_argument("-c", "--client", dest="client", default="pysap's-getparam",
                       help="Client name [%(default)s]")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=10.0,
+                      help="Connection and response timeout in seconds [%(default)s]")
 
     options = parser.parse_args()
 
@@ -68,6 +70,8 @@ def parse_options():
         parser.error("Remote host or route string is required")
     if not options.file_param:
         parser.error("Parameters file is required")
+    if options.timeout <= 0:
+        parser.error("Timeout must be positive")
 
     return options
 
@@ -86,10 +90,14 @@ def main():
         conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
                                                   options.remote_port,
                                                   options.route_string,
-                                                  base_cls=SAPMS)
+                                                  base_cls=SAPMS,
+                                                  connect_timeout=options.timeout,
+                                                  timeout=options.timeout,
+                                                  max_frame_length=16 << 20)
     except Exception as e:
-        print(e)
-        print ("Error during MS connection. Is internal ms port %d reachable ?" % options.remote_port)
+        raise RuntimeError(
+            "Error connecting to Message Server internal port %d: %s" %
+            (options.remote_port, e)) from e
     else:
         print ("[*] Connected. I check parameters...")
         client_string = options.client.encode() if isinstance(options.client, str) else options.client
@@ -121,11 +129,12 @@ def main():
 
                     # create request
                     adm = SAPMSAdmRecord(opcode=0x1, parameter=param2c.encode())
-                    p = SAPMS(toname=server_string, fromname=client_string, version=4, flag=0x04, iflag=0x05,
-                              adm_records=[adm])
+                    p = SAPMS(toname=server_string, fromname=client_string,
+                              version=4, flag=0x04, iflag=0x05)
+                    p /= SAPMSPayload(adm_records=[adm])
 
                     # send request
-                    respond = conn.sr(p)[SAPMS]
+                    respond = conn.sr(p)[SAPMSPayload]
                     if (not respond.adm_records or
                             respond.adm_records[0].errorno != 0):
                         print("[!] %s = ACCESS_DENIED_OR_UNAVAILABLE" % param2c)
@@ -133,7 +142,9 @@ def main():
                     param_val = respond.adm_records[0].parameter
                     if isinstance(param_val, bytes):
                         param_val = param_val.decode('utf-8', errors='replace').rstrip('\x00')
-                    value = param_val.replace(param_val.split('=')[0] + '=', '')
+                    _, separator, value = param_val.partition('=')
+                    if not separator:
+                        value = param_val
 
                     status = '[ ]'
                     # Verify if value match with expected value
@@ -159,12 +170,9 @@ def main():
                     print ("%s %s = %s" % (status, param2c, value))
 
         except IOError as e:
-            print("Error reading parameters file: %s" % e)
-            exit(0)
+            raise RuntimeError("Error reading parameters file: %s" % e)
         except ValueError as e:
-            import traceback; traceback.print_exc()
-            print("Invalid parameters file format: %s" % e)
-            exit(0)
+            raise RuntimeError("Invalid parameters file or comparison: %s" % e)
         finally:
             conn.close()
 

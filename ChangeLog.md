@@ -12,6 +12,10 @@
 
 ### Enhancements and improvements
 
+- Routed-stream examples now expose a positive `--timeout` for bounded
+  connection and response waits. Shared console helpers now provide common
+  completion primitives and run command files through the full console
+  connection and cleanup lifecycle.
 - `examples/router_fingerprint.py` and its JSON database: Added two modeled
   malformed-route probes, bounded NI timeouts, typed close outcomes, weighted
   fuzzy ranking, a static database-version summary, and sanitized fingerprints
@@ -29,12 +33,21 @@
 
 ### Fixes
 
+- **Breaking:** Split the fixed `SAPMS` envelope from variable Message Server
+  bodies. Construct structured frames as `SAPMS(...) / SAPMSPayload(...)` and
+  forwarded peer frames as `SAPMS(...) / SAPMSPeerPayload(...)`; header-only
+  frames are now represented by `SAPMS` without a payload. This removes the
+  `SAPMSHeaderOnly` and `SAPMSPeerMessage` compatibility subclasses.
 - `examples/router_fingerprint.py`: Avoided misclassifying control replies as
   errors, duplicate-record hit inflation, and exporting matched database rows
   in place of actual observations.
 - `pysap/SAPMS.py`: Decode Message Server-forwarded peer frames with
   `iflag=0` as messages rather than ADM records, avoiding short-message
   parser failures in `ms_listener.py`.
+- `pysap/SAPMS.py` and Message Server examples: Distinguished forwarded peer,
+  Dispatcher ADM, ASCS Gateway, and header-only frames; added bounded
+  connection/response timeouts, reliable cleanup, scripted monitor startup,
+  and configurable impersonator identity fields.
 - `examples/router_admin.py`, `examples/router_password_check.py`: Accept
   password-only info requests without logging the password, bound admin
   acknowledgements, and use bounded NI-stream framing for password-check

@@ -3,6 +3,9 @@
 Message Server Example scripts
 ==============================
 
+All Message Server examples accept ``--timeout`` to bound connection and
+response waits. The default is 10 seconds.
+
 
 ``ms_change_param``
 -------------------
@@ -252,6 +255,12 @@ This example script is a proof of concept that connects with the Message Server 
 a SAP Netweaver Application Server and impersonates an application server registering as a
 Dialog instance server.
 
+The reported server identity can be selected with ``--release``,
+``--patch-number``, ``--logon-port``, and ``--logon-misc``. These values should
+match the behavior being emulated. The script reports one-way registration
+operations as requests and waits for server messages until ``--timeout`` is
+reached, then logs out and closes the connection.
+
 
 ``ms_listener`` and ``ms_messager``
 -----------------------------------
@@ -270,9 +279,11 @@ appropriate for the instance:
     $ examples/ms_listener.py -d <host> -p <port> -c listener-one
     $ examples/ms_messager.py -d <host> -p <port> -c sender-one -t listener-one -m hello
 
-Messages forwarded to the listener are decoded as ``SAPMSPeerMessage``
-packets. The packet's ``message`` field contains the bytes supplied with the
-messager's ``--message`` option.
+Messages forwarded to the listener are decoded as an ``SAPMS`` envelope with
+an ``SAPMSPeerPayload`` layer. The payload's ``message`` field contains the
+bytes supplied with the messager's ``--message`` option. Structured opcode and
+ADM bodies use ``SAPMSPayload``; an envelope without a payload represents a
+header-only frame.
 
 
 ``ms_monitor``

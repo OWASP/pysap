@@ -1270,49 +1270,26 @@ class SAPDPInfo3(Packet):
     ]
 
 
-class SAPMS(Packet):
-    """SAP Message Server packet
+class SAPMSPayload(Packet):
+    """Structured Message Server body containing opcode or ADM data."""
+    name = "SAP Message Server Payload"
 
-    This packet is used for the Message Server protocol.
-    """
-    name = "SAP Message Server"
+    @property
+    def flag(self):
+        return getattr(self.underlayer, "flag", 0x01)
 
-    @classmethod
-    def dispatch_hook(cls, _pkt=None, *args, **kwargs):
-        """Use the peer layout for forwarded MS_SEND_NAME messages.
+    @property
+    def iflag(self):
+        return getattr(self.underlayer, "iflag", 0x01)
 
-        The Message Server forwards these with ``iflag=0``. Their four-byte
-        send prefix is followed by opaque peer data, not an ADM record.
-        Dissect the modeled common header before selecting the layout.
-        """
-        if _pkt is None or len(_pkt) < 114:
-            return cls
-        peer = SAPMSPeerMessage(_pkt)
-        if peer.flag != 0x02 or peer.iflag != 0x00:
-            return cls
-        name = peer.toname
-        if isinstance(name, str):
-            name = name.encode()
-        if name.rstrip(b"\x00 ") in (b"", b"-", b"MSG_SERVER"):
-            return cls
-        return SAPMSPeerMessage
+    @staticmethod
+    def _has_adm_payload(pkt):
+        """Distinguish ADM bodies from typed ASCS gateway opcode payloads."""
+        return ((pkt.iflag in [0x00, 0x02, 0x05, 0x07] or
+                 pkt.opcode == 0x00) and
+                pkt.opcode not in [0x52, 0x53, 0x54])
 
     fields_desc = [
-        StrFixedLenDecodedField("eyecatcher", b"**MESSAGE**\x00", 12),
-        ByteField("version", 0x04),
-        ByteEnumKeysField("errorno", 0x00, ms_errorno_values),
-        StrFixedLenDecodedField("toname", b"-" + b" " * 39, 40),
-        FlagsField("msgtype", 0, 8, ms_msgtype_values),
-        ByteField("reserved", 0x00),
-        ByteEnumKeysField("domain", 0x00, ms_domain_values),
-        ByteField("reserved2", 0x00),
-        StrFixedLenField("key", b"\x00" * 8, 8),
-        ByteEnumKeysField("flag", 0x01, ms_flag_values),
-        ByteEnumKeysField("iflag", 0x01, ms_iflag_values),
-        StrFixedLenDecodedField("fromname", b"-" + b" " * 39, 40),
-        ConditionalField(ShortField("diag_port", 3200), lambda pkt:pkt.iflag == 0x08 and pkt.flag == 0x02),  # for MS_REQUEST+MS_LOGIN_2 it's the diag port
-        ConditionalField(ShortField("padd", 0x0000), lambda pkt:pkt.iflag != 0x08 or pkt.flag != 0x02),
-
         # OpCode fields
         ConditionalField(ByteEnumKeysField("opcode", 0x01, ms_opcode_values), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),  # extending all those fields with MS_SEND_TYPE and MS_SEND_TYPE_ONCE packets
         ConditionalField(ByteEnumKeysField("opcode_error", 0x00, ms_opcode_error_values), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x7]),
@@ -1330,12 +1307,12 @@ class SAPMS(Packet):
         ConditionalField(PacketLenField("dp_info3", SAPDPInfo3(), SAPDPInfo3, length_from=lambda x: 180), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0e),  # 749 kernel
 
         # MS ADM layer
-        ConditionalField(StrFixedLenDecodedField("adm_eyecatcher", b"AD-EYECATCH\x00", 12), lambda pkt: pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
-        ConditionalField(ByteField("adm_version", 0x01), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
-        ConditionalField(ByteEnumKeysField("adm_type", 0x01, ms_adm_type_values), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
-        ConditionalField(IntToStrField("adm_recsize", 104, 11), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
-        ConditionalField(IntToStrField("adm_recno", 1, 11), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
-        ConditionalField(PacketListField("adm_records", None, SAPMSAdmRecord), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
+        ConditionalField(StrFixedLenDecodedField("adm_eyecatcher", b"AD-EYECATCH\x00", 12), _has_adm_payload),
+        ConditionalField(ByteField("adm_version", 0x01), _has_adm_payload),
+        ConditionalField(ByteEnumKeysField("adm_type", 0x01, ms_adm_type_values), _has_adm_payload),
+        ConditionalField(IntToStrField("adm_recsize", 104, 11), _has_adm_payload),
+        ConditionalField(IntToStrField("adm_recno", 1, 11), _has_adm_payload),
+        ConditionalField(PacketListField("adm_records", None, SAPMSAdmRecord), _has_adm_payload),
 
         # Server List fields
         ConditionalField(PacketListField("clients", None, SAPMSClient1), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05, 0x4d, 0x4f] and pkt.opcode_version == 0x01),
@@ -1441,27 +1418,65 @@ class SAPMS(Packet):
     ]
 
 
-class SAPMSPeerMessage(SAPMS):
+class SAPMSPeerPayload(Packet):
     """Peer-directed frame forwarded by the Message Server.
 
     Keep the common SAPMS and four-byte send prefix. The remaining bytes are
     application message data, regardless of the prefix's opcode value.
     """
-    name = "SAP Message Server Peer Message"
-    fields_desc = SAPMS.fields_desc[:18] + [StrField("message", b"")]
+    name = "SAP Message Server Peer Payload"
+    fields_desc = [
+        ByteEnumKeysField("opcode", 0x01, ms_opcode_values),
+        ByteEnumKeysField("opcode_error", 0x00, ms_opcode_error_values),
+        ByteField("opcode_version", 0x01),
+        ByteField("opcode_charset", 0x03),
+        StrField("message", b""),
+    ]
 
-    def haslayer(self, cls, _subclass=None):
-        # Scapy defaults to exact-class lookup. Keep existing SAPMS checks
-        # valid when a peer frame is decoded as this subtype.
-        if cls is SAPMS:
-            _subclass = True
-        return super(SAPMSPeerMessage, self).haslayer(cls, _subclass=_subclass)
 
-    def getlayer(self, cls, nb=1, _track=None, _subclass=None, **flt):
-        if cls is SAPMS:
-            _subclass = True
-        return super(SAPMSPeerMessage, self).getlayer(
-            cls, nb=nb, _track=_track, _subclass=_subclass, **flt)
+class SAPMS(Packet):
+    """Fixed SAP Message Server envelope.
+
+    Structured and peer-directed bodies are represented by
+    :class:`SAPMSPayload` and :class:`SAPMSPeerPayload` payload layers.
+    A frame containing only these fields naturally has no payload.
+    """
+    name = "SAP Message Server"
+
+    fields_desc = [
+        StrFixedLenDecodedField("eyecatcher", b"**MESSAGE**\x00", 12),
+        ByteField("version", 0x04),
+        ByteEnumKeysField("errorno", 0x00, ms_errorno_values),
+        StrFixedLenDecodedField("toname", b"-" + b" " * 39, 40),
+        FlagsField("msgtype", 0, 8, ms_msgtype_values),
+        ByteField("reserved", 0x00),
+        ByteEnumKeysField("domain", 0x00, ms_domain_values),
+        ByteField("reserved2", 0x00),
+        StrFixedLenField("key", b"\x00" * 8, 8),
+        ByteEnumKeysField("flag", 0x01, ms_flag_values),
+        ByteEnumKeysField("iflag", 0x01, ms_iflag_values),
+        StrFixedLenDecodedField("fromname", b"-" + b" " * 39, 40),
+        ConditionalField(ShortField("diag_port", 3200), lambda pkt:pkt.iflag == 0x08 and pkt.flag == 0x02),
+        ConditionalField(ShortField("padd", 0x0000), lambda pkt:pkt.iflag != 0x08 or pkt.flag != 0x02),
+    ]
+
+    def guess_payload_class(self, payload):
+        """Select the structured or peer-directed Message Server body."""
+        if self.flag == 0x02 and self.iflag == 0x00 and len(payload) >= 4:
+            opcode = payload[0]
+            if opcode == 0x00 and len(payload) > 4:
+                dp_lengths = {0x0d: 507, 0x0b: 203, 0x0e: 180}
+                dp_length = dp_lengths.get(payload[4])
+                adm_offset = 5 + dp_length if dp_length is not None else None
+                if (adm_offset is not None and
+                        payload[adm_offset:adm_offset + 12] == b"AD-EYECATCH\x00"):
+                    return SAPMSPayload
+            name = self.toname
+            if isinstance(name, str):
+                name = name.encode()
+            if name.rstrip(b"\x00 ") not in (b"", b"-", b"MSG_SERVER"):
+                return SAPMSPeerPayload
+        return SAPMSPayload
 
 
 # Bind SAP NI with the MS ports (both internal & external)

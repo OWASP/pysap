@@ -20,15 +20,52 @@ import unittest
 from scapy.packet import Raw
 
 from pysap.SAPNI import SAPNI
-from pysap.SAPMS import (SAPMS, SAPMSPeerMessage, SAPMSAdmRecord,
+from pysap.SAPMS import (SAPMS, SAPMSPayload, SAPMSPeerPayload, SAPMSAdmRecord,
                          SAPMSASCSGatewayLogon,
                          SAPMSASCSGatewayLogonTag, SAPMSASCSGatewayKeepalive,
                          SAPMSClient1, SAPMSLogon,
                          SAPMSLogCounter, SAPMSLogCounterRecord,
                          SAPMSLogonResponse, SAPMSOpenRequest,
                          SAPMSOpenRequestList, SAPMSProperty,
-                         SAPMSJ2EEHeader)
-from tests.utils import roundtrip_packet
+                         SAPMSJ2EEHeader, SAPDPInfo3)
+from tests.utils import roundtrip_packet as _roundtrip_packet
+
+
+_SAPMS_HEADER_FIELDS = {field.name for field in SAPMS.fields_desc}
+
+
+def build_ms(**kwargs):
+    """Build the fixed envelope and structured body from explicit fields."""
+    header = {key: value for key, value in kwargs.items()
+              if key in _SAPMS_HEADER_FIELDS}
+    body = {key: value for key, value in kwargs.items()
+            if key not in _SAPMS_HEADER_FIELDS}
+    packet = SAPMS(**header)
+    return packet / SAPMSPayload(**body) if body else packet
+
+
+def build_peer_ms(**kwargs):
+    header = {key: value for key, value in kwargs.items()
+              if key in _SAPMS_HEADER_FIELDS}
+    body = {key: value for key, value in kwargs.items()
+            if key not in _SAPMS_HEADER_FIELDS}
+    return SAPMS(**header) / SAPMSPeerPayload(**body)
+
+
+def roundtrip_packet(packet):
+    parsed = _roundtrip_packet(packet)
+    if isinstance(packet, SAPMS) and SAPMSPayload in parsed:
+        return parsed[SAPMSPayload]
+    return parsed
+
+
+def parse_ms_body(raw):
+    packet = SAPMS(raw)
+    if SAPMSPayload in packet:
+        return packet[SAPMSPayload]
+    if SAPMSPeerPayload in packet:
+        return packet[SAPMSPeerPayload]
+    return packet
 
 
 class PySAPMessageServerTest(unittest.TestCase):
@@ -36,41 +73,69 @@ class PySAPMessageServerTest(unittest.TestCase):
     def test_forwarded_peer_messages_keep_short_and_long_data(self):
         for body in (b"", b"hi", b"hello from a separate client"):
             with self.subTest(body=body):
-                packet = SAPMSPeerMessage(
+                packet = build_peer_ms(
                     flag=0x02, iflag=0x00, toname=b"listener",
                     fromname=b"sender", opcode=0x01, message=body)
                 wire = bytes(packet)
-                parsed = SAPMS(wire)
+                parsed = parse_ms_body(wire)
 
                 self.assertEqual(len(wire), 114 + len(body))
-                self.assertIsInstance(parsed, SAPMSPeerMessage)
+                self.assertIsInstance(parsed, SAPMSPeerPayload)
                 self.assertEqual(parsed.message, body)
                 self.assertEqual(parsed.opcode, 0x01)
-                self.assertEqual(bytes(parsed), wire)
+                self.assertEqual(bytes(parsed.underlayer), wire)
                 self.assertNotIn("adm_eyecatcher", parsed.fields)
                 framed = SAPNI(length=len(wire)) / Raw(wire)
                 framed.decode_payload_as(SAPMS)
                 self.assertIn(SAPMS, framed)
-                self.assertIsInstance(framed[SAPMS], SAPMSPeerMessage)
+                self.assertIsInstance(framed[SAPMS].payload,
+                                      SAPMSPeerPayload)
 
     def test_peer_opcode_zero_does_not_select_adm_layout(self):
-        packet = SAPMSPeerMessage(
+        packet = build_peer_ms(
             flag=0x02, iflag=0x00, toname=b"listener",
             fromname=b"sender", opcode=0x00, message=b"hi")
-        parsed = SAPMS(bytes(packet))
+        parsed = parse_ms_body(bytes(packet))
 
-        self.assertIsInstance(parsed, SAPMSPeerMessage)
+        self.assertIsInstance(parsed, SAPMSPeerPayload)
         self.assertEqual(parsed.message, b"hi")
+
+    def test_dispatcher_adm_opcode_zero_is_not_a_peer_message(self):
+        packet = build_ms(
+            flag=0x02, iflag=0x00, toname=b"registered-server",
+            opcode=0x00, opcode_version=0x03, opcode_charset=0x87,
+            dp_version=0x0e, dp_info3=SAPDPInfo3(),
+            adm_records=[SAPMSAdmRecord(opcode=0x08)])
+
+        parsed = parse_ms_body(bytes(packet))
+
+        self.assertIs(type(parsed), SAPMSPayload)
+        self.assertEqual(parsed.dp_version, 0x0e)
+        self.assertEqual(parsed.adm_records[0].opcode, 0x08)
+
+    def test_header_only_response_does_not_require_opcode_fields(self):
+        raw = bytes.fromhex(
+            "2a2a4d4553534147452a2a0004f770797361702d6368616e67652d69702d69"
+            "6e73706563742020202020202020202020202020202020000000000000000000"
+            "0000020170797361702d6368616e67652d69702d696e73706563742020202020"
+            "202020202020202020202020200000")
+
+        packet = SAPMS(raw)
+
+        self.assertIs(type(packet), SAPMS)
+        self.assertFalse(packet.payload)
+        self.assertIn(SAPMS, packet)
+        self.assertEqual(bytes(packet), raw)
 
     def test_adm_target_keeps_existing_layout(self):
         for flag, iflag in ((0x04, 0x05), (0x02, 0x00)):
             with self.subTest(flag=flag, iflag=iflag):
-                packet = SAPMS(
+                packet = build_ms(
                     flag=flag, iflag=iflag, toname=b"MSG_SERVER",
                     adm_records=[SAPMSAdmRecord(opcode=0x08)])
-                parsed = SAPMS(bytes(packet))
+                parsed = parse_ms_body(bytes(packet))
 
-                self.assertIs(type(parsed), SAPMS)
+                self.assertIs(type(parsed), SAPMSPayload)
                 self.assertEqual(parsed.adm_records[0].opcode, 0x08)
 
     def test_adm_record_roundtrip(self):
@@ -109,11 +174,11 @@ class PySAPMessageServerTest(unittest.TestCase):
         self.assertEqual(parsed.raw_value, b"opaque")
 
     def test_security_key_direction_and_version_roundtrip(self):
-        request = roundtrip_packet(SAPMS(flag=0x02, iflag=0x01, opcode=0x08,
+        request = roundtrip_packet(build_ms(flag=0x02, iflag=0x01, opcode=0x08,
                                          security_name=b"CLIENT"))
-        response = roundtrip_packet(SAPMS(flag=0x03, iflag=0x01, opcode=0x08,
+        response = roundtrip_packet(build_ms(flag=0x03, iflag=0x01, opcode=0x08,
                                           security_key=b"K" * 256))
-        request_v2 = roundtrip_packet(SAPMS(flag=0x02, iflag=0x01, opcode=0x09,
+        request_v2 = roundtrip_packet(build_ms(flag=0x02, iflag=0x01, opcode=0x09,
                                             opcode_version=2,
                                             security2_addressv6="2001:db8::1",
                                             security2_port=3200))
@@ -124,11 +189,11 @@ class PySAPMessageServerTest(unittest.TestCase):
         self.assertEqual(request_v2.security2_port, 3200)
 
     def test_hwid_and_dump_direction_roundtrip(self):
-        request = roundtrip_packet(SAPMS(flag=0x02, iflag=0x01, opcode=0x0a,
+        request = roundtrip_packet(build_ms(flag=0x02, iflag=0x01, opcode=0x0a,
                                          hwid_request_magic=b"HWID"))
-        response = roundtrip_packet(SAPMS(flag=0x03, iflag=0x01, opcode=0x0a,
+        response = roundtrip_packet(build_ms(flag=0x03, iflag=0x01, opcode=0x0a,
                                           hwid=b"H" * 100))
-        dump = roundtrip_packet(SAPMS(flag=0x03, iflag=0x01, opcode=0x1e,
+        dump = roundtrip_packet(build_ms(flag=0x03, iflag=0x01, opcode=0x1e,
                                       dump_response=b"one\ntwo\n"))
 
         self.assertEqual(request.hwid_request_magic, b"HWID")
@@ -136,24 +201,24 @@ class PySAPMessageServerTest(unittest.TestCase):
         self.assertEqual(dump.dump_response, b"one\ntwo\n")
 
     def test_opcode_structures_roundtrip(self):
-        stats = roundtrip_packet(SAPMS(
+        stats = roundtrip_packet(build_ms(
             flag=0x03, iflag=0x01, opcode=0x11, opcode_version=3,
             stats=b"S" * 712))
-        requests = roundtrip_packet(SAPMS(
+        requests = roundtrip_packet(build_ms(
             flag=0x03, iflag=0x01, opcode=0x14,
             open_requests=SAPMSOpenRequestList(requests=[
                 SAPMSOpenRequest(data=b"R" * 88)])))
-        nitrace = roundtrip_packet(SAPMS(
+        nitrace = roundtrip_packet(build_ms(
             flag=0x02, iflag=0x01, opcode=0x3f,
             nitrace_client=b"CLIENT", nitrace_operation=1,
             nitrace_level=2))
-        log_counter = roundtrip_packet(SAPMS(
+        log_counter = roundtrip_packet(build_ms(
             flag=0x03, iflag=0x01, opcode=0x50,
             log_counter=SAPMSLogCounter(index=3, records=[
                 SAPMSLogCounterRecord(data=b"L" * 48)])))
 
         self.assertEqual(stats.stats, b"S" * 712)
-        self.assertEqual(len(bytes(stats)), 114 + 712)
+        self.assertEqual(len(bytes(stats.underlayer)), 114 + 712)
         self.assertEqual(len(requests.open_requests.requests), 1)
         self.assertEqual(requests.open_requests.requests[0].data, b"R" * 88)
         self.assertEqual(nitrace.nitrace_operation, 1)
@@ -177,7 +242,7 @@ class PySAPMessageServerTest(unittest.TestCase):
 
     def test_message_server_shutdown_opcodes_roundtrip(self):
         for opcode in [0x2e, 0x2f, 0x30, 0x4a]:
-            packet = SAPMS(iflag=0x01, opcode=opcode,
+            packet = build_ms(iflag=0x01, opcode=opcode,
                            shutdown_reason="maintenance")
             parsed = roundtrip_packet(packet)
 
@@ -186,7 +251,7 @@ class PySAPMessageServerTest(unittest.TestCase):
             self.assertEqual(parsed.shutdown_reason, b"maintenance")
 
     def test_message_server_ip_to_name_roundtrip(self):
-        packet = SAPMS(iflag=0x01, opcode=0x46, opcode_version=0,
+        packet = build_ms(iflag=0x01, opcode=0x46, opcode_version=0,
                        ip_to_name_address4="127.0.0.1",
                        ip_to_name_port=3200,
                        ip_to_name="server.example")
@@ -198,10 +263,10 @@ class PySAPMessageServerTest(unittest.TestCase):
         self.assertEqual(parsed.ip_to_name, b"server.example")
 
     def test_message_server_check_acl_roundtrip(self):
-        request = roundtrip_packet(SAPMS(
+        request = roundtrip_packet(build_ms(
             flag=0x02, iflag=0x01, opcode=0x47, opcode_version=2,
             check_acl_address="2001:db8::1"))
-        response = roundtrip_packet(SAPMS(
+        response = roundtrip_packet(build_ms(
             flag=0x03, iflag=0x01, opcode=0x47, opcode_version=2,
             error_code=0, acl=b"ALLOW\x00HOST=*\x00"))
 
@@ -210,7 +275,7 @@ class PySAPMessageServerTest(unittest.TestCase):
         self.assertEqual(response.acl, b"ALLOW\x00HOST=*\x00")
 
     def test_message_server_ascs_gateway_logon_roundtrip(self):
-        packet = SAPMS(
+        packet = build_ms(
             flag=0x02, iflag=0x01, opcode=0x52,
             ascs_gateway=SAPMSASCSGatewayLogon(tags=[
                 SAPMSASCSGatewayLogonTag(tag=1, value=3301),
@@ -227,28 +292,44 @@ class PySAPMessageServerTest(unittest.TestCase):
         self.assertEqual(parsed.ascs_gateway.tags[3].value, "2001:db8::1")
 
     def test_message_server_ascs_gateway_status_and_keepalive_roundtrip(self):
-        status_request = roundtrip_packet(SAPMS(
+        status_request = roundtrip_packet(build_ms(
             flag=0x02, iflag=0x01, opcode=0x53))
-        status_response = roundtrip_packet(SAPMS(
+        status_response = roundtrip_packet(build_ms(
             flag=0x03, iflag=0x01, opcode=0x53,
             ascs_gateway=SAPMSASCSGatewayLogon(tags=[
                 SAPMSASCSGatewayLogonTag(tag=1, value=3301),
                 SAPMSASCSGatewayLogonTag(tag=0),
             ])))
-        keepalive_request = roundtrip_packet(SAPMS(
+        keepalive_request = roundtrip_packet(build_ms(
             flag=0x02, iflag=0x01, opcode=0x54,
             ascs_gateway_keepalive=SAPMSASCSGatewayKeepalive()))
-        keepalive_response = roundtrip_packet(SAPMS(
+        keepalive_response = roundtrip_packet(build_ms(
             flag=0x03, iflag=0x01, opcode=0x54))
 
         self.assertFalse(status_request.haslayer(SAPMSASCSGatewayLogon))
         self.assertEqual(status_response.ascs_gateway.tags[0].value, 3301)
         self.assertEqual(len(keepalive_request.ascs_gateway_keepalive.data),
                          0x1030)
-        self.assertFalse(keepalive_response.haslayer(SAPMSASCSGatewayKeepalive))
+        self.assertFalse(keepalive_response.haslayer(
+            SAPMSASCSGatewayKeepalive))
+
+    def test_message_server_ascs_gateway_iflag_zero_reply(self):
+        raw = bytes.fromhex(
+            "2a2a4d4553534147452a2a0004002d00000000000000000000000000000000"
+            "00000000000000000000000000000000000000000000000000000000000000"
+            "0000000001004d53475f53455256455200000000000000000000000000000000"
+            "0000000000000000000000000000000052000103030000000000000000010000"
+            "00000200000000040000000000000000000000000000000000")
+
+        packet = parse_ms_body(raw)
+
+        self.assertEqual(packet.opcode, 0x52)
+        self.assertNotIn("adm_records", packet.fields)
+        self.assertEqual([tag.tag for tag in packet.ascs_gateway.tags],
+                         [3, 1, 2, 4, 0])
 
     def test_message_server_logon_request_roundtrip(self):
-        packet = SAPMS(flag=0x02, iflag=0x01, opcode=0x2c,
+        packet = build_ms(flag=0x02, iflag=0x01, opcode=0x2c,
                        logon=SAPMSLogon(type=0, logonname="PUBLIC",
                                         address6_length=-1))
         parsed = roundtrip_packet(packet)
@@ -259,7 +340,7 @@ class PySAPMessageServerTest(unittest.TestCase):
         self.assertEqual(parsed.logon.address6_length, -1)
 
     def test_message_server_logon_response_roundtrip(self):
-        packet = SAPMS(flag=0x03, iflag=0x01, opcode=0x2c,
+        packet = build_ms(flag=0x03, iflag=0x01, opcode=0x2c,
                        logon=SAPMSLogonResponse(
                            type=0, port=3200, address="127.0.0.1",
                            logonname="PUBLIC", response_data=b"payload",
@@ -273,7 +354,7 @@ class PySAPMessageServerTest(unittest.TestCase):
         self.assertEqual(parsed.logon.response_tail, b"\x00\x10\x00\x00")
 
     def test_message_server_codepage_error_without_payload(self):
-        packet = SAPMS(flag=0x03, iflag=0x01, opcode=0x1c,
+        packet = build_ms(flag=0x03, iflag=0x01, opcode=0x1c,
                        opcode_error=0x05)
         parsed = roundtrip_packet(packet)
 
