@@ -19,6 +19,5 @@ class MSImpersonatorTest(unittest.TestCase):
             ms_impersonator.require_sapms_response(SAPNI() / b"not-ms",
                                                     "testing")
 
-
 if __name__ == "__main__":
     unittest.main()

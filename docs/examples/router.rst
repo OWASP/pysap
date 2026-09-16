@@ -108,6 +108,9 @@ Example usage:
     $ examples/router_niping.py --start-client -H <saprouter> -S 3298 -L 10 -B 1000
     $ examples/router_niping.py --start-client --route-string /H/<saprouter>/S/3299/H/<target-host>/S/3298
 
+Client connection and response waits are bounded by ``--timeout``. The option
+does not affect the listening server mode.
+
 If the router returns an error other than route-permission denial (for
 example, a permitted target that refuses the connection), the routed socket
 raises ``SAPRouterResponseError`` with the router return code and decoded

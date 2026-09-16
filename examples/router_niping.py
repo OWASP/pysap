@@ -63,6 +63,8 @@ def parse_options():
                       help="Size of data-buffer [%(default)d]")
     misc.add_argument("-L", "--loops", dest="loops", type=int, default=10,
                       help="Number of loops [%(default)d]")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=10.0,
+                      help="Connection and response timeout in seconds [%(default)s]")
 
     options = parser.parse_args()
 
@@ -71,6 +73,8 @@ def parse_options():
 
     if options.client and not (options.host or options.route_string):
         parser.error("Remote host is required for starting a client")
+    if options.timeout <= 0:
+        parser.error("Timeout must be positive")
 
     return options
 
@@ -89,7 +93,9 @@ def client_mode(options):
         # Establish the connection
         conn = SAPRoutedStreamSocket.get_nisocket(options.host,
                                                   options.port,
-                                                  options.route_string)
+                                                  options.route_string,
+                                                  connect_timeout=options.timeout,
+                                                  timeout=options.timeout)
         logging.info("")
         logging.info(datetime.today().ctime())
         logging.info("connect to server o.k.")
