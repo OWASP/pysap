@@ -12,14 +12,12 @@ The operation codes and commands are documented in the SAP's help pages for the 
 In addition to those commands found in the ``saprouter`` program, the script includes undocumented
 operation codes.
 
-In order for administrative tasks to be run, the script needs to be run from the same system where the
-SAP Router instance is running (connections identified as "local" by the Network Interface (``NI``)
-protocol), or the SAP Router needs to be configured as to allow remote connections to the SAP Router
-port. An example of such a routing table to allow this access is as follows:
-
-.. code-block:: none
-
-    P * 127.0.0.1 3299
+Administrative commands normally require a connection the SAP Router recognizes
+as local. A route-table permission for port 3299 does not by itself grant remote
+administration; the router may still return ``Admin from remote denied`` or
+``info access denied``. ``-P <password>`` sends an information request using
+that password, and ``--timeout`` bounds connection and reply waiting. Commands
+without a success reply still display a returned router error when one arrives.
 
 The undocumented commands implemented by the script are the following ones:
 
@@ -50,127 +48,42 @@ fingerprinting by triggering those error conditions and matching the information
 error messages with a previously generated database. A fingerprint database is maintained and
 located in the ``examples/router_fingerprints.json`` file.
 
-The following is an example result of running the script against a version of SAP Router already
-in the database:
+The script sends 15 bounded probes, including two malformed-route checks,
+and ranks database versions by weighted partial matches. A returned control
+reply, an NI error, a clean connection close, and a timeout are different
+outcomes. Matching is deliberately fuzzy: a high rank narrows likely builds
+but does not prove an exact patch level. Some builds have indistinguishable
+error fields, and route policy, platform, or DNS behavior may change the
+response. The default database path is resolved beside the script, independent
+of the working directory. Use ``--timeout`` to bound each connection and
+response.
+
+Use ``--list-versions`` for a static, no-network view of the candidates
+represented in a fingerprint database. The table lists version identity and
+the number of configured probes for which each candidate has at least one
+record; it describes database coverage, not whether two candidates are
+distinguishable from each other:
 
 .. code-block:: none
 
-    $ examples/router_fingerprint.py -d <hostname>
-    [*] Loading fingerprint database
-    [*] Trying to fingerprint version using 13 packets
-    [*] (1/13) Fingerprint for packet 'No route one entry'
-    [*] (1/13) Fingerprint for packet 'No route one entry' matched !
-    [*] (2/13) Fingerprint for packet 'Timeout'
-    [*] (2/13) Fingerprint for packet 'Timeout' matched !
-    ..
-    ..
-    [*] (13/13) Fingerprint for packet 'No route invalid length' matched !
+    $ examples/router_fingerprint.py --list-versions
+    NI  Release  Patch  Platform        File version       Probes
+    --  -------  -----  --------------  -----------------  ------
+    38  701      29     windows-x86-32  7010.29.15.58313  15/15
 
-    [*] Matched fingerprints (13/13):
-    [+] Request: No route one entry
-    [+] Request: Timeout
-    [+] Request: No route
-    [+] Request: Empty route invalid offset
-    [+] Request: Non existent domain old version
-    [+] Request: Valid domain invalid service
-    [+] Request: Invalid control opcode
-    [+] Request: Network packet too big
-    [+] Request: Empty route invalid length
-    [+] Request: Non existent domain
-    [+] Request: Empty route valid length
-    [+] Request: Empty route null offset
-    [+] Request: No route invalid length
+.. code-block:: none
 
+    $ examples/router_fingerprint.py -d <hostname> --timeout 7
+    [*] Trying to fingerprint version using 15 packets
+    ...
     [*] Probable versions (1):
-    [*]	Hits: 13 Version: version: "40" release: "749" patch_number: "200" source_id: "0.200" update_level: "0" platform: "linux-x86-64" submitted_by: "@martingalloar"
+    [*] Probes: 15 Score: 15.00/15 Version: version: "40" release: "916" patch_number: "100"
 
-
-As can be observed, by matching the information in the error message with the fingerprint database
-it's possible to narrow down the version to a build number.
-
-The following is an example result of running the script against a version of SAP Router that is
-not found in the database:
-
-.. code-block:: none
-
-    $ examples/router_fingerprint.py -d <hostname>
-    [*] Loading fingerprint database
-    [*] Trying to fingerprint version using 13 packets
-    [*] (1/13) Fingerprint for packet 'No route one entry'
-    [*] (1/13) Fingerprint for packet 'No route one entry' not matched
-    [*] (2/13) Fingerprint for packet 'Timeout'
-    [*] (2/13) Fingerprint for packet 'Timeout' not matched
-    ..
-    ..
-    [*] (13/13) Fingerprint for packet 'No route invalid length'
-    [*] (13/13) Fingerprint for packet 'No route invalid length' not matched
-
-    [*] Non matched fingerprints (13/13):
-    [-] Request: No route one entry
-    [-] Request: Timeout
-    [-] Request: No route
-    [-] Request: Empty route invalid offset
-    [-] Request: Non existent domain old version
-    [-] Request: Valid domain invalid service
-    [-] Request: Invalid control opcode
-    [-] Request: Network packet too big
-    [-] Request: Empty route invalid length
-    [-] Request: Non existent domain
-    [-] Request: Empty route valid length
-    [-] Request: Empty route null offset
-    [-] Request: No route invalid length
-
-    [-] Some error values were not found in the fingerprint database. If you want to contribute, submit an issue to https://github.com/OWASP/pysap/issues with the following information along with the SAP Router file information and how it was configured.
-
-
-    New fingerprint saved to: saprouter_new_fingerprints.json
-
-
-    Version information to complete and submit:
-    {
-        "comment": "",
-        "submitted_by": "",
-        "update_level": "",
-        "patch_number": "",
-        "file_version": "",
-        "platform": "",
-        "source_id": ""
-    }
-
-In this case, as the information contained in the error messages wasn't found in the database,
-the script output contains the steps and information required to incorporate that version in the
-database as a new record. This can be done by using the ``--add-fingerprint`` or ``-a`` option on the script
-and providing the ``json`` record with the option ``--new-fingerprints-file``.
-
-The following example command line options can be used to add the missing version number to the
-database:
-
-.. code-block:: none
-
-    $ examples/router_fingerprint.py -a --new-fingerprints-file saprouter_new_fingerprints.json -i '{
-    >     "comment": "A new comment to add to the fingerprint",
-    >     "submitted_by": "GitHub username of the submitter",
-    >     "update_level": "update level",
-    >     "patch_number": "patch number",
-    >     "file_version": "file version",
-    >     "platform": "linux_x86_64",
-    >     "source_id": "source id number"
-    > }'
-    [*] Loading fingerprint database
-    [*] Adding a new entry to the fingerprint database
-    [*]	Added a new entry for the target No route one entry
-    [*]	Added a new entry for the target Timeout
-    [*]	Added a new entry for the target No route
-    [*]	Added a new entry for the target Empty route invalid offset
-    [*]	Added a new entry for the target Non existent domain old version
-    [*]	Added a new entry for the target Valid domain invalid service
-    [*]	Added a new entry for the target Invalid control opcode
-    [*]	Added a new entry for the target Network packet too big
-    [*]	Added a new entry for the target Empty route invalid length
-    [*]	Added a new entry for the target Non existent domain
-    [*]	Added a new entry for the target Empty route valid length
-    [*]	Added a new entry for the target Empty route null offset
-    [*]	Added a new entry for the target No route invalid length
+Unmatched observations are written to ``saprouter_new_fingerprints.json``.
+Use ``--new-entries`` to export all actual observations, even when a fuzzy
+match exists. Confirm the server's file version and patch level independently
+before adding records with ``--add-fingerprint`` and ``--version-information``;
+never treat a probable rank as verified version metadata.
 
 Fingerprints for missing versions can be contributed through the GitHub repository as issues
 reporting the version and build numbers, or as pull requests with the addition of new records to
@@ -195,6 +108,11 @@ Example usage:
     $ examples/router_niping.py --start-client -H <saprouter> -S 3298 -L 10 -B 1000
     $ examples/router_niping.py --start-client --route-string /H/<saprouter>/S/3299/H/<target-host>/S/3298
 
+If the router returns an error other than route-permission denial (for
+example, a permitted target that refuses the connection), the routed socket
+raises ``SAPRouterResponseError`` with the router return code and decoded
+error/detail text. The example prints that error without an uncaught traceback.
+
 
 ``router_password_check``
 -------------------------
@@ -207,8 +125,10 @@ the server is vulnerable to a timing attack on the password check
 More details about the vulnerability can be found in the
 `SAP Router Password Timing Attack security advisory <https://www.coresecurity.com/advisories/sap-router-password-timing-attack>`_.
 
-The script makes use of the optional ``fau_timer`` library for measuring the timing of server's responses, which
-can be installed from the `mona-timing-lib repository in GitHub <https://github.com/seecurity/mona-timing-lib>`_.
+The script measures each completed NI response with Python's
+``time.perf_counter_ns()``. ``--timeout`` bounds connection and response
+waiting. The CSV records candidate passwords in clear text, so store it only
+in an authorized research location and remove it when it is no longer needed.
 
 Example usage:
 
@@ -253,6 +173,11 @@ and ``--remote-port``). By requesting a connection to be routed to a given host/
 looking to the SAP Router response, it's possible to determine if the aforementioned host/port is open
 to the SAP Router. The script can be also used to discover and validate ACLs configured in the SAP
 Router instance.
+In NI mode, a route denial and an unreachable permitted target are reported
+separately. In raw mode, the router can acknowledge a route before its outbound
+connection fails; the scanner uses a bounded ``--timeout`` peek to detect a
+quick close. A silent backend that remains connected is reported as open, so
+this remains a reachability hint rather than proof of an application service.
 
 The list of hosts can be provided to the ``--target-hosts`` parameter as a comma-separated list of
 hostnames or IP addresses (e.g. ``10.0.0.1,10.0.0.10``), or in ``CIDR`` representation

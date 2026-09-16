@@ -51,8 +51,26 @@ class RouterFingerprintTest(unittest.TestCase):
                                            "module": "n.cpp", "patch_number": "100"}]})
         matches = db.match_fingerprint_scores("No route", {"outcome": "router_error",
             "fields": {"release": "916", "line": "4004", "module": "n.cpp"}})
-        self.assertEqual(fingerprint.ranked_versions({"No route": matches})[0]
-                         ["scores"], {"No route": 1.0})
+        self.assertEqual(db.rank_versions({"No route": matches})[0]["scores"],
+                         {"No route": 1.0})
+
+    def test_version_summary_aggregates_database_probe_coverage(self):
+        first = {"version": "38", "release": "701", "patch_number": "29",
+                 "platform": "windows-x86-32",
+                 "file_version": "7010.29.15.58313"}
+        second = {"version": "40", "release": "916", "patch_number": "100",
+                  "platform": "linux-x86-64", "file_version": ""}
+        db = self.database({"No route": [first, dict(first)],
+                            "Timeout": [first, second]})
+
+        summary = db.version_summary()
+        self.assertEqual(summary[0][1], {"No route", "Timeout"})
+        self.assertEqual(summary[1][1], {"Timeout"})
+        table = fingerprint.format_version_summary(summary, 15)
+        self.assertIn("NI  Release  Patch", table)
+        self.assertIn("38  701      29", table)
+        self.assertIn("windows-x86-32  7010.29.15.58313  2/15", table)
+        self.assertIn("40  916      100", table)
 
     def test_control_reply_is_not_misclassified_as_error(self):
         connection = mock.Mock()

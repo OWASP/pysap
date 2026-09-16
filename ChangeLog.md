@@ -12,6 +12,10 @@
 
 ### Enhancements and improvements
 
+- `examples/router_fingerprint.py` and its JSON database: Added two modeled
+  malformed-route probes, bounded NI timeouts, typed close outcomes, weighted
+  fuzzy ranking, a static database-version summary, and sanitized fingerprints
+  for retained builds.
 - `pysap/SAPMS.py`, `examples/ms_monitor.py`, and Message Server docs: Added
   monitor operations, structures, enums, response fields, and SNC variants
   ([#106](https://github.com/OWASP/pysap/pull/106)).
@@ -25,6 +29,9 @@
 
 ### Fixes
 
+- `examples/router_fingerprint.py`: Avoided misclassifying control replies as
+  errors, duplicate-record hit inflation, and exporting matched database rows
+  in place of actual observations.
 - `pysap/SAPMS.py`: Decode Message Server-forwarded peer frames with
   `iflag=0` as messages rather than ADM records, avoiding short-message
   parser failures in `ms_listener.py`.
