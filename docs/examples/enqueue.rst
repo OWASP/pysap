@@ -27,6 +27,11 @@ perform on the Enqueue Server. It connects with ``--remote-host`` and ``--remote
 changed with ``--client``. Packet logs can be written with ``--log-file``, console output can be
 written with ``--console-log``, and commands can be loaded from a file with ``--script``. A list of
 implemented commands can be obtained by running ``help`` inside the console.
+Use ``--timeout`` to bound connection and response waits. Script files use the
+same connection setup and cleanup lifecycle as interactive sessions.
+
+The ``enqueue_dos_exploit`` example also accepts ``--timeout`` for each routed
+connection attempt.
 
 Example usage:
 

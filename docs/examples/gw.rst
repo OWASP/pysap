@@ -19,6 +19,8 @@ changed with ``--client``.
 
 The script can write packet logs with ``--log-file`` and console output with
 ``--console-log``. It can also execute commands from a file with ``--script``.
+Both connection and response waits are bounded by ``--timeout``. Script files
+use the same startup and cleanup lifecycle as the interactive console.
 After connecting, run ``help`` inside the console to list the implemented
 commands.
 

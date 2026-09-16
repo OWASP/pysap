@@ -37,12 +37,12 @@ conf.verb = 0
 class SAPGWMonitorConsole(BaseConsole):
 
     intro = "SAP Gateway/RFC Monitor Console"
-    connection = None
-    connected = False
-    clients = []
 
     def __init__(self, options):
         super(SAPGWMonitorConsole, self).__init__(options)
+        self.connection = None
+        self.connected = False
+        self.clients = []
         self.runtimeoptions["client"] = self.options.client
         self.runtimeoptions["version"] = self.options.version
 
@@ -63,7 +63,10 @@ class SAPGWMonitorConsole(BaseConsole):
             self.connection = SAPRoutedStreamSocket.get_nisocket(self.options.remote_host,
                                                                  self.options.remote_port,
                                                                  self.options.route_string,
-                                                                 base_cls=SAPRFC)
+                                                                 base_cls=SAPRFC,
+                                                                 connect_timeout=self.options.timeout,
+                                                                 timeout=self.options.timeout,
+                                                                 max_frame_length=16 << 20)
         except SocketError as e:
             self._error("Error connecting with the Gateway service")
             self._error(str(e))
@@ -75,9 +78,12 @@ class SAPGWMonitorConsole(BaseConsole):
 
         self._debug("Sending check gateway packet")
         try:
-            response = self.connection.send(p)
-        except SocketError:
+            self.connection.send(p)
+        except SocketError as e:
+            self.connection.close()
+            self.connection = None
             self._error("Error connecting to the gateway monitor service")
+            self._error(str(e))
         else:
             self.connected = True
 
@@ -89,6 +95,7 @@ class SAPGWMonitorConsole(BaseConsole):
             return
 
         self.connection.close()
+        self.connection = None
         self._print("Dettached from %s / %d ..." % (self.options.remote_host, self.options.remote_port))
         self.connected = False
 
@@ -100,22 +107,20 @@ class SAPGWMonitorConsole(BaseConsole):
     def do_noop(self, args):
         """ Send a noop command to the Gateway service. """
 
-        if not self.connected:
-            self._error("You need to connect to the server first !")
+        if not self._require_connection():
             return
 
         p = SAPRFC(version=int(self.runtimeoptions["version"]), req_type=9,
                    cmd=1)
         self._debug("Sending noop packet")
-        response = self.connection.send(p)
+        self.connection.send(p)
 
     def do_client_list(self, args):
         """ Retrieve the list of clients connected to the Gateway service.
         Use the client # value when required to provide a client IDs as
         parameter. """
 
-        if not self.connected:
-            self._error("You need to connect to the server first !")
+        if not self._require_connection():
             return
 
 
@@ -149,11 +154,15 @@ def parse_options():
                       help="Console log file")
     misc.add_argument("--script", dest="script", metavar="FILE",
                       help="Script file to run")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=10.0,
+                      help="Connection and response timeout in seconds [%(default)s]")
 
     options = parser.parse_args()
 
     if not (options.remote_host or options.route_string):
         parser.error("Remote host or route string is required")
+    if options.timeout <= 0:
+        parser.error("Timeout must be positive")
 
     return options
 
@@ -169,7 +178,7 @@ def main():
 
     try:
         if options.script:
-            rfc_console.do_script(options.script)
+            rfc_console.run_script(options.script)
         else:
             rfc_console.cmdloop()
     except KeyboardInterrupt:

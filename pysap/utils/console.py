@@ -106,6 +106,17 @@ class BaseConsole (Cmd, object):
         else:        # Options starting with text
             return [option for option in list(self.runtimeoptions.keys()) if option.startswith(text)]
 
+    @staticmethod
+    def _complete_values(text, values):
+        """Complete a token from a finite collection of values."""
+        return sorted(value for value in (str(item) for item in values)
+                      if value.startswith(text))
+
+    @staticmethod
+    def _completion_arg(line, begidx):
+        """Return the zero-based argument currently being completed."""
+        return max(0, len(line[:begidx].split()) - 1)
+
     def do_script(self, args):
         """Runs a script file."""
         if not args:
@@ -125,6 +136,19 @@ class BaseConsole (Cmd, object):
                             break
             except OSError:
                 self._error("Error reading script file.")
+
+    def run_script(self, path):
+        """Run a command file with the same lifecycle as interactive mode."""
+        self.preloop()
+        try:
+            if hasattr(self, "connected") and not self.connected:
+                return False
+            self.do_script(path)
+            return True
+        finally:
+            if getattr(self, "connected", False):
+                self.do_disconnect(None)
+            self.postloop()
 
     def _parse_args(self, args):
         """Parse console arguments with shell-like quoting."""
