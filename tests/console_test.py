@@ -6,6 +6,7 @@
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
 
+import os
 import tempfile
 import unittest
 from types import SimpleNamespace
@@ -27,11 +28,13 @@ class BaseConsoleTest(unittest.TestCase):
 
     def test_script_ignores_comments_and_preserves_quoted_arguments(self):
         console = self.make_console()
-        with tempfile.NamedTemporaryFile("w", encoding="utf-8") as script:
+        script = tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False)
+        try:
             script.write("# comment\n\n capture 'two words' plain\n")
-            script.flush()
-
+            script.close()
             console.do_script(script.name)
+        finally:
+            os.unlink(script.name)
 
         console.do_capture.assert_called_once_with("'two words' plain")
 
