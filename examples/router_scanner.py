@@ -19,6 +19,7 @@
 
 # Standard imports
 import logging
+import socket
 from argparse import ArgumentParser
 # External imports
 from scapy.config import conf
@@ -28,6 +29,7 @@ import pysap
 from pysap.SAPNI import SAPNIStreamSocket, SAPNI
 from pysap.SAPRouter import (SAPRouterRouteHop, get_router_version,
                              SAPRoutedStreamSocket, SAPRouteException,
+                             SAPRouterResponseError,
                              SAPRouter,
                              ROUTER_TALK_MODE_NI_MSG_IO, ROUTER_TALK_MODE_NI_RAW_IO)
 # Optional imports
@@ -73,6 +75,8 @@ def parse_options():
 
     misc = parser.add_argument_group("Misc options")
     misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=2.0,
+                      help="Bound each route and raw-mode close check in seconds [%(default)s]")
 
     options = parser.parse_args()
 
@@ -85,6 +89,8 @@ def parse_options():
     options.talk_mode = options.talk_mode.lower()
     if options.talk_mode not in ["raw", "ni"]:
         parser.error("Invalid talk mode")
+    if options.timeout <= 0:
+        parser.error("Timeout must be positive")
 
     return options
 
@@ -100,15 +106,15 @@ def parse_target_hosts(target_hosts, target_ports):
             if netaddr:
                 if netaddr.valid_nmap_range(host):
                     for ip in netaddr.iter_nmap_range(host):
-                        yield (ip, port)
+                        yield (str(ip), port)
                 else:
                     for ip in netaddr.iter_unique_ips(host):
-                        yield (ip, port)
+                        yield (str(ip), port)
             else:
                 yield (host, port)
 
 
-def route_test(rhost, rport, thost, tport, talk_mode, router_version):
+def route_test(rhost, rport, thost, tport, talk_mode, router_version, timeout=2.0):
 
     logging.info("[*] Routing connections to %s:%s" % (thost, tport))
 
@@ -122,14 +128,30 @@ def route_test(rhost, rport, thost, tport, talk_mode, router_version):
     try:
         conn = SAPRoutedStreamSocket.get_nisocket(route=route,
                                                   talk_mode=talk_mode,
-                                                  router_version=router_version)
-        conn.close()
-        status = 'open'
+                                                  router_version=router_version,
+                                                  connect_timeout=timeout,
+                                                  timeout=timeout)
+        try:
+            status = 'open'
+            if talk_mode == ROUTER_TALK_MODE_NI_RAW_IO:
+                # In native mode a router may PONG before its outbound
+                # connection fails. A bounded peek distinguishes a quick
+                # close from a live or still-silent backend.
+                try:
+                    if not conn.ins.recv(1, socket.MSG_PEEK):
+                        status = 'closed'
+                except socket.timeout:
+                    pass
+        finally:
+            conn.close()
 
     # If an SAPRouteException is raised, the route was denied or an error
     # occurred with the SAP router
     except SAPRouteException:
         status = 'denied'
+
+    except SAPRouterResponseError as exc:
+        status = 'unreachable' if exc.return_code == -92 else 'error'
 
     # Another error occurred on the server (e.g. timeout), mark the target as error
     except Exception:
@@ -155,9 +177,13 @@ def main():
     if options.router_version is None:
         conn = SAPNIStreamSocket.get_nisocket(options.remote_host,
                                               options.remote_port,
-                                              keep_alive=False)
-        options.router_version = get_router_version(conn)
-        conn.close()
+                                              keep_alive=False,
+                                              connect_timeout=options.timeout,
+                                              timeout=options.timeout)
+        try:
+            options.router_version = get_router_version(conn)
+        finally:
+            conn.close()
     logging.info("[*] Using SAP Router version %d" % options.router_version)
 
     options.talk_mode = {"raw": ROUTER_TALK_MODE_NI_RAW_IO,
@@ -166,7 +192,8 @@ def main():
     results = []
     for (host, port) in parse_target_hosts(options.target_hosts, options.target_ports):
         status = route_test(options.remote_host, options.remote_port, host, port,
-                            options.talk_mode, options.router_version)
+                            options.talk_mode, options.router_version,
+                            options.timeout)
         if options.verbose:
             logging.info("[*] Status of %s:%s: %s" % (host, port, status))
         if status == "open":

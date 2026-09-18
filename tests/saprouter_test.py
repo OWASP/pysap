@@ -17,22 +17,80 @@
 #
 
 # Standard imports
-import sys
-import unittest
 import socket
+import io
+import logging
+import unittest
+from struct import pack
 from threading import Thread
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 # External imports
 import pytest
+from scapy.packet import Packet, raw
 
 # Custom imports
-from pysap.SAPNI import SAPNIServerHandler, SAPNIServerThreaded
-from pysap.SAPRouter import (SAPRouter, SAPRouterRouteHop, router_is_route,
-                             SAPRoutedStreamSocket, SAPRouteException)
+from pysap.SAPNI import (SAPNI, SAPNIServerHandler, SAPNIServerThreaded,
+                         SAPNIStreamSocket)
+from pysap.SAPRouter import (ROUTER_TALK_MODE_NI_MSG_IO,
+                             ROUTER_TALK_MODE_NI_RAW_IO, SAPRouteException,
+                             SAPRoutedStreamSocket, SAPRouter,
+                             SAPRouterError, SAPRouterNativeProxy,
+                             SAPRouterNativeRouterHandler,
+                             SAPRouterResponseError, SAPRouterRouteHop,
+                             normalize_route_hops, router_is_route)
 
 
-pytestmark = pytest.mark.integration
+class PySAPRouterErrorHandlingUnitTest(unittest.TestCase):
+
+    def test_native_proxy_route_debug_log_omits_password(self):
+        proxy = SAPRouterNativeProxy.__new__(SAPRouterNativeProxy)
+        proxy.remote_host = ("127.0.0.1", 3299)
+        proxy.target_address = "127.0.0.2"
+        proxy.target_port = 3700
+        proxy.target_pass = "synthetic-secret"
+        proxy.talk_mode = ROUTER_TALK_MODE_NI_RAW_IO
+        proxy.keep_alive = False
+        proxy.options = SimpleNamespace(target_route_string=None)
+        router = Mock()
+        router.sr.return_value = SAPNI() / SAPRouter(
+            type=SAPRouter.SAPROUTER_PONG, version=40)
+        logger = logging.getLogger("pysap.saprouter")
+        captured = io.StringIO()
+        handler = logging.StreamHandler(captured)
+        previous_level = logger.level
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+        try:
+            with patch.object(SAPNIStreamSocket, "get_nisocket",
+                              return_value=router):
+                self.assertIs(proxy.route(), router)
+        finally:
+            logger.removeHandler(handler)
+            logger.setLevel(previous_level)
+        self.assertIn("Route request (talk_mode=", captured.getvalue())
+        self.assertNotIn("synthetic-secret", captured.getvalue())
+
+    def test_non_denial_router_error_has_typed_code_and_text(self):
+        stream = SAPRoutedStreamSocket.__new__(SAPRoutedStreamSocket)
+        stream.router_version = 40
+        stream.basecls = SAPRouter
+        stream.sr = Mock(return_value=SAPRouter(
+            type=SAPRouter.SAPROUTER_ERROR, version=40, return_code=-92,
+            err_text_value=SAPRouterError(
+                error="partner 'localhost:3200' not reached",
+                detail="H<1> NiPConnect2: 127.0.0.1:3200")))
+        route = [SAPRouterRouteHop(hostname="127.0.0.1", port="3299"),
+                 SAPRouterRouteHop(hostname="127.0.0.1", port="3200")]
+        with self.assertRaises(SAPRouterResponseError) as caught:
+            stream.route_to(route, ROUTER_TALK_MODE_NI_MSG_IO)
+        self.assertEqual(caught.exception.return_code, -92)
+        self.assertIn("partner 'localhost:3200' not reached",
+                      str(caught.exception))
+        self.assertIn("NiPConnect2", caught.exception.detail)
 
 
+@pytest.mark.integration
 class PySAPRouterTest(unittest.TestCase):
 
     def check_route(self, route_string, route_hops):
@@ -127,6 +185,7 @@ class SAPRouterServerTestHandler(SAPNIServerHandler):
                                         err_text_unknown=0))
 
 
+@pytest.mark.integration
 class PySAPRoutedStreamSocketTest(unittest.TestCase):
 
     test_port = 18020
@@ -194,6 +253,7 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
         with self.assertRaises(SAPRouteException):
             self.client = SAPRoutedStreamSocket(sock, route=route,
                                                 router_version=40)
+        self.assertEqual(sock.fileno(), -1)
 
         self.stop_server()
 
@@ -245,15 +305,129 @@ class PySAPRoutedStreamSocketTest(unittest.TestCase):
         self.stop_server()
 
 
-def suite():
-    loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-    suite.addTest(loader.loadTestsFromTestCase(PySAPRouterTest))
-    suite.addTest(loader.loadTestsFromTestCase(PySAPRoutedStreamSocketTest))
-    return suite
+class FailingPacket(Packet):
+    name = "Failing test packet"
+    fields_desc = []
+
+    def do_dissect(self, s):
+        raise ValueError("forced dissector failure")
+
+
+class FakeSocket(object):
+    def __init__(self, data=b""):
+        self.data = data
+        self.sent = []
+        self.closed = False
+
+    def recv(self, size, flags=0):
+        if flags:
+            return self.data[:size]
+        chunk = self.data[:size]
+        self.data = self.data[size:]
+        return chunk
+
+    def sendall(self, data):
+        self.sent.append(data)
+
+    def close(self):
+        self.closed = True
+
+    def fileno(self):
+        return -1
+
+
+class SocketWrapper(object):
+    def __init__(self, ins):
+        self.ins = ins
+        self.closed = False
+
+    def close(self):
+        self.closed = True
+        self.ins.close()
+
+
+class PySAPNIStreamSocketUnitTest(unittest.TestCase):
+
+    def test_recv_raises_decode_errors_for_base_class(self):
+        stream = SAPNIStreamSocket.__new__(SAPNIStreamSocket)
+        stream.ins = FakeSocket(raw(SAPNI() / b"bad"))
+        stream.keep_alive = False
+        stream.basecls = FailingPacket
+
+        with self.assertRaises(ValueError):
+            stream.recv()
+
+    def test_recv_keeps_ping_payload_raw_when_saprouter_is_bound(self):
+        stream = SAPNIStreamSocket.__new__(SAPNIStreamSocket)
+        stream.ins = FakeSocket(raw(SAPNI() / SAPNI.SAPNI_PING))
+        stream.keep_alive = False
+        stream.basecls = None
+
+        packet = stream.recv()
+
+        self.assertIn(SAPNI, packet)
+        self.assertEqual(packet[SAPNI].length, len(SAPNI.SAPNI_PING))
+        self.assertEqual(packet.payload.load, SAPNI.SAPNI_PING)
+
+
+class PySAPRouterRouteUnitTest(unittest.TestCase):
+
+    def test_normalize_route_hops_converts_integer_ports(self):
+        route = [SAPRouterRouteHop(hostname="router", port=3299),
+                 SAPRouterRouteHop(hostname="target", port=3200)]
+
+        normalize_route_hops(route)
+
+        self.assertEqual(route[0].port, b"3299")
+        self.assertEqual(route[1].port, b"3200")
+        self.assertEqual(raw(route[1]), b"target\x003200\x00\x00")
+
+
+class PySAPRouterNativeRouterHandlerUnitTest(unittest.TestCase):
+
+    def _handler(self, talk_mode):
+        handler = SAPRouterNativeRouterHandler.__new__(SAPRouterNativeRouterHandler)
+        handler.options = SimpleNamespace(talk_mode=talk_mode)
+        handler.mtu = 2048
+        return handler
+
+    def test_raw_mode_forwards_bytes_unchanged(self):
+        handler = self._handler(ROUTER_TALK_MODE_NI_RAW_IO)
+        local = SocketWrapper(FakeSocket(b"native"))
+        remote = SocketWrapper(FakeSocket())
+
+        handler.recv_send(local, remote, handler.process_client)
+
+        self.assertEqual(remote.ins.sent, [b"native"])
+
+    def test_ni_message_mode_wraps_client_payload_once(self):
+        handler = self._handler(ROUTER_TALK_MODE_NI_MSG_IO)
+        local = SocketWrapper(FakeSocket(b"payload"))
+        remote = SocketWrapper(FakeSocket())
+
+        handler.recv_send(local, remote, handler.process_client)
+
+        self.assertEqual(remote.ins.sent, [pack("!I", 7) + b"payload"])
+
+    def test_ni_message_mode_forwards_router_frame_once(self):
+        handler = self._handler(ROUTER_TALK_MODE_NI_MSG_IO)
+        frame = pack("!I", 7) + b"payload"
+        local = SocketWrapper(FakeSocket(frame))
+        remote = SocketWrapper(FakeSocket())
+
+        handler.recv_send(local, remote, handler.process_server)
+
+        self.assertEqual(remote.ins.sent, [frame])
+
+    def test_ni_message_mode_skips_keepalive_frame(self):
+        handler = self._handler(ROUTER_TALK_MODE_NI_MSG_IO)
+        local = SocketWrapper(FakeSocket(b"\xff\xff\xff\xff"))
+        remote = SocketWrapper(FakeSocket())
+
+        handler.recv_send(local, remote, handler.process_server)
+
+        self.assertEqual(remote.ins.sent, [])
 
 
 if __name__ == "__main__":
-    test_runner = unittest.TextTestRunner(verbosity=2, resultclass=unittest.TextTestResult)
-    result = test_runner.run(suite())
-    sys.exit(not result.wasSuccessful())
+    unittest.main()

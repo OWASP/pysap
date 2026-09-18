@@ -28,7 +28,7 @@ from scapy.config import conf
 # Custom imports
 import pysap
 from pysap.SAPNI import SAPNIStreamSocket
-from pysap.SAPRouter import SAPRoutedStreamSocket
+from pysap.SAPRouter import SAPRoutedStreamSocket, SAPRouterResponseError
 
 
 # Set the verbosity to 0
@@ -63,6 +63,8 @@ def parse_options():
                       help="Size of data-buffer [%(default)d]")
     misc.add_argument("-L", "--loops", dest="loops", type=int, default=10,
                       help="Number of loops [%(default)d]")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=10.0,
+                      help="Connection and response timeout in seconds [%(default)s]")
 
     options = parser.parse_args()
 
@@ -71,6 +73,8 @@ def parse_options():
 
     if options.client and not (options.host or options.route_string):
         parser.error("Remote host is required for starting a client")
+    if options.timeout <= 0:
+        parser.error("Timeout must be positive")
 
     return options
 
@@ -89,7 +93,9 @@ def client_mode(options):
         # Establish the connection
         conn = SAPRoutedStreamSocket.get_nisocket(options.host,
                                                   options.port,
-                                                  options.route_string)
+                                                  options.route_string,
+                                                  connect_timeout=options.timeout,
+                                                  timeout=options.timeout)
         logging.info("")
         logging.info(datetime.today().ctime())
         logging.info("connect to server o.k.")
@@ -115,8 +121,13 @@ def client_mode(options):
 
     except SocketError:
         logging.error("[*] Connection error")
+        return 1
+    except SAPRouterResponseError as exc:
+        logging.error("[*] Router connection error: %s", exc)
+        return 1
     except KeyboardInterrupt:
         logging.error("[*] Cancelled by the user")
+        return 1
 
     if times:
         logging.info("")
@@ -146,6 +157,8 @@ def client_mode(options):
         logging.info("av2  {:8.3f} ms".format(times2_avg))
         logging.info("tr2  {:8.3f} kB/s".format(times2_tr))
         logging.info("")
+
+    return 0
 
 
 def server_mode(options):
@@ -215,11 +228,11 @@ def main():
 
     # Client running mode
     if options.client:
-        client_mode(options)
+        return client_mode(options)
     # Server running mode
     elif options.server:
         server_mode(options)
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

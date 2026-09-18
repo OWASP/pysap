@@ -20,7 +20,7 @@
 # Standard imports
 import logging
 from argparse import ArgumentParser
-from socket import error as SocketError
+from socket import error as SocketError, timeout as SocketTimeout
 # External imports
 from scapy.config import conf
 # Custom imports
@@ -57,6 +57,8 @@ def parse_options():
     misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
     misc.add_argument("-c", "--client", dest="client", default="pysap's-listener",
                       help="Client name [%(default)s]")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=10.0,
+                      help="Connection and response timeout in seconds [%(default)s]")
 
     options = parser.parse_args()
 
@@ -64,6 +66,8 @@ def parse_options():
         parser.error("Remote host or route string is required")
     if options.domain not in ms_domain_values_inv.keys():
         parser.error("Invalid domain specified")
+    if options.timeout <= 0:
+        parser.error("Timeout must be positive")
 
     return options
 
@@ -81,7 +85,10 @@ def main():
     conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
                                               options.remote_port,
                                               options.route_string,
-                                              base_cls=SAPMS)
+                                              base_cls=SAPMS,
+                                              connect_timeout=options.timeout,
+                                              timeout=options.timeout,
+                                              max_frame_length=16 << 20)
     print("[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port))
 
     client_string = options.client.encode() if isinstance(options.client, str) else options.client
@@ -109,6 +116,8 @@ def main():
             else:
                 response.show()
 
+    except SocketTimeout:
+        print("[*] Response timeout reached")
     except SocketError:
         print("[*] Connection error")
     except KeyboardInterrupt:

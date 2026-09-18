@@ -58,11 +58,15 @@ def parse_options():
 
     misc = parser.add_argument_group("Misc options")
     misc.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="Verbose output")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=10.0,
+                      help="Connection and response timeout in seconds [%(default)s]")
 
     options = parser.parse_args()
 
     if not (options.remote_host or options.route_string):
         parser.error("Remote host or route string is required")
+    if options.timeout <= 0:
+        parser.error("Timeout must be positive")
 
     return options
 
@@ -89,7 +93,9 @@ def main():
         conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
                                                   options.remote_port,
                                                   options.route_string,
-                                                  talk_mode=ROUTER_TALK_MODE_NI_RAW_IO)
+                                                  talk_mode=ROUTER_TALK_MODE_NI_RAW_IO,
+                                                  connect_timeout=options.timeout,
+                                                  timeout=options.timeout)
     except (OSError, Exception) as e:
         print("[-] Connection failed: %s" % e)
         return

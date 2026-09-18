@@ -34,9 +34,6 @@ from pysap.SAPNI import (SAPNI, SAPNIFrameLengthError, SAPNIStreamSocket,
                          SAPNIProxyHandler)
 
 
-pytestmark = pytest.mark.integration
-
-
 class PySAPBaseServerTest(unittest.TestCase):
 
     def start_server(self, address, port, handler_cls, server_cls=None):
@@ -78,6 +75,24 @@ class PySAPNITest(unittest.TestCase):
 
         self.assertEqual(sapni.length, len(self.test_string))
         self.assertEqual(sapni.payload.load, self.test_string)
+
+
+class PySAPNIServerHandlerUnitTest(unittest.TestCase):
+
+    def test_clean_stream_eof_stops_handler_without_dispatching(self):
+        """A clean Scapy EOF ends the handler without a packet callback."""
+        handler = SAPNIServerHandler.__new__(SAPNIServerHandler)
+        handler.closed = mock.Mock()
+        handler.closed.is_set.return_value = False
+        handler.request = mock.Mock()
+        handler.request.recv.side_effect = EOFError()
+        handler.client_address = ("127.0.0.1", 50000)
+        handler.handle_data = mock.Mock()
+
+        handler.handle()
+
+        handler.request.recv.assert_called_once_with()
+        handler.handle_data.assert_not_called()
 
 
 class SAPNITestHandler(BaseRequestHandler):
@@ -128,6 +143,7 @@ class SAPNITestHandlerPartialHeader(BaseRequestHandler):
         self.request.sendall(b"\x00\x00")
 
 
+@pytest.mark.integration
 class PySAPNIStreamSocketTest(PySAPBaseServerTest):
 
     test_port = 8010
@@ -387,6 +403,7 @@ class SAPNIServerTestHandler(SAPNIServerHandler):
         self.request.send(self.packet)
 
 
+@pytest.mark.integration
 class PySAPNIServerTest(PySAPBaseServerTest):
 
     test_port = 8011
@@ -415,6 +432,7 @@ class PySAPNIServerTest(PySAPBaseServerTest):
         self.stop_server()
 
 
+@pytest.mark.integration
 class PySAPNIProxyTest(PySAPBaseServerTest):
 
     test_proxyport = 8012
@@ -498,6 +516,7 @@ def suite():
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
     suite.addTest(loader.loadTestsFromTestCase(PySAPNITest))
+    suite.addTest(loader.loadTestsFromTestCase(PySAPNIServerHandlerUnitTest))
     suite.addTest(loader.loadTestsFromTestCase(PySAPNIStreamSocketTest))
     suite.addTest(loader.loadTestsFromTestCase(PySAPNIServerTest))
     suite.addTest(loader.loadTestsFromTestCase(PySAPNIProxyTest))

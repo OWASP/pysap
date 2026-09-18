@@ -3,6 +3,9 @@
 Internet Graphic Service Example scripts
 ========================================
 
+All IGS examples accept ``--timeout`` to bound routed connection and response
+waits. The default is 10 seconds.
+
 ``igs_http_imgconv``
 --------------------
 

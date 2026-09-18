@@ -22,11 +22,10 @@ import logging
 from argparse import ArgumentParser
 # External imports
 from scapy.config import conf
-from scapy.packet import Raw
 # Custom imports
 import pysap
 from pysap.SAPRouter import SAPRoutedStreamSocket
-from pysap.SAPMS import SAPMS, ms_domain_values_inv
+from pysap.SAPMS import SAPMS, SAPMSPeerPayload, ms_domain_values_inv
 
 
 # Set the verbosity to 0
@@ -60,6 +59,8 @@ def parse_options():
                       help="Message to send to the target client [%(default)s]")
     misc.add_argument("-t", "--target", dest="target", default="pysap's-listener",
                       help="Target client name to send the message [%(default)s]")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=10.0,
+                      help="Connection and response timeout in seconds [%(default)s]")
 
     options = parser.parse_args()
 
@@ -69,6 +70,8 @@ def parse_options():
         parser.error("Target server and message are required !")
     if options.domain not in ms_domain_values_inv.keys():
         parser.error("Invalid domain specified")
+    if options.timeout <= 0:
+        parser.error("Timeout must be positive")
 
     return options
 
@@ -86,7 +89,10 @@ def main():
     conn = SAPRoutedStreamSocket.get_nisocket(options.remote_host,
                                               options.remote_port,
                                               options.route_string,
-                                              base_cls=SAPMS)
+                                              base_cls=SAPMS,
+                                              connect_timeout=options.timeout,
+                                              timeout=options.timeout,
+                                              max_frame_length=16 << 20)
     print("[*] Connected to the message server %s:%d" % (options.remote_host, options.remote_port))
 
     client_string = options.client.encode() if isinstance(options.client, str) else options.client
@@ -104,8 +110,9 @@ def main():
     print("[*] Login performed, server string: %s" % (fromname.decode("utf-8", errors="replace").strip() if isinstance(fromname, bytes) else fromname))
 
     # Sends a message to another client
-    p = SAPMS(flag=0x02, iflag=0x01, domain=domain, toname=options.target, fromname=client_string, opcode=1)
-    p /= Raw(options.message.encode("utf-8"))
+    p = SAPMS(flag=0x02, iflag=0x01, domain=domain,
+              toname=options.target, fromname=client_string)
+    p /= SAPMSPeerPayload(opcode=1, message=options.message.encode("utf-8"))
 
     print("[*] Sending packet to: %s" % options.target)
     conn.send(p)

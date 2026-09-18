@@ -23,17 +23,12 @@ from argparse import ArgumentParser
 from socket import error as SocketError
 # External imports
 from scapy.config import conf
-from scapy.packet import bind_layers
 # Custom imports
 import pysap
-from pysap.SAPNI import SAPNI
 from pysap.utils.console import BaseConsole
 from pysap.SAPEnqueue import (SAPEnqueue, SAPEnqueueParam, enqueue_param_values,
                               SAPEnqueueStreamSocket, SAPEnqueueTracePattern)
 
-
-# Bind SAP NI with Enqueue packets
-bind_layers(SAPNI, SAPEnqueue, )
 
 # Set the verbosity to 0
 conf.verb = 0
@@ -42,11 +37,11 @@ conf.verb = 0
 class SAPEnqueueAdminConsole(BaseConsole):
 
     intro = "SAP Enqueue Server Admin Console"
-    connection = None
-    connected = False
 
     def __init__(self, options):
         super(SAPEnqueueAdminConsole, self).__init__(options)
+        self.connection = None
+        self.connected = False
         self.runtimeoptions["client_name"] = self.options.client
         self.runtimeoptions["client_recv_length"] = 1000
         self.runtimeoptions["client_send_length"] = 1000
@@ -68,7 +63,10 @@ class SAPEnqueueAdminConsole(BaseConsole):
         try:
             self.connection = SAPEnqueueStreamSocket.get_nisocket(self.options.remote_host,
                                                                   self.options.remote_port,
-                                                                  self.options.route_string)
+                                                                  self.options.route_string,
+                                                                  connect_timeout=self.options.timeout,
+                                                                  timeout=self.options.timeout,
+                                                                  max_frame_length=16 << 20)
         except SocketError as e:
             self._error("Error connecting with the Enqueue Server")
             self._error(str(e))
@@ -87,7 +85,14 @@ class SAPEnqueueAdminConsole(BaseConsole):
         p = SAPEnqueue(dest=6, opcode=1, params=params)
 
         self._debug("Retrieving parameters")
-        response = self.connection.sr(p)[SAPEnqueue]
+        try:
+            response = self.connection.sr(p)[SAPEnqueue]
+        except SocketError as e:
+            self.connection.close()
+            self.connection = None
+            self._error("Error negotiating with the Enqueue Server")
+            self._error(str(e))
+            return
 
         # Walk over the server's parameters
         for param in response.params:
@@ -114,6 +119,7 @@ class SAPEnqueueAdminConsole(BaseConsole):
             return
 
         self.connection.close()
+        self.connection = None
         self._print("Dettached from %s / %d ..." % (self.options.remote_host, self.options.remote_port))
         self.connected = False
 
@@ -208,11 +214,15 @@ def parse_options():
     misc.add_argument("--console-log", dest="consolelog", metavar="FILE",
                       help="Console log file")
     misc.add_argument("--script", dest="script", metavar="FILE", help="Script file to run")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=10.0,
+                      help="Connection and response timeout in seconds [%(default)s]")
 
     options = parser.parse_args()
 
     if not (options.remote_host or options.route_string):
         parser.error("Remote host or route string is required")
+    if options.timeout <= 0:
+        parser.error("Timeout must be positive")
 
     return options
 
@@ -228,7 +238,7 @@ def main():
 
     try:
         if options.script:
-            en_console.do_script(options.script)
+            en_console.run_script(options.script)
         else:
             en_console.cmdloop()
     except KeyboardInterrupt:

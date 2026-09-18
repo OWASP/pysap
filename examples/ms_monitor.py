@@ -27,7 +27,7 @@ from scapy.config import conf
 # Custom imports
 import pysap
 from pysap.utils.console import BaseConsole
-from pysap.SAPMS import (SAPMS, ms_client_status_values, ms_opcode_error_values,
+from pysap.SAPMS import (SAPMS, SAPMSPayload, ms_client_status_values, ms_opcode_error_values,
                          ms_dump_command_values, SAPMSCounter, ms_opcode_values,
                          ms_errorno_values, SAPMSProperty, ms_property_id_values,
                          SAPMSAdmRecord, ms_domain_values_inv,
@@ -49,6 +49,9 @@ class SAPMSMonitorConsole(BaseConsole):
 
     def __init__(self, options):
         super(SAPMSMonitorConsole, self).__init__(options)
+        self.connection = None
+        self.connected = False
+        self.clients = []
         self.runtimeoptions["client_string"] = self.options.client
         self.runtimeoptions["domain"] = self.options.domain
 
@@ -98,17 +101,6 @@ class SAPMSMonitorConsole(BaseConsole):
         self.runtimeoptions["instance"] = instance
         self._debug("Server instance: %s" % instance)
 
-    @staticmethod
-    def _complete_values(text, values):
-        """Complete a token from a finite set of SAPMS values."""
-        return sorted(value for value in (str(item) for item in values)
-                      if value.startswith(text))
-
-    @staticmethod
-    def _completion_arg(line, begidx):
-        """Return the zero-based argument currently being completed."""
-        return max(0, len(line[:begidx].split()) - 1)
-
     def _complete_client_ids(self, text):
         return self._complete_values(text, range(len(self.clients)))
 
@@ -118,11 +110,12 @@ class SAPMSMonitorConsole(BaseConsole):
 
     # Helper for crafting packets
     def _build(self, flag, iflag, **args):
-        return SAPMS(flag=flag, iflag=iflag,
-                     toname=self.runtimeoptions["server_string"],
-                     fromname=self.runtimeoptions["client_string"],
-                     domain=ms_domain_values_inv[self.runtimeoptions["domain"]],
-                     **args)
+        packet = SAPMS(
+            flag=flag, iflag=iflag,
+            toname=self.runtimeoptions["server_string"],
+            fromname=self.runtimeoptions["client_string"],
+            domain=ms_domain_values_inv[self.runtimeoptions["domain"]])
+        return packet / SAPMSPayload(**args) if args else packet
 
     # Helper for sending simple commands and opcodes
     def _send_simple(self, flag, iflag, **args):
@@ -137,10 +130,12 @@ class SAPMSMonitorConsole(BaseConsole):
         p = self._build(flag, iflag, **args)
 
         self._debug("Sending %spacket" % opcode_name)
-        response = self.connection.sr(p)[SAPMS]
+        response = self.connection.sr(p)[SAPMSPayload]
 
         if response.opcode_error != 0:
-            self._print("Error: %s" % ms_opcode_error_values[response.opcode_error])
+            self._print("Error: %s" % ms_opcode_error_values.get(
+                response.opcode_error,
+                "Unknown error %d" % response.opcode_error))
             return None
         else:
             return response
@@ -156,7 +151,10 @@ class SAPMSMonitorConsole(BaseConsole):
             self.connection = SAPRoutedStreamSocket.get_nisocket(self.options.remote_host,
                                                                  self.options.remote_port,
                                                                  self.options.route_string,
-                                                                 base_cls=SAPMS)
+                                                                 base_cls=SAPMS,
+                                                                 connect_timeout=self.options.timeout,
+                                                                 timeout=self.options.timeout,
+                                                                 max_frame_length=16 << 20)
         except SocketError as e:
             self._error("Error connecting with the Message Server")
             self._error(str(e))
@@ -170,7 +168,13 @@ class SAPMSMonitorConsole(BaseConsole):
                   fromname=self.runtimeoptions["client_string"])
 
         self._debug("Sending login packet")
-        response = self.connection.sr(p)[SAPMS]
+        try:
+            response = self.connection.sr(p)[SAPMS]
+        except SocketError as e:
+            self.connection.close()
+            self.connection = None
+            self._error("Message Server login failed: %s" % e)
+            return
 
         if response.errorno == 0:
             self.runtimeoptions["server_string"] = response.fromname.strip() + b"\x00"
@@ -180,6 +184,8 @@ class SAPMSMonitorConsole(BaseConsole):
                                                                                   self.options.remote_port))
             self.connected = True
         else:
+            self.connection.close()
+            self.connection = None
             if response.errorno in ms_errorno_values:
                 self._error("Error performing login: %s" % ms_errorno_values[response.errorno])
             else:
@@ -986,7 +992,7 @@ class SAPMSMonitorConsole(BaseConsole):
         adm = SAPMSAdmRecord(opcode=0x1, parameter=parameter_name)
         p = self._build(0x04, 0x05, adm_records=[adm])
 
-        response = self.connection.sr(p)[SAPMS]
+        response = self.connection.sr(p)[SAPMSPayload]
 
         if response.adm_records and response.adm_records[0].errorno == 0:
             param = response.adm_records[0].parameter
@@ -1014,7 +1020,7 @@ class SAPMSMonitorConsole(BaseConsole):
                                                   parameter_value))
         p = self._build(0x04, 0x05, adm_records=[adm])
 
-        response = self.connection.sr(p)[SAPMS]
+        response = self.connection.sr(p)[SAPMSPayload]
 
         if not response.adm_records or response.adm_records[0].errorno != 0:
             self._error("Error changing the parameter !")
@@ -1089,6 +1095,8 @@ def parse_options():
                       help="Console log file")
     misc.add_argument("--script", dest="script", metavar="FILE",
                       help="Script file to run")
+    misc.add_argument("--timeout", dest="timeout", type=float, default=10.0,
+                      help="Connection and response timeout in seconds [%(default)s]")
 
     options = parser.parse_args()
 
@@ -1096,6 +1104,8 @@ def parse_options():
         parser.error("Remote host or route string is required")
     if options.domain not in ms_domain_values_inv.keys():
         parser.error("Invalid domain specified")
+    if options.timeout <= 0:
+        parser.error("Timeout must be positive")
 
     return options
 
@@ -1111,7 +1121,7 @@ def main():
 
     try:
         if options.script:
-            ms_console.do_script(options.script)
+            ms_console.run_script(options.script)
         else:
             ms_console.cmdloop()
     except KeyboardInterrupt:
