@@ -1,0 +1,54 @@
+name: Documentation
+
+on:
+  push:
+    paths:
+      - "docs/**"
+      - "README.md"
+      - "ChangeLog.md"
+      - "requirements-docs.txt"
+      - "setup.py"
+      - "pyproject.toml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - "README.md"
+      - "ChangeLog.md"
+      - "requirements-docs.txt"
+      - "setup.py"
+      - "pyproject.toml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.2"
+          enable-cache: true
+          cache-dependency-glob: |
+            requirements.txt
+            requirements-docs.txt
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y pandoc texlive-latex-base ghostscript
+      - run: uv pip install --system wheel setuptools
+      - run: uv pip install --system -r requirements.txt -r requirements-docs.txt
+      - run: uv pip install --system -e .
+      - run: python -m sphinx -b html docs docs/_build/html
+      - uses: actions/upload-artifact@v7
+        with:
+          name: docs-html
+          path: docs/_build/html
+          if-no-files-found: error

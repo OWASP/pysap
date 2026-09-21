@@ -6,6 +6,10 @@ integration layer for socket-backed protocol paths. The current harness is
 designed to run in the local development environment, in CI, and in restricted
 sandboxes without changing the test code.
 
+Python 3.11 is the default development and testing environment. Python 3.10
+and 3.15 remain in the compatibility matrix as experimental, non-blocking
+versions.
+
 Test layers
 -----------
 

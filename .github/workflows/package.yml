@@ -1,0 +1,60 @@
+name: Package validation
+
+on:
+  push:
+    paths:
+      - "pysap/**"
+      - "pysapcompress.py"
+      - "bin/**"
+      - "extra/**"
+      - "setup.py"
+      - "pyproject.toml"
+      - "MANIFEST.in"
+      - "requirements*.txt"
+  pull_request:
+    paths:
+      - "pysap/**"
+      - "pysapcompress.py"
+      - "bin/**"
+      - "extra/**"
+      - "setup.py"
+      - "pyproject.toml"
+      - "MANIFEST.in"
+      - "requirements*.txt"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Build and validate distributions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - run: python -m pip install --upgrade pip build twine
+      - run: python -m build
+      - name: Validate distribution metadata and archives
+        run: |
+          python -m twine check dist/*
+          for wheel in dist/*.whl; do python -m zipfile -t "$wheel"; done
+      - name: Install and validate wheel
+        run: |
+          python -m venv .venv-wheel
+          .venv-wheel/bin/python -m pip install --upgrade pip
+          .venv-wheel/bin/python -m pip install dist/*.whl
+          .venv-wheel/bin/python -m pip check
+          .venv-wheel/bin/python -c "import pysap, pysapcompress"
+      - name: Install and validate source distribution
+        run: |
+          python -m venv .venv-sdist
+          .venv-sdist/bin/python -m pip install --upgrade pip
+          .venv-sdist/bin/python -m pip install dist/*.tar.gz
+          .venv-sdist/bin/python -m pip check
+          .venv-sdist/bin/python -c "import pysap, pysapcompress"

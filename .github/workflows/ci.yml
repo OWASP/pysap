@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    paths-ignore:
+      - "docs/**"
+      - "README.md"
+      - "ChangeLog.md"
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "README.md"
+      - "ChangeLog.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.2"
+          enable-cache: true
+          cache-dependency-glob: requirements-lint.txt
+      - run: uv pip install --system wheel tox
+      - run: uv pip install --system -r requirements-lint.txt
+      - run: python -m tox -e lint-core
+
+  unit:
+    name: Unit tests (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: "3.10"
+            experimental: true
+          - os: ubuntu-latest
+            python-version: "3.11"
+            experimental: false
+          - os: ubuntu-latest
+            python-version: "3.12"
+            experimental: false
+          - os: ubuntu-latest
+            python-version: "3.13"
+            experimental: false
+          - os: ubuntu-latest
+            python-version: "3.14"
+            experimental: false
+          - os: ubuntu-latest
+            python-version: "3.15"
+            experimental: true
+          - os: macos-latest
+            python-version: "3.10"
+            experimental: true
+          - os: windows-latest
+            python-version: "3.14"
+            experimental: false
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.2"
+          enable-cache: true
+          cache-dependency-glob: |
+            requirements.txt
+            requirements-test.txt
+      - if: runner.os == 'macOS'
+        run: brew install openssl libdnet libpcap
+      - run: uv pip install --system wheel setuptools
+      - run: uv pip install --system -r requirements.txt -r requirements-test.txt
+      - run: uv pip install --system -e .
+      - run: python -m tox -e unit -- --maxfail=1
+
+  packet-visuals:
+    name: Packet visual tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.2"
+          enable-cache: true
+          cache-dependency-glob: |
+            requirements.txt
+            requirements-test.txt
+      - run: uv pip install --system wheel setuptools
+      - run: uv pip install --system -r requirements.txt -r requirements-test.txt
+      - run: uv pip install --system -e .
+      - run: python -m tox -e packet-visuals -- --maxfail=1

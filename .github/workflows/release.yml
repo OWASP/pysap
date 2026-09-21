@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and create draft release
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - run: python -m pip install --upgrade pip build twine
+      - run: python -m build
+      - name: Validate release artifacts
+        run: |
+          python -m twine check dist/*
+          for wheel in dist/*.whl; do python -m zipfile -t "$wheel"; done
+          test "$(find dist -maxdepth 1 -name '*.whl' | wc -l)" -eq 1
+          test "$(find dist -maxdepth 1 -name '*.tar.gz' | wc -l)" -eq 1
+      - name: Verify tag matches package version
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          PACKAGE_VERSION=$(python -c 'import re; from pathlib import Path; text=Path("pysap/__init__.py").read_text(); print(re.search(r"__version__\s*=\s*[\x27\"]([^\x27\"]+)", text).group(1))')
+          test "v${PACKAGE_VERSION}" = "${RELEASE_TAG}"
+      - name: Create draft GitHub release
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          gh release create "${RELEASE_TAG}" \
+            --verify-tag \
+            --repo "${GITHUB_REPOSITORY}" \
+            --draft \
+            --title "pysap ${RELEASE_TAG}" \
+            --generate-notes \
+            dist/*

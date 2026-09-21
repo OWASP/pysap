@@ -1,0 +1,37 @@
+name: Integration tests
+
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.2"
+          enable-cache: true
+          cache-dependency-glob: |
+            requirements.txt
+            requirements-test.txt
+      - run: uv pip install --system wheel setuptools
+      - run: uv pip install --system -r requirements.txt -r requirements-test.txt
+      - run: uv pip install --system -e .
+      - run: python -m tox -e integration -- --maxfail=1
