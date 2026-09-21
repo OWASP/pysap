@@ -6,7 +6,7 @@ pysap - Python library for crafting SAP's network protocols packets
 [![Read the Docs](https://img.shields.io/readthedocs/pysap?logo=readthedocs)](https://pysap.readthedocs.io/)
 [![Discord](https://img.shields.io/discord/710814201358319676?logo=discord&label=Discord)](https://discord.com/channels/710814201358319676/1155823687329660948)
 
-Version 0.2.1
+Version 0.2.2.dev0 (in dev)
 
 Overview
 --------

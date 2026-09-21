@@ -1,5 +1,7 @@
 # Changelog
 
+## v0.2.2.dev0 - in dev
+
 ## v0.2.1 - 2026-09-21
 
 ### New features
