@@ -1,6 +1,6 @@
 # Sphinx 8+ requires Python >=3.11; use the Python 3.11 development environment for docs.
-Sphinx>=7.4.7,<8.0
+Sphinx>=8.2.3,<9.0
 ipykernel
-nbsphinx>=0.9.0
+nbsphinx>=0.9.8
 ipython
-myst-parser
+myst-parser>=5.1.0
