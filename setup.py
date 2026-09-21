@@ -19,8 +19,9 @@
 
 # Standard imports
 import re
+import tempfile
 from pathlib import Path
-from setuptools import setup, Command
+from setuptools import find_namespace_packages, setup, Command
 from setuptools._distutils.errors import DistutilsExecError
 
 
@@ -113,34 +114,41 @@ class PreExecuteNotebooksCommand(Command):
         try:
             import nbformat
             from nbconvert.preprocessors import ExecutePreprocessor
+            from jupyter_client import AsyncKernelManager
         except ImportError as exc:
             raise DistutilsExecError(
                 "nbformat and nbconvert are required to execute notebooks. "
                 "Install the docs extra first: python3 -m pip install pysap[docs]"
             ) from exc
 
-        for notebook in self.notebooks:
-            self.announce("executing notebook %s" % notebook, level=2)
-            with notebook.open("r", encoding="utf-8") as fh:
-                nb = nbformat.read(fh, as_version=nbformat.NO_CONVERT)
+        with tempfile.TemporaryDirectory(prefix="pysap-notebook-") as runtime_dir:
+            class IPCAsyncKernelManager(AsyncKernelManager):
+                transport = "ipc"
+                ip = str(Path(runtime_dir) / "kernel")
 
-            executor = ExecutePreprocessor(
-                timeout=self.timeout,
-                kernel_name=self.kernel_name,
-                allow_errors=self.allow_errors,
-            )
-            resources = {"metadata": {"path": str(notebook.parent)}}
-            try:
-                executor.preprocess(nb, resources=resources)
-            except Exception as exc:
-                raise DistutilsExecError("Notebook execution failed for %s" % notebook) from exc
+            for notebook in self.notebooks:
+                self.announce("executing notebook %s" % notebook, level=2)
+                with notebook.open("r", encoding="utf-8") as fh:
+                    nb = nbformat.read(fh, as_version=nbformat.NO_CONVERT)
 
-            if self.clean:
-                self.announce("cleaning executed cells from notebook %s" % notebook, level=2)
-                self.clean_notebook(nb)
+                executor = ExecutePreprocessor(
+                    timeout=self.timeout,
+                    kernel_name=self.kernel_name,
+                    allow_errors=self.allow_errors,
+                    kernel_manager_class=IPCAsyncKernelManager,
+                )
+                resources = {"metadata": {"path": str(notebook.parent)}}
+                try:
+                    executor.preprocess(nb, resources=resources)
+                except Exception as exc:
+                    raise DistutilsExecError("Notebook execution failed for %s" % notebook) from exc
 
-            with notebook.open("w", encoding="utf-8") as fh:
-                nbformat.write(nb, fh)
+                if self.clean:
+                    self.announce("cleaning executed cells from notebook %s" % notebook, level=2)
+                    self.clean_notebook(nb)
+
+                with notebook.open("w", encoding="utf-8") as fh:
+                    nbformat.write(nb, fh)
 
     @staticmethod
     def clean_notebook(nb):
@@ -181,7 +189,7 @@ setup(name=read_metadata("__title__"),  # Package information
                    'Topic :: Security'],
       python_requires='>=3.10',
       # Packages list
-      packages=['pysap', 'pysap.utils', 'pysap.utils.crypto'],
+      packages=find_namespace_packages(include=['pysap', 'pysap.*']),
       provides=['pysapcompress', 'pysap'],
 
       # Pure Python compression module

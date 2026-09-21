@@ -9,6 +9,10 @@ include requirements-docs.txt
 include requirements-examples.txt
 include requirements-lint.txt
 include requirements-test.txt
+include pyproject.toml
+include setup.py
+include tox.ini
+include .readthedocs.yml
 
 # Include the docs
 recursive-include docs *
@@ -19,6 +23,9 @@ recursive-include extra *.py
 
 # Include the example scripts
 recursive-include examples *
+
+# Include the test suite and its fixtures
+recursive-include tests *
 
 # Exclude generated Python bytecode
 global-exclude *.py[cod]

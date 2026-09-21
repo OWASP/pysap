@@ -6,7 +6,7 @@ pysap - Python library for crafting SAP's network protocols packets
 [![Read the Docs](https://img.shields.io/readthedocs/pysap?logo=readthedocs)](https://pysap.readthedocs.io/)
 [![Discord](https://img.shields.io/discord/710814201358319676?logo=discord&label=Discord)](https://discord.com/channels/710814201358319676/1155823687329660948)
 
-Version 0.2.1.dev0 (in dev)
+Version 0.2.1
 
 Overview
 --------
@@ -115,39 +115,30 @@ file for more details.
 Authors
 -------
 
-he tool was initially designed and developed by Martin Gallo wile working at
+The tool was initially designed and developed by Martin Gallo while working at
 [SecureAuth's Innovation Labs](https://www.secureauth.com/labs/) team, with the
 help of many contributors. The code was then contributed by SecureAuth to the
 OWASP CBAS Project in October 2022.
 
 ### Contributors ###
 
-Contributions made by:
-
-  * Florian Grunow ([@0x79](https://twitter.com/0x79))
-  * Scott Walsh ([@invisiblethreat](https://github.com/invisiblethreat))
-  * Joris van de Vis ([@jvis](https://twitter.com/jvis))
-  * Victor Portal Gonzalez
-  * Dmitry Yudin ([@ret5et](https://github.com/ret5et))
-  * Hans-Christian Esperer ([@hce](https://github.com/hce))
-  * Vahagn Vardanyan ([@vah13](https://github.com/vah13))
-  * Mathieu Geli ([@gelim](https://github.com/gelim))
-  * Yvan Genuer ([@iggy38](https://github.com/iggy38))
-  * Malte Heinzelmann ([@hnzlmnn](https://github.com/hnzlmnn))
-  * [@codeHorse87](https://github.com/codeHorse87)
-  * Albert Zedlitz
-  * [@cclauss](https://github.com/cclauss)
-  * [@okuuva](https://github.com/okuuva)
-  * Dmitry Chastuhin ([@_chipik](https://twitter.com/_chipik))
-  * fabhap
-  * Andreas Hornig
-  * Jennifer Hornig ([@gloomicious](https://github.com/gloomicious))
-  * RedRays Security Team
-  * Vincent Berg
-  * Waseem Ajrab ([@default-eshu](https://github.com/default-eshu))
-  * [@randomstr1ng](https://github.com/randomstr1ng)
-  * Tyrox ([@DominikHolzapfel](https://github.com/DominikHolzapfel))
-  * Hackbarth
+Contributions made by Florian Grunow ([@0x79](https://twitter.com/0x79)),
+Scott Walsh ([@invisiblethreat](https://github.com/invisiblethreat)), Joris van de
+Vis ([@jvis](https://twitter.com/jvis)), Victor Portal Gonzalez, Dmitry Yudin
+([@ret5et](https://github.com/ret5et)), Hans-Christian Esperer
+([@hce](https://github.com/hce)), Vahagn Vardanyan
+([@vah13](https://github.com/vah13)), Mathieu Geli
+([@gelim](https://github.com/gelim)), Yvan Genuer
+([@iggy38](https://github.com/iggy38)), Malte Heinzelmann
+([@hnzlmnn](https://github.com/hnzlmnn)), [@codeHorse87](https://github.com/codeHorse87),
+Albert Zedlitz, [@cclauss](https://github.com/cclauss),
+[@okuuva](https://github.com/okuuva), Dmitry Chastuhin
+([@_chipik](https://twitter.com/_chipik)), fabhap, Andreas Hornig, Jennifer Hornig
+([@gloomicious](https://github.com/gloomicious)), RedRays Security Team, Vincent
+Berg, Waseem Ajrab ([@default-eshu](https://github.com/default-eshu)),
+[@randomstr1ng](https://github.com/randomstr1ng), Tyrox
+([@DominikHolzapfel](https://github.com/DominikHolzapfel)), Hackbarth, and Timm
+Lippert ([@Tmm](https://github.com/Gongxter)).
 
 Disclaimer
 ----------

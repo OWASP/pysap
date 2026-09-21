@@ -1,35 +1,35 @@
 # Changelog
 
-## v0.2.1.dev0 - in dev
+## v0.2.1 - 2026-09-21
 
 ### New features
 
 - `pysap/SAPEPP.py`: Added EPP v1–v3 structures, variable items,
   `SAP-PASSPORT` HTTP conversion, and SAP Diag/RFC/NWRFC bindings
-  ([#107](https://github.com/OWASP/pysap/pull/107)).
+  ([@martingalloar](https://github.com/martingalloar), [#107](https://github.com/OWASP/pysap/pull/107)).
 - `pysap/SAPPSE.py`, `bin/pysapgenpse`, and `extra/pse2john.py`: Added plain
-  PSE certificate export support ([#99](https://github.com/OWASP/pysap/pull/99)).
+  PSE certificate export support ([@martingalloar](https://github.com/martingalloar), [#99](https://github.com/OWASP/pysap/pull/99)).
 
 ### Enhancements and improvements
 
 - Routed-stream examples now expose a positive `--timeout` for bounded
   connection and response waits. Shared console helpers now provide common
   completion primitives and run command files through the full console
-  connection and cleanup lifecycle.
+  connection and cleanup lifecycle ([@martingalloar](https://github.com/martingalloar), [#108](https://github.com/OWASP/pysap/pull/108)).
 - `examples/router_fingerprint.py` and its JSON database: Added two modeled
   malformed-route probes, bounded NI timeouts, typed close outcomes, weighted
   fuzzy ranking, a static database-version summary, and sanitized fingerprints
-  for retained builds.
+  for retained builds ([@martingalloar](https://github.com/martingalloar), [#108](https://github.com/OWASP/pysap/pull/108)).
 - `pysap/SAPMS.py`, `examples/ms_monitor.py`, and Message Server docs: Added
   monitor operations, structures, enums, response fields, and SNC variants
-  ([#106](https://github.com/OWASP/pysap/pull/106)).
+  ([@martingalloar](https://github.com/martingalloar), [#106](https://github.com/OWASP/pysap/pull/106)).
 - `pysap/SAPNI.py`, `pysap/SAPRFC.py`, and docs: Added bounded NI streaming,
-  timeout controls, and named RFCID constants ([#107](https://github.com/OWASP/pysap/pull/107)).
+  timeout controls, and named RFCID constants ([@martingalloar](https://github.com/martingalloar), [#107](https://github.com/OWASP/pysap/pull/107)).
 - `pysap/utils/console.py`: Improved argument parsing, logging, cleanup, and
-  interactive exit handling ([#105](https://github.com/OWASP/pysap/pull/105)).
+  interactive exit handling ([@martingalloar](https://github.com/martingalloar), [#105](https://github.com/OWASP/pysap/pull/105)).
 - `README.md`, `docs/index.rst`: Refreshed project badges and documentation
   links.
-- CI: Updated GitHub Actions and adopted uv ([#98](https://github.com/OWASP/pysap/pull/98)).
+- CI: Updated GitHub Actions and adopted uv ([@martingalloar](https://github.com/martingalloar), [#98](https://github.com/OWASP/pysap/pull/98)).
 
 ### Fixes
 
@@ -47,7 +47,7 @@
 - `pysap/SAPMS.py` and Message Server examples: Distinguished forwarded peer,
   Dispatcher ADM, ASCS Gateway, and header-only frames; added bounded
   connection/response timeouts, reliable cleanup, scripted monitor startup,
-  and configurable impersonator identity fields.
+  and configurable impersonator identity fields ([@martingalloar](https://github.com/martingalloar), [#108](https://github.com/OWASP/pysap/pull/108)).
 - `examples/router_admin.py`, `examples/router_password_check.py`: Accept
   password-only info requests without logging the password, bound admin
   acknowledgements, and use bounded NI-stream framing for password-check
@@ -63,8 +63,8 @@
 - `pysap/SAPNI.py`: Treat a clean stream EOF as normal NI server-handler
   disconnect instead of surfacing an unhandled exception.
 - **Breaking:** Replaced the incompatible `SAPRFCTHStruct` name with
-  `pysap.SAPEPP.SAPEPP` and its canonical fields ([#107](https://github.com/OWASP/pysap/pull/107)).
-- `pysap/SAPCAR.py`: Fixed multi-block extraction ([#104](https://github.com/OWASP/pysap/pull/104)).
+  `pysap.SAPEPP.SAPEPP` and its canonical fields ([@martingalloar](https://github.com/martingalloar), [#107](https://github.com/OWASP/pysap/pull/107)).
+- `pysap/SAPCAR.py`: Fixed multi-block extraction ([@martingalloar](https://github.com/martingalloar), [#104](https://github.com/OWASP/pysap/pull/104)).
 - `pysap/SAPRFC.py`: Fixed Python 3 string/bytes handling and added
   `SAPXPG_END_XPG` handling ([@Tmm](https://github.com/Gongxter), [#103](https://github.com/OWASP/pysap/pull/103)).
 
