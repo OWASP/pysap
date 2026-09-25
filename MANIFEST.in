@@ -29,4 +29,3 @@ recursive-include tests *
 
 # Exclude generated Python bytecode
 global-exclude *.py[cod]
-global-exclude __pycache__

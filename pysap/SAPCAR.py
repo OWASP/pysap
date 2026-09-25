@@ -20,7 +20,7 @@
 import stat
 from zlib import crc32
 from struct import pack
-from datetime import datetime
+from datetime import datetime, timezone
 from os import stat as os_stat
 from io import BytesIO
 # External imports
@@ -438,7 +438,9 @@ class SAPCARArchiveFile(object):
         :return: timestamp in human-readable format
         :rtype: string
         """
-        return datetime.utcfromtimestamp(self._file_format.timestamp).strftime('%d %b %Y %H:%M')
+        return datetime.fromtimestamp(
+            self._file_format.timestamp, timezone.utc
+        ).strftime('%d %b %Y %H:%M')
 
     @timestamp.setter
     def timestamp(self, timestamp):

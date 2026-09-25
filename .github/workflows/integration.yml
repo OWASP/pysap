@@ -28,6 +28,7 @@ jobs:
         with:
           version: "0.12.2"
           enable-cache: true
+          cache-suffix: ${{ github.workflow }}-integration
           cache-dependency-glob: |
             requirements.txt
             requirements-test.txt

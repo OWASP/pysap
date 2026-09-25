@@ -18,7 +18,7 @@
 
 # Standard imports
 import struct
-from datetime import datetime
+from datetime import datetime, timezone
 # External imports
 from scapy.config import conf
 from scapy.packet import Packet
@@ -31,7 +31,11 @@ from scapy.fields import (MultiEnumField, StrLenField, Field, StrFixedLenField, 
 def saptimestamp_to_datetime(timestamp):
     """Converts a timestamp in "SAP format" to a datetime object. Time zone
     looks to be fixed at GMT+1."""
-    return datetime.utcfromtimestamp((int(timestamp) & 0xFFFFFFFF) + 1000000000)
+    # Keep the historical naive-UTC return value while avoiding the deprecated
+    # utcfromtimestamp() API.
+    return datetime.fromtimestamp(
+        (int(timestamp) & 0xFFFFFFFF) + 1000000000, timezone.utc
+    ).replace(tzinfo=None)
 
 
 class PacketNoPadded(Packet):
@@ -550,7 +554,7 @@ class TimestampField(LongField):
     """Timestamp field"""
 
     def i2h(self, pkt, x):
-        dt = datetime.utcfromtimestamp(x)
+        dt = datetime.fromtimestamp(x, timezone.utc)
         return dt.strftime("%Y-%m-%d %H:%M:%S UTC")
 
 
