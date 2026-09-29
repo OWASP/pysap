@@ -42,14 +42,48 @@ jobs:
         run: |
           PACKAGE_VERSION=$(python -c 'import re; from pathlib import Path; text=Path("pysap/__init__.py").read_text(); print(re.search(r"__version__\s*=\s*[\x27\"]([^\x27\"]+)", text).group(1))')
           test "v${PACKAGE_VERSION}" = "${RELEASE_TAG}"
+      - name: Extract release notes from changelog
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+          NOTES_FILE: ${{ runner.temp }}/release-notes.md
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          release_tag = os.environ["RELEASE_TAG"]
+          changelog = Path("ChangeLog.md").read_text(encoding="utf-8")
+          heading_pattern = re.compile(r"^##\s+(v\S+)(?:\s+-.*)?\s*$")
+          lines = changelog.splitlines()
+          start = None
+          end = len(lines)
+
+          for index, line in enumerate(lines):
+              match = heading_pattern.match(line)
+              if match and start is not None:
+                  end = index
+                  break
+              if match and match.group(1) == release_tag:
+                  start = index
+
+          if start is None:
+              raise SystemExit(f"No ChangeLog.md section found for {release_tag}")
+
+          notes = "\n".join(lines[start + 1:end]).strip()
+          if not notes:
+              raise SystemExit(f"ChangeLog.md section for {release_tag} is empty")
+          Path(os.environ["NOTES_FILE"]).write_text(notes + "\n", encoding="utf-8")
+          PY
       - name: Create draft GitHub release
         env:
           RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+          NOTES_FILE: ${{ runner.temp }}/release-notes.md
         run: |
           gh release create "${RELEASE_TAG}" \
             --verify-tag \
             --repo "${GITHUB_REPOSITORY}" \
             --draft \
             --title "pysap ${RELEASE_TAG}" \
-            --generate-notes \
+            --notes-file "${NOTES_FILE}" \
             dist/*
