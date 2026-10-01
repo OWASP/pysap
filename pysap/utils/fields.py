@@ -517,16 +517,21 @@ def asn1_decode_oid(data):
     if not value:
         raise ASN1_Error("Empty ASN.1 OID")
 
-    first = value[0]
-    oid = [first // 40, first % 40]
+    components = []
     current = 0
-    for byte in value[1:]:
+    continued = False
+    for byte in value:
         current = (current << 7) | (byte & 0x7f)
-        if not byte & 0x80:
-            oid.append(current)
+        continued = bool(byte & 0x80)
+        if not continued:
+            components.append(current)
             current = 0
-    if current:
+    if continued:
         raise ASN1_Error("Truncated ASN.1 OID component")
+
+    first = components.pop(0)
+    first_arc = min(first // 40, 2)
+    oid = [first_arc, first - first_arc * 40] + components
 
     return ".".join(str(component) for component in oid)
 

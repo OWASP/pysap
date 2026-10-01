@@ -38,6 +38,50 @@ Relevant options include ``-v`` for verbose output,
 ``--enforce-checksum`` to stop extraction of files with invalid checksums, and
 ``--break-on-error`` to stop processing after an extraction error.
 
+Manifest validation
+~~~~~~~~~~~~~~~~~~~
+
+Archives containing ``SIGNATURE.SMF``, ``MANIFEST.MF``, or ``MANIFEST`` can be
+checked before listing or extraction. Integrity validation verifies declared
+members, sizes, and content digests::
+
+    $ pysapcar -t -f archive.sar --validate-manifest
+    $ pysapcar -x -f archive.sar -o output-dir --validate-manifest
+
+Use ``--strict-manifest`` when a valid trusted signature is also required and
+each missing, unexpected, malformed, unsafe, or mismatched member should be
+reported. By default, verification uses the same embedded SAP signer and
+timestamp certificates used for native-compatible operation. A trust store or
+certificate directory overrides those defaults::
+
+    $ pysapcar -t -f archive.sar --strict-manifest \
+        --manifest-trust-store trusted-certificates.pem
+
+Trust checking supports a direct signer certificate or direct issuer match. It
+does not perform complete PKI path construction, certificate-policy checking,
+or revocation checking.
+
+An archive without a recognized manifest reports ``not-present``; strict mode
+fails because it cannot establish a trusted signature. Archives with multiple
+recognized manifest files are rejected as ambiguous so unsigned content cannot
+be merged into the scope of a different signature. Archive member paths are
+validated before extraction regardless of manifest presence.
+
+A detached PKCS#7 manifest can be created with a caller-owned certificate and
+unencrypted RSA private key::
+
+    $ pysapcar -c -f archive.sar payload.bin \
+        --sign-manifest signer.crt --signing-key signer.key
+
+Signing does not establish trust by itself. Validate the resulting archive
+against an independently configured trust store. The timestamp token is
+generated locally; it proves possession of the configured key, not a timestamp
+from an independent authority. The library crafting API defaults to safe member
+validation but accepts ``strict=False`` for deliberate malformed or tampered
+research cases. Test-only keys must be clearly identified and must never be
+reused outside the deterministic test fixtures; proprietary archives must not
+be committed as fixtures.
+
 
 ``pysapgenpse``
 ---------------

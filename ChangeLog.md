@@ -2,6 +2,14 @@
 
 ## v0.2.2.dev0 - in dev
 
+### New features
+
+- `pysap/SAPCAR.py`, `pysap/SAPCARManifest.py`, and `bin/pysapcar`: Added SAP
+  manifest parsing, content-integrity validation, trusted signature
+  verification, manifest signing and crafting, embedded SAP trust anchors,
+  and safe archive extraction path handling ([@martingalloar](https://github.com/martingalloar)).
+
+
 ## v0.2.1 - 2026-09-21
 
 ### New features
