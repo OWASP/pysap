@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use pysap, please cite it as below."
+type: software
+title: "pysap: Python library for crafting SAP network protocol packets"
+authors:
+  - family-names: Gallo
+    given-names: Martin
+  - name: "OWASP Core Business Application Security Project"
+version: 0.2.1
+date-released: 2026-09-21
+url: "https://github.com/OWASP/pysap"
+license: "GPL-2.0-or-later"
