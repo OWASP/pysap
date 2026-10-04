@@ -1,2 +1,2 @@
-scapy>=2.7.0
+scapy==2.7.0
 cryptography>=50.0,<51.0
