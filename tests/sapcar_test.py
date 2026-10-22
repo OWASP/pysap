@@ -19,13 +19,18 @@
 # Standard imports
 import sys
 import unittest
+from io import BytesIO
+from struct import pack
+from unittest.mock import patch
 from os import unlink, rmdir
 from os.path import basename, exists
+import pytest
 # External imports
 # Custom imports
 from tests.utils import data_filename
 from pysap.SAPCAR import (SAPCARArchive, SAPCARArchiveFile, SAPCARArchiveFilev200Format, SAPCARArchiveFilev201Format,
-                          SAPCAR_VERSION_200, SAPCAR_VERSION_201, SIZE_FOUR_GB)
+                          SAPCAR_VERSION_200, SAPCAR_VERSION_201, SIZE_FOUR_GB, SAPCARCompressedBlockFormat,
+                          SAPCARInvalidFileException, SAPCARInvalidChecksumException, DecompressError)
 
 
 class PySAPCARTest(unittest.TestCase):
@@ -265,6 +270,150 @@ class PySAPCARTest(unittest.TestCase):
             ff.file_length = (SIZE_FOUR_GB * 99999) + 99999
             self.assertEqual(ff.file_length_low, 99999)
             self.assertEqual(ff.file_length_high, 99999)
+
+
+def _block(kind, data, checksum=0):
+    if kind in (b"DA", b"ED"):
+        block = SAPCARArchiveFile.from_data(data, b"chunk")._file_format.blocks[0]
+        block.type = kind
+        block.checksum = checksum
+        return bytes(block)
+    return kind + pack("<I", len(data)) + data + (pack("<i", checksum) if kind == b"UE" else b"")
+
+
+@pytest.mark.parametrize("kind", [b"UD", b"UE"])
+def test_uncompressed_block_wire_format(kind):
+    raw = _block(kind, b"abc", -123)
+    block = SAPCARCompressedBlockFormat(raw + b"tail")
+    assert block.uncompressed_length == 3
+    assert block.uncompressed == b"abc"
+    assert bytes(block.payload) == b"tail"
+    block.remove_payload()
+    assert bytes(block) == raw
+    built = SAPCARCompressedBlockFormat(type=kind, uncompressed=b"abc", checksum=-123)
+    assert bytes(built) == raw
+
+
+@pytest.mark.parametrize("version", [SAPCAR_VERSION_200, SAPCAR_VERSION_201])
+@pytest.mark.parametrize("kinds", [(b"UD", b"UE"), (b"DA", b"UE"), (b"UD", b"ED"), (b"DA", b"ED")])
+def test_mixed_blocks_and_following_member(version, kinds):
+    first, second = b"first block", b"second block"
+    value = first + second
+    member = SAPCARArchiveFile.from_data(value, b"one", version)
+    member._file_format.blocks = []
+    crc = member.calculate_checksum(value)
+    raw = b"CAR " + version + bytes(member._file_format)
+    raw += _block(kinds[0], first) + _block(kinds[1], second, crc)
+    following = SAPCARArchiveFile.from_data(b"next", b"two", version)
+    raw += bytes(following._file_format)
+    archive = SAPCARArchive(BytesIO(raw), "r")
+    assert bytes(archive._sapcar) == raw
+    assert list(archive.files) == [b"one", b"two"]
+    member = archive.files[b"one"]
+    assert member.open(enforce_checksum=True).read() == value
+    assert member.checksum == crc
+    assert member.check_checksum()
+    assert archive.files[b"two"].open(enforce_checksum=True).read() == b"next"
+    member.checksum = crc ^ 1
+    with pytest.raises(SAPCARInvalidChecksumException):
+        member.open(enforce_checksum=True)
+    member.checksum = crc
+    target = SAPCAR_VERSION_201 if version == SAPCAR_VERSION_200 else SAPCAR_VERSION_200
+    archive.version = target
+    converted = SAPCARArchive(BytesIO(bytes(archive._sapcar)), "r")
+    assert list(converted.files) == [b"one", b"two"]
+    assert converted.files[b"one"].open(enforce_checksum=True).read() == value
+    # Conversion must not append members to Scapy's shared default lists.
+    assert not SAPCARArchive(BytesIO(), "w", target).files
+
+
+@pytest.mark.parametrize("kind", [b"ED", b"UE"])
+def test_truncated_blocks_and_unknown_types(kind):
+    valid = _block(kind, b"abc")
+    member = SAPCARArchiveFile.from_data(b"abc", b"one")
+    member._file_format.blocks = []
+    header = b"CAR 2.01" + bytes(member._file_format)
+    invalid_blocks = [valid[:length] for length in range(len(valid))]
+    invalid_blocks += [b"XX" + valid[2:], b"ED" + pack("<I", 7) + b"x" * 11]
+    for raw in invalid_blocks:
+        if raw:
+            with pytest.raises(SAPCARInvalidFileException):
+                SAPCARCompressedBlockFormat(raw)
+        with pytest.raises(SAPCARInvalidFileException):
+            SAPCARArchive(BytesIO(header + raw), "r")
+
+
+@pytest.mark.parametrize("kind", [b"DA", b"UD"])
+def test_missing_terminal_block(kind):
+    member = SAPCARArchiveFile.from_data(b"abc", b"one")
+    member._file_format.blocks = [SAPCARCompressedBlockFormat(_block(kind, b"abc"))]
+    with pytest.raises(SAPCARInvalidFileException, match="Missing end"):
+        member.open()
+    with pytest.raises(SAPCARInvalidFileException):
+        SAPCARArchive(BytesIO(b"CAR 2.01" + bytes(member._file_format)), "r")
+
+
+def test_extraction_checks_lengths_before_decompression():
+    member = SAPCARArchiveFile.from_data(b"abc", b"one")
+    member._file_format.blocks[0].compressed.uncompress_length = 0xffffffff
+    with patch("pysap.SAPCAR.decompress") as decoder:
+        with pytest.raises(SAPCARInvalidFileException, match="decompression length"):
+            member.open()
+        decoder.assert_not_called()
+    member._file_format.blocks[0].compressed.uncompress_length = 3
+    with patch("pysap.SAPCAR.decompress", return_value=(0, 3, b"ab")):
+        with pytest.raises(DecompressError):
+            member.open()
+    member._file_format.file_length = 4
+    with pytest.raises(SAPCARInvalidFileException, match="Extracted length"):
+        member.open()
+
+
+def test_uncompressed_length_and_terminal_block_validation():
+    member = SAPCARArchiveFile.from_data(b"abc", b"one")
+    block = SAPCARCompressedBlockFormat(_block(b"UE", b"abc"))
+    member._file_format.blocks = [block]
+    for declared, member_size in [(4, 3), (3, 2)]:
+        block.uncompressed_length = declared
+        member._file_format.file_length = member_size
+        output = BytesIO()
+        with pytest.raises(SAPCARInvalidFileException, match="uncompressed block length"):
+            member._file_format.extract(output)
+        assert not output.getvalue()
+    block.uncompressed_length = member._file_format.file_length = 3
+    member._file_format.blocks.append(block.copy())
+    with pytest.raises(SAPCARInvalidFileException, match="Blocks follow"):
+        member.open()
+    with pytest.raises(SAPCARInvalidFileException, match="More than one"):
+        _ = member.checksum
+
+
+@pytest.mark.parametrize("version", [SAPCAR_VERSION_200, SAPCAR_VERSION_201])
+def test_version_conversion_keeps_archives_independent(version):
+    archive = SAPCARArchive(BytesIO(), "w", version)
+    member = SAPCARArchiveFile.from_data(b"abc", b"named.txt", version)
+    member._file_format.user_info = b"info"
+    member._file_format.user_info_length = 4
+    archive._files.append(member._file_format)
+    original_files = archive._files
+    archive.version = SAPCAR_VERSION_201 if version == SAPCAR_VERSION_200 else SAPCAR_VERSION_200
+    assert len(original_files) == 1
+    assert not SAPCARArchive(BytesIO(), "w", archive.version).files
+    converted = SAPCARArchive(BytesIO(bytes(archive._sapcar)), "r").files[b"named.txt"]
+    assert converted.open(enforce_checksum=True).read() == b"abc"
+    assert converted._file_format.user_info == b"info"
+
+
+def test_many_uncompressed_blocks():
+    value = b"a" * 256
+    member = SAPCARArchiveFile.from_data(value, b"one")
+    member._file_format.blocks = []
+    raw = b"CAR 2.01" + bytes(member._file_format)
+    raw += _block(b"UD", b"a") * 255
+    raw += _block(b"UE", b"a", member.calculate_checksum(value))
+    parsed = SAPCARArchive(BytesIO(raw), "r").files[b"one"]
+    assert len(parsed._file_format.blocks) == 256
+    assert parsed.open(enforce_checksum=True).read() == value
 
 
 def suite():

@@ -9,6 +9,13 @@
   verification, manifest signing and crafting, embedded SAP trust anchors,
   and safe archive extraction path handling ([@martingalloar](https://github.com/martingalloar)).
 
+### Bug fixes
+
+- `pysap/SAPCAR.py`: Parse and extract uncompressed and mixed archive blocks,
+  validate block framing and output lengths, and handle uncompressed final-block
+  checksums. Preserve member names and metadata during version conversion and
+  prevent converted members from leaking into subsequently created archives.
+
 
 ## v0.2.1 - 2026-09-21
 
